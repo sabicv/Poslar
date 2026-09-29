@@ -27,11 +27,11 @@ Svaki paket ima i svoju karticu na nalogu i svoju stranicu u izborniku.
 
 Potrebno: Node.js 20+ i **novi** Supabase projekt. Ne koristite projekt servisa Šabić.
 
-1. **Supabase:** na [supabase.com](https://supabase.com) → New project, regija *Central EU (Frankfurt)*.
+1. **Supabase:** na [supabase.com](https://supabase.com) → New project, regija *West EU (Ireland)* ili *Central EU (Frankfurt)* — Vercel regiju u `vercel.json` uskladite s bazom.
 2. **Ključevi:** kopirajte `.env.example` u `.env.local` i upišite:
    - `NEXT_PUBLIC_SUPABASE_URL` i `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Project Settings → API);
    - `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API → service_role, **tajno**);
-   - `SUPABASE_DB_URL` (Project Settings → Database → Connection string → URI, s lozinkom baze);
+   - `SUPABASE_DB_URL` (gumb **Connect** → **Session pooler**, bez lozinke) i `SUPABASE_DB_PASSWORD` (lozinka baze);
    - po želji `SUPER_ADMIN_EMAIL` i `SUPER_ADMIN_PASSWORD` (vaš račun za `/admin`).
 3. **Instalacija i baza:**
    ```bash
@@ -62,7 +62,7 @@ Isto vrijedi za `gear`, `body`, `wheel`, `fleet` i `moto`. Seed na kraju ispiše
 
 ## Objava (Vercel)
 
-1. `npx vercel` pa `npx vercel --prod` (regija `fra1` je u `vercel.json`).
+1. `npx vercel` pa `npx vercel --prod` (regija `dub1` — Dublin, uz bazu u eu-west-1 — je u `vercel.json`).
 2. U Vercelu, Settings → Environment Variables, upišite iste varijable kao u `.env.local`, osim `SUPABASE_DB_URL` i demo varijabli. `NEXT_PUBLIC_APP_URL` postavite na pravu adresu.
 3. Domene: dodajte `voltfiles.hr`, `gearfiles.hr` i ostale na isti projekt. Aplikacija sama bira proizvod po domeni. Za adrese koje nisu domena proizvoda vrijedi `NEXT_PUBLIC_DEFAULT_PACKAGE`.
 4. U Supabaseu, Authentication → URL Configuration, dodajte te domene.

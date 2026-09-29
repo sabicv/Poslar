@@ -13,8 +13,11 @@ dotenv.config({ path: path.join(root, '.env.local') });
 dotenv.config({ path: path.join(root, '.env') });
 
 const url = process.env.SUPABASE_DB_URL;
-if (!url || url.includes('[PASSWORD]')) {
-  console.error('Upišite SUPABASE_DB_URL u .env.local (Supabase → Project Settings → Database → Connection string → URI).');
+// The password may also be given on its own, so special characters in it
+// (@ # / :) never have to be URL-encoded into the connection string.
+const password = process.env.SUPABASE_DB_PASSWORD || undefined;
+if (!url || /\[(YOUR-)?PASSWORD\]/.test(url) || (!password && !/:\/\/[^/]+:[^@]+@/.test(url))) {
+  console.error('Upišite SUPABASE_DB_URL i lozinku baze (SUPABASE_DB_PASSWORD) u .env.local.');
   process.exit(1);
 }
 
@@ -22,7 +25,7 @@ const all = process.argv.includes('--all');
 const dir = path.join(root, 'supabase', 'migrations');
 const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
 
-const client = new pg.Client({ connectionString: url, ssl: url.includes('localhost') ? false : { rejectUnauthorized: false } });
+const client = new pg.Client({ connectionString: url, password, ssl: url.includes('localhost') ? false : { rejectUnauthorized: false } });
 await client.connect();
 await client.query('create schema if not exists xfiles_meta');
 await client.query('create table if not exists xfiles_meta.migrations (name text primary key, applied_at timestamptz not null default now())');
