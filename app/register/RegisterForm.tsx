@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProductMark } from '@/components/ProductMark';
 import { Button, Field, Input } from '@/components/ui';
@@ -16,6 +16,8 @@ export function RegisterForm({ initialPackage, packageLocked }: { initialPackage
   const [accept, setAccept] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [checkEmail, setCheckEmail] = useState(false);
+  const openedAt = useRef(Date.now());
 
   const set = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [key]: event.target.value }));
 
@@ -23,10 +25,14 @@ export function RegisterForm({ initialPackage, packageLocked }: { initialPackage
     event.preventDefault();
     setPending(true);
     setError(null);
-    const result = await registerWorkshop({ ...form, package: pkg, acceptTerms: accept as true });
+    const result = await registerWorkshop({ ...form, package: pkg, acceptTerms: accept as true, elapsedMs: Date.now() - openedAt.current });
     if (!result.ok) {
       setPending(false);
       setError(result.error);
+      return;
+    }
+    if (result.data?.confirmEmail) {
+      setCheckEmail(true);
       return;
     }
     const { error: signInError } = await createBrowserSupabaseClient().auth.signInWithPassword({ email: form.email.trim().toLowerCase(), password: form.password });
@@ -36,6 +42,17 @@ export function RegisterForm({ initialPackage, packageLocked }: { initialPackage
     }
     router.replace('/app');
     router.refresh();
+  }
+
+  if (checkEmail) {
+    return (
+      <div className="rounded-2xl border border-ok/40 bg-ok/10 p-5 text-sm">
+        <p className="font-medium text-fg">Provjerite e-mail</p>
+        <p className="mt-1 text-muted">
+          Poslali smo poveznicu za potvrdu na {form.email}. Nakon potvrde prijavite se e-mailom i lozinkom. Ako poruka ne stigne za nekoliko minuta, pogledajte i mapu neželjene pošte.
+        </p>
+      </div>
+    );
   }
 
   return (

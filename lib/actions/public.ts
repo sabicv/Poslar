@@ -1,13 +1,28 @@
 'use server';
 
+import { createHash } from 'node:crypto';
 import { headers } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { PACKAGE_IDS, type PackageId } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { createAdminClient } from '@/lib/supabase/admin';
 
+async function clientIp(): Promise<{ ip: string | null; userAgent: string | null }> {
+  const h = await headers();
+  const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || null;
+  return { ip, userAgent: h.get('user-agent') };
+}
+
 // ---------------------------------------------------------------------
 // Self-registration: a workshop signs up and gets a free trial.
+//
+// Abuse protection: honeypot field, minimum time on the form, at most
+// REGISTRATION_PER_HOUR attempts per IP (stored only as a salted hash) and
+// REGISTRATION_DAILY_LIMIT in total. With REGISTRATION_EMAIL_CONFIRM=1 the
+// account must confirm its e-mail before the first sign-in (needs custom
+// SMTP in Supabase); an existing address then gets the same answer as a
+// new one, so the form can't be used to discover who has an account.
 // ---------------------------------------------------------------------
 const registerSchema = z.object({
   package: z.enum(PACKAGE_IDS as [PackageId, ...PackageId[]]),
@@ -18,30 +33,58 @@ const registerSchema = z.object({
   phone: z.string().trim().max(40).optional(),
   city: z.string().trim().max(80).optional(),
   oib: z.string().trim().regex(/^\d{11}$/, 'OIB ima 11 znamenki.').optional().or(z.literal('')),
-  // Honeypot: people never see this field, bots fill it.
-  website: z.string().max(0).optional(),
+  website: z.string(),
+  elapsedMs: z.number().int().min(0),
   acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Potvrdite uvjete korištenja.' }) }),
 });
 
-export async function registerWorkshop(values: z.input<typeof registerSchema>): Promise<ActionResult> {
+const GENERIC_FAILURE = 'Registracija nije uspjela. Ako već imate račun, prijavite se; inače pokušajte ponovno za nekoliko minuta.';
+
+export async function registerWorkshop(values: z.input<typeof registerSchema>): Promise<ActionResult<{ confirmEmail: boolean }>> {
   const parsed = registerSchema.safeParse(values);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite podatke.');
   const v = parsed.data;
-  const admin = createAdminClient();
+  // Bots fill the hidden field or submit faster than a person can type.
+  if (v.website !== '' || v.elapsedMs < 3000) return fail(GENERIC_FAILURE);
 
-  const { data: created, error } = await admin.auth.admin.createUser({
-    email: v.email,
-    password: v.password,
-    email_confirm: true,
-    user_metadata: { full_name: v.fullName },
-  });
-  if (error || !created.user) {
-    return fail(/already|registered|exists/i.test(error?.message ?? '') ? 'Taj e-mail već ima račun — prijavite se.' : 'Registracija nije uspjela. Pokušajte ponovno.');
+  const admin = createAdminClient();
+  const { ip } = await clientIp();
+  const ipHash = createHash('sha256').update(`${ip ?? 'unknown'}|${process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''}`).digest('hex').slice(0, 40);
+  const hourAgo = new Date(Date.now() - 3600_000).toISOString();
+  const dayAgo = new Date(Date.now() - 86400_000).toISOString();
+  const [{ count: perIp }, { count: perDay }] = await Promise.all([
+    admin.from('registration_attempts').select('id', { count: 'exact', head: true }).eq('ip_hash', ipHash).gte('created_at', hourAgo),
+    admin.from('registration_attempts').select('id', { count: 'exact', head: true }).gte('created_at', dayAgo),
+  ]);
+  if ((perIp ?? 0) >= (Number(process.env.REGISTRATION_PER_HOUR) || 5) || (perDay ?? 0) >= (Number(process.env.REGISTRATION_DAILY_LIMIT) || 100)) {
+    return fail(GENERIC_FAILURE);
+  }
+  await admin.from('registration_attempts').insert({ ip_hash: ipHash });
+
+  const confirmEmail = process.env.REGISTRATION_EMAIL_CONFIRM === '1';
+  let userId: string | null = null;
+  if (confirmEmail) {
+    const anon = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false, autoRefreshToken: false } });
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+    const { data, error } = await anon.auth.signUp({
+      email: v.email,
+      password: v.password,
+      options: { data: { full_name: v.fullName }, emailRedirectTo: `${appUrl}/login?potvrda=1` },
+    });
+    if (error) return fail(GENERIC_FAILURE);
+    // An address that already has an account comes back without identities:
+    // answer exactly as for a new one.
+    if (!data.user || (data.user.identities && data.user.identities.length === 0)) return { ok: true, data: { confirmEmail: true } };
+    userId = data.user.id;
+  } else {
+    const { data, error } = await admin.auth.admin.createUser({ email: v.email, password: v.password, email_confirm: true, user_metadata: { full_name: v.fullName } });
+    if (error || !data.user) return fail(GENERIC_FAILURE);
+    userId = data.user.id;
   }
 
   const trialDays = Math.max(1, Number(process.env.TRIAL_DAYS ?? 30) || 30);
   const { error: rpcError } = await admin.rpc('register_workshop', {
-    p_user_id: created.user.id,
+    p_user_id: userId,
     p_full_name: v.fullName,
     p_workshop_name: v.workshopName,
     p_package: v.package,
@@ -52,67 +95,49 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
     p_trial_days: trialDays,
   });
   if (rpcError) {
-    await admin.auth.admin.deleteUser(created.user.id);
+    await admin.auth.admin.deleteUser(userId);
     return fail('Radionica nije stvorena. Pokušajte ponovno.');
   }
-  return { ok: true };
+  return { ok: true, data: { confirmEmail } };
 }
 
 // ---------------------------------------------------------------------
-// Customer approval by link (no account). Runs with the service role, so
-// every check the database would do for a user is repeated here.
+// Customer approval by link (no account). The whole decision runs in one
+// database function (decide_approval, 0007_hardening.sql): the link is
+// locked while deciding, expiry and job lock are checked, every proposed
+// line must be decided exactly once, and it is saved all-or-nothing.
 // ---------------------------------------------------------------------
 const decisionSchema = z.object({
   signerName: z.string().trim().min(2, 'Upišite ime i prezime.').max(120),
   decisions: z.array(z.object({ lineId: z.string().uuid(), decision: z.enum(['approved', 'declined']) })).min(1).max(200),
 });
 
+const APPROVAL_ERRORS: Record<string, string> = {
+  approval_not_found: 'Poveznica ne postoji.',
+  approval_already_decided: 'Odluka je već poslana. Hvala!',
+  approval_expired: 'Poveznica je istekla. Javite se servisu.',
+  approval_job_locked: 'Nalog je zaključan. Javite se servisu.',
+  approval_incomplete: 'Odlučite o svakoj predloženoj stavci (odobravam ili ne sada).',
+  approval_nothing_proposed: 'Nema stavki za odluku.',
+  approval_signer: 'Upišite ime i prezime.',
+  approval_invalid: 'Odabir nije ispravan. Osvježite stranicu.',
+};
+
 export async function submitApproval(token: string, values: z.input<typeof decisionSchema>): Promise<ActionResult> {
   if (!/^[0-9a-f-]{36}$/i.test(token)) return fail('Neispravna poveznica.');
   const parsed = decisionSchema.safeParse(values);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite odabir.');
-  const admin = createAdminClient();
-
-  const { data: approval } = await admin.from('approvals').select('id, tenant_id, job_id, status, expires_at').eq('token', token).maybeSingle();
-  if (!approval) return fail('Poveznica ne postoji.');
-  if (approval.status === 'decided') return fail('Odluka je već poslana. Hvala!');
-  if (approval.status === 'expired' || new Date(approval.expires_at) < new Date()) return fail('Poveznica je istekla. Javite se servisu.');
-
-  const { data: job } = await admin.from('jobs').select('locked_at').eq('id', approval.job_id).single();
-  if (job?.locked_at) return fail('Nalog je zaključan. Javite se servisu.');
-
-  const { data: lines } = await admin.from('job_lines').select('id').eq('job_id', approval.job_id).eq('approval', 'proposed');
-  const allowed = new Set((lines ?? []).map((l) => l.id as string));
-  const decisions = parsed.data.decisions.filter((d) => allowed.has(d.lineId));
-  if (decisions.length === 0) return fail('Nema stavki za odluku.');
-
-  for (const d of decisions) {
-    await admin.from('job_lines').update({ approval: d.decision }).eq('id', d.lineId).eq('job_id', approval.job_id);
-  }
-
-  const h = await headers();
-  await admin
-    .from('approvals')
-    .update({
-      status: 'decided',
-      decided_at: new Date().toISOString(),
-      decisions,
-      signer_name: parsed.data.signerName,
-      ip: h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
-      user_agent: h.get('user-agent')?.slice(0, 300) ?? null,
-    })
-    .eq('id', approval.id);
-
-  const approvedCount = decisions.filter((d) => d.decision === 'approved').length;
-  await admin.from('job_events').insert({
-    tenant_id: approval.tenant_id,
-    job_id: approval.job_id,
-    event_type: 'approval',
-    message: `${parsed.data.signerName} odobrio/la ${approvedCount} od ${decisions.length} stavki`,
-    metadata: { decisions },
+  const { ip, userAgent } = await clientIp();
+  const { error } = await createAdminClient().rpc('decide_approval', {
+    p_token: token,
+    p_signer: parsed.data.signerName,
+    p_decisions: parsed.data.decisions,
+    p_ip: ip,
+    p_user_agent: userAgent,
   });
-  if (approvedCount > 0) {
-    await admin.from('jobs').update({ phase: 'in_progress' }).eq('id', approval.job_id).eq('phase', 'awaiting_approval');
+  if (error) {
+    const key = Object.keys(APPROVAL_ERRORS).find((k) => error.message.includes(k));
+    return fail(key ? APPROVAL_ERRORS[key] : 'Odluka nije spremljena. Pokušajte ponovno.');
   }
   return { ok: true };
 }

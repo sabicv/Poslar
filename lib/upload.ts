@@ -31,7 +31,11 @@ export interface UploadOptions {
 // then one small call records it. EXIF time/GPS and the SHA-256 come from
 // the ORIGINAL file, before compression strips them — that hash is the
 // proof an insurer can check.
+const MAX_BYTES = 25 * 1024 * 1024; // same limit as the job-files bucket
+
 export async function uploadFile({ tenantId, jobId, assetId = null, file, tag = null, caption = null, stage = null, zone = null }: UploadOptions) {
+  // Checked before hashing, so a huge file never gets read into memory.
+  if (file.size > MAX_BYTES) throw new Error(`Datoteka „${file.name}” je veća od 25 MB.`);
   const supabase = createBrowserSupabaseClient();
   const [meta, hash] = await Promise.all([readPhotoMetadata(file), sha256(file)]);
   const body = await compressImage(file);

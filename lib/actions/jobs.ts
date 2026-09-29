@@ -59,7 +59,7 @@ const newJobSchema = z.object({
 
 export type NewJobInput = z.input<typeof newJobSchema>;
 
-export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: string }>> {
+export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: string; warning?: string }>> {
   const ctx = await requireWorkshop();
   const parsed = newJobSchema.safeParse(input);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite podatke.');
@@ -123,10 +123,12 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
   }
   await logEvent(ctx, job.id, 'created', `Nalog ${job.number} otvorio/la ${actorName(ctx)}`);
 
-  if (v.templateCode) await insertTemplate(ctx, job.id, v.templateCode);
+  // The job exists either way; a template that fails is reported, not hidden.
+  const template = v.templateCode ? await insertTemplate(ctx, job.id, v.templateCode) : null;
+  const warning = template && !template.ok ? `Nalog je otvoren, ali predložak nije dodan (${template.error}). Dodajte ga u kartici Stavke.` : undefined;
 
   revalidatePath('/app');
-  return { ok: true, data: { id: job.id as string } };
+  return { ok: true, data: { id: job.id as string, warning } };
 }
 
 // Template lines go in with the user's rights; their default prices come
@@ -245,7 +247,7 @@ export async function setJobPaid(jobId: string, paid: boolean): Promise<ActionRe
 
 export async function setJobLocked(jobId: string, locked: boolean): Promise<ActionResult> {
   const ctx = await requireWorkshop();
-  if (!locked && !ctx.isOwner) return fail('Samo voditelj servisa otključava nalog.');
+  if (!ctx.isOwner) return fail('Samo voditelj servisa zaključava i otključava nalog.');
   const { error } = await ctx.supabase.from('jobs').update({ locked_at: locked ? new Date().toISOString() : null }).eq('id', jobId);
   if (error) return fail(error);
   await logEvent(ctx, jobId, 'lock', locked ? `Zaključano · ${actorName(ctx)}` : `Otključano · ${actorName(ctx)}`);
@@ -425,30 +427,37 @@ export async function linesFromInspection(jobId: string, inspectionId: string): 
   if (!results?.length) return { ok: true, data: { count: 0 } };
 
   const { data: last } = await ctx.supabase.from('job_lines').select('sort').eq('job_id', jobId).order('sort', { ascending: false }).limit(1);
-  let sort = ((last?.[0]?.sort as number | undefined) ?? 0) + 1;
-  for (const r of results) {
-    const label = labels.get(r.item_code as string) ?? (r.item_code as string);
-    const measure = r.measure_value !== null ? ` (${r.measure_value} ${r.measure_unit ?? ''})`.replace(' )', ')') : '';
-    const { data: line, error } = await ctx.supabase
-      .from('job_lines')
-      .insert({
-        tenant_id: ctx.tenant.id,
-        job_id: jobId,
-        sort: sort++,
-        kind: 'labor' as LineKind,
-        description: `${label}${measure}${r.note ? ` — ${r.note}` : ''}`,
-        qty: 1,
-        unit: 'kom',
-        priority: (r.status === 'crit' ? 'urgent' : 'recommended') as LinePriority,
-        approval: 'proposed',
-        source: 'inspection',
-        inspection_result_id: r.id,
+  const start = ((last?.[0]?.sort as number | undefined) ?? 0) + 1;
+
+  // One insert for all findings; each line carries its inspection_result_id,
+  // which is how the results are linked back below.
+  const { data: inserted, error } = await ctx.supabase
+    .from('job_lines')
+    .insert(
+      results.map((r, i) => {
+        const label = labels.get(r.item_code as string) ?? (r.item_code as string);
+        const measure = r.measure_value !== null ? ` (${r.measure_value} ${r.measure_unit ?? ''})`.replace(' )', ')') : '';
+        return {
+          tenant_id: ctx.tenant.id,
+          job_id: jobId,
+          sort: start + i,
+          kind: 'labor' as LineKind,
+          description: `${label}${measure}${r.note ? ` — ${r.note}` : ''}`,
+          qty: 1,
+          unit: 'kom',
+          priority: (r.status === 'crit' ? 'urgent' : 'recommended') as LinePriority,
+          approval: 'proposed',
+          source: 'inspection',
+          inspection_result_id: r.id,
+        };
       })
-      .select('id')
-      .single();
-    if (error) return fail(error);
-    await ctx.supabase.from('inspection_results').update({ job_line_id: line.id }).eq('id', r.id);
-  }
+    )
+    .select('id, inspection_result_id');
+  if (error) return fail(error);
+  const links = await Promise.all(
+    (inserted ?? []).map((line) => ctx.supabase.from('inspection_results').update({ job_line_id: line.id }).eq('id', line.inspection_result_id))
+  );
+  if (links.some((l) => l.error)) return fail('Stavke su dodane, ali dio nalaza nije povezan. Osvježite stranicu.');
   await logEvent(ctx, jobId, 'inspection', `Iz inspekcije predloženo ${results.length} stavki`);
   revalidatePath(jobPath(jobId));
   return { ok: true, data: { count: results.length } };

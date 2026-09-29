@@ -1,15 +1,19 @@
 import Link from 'next/link';
 import { Lock, Phone } from 'lucide-react';
+import { CopilotDrawer } from '@/components/copilot/CopilotDrawer';
 import { Badge, BackLink, Dot } from '@/components/ui';
 import { ASSET_TYPE_LABELS, PHASE_TONE, phaseLabel, type PackageConfig } from '@/config/tenant.config';
 import { assetTitle, clientName, formatDateTime, formatEuro, formatMeter } from '@/lib/format';
 import type { JobWithRefs } from '@/types/db';
 
-export function JobHeader({ job, pkg, total }: { job: JobWithRefs; pkg: PackageConfig; total: number | null }) {
+export function JobHeader({ job, pkg, total, copilot }: { job: JobWithRefs; pkg: PackageConfig; total: number | null; copilot: boolean }) {
   const tone = PHASE_TONE[job.phase];
   return (
     <header className="mb-4">
-      <BackLink href="/app">Nalozi</BackLink>
+      <div className="flex items-start justify-between gap-3">
+        <BackLink href="/app">Nalozi</BackLink>
+        <CopilotDrawer jobId={job.id} enabled={copilot} />
+      </div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="mb-1.5 flex flex-wrap items-center gap-2">

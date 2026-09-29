@@ -85,7 +85,7 @@ export async function createStaff(values: z.input<typeof staffSchema>): Promise<
     user_metadata: { full_name: v.fullName },
   });
   if (error || !created.user) {
-    return fail(/already|registered|exists/i.test(error?.message ?? '') ? 'Taj e-mail već ima račun.' : error?.message ?? 'Račun nije stvoren.');
+    return fail(/already|registered|exists/i.test(error?.message ?? '') ? 'Taj e-mail već ima račun.' : error ?? 'Račun nije stvoren.');
   }
   const { error: profileError } = await admin.from('profiles').insert({ id: created.user.id, tenant_id: ctx.tenant.id, full_name: v.fullName, role: v.role });
   if (profileError) {
@@ -119,7 +119,7 @@ export async function resetStaffPassword(userId: string, password: string): Prom
   if (error) return fail(error);
   if (password.length < 8) return fail('Lozinka mora imati barem 8 znakova.');
   const { error: authError } = await createAdminClient().auth.admin.updateUserById(userId, { password });
-  if (authError) return fail(authError.message);
+  if (authError) return fail(authError);
   return { ok: true };
 }
 
@@ -127,7 +127,7 @@ export async function removeStaff(userId: string): Promise<ActionResult> {
   const { error } = await staffOfMyWorkshop(userId);
   if (error) return fail(error);
   const { error: deleteError } = await createAdminClient().auth.admin.deleteUser(userId);
-  if (deleteError) return fail(deleteError.message);
+  if (deleteError) return fail(deleteError);
   revalidatePath('/app/settings');
   return { ok: true };
 }

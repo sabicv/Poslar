@@ -17,11 +17,21 @@ export default async function AdminPage() {
   const { user } = await getAuth();
   const admin = createAdminClient();
 
-  const [{ data: tenants }, { data: profiles }, { data: jobs }] = await Promise.all([
+  const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+  const [{ data: tenants }, { data: profiles }, { data: jobs }, { data: ai }] = await Promise.all([
     admin.from('tenants').select('*').order('created_at', { ascending: false }),
     admin.from('profiles').select('tenant_id, role, full_name, id'),
-    admin.from('jobs').select('tenant_id, created_at').gte('created_at', new Date(Date.now() - 30 * 86400000).toISOString()),
+    admin.from('jobs').select('tenant_id, created_at').gte('created_at', monthAgo),
+    admin.from('copilot_messages').select('tenant_id, input_tokens, output_tokens').eq('role', 'assistant').gte('created_at', monthAgo).limit(20000),
   ]);
+  // AI Kopilot usage per workshop over 30 days (answers and tokens).
+  const aiUsage = new Map<string, { answers: number; tokens: number }>();
+  for (const row of ai ?? []) {
+    const u = aiUsage.get(row.tenant_id as string) ?? { answers: 0, tokens: 0 };
+    u.answers++;
+    u.tokens += Number(row.input_tokens ?? 0) + Number(row.output_tokens ?? 0);
+    aiUsage.set(row.tenant_id as string, u);
+  }
   const list = (tenants ?? []) as Tenant[];
   const staffCount = new Map<string, number>();
   const ownerName = new Map<string, string>();
@@ -81,7 +91,10 @@ export default async function AdminPage() {
                   <p className="truncate text-xs text-muted">
                     {[ownerName.get(t.id), t.city, t.oib && `OIB ${t.oib}`, `${staffCount.get(t.id) ?? 0} korisnika`, `od ${formatDate(t.created_at)}`].filter(Boolean).join(' · ')}
                   </p>
-                  <p className="text-xs text-faint">{act ? `${act.count} naloga u 30 dana · zadnji ${formatRelative(act.last)}` : 'Nema naloga u 30 dana'}</p>
+                  <p className="text-xs text-faint">
+                    {act ? `${act.count} naloga u 30 dana · zadnji ${formatRelative(act.last)}` : 'Nema naloga u 30 dana'}
+                    {aiUsage.get(t.id) ? ` · Kopilot: ${aiUsage.get(t.id)!.answers} odgovora, ${Math.round(aiUsage.get(t.id)!.tokens / 1000)}k tokena` : ''}
+                  </p>
                 </div>
                 <Badge tone={t.status === 'active' ? 'ok' : t.status === 'trial' ? (left !== null && left < 0 ? 'crit' : 'warn') : 'crit'}>
                   {t.status === 'active' ? 'Aktivna' : t.status === 'trial' ? (left !== null && left < 0 ? 'Proba istekla' : `Proba · ${left ?? '?'} d`) : 'Isključena'}

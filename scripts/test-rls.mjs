@@ -117,14 +117,51 @@ await as(U.aWorker, async () => {
   check('does NOT see totals', (await q(`select * from public.job_totals`)).length === 0);
   check('does NOT see price lists', (await q(`select * from public.price_lists`)).length === 0);
   check('cannot mark paid', await fails(() => q(`update public.jobs set payment_status = 'paid' where id = $1`, [ids.job])));
+  check(
+    'cannot INSERT a job already marked paid',
+    await fails(() => q(`insert into public.jobs (tenant_id, client_id, asset_id, payment_status, paid_at) values ($1,$2,$3,'paid',now())`, [tA, ids.client, ids.asset]))
+  );
+  check('cannot INSERT a locked job', await fails(() => q(`insert into public.jobs (tenant_id, client_id, asset_id, locked_at) values ($1,$2,$3,now())`, [tA, ids.client, ids.asset])));
+  const [picked] = await q(`insert into public.jobs (tenant_id, client_id, asset_id, number) values ($1,$2,$3,999) returning number`, [tA, ids.client, ids.asset]);
+  check('cannot choose the job number', picked.number !== 999, `${picked.number}`);
   check('cannot delete the job', (await q(`delete from public.jobs where id = $1 returning id`, [ids.job])).length === 0);
   check('cannot change own role', await fails(() => q(`update public.profiles set role = 'owner' where id = $1`, [U.aWorker])));
   check('cannot change package', await fails(() => q(`update public.tenants set package = 'gear'`)));
-  check('can lock the job', (await q(`update public.jobs set locked_at = now() where id = $1 returning id`, [ids.job])).length === 1);
+  check('cannot lock a job', await fails(() => q(`update public.jobs set locked_at = now() where id = $1`, [ids.job])));
+  const [msg] = await q(`insert into public.job_messages (tenant_id, job_id, sender_id, kind, body) values ($1,$2,$3,'help','Trebam pomoć') returning id`, [tA, ids.job, U.aWorker]);
+  check('can send a help message', Boolean(msg?.id));
+  check('cannot send a task', await fails(() => q(`insert into public.job_messages (tenant_id, job_id, sender_id, receiver_id, kind, body) values ($1,$2,$3,$4,'task','x')`, [tA, ids.job, U.aWorker, U.aOwner])));
+  check('cannot forge who sent a message', await fails(() => q(`update public.job_messages set sender_id = $1 where id = $2`, [U.aOwner, msg.id])));
+  check('cannot rewrite a message afterwards', await fails(() => q(`update public.job_messages set body = 'Sve je u redu' where id = $1`, [msg.id])));
+  check('can mark a message done', (await q(`update public.job_messages set status = 'done' where id = $1 returning id`, [msg.id])).length === 1);
+  check(
+    "cannot write history in the owner's name",
+    await fails(() => q(`insert into public.job_events (tenant_id, job_id, event_type, actor_id, message) values ($1,$2,'phase',$3,'x')`, [tA, ids.job, U.aOwner]))
+  );
+  check(
+    'cannot write a payment event',
+    await fails(() => q(`insert into public.job_events (tenant_id, job_id, event_type, actor_id, message) values ($1,$2,'payment',$3,'x')`, [tA, ids.job, U.aWorker]))
+  );
+  check(
+    'can write own work into history',
+    (await q(`insert into public.job_events (tenant_id, job_id, event_type, actor_id, message) values ($1,$2,'phase',$3,'Popravak') returning id`, [tA, ids.job, U.aWorker])).length === 1
+  );
+  check(
+    'can ask the Kopilot on a job',
+    (await q(`insert into public.copilot_messages (tenant_id, job_id, user_id, role, kind, content) values ($1,$2,$3,'user','question','Moment glave?') returning id`, [tA, ids.job, U.aWorker])).length === 1
+  );
+  check(
+    'cannot write a Kopilot message as someone else',
+    await fails(() => q(`insert into public.copilot_messages (tenant_id, job_id, user_id, role, kind, content) values ($1,$2,$3,'user','question','x')`, [tA, ids.job, U.aOwner]))
+  );
+  check('cannot delete Kopilot history', (await q(`delete from public.copilot_messages returning id`)).length === 0);
+});
+await as(U.aOwner, async () => {
+  check('owner can lock', (await q(`update public.jobs set locked_at = now() where id = $1 returning id`, [ids.job])).length === 1);
+});
+await as(U.aWorker, async () => {
   check('cannot add lines to a locked job', await fails(() => q(`insert into public.job_lines (tenant_id, job_id, description) values ($1,$2,'X')`, [tA, ids.job])));
   check('cannot unlock', await fails(() => q(`update public.jobs set locked_at = null where id = $1`, [ids.job])));
-  check('can send a help message', (await q(`insert into public.job_messages (tenant_id, job_id, sender_id, kind, body) values ($1,$2,$3,'help','Trebam pomoć') returning id`, [tA, ids.job, U.aWorker])).length === 1);
-  check('cannot send a task', await fails(() => q(`insert into public.job_messages (tenant_id, job_id, sender_id, receiver_id, kind, body) values ($1,$2,$3,$4,'task','x')`, [tA, ids.job, U.aWorker, U.aOwner])));
 });
 await as(U.aOwner, async () => {
   check('owner can unlock', (await q(`update public.jobs set locked_at = null where id = $1 returning id`, [ids.job])).length === 1);
@@ -139,6 +176,7 @@ await as(U.bOwner, async () => {
   check('cannot point own row at A\'s client', await fails(() => q(`insert into public.assets (tenant_id, client_id, asset_type) values ($1,$2,'car')`, [tB, ids.client])));
   check('cannot update A\'s job', (await q(`update public.jobs set complaint = 'x' where id = $1 returning id`, [ids.job])).length === 0);
   check('cannot read A\'s prices', (await q(`select * from public.job_line_prices`)).length === 0);
+  check('cannot read A\'s Kopilot history', (await q(`select * from public.copilot_messages`)).length === 0);
   const [own] = await q(`insert into public.clients (tenant_id, company_name) values ($1,'Borić prijevoz') returning id`, [tB]);
   check('works in own workshop', Boolean(own?.id));
 });
@@ -187,6 +225,25 @@ await as(U.bOwner, async () => {
   const [r] = await q(`insert into public.wheel_repairs (tenant_id, job_id, position, damage_zone) select $1, j.id, 'FL', 'sidewall' from (select null) x cross join lateral (select id from public.jobs limit 1) j returning allowed`, [tB]).catch(() => [undefined]);
   check('sidewall repair is flagged not allowed (or no job yet)', r === undefined || r.allowed === false);
 });
+
+// The public approval page calls decide_approval with the service role.
+console.log('\nCustomer approval (atomic)');
+{
+  const lines = await q(`insert into public.job_lines (tenant_id, job_id, description, approval) values ($1,$2,'Pločice','proposed'),($1,$2,'Diskovi','proposed') returning id`, [tA, ids.job]);
+  const [ap] = await q(`insert into public.approvals (tenant_id, job_id) values ($1,$2) returning token`, [tA, ids.job]);
+  const decide = (decisions, token = ap.token) => q(`select public.decide_approval($1, 'Ivan Horvat', $2::jsonb) as r`, [token, JSON.stringify(decisions)]);
+  const [l0, l1] = lines.map((l) => l.id);
+  check('a decision on only some lines is refused', await fails(() => decide([{ lineId: l0, decision: 'approved' }])));
+  check('a duplicated line is refused', await fails(() => decide([{ lineId: l0, decision: 'approved' }, { lineId: l0, decision: 'declined' }])));
+  check('an unknown decision is refused', await fails(() => decide([{ lineId: l0, decision: 'maybe' }, { lineId: l1, decision: 'approved' }])));
+  const [res] = await decide([{ lineId: l0, decision: 'approved' }, { lineId: l1, decision: 'declined' }]);
+  check('a complete decision is saved', res.r.approved === 1 && res.r.total === 2, JSON.stringify(res.r));
+  const states = (await q(`select approval from public.job_lines where id = any($1::uuid[]) order by description`, [[l0, l1]])).map((r) => r.approval).join(',');
+  check('lines follow the decision', states === 'declined,approved', states);
+  check('the same link cannot decide twice', await fails(() => decide([{ lineId: l0, decision: 'approved' }, { lineId: l1, decision: 'approved' }])));
+  const [expired] = await q(`insert into public.approvals (tenant_id, job_id, expires_at) values ($1,$2, now() - interval '1 day') returning token`, [tA, ids.job]);
+  check('an expired link is refused', await fails(() => decide([{ lineId: l0, decision: 'approved' }], expired.token)));
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

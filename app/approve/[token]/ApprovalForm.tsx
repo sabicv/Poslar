@@ -22,9 +22,9 @@ export function ApprovalForm({
   lines: { id: string; description: string; qty: number; unit: string; priority: 'urgent' | 'recommended' | 'optional' | null; total: number }[];
   alreadyApproved: number;
 }) {
-  const [decisions, setDecisions] = useState<Record<string, 'approved' | 'declined'>>(() =>
-    Object.fromEntries(lines.map((l) => [l.id, l.priority === 'optional' ? 'declined' : 'approved']))
-  );
+  // Nothing is pre-selected: the customer decides every line themselves.
+  const [decisions, setDecisions] = useState<Record<string, 'approved' | 'declined'>>({});
+  const undecided = lines.filter((l) => !decisions[l.id]).length;
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -97,7 +97,7 @@ export function ApprovalForm({
         variant="primary"
         size="lg"
         className="w-full"
-        disabled={pending || name.trim().length < 2}
+        disabled={pending || name.trim().length < 2 || undecided > 0}
         onClick={() =>
           start(async () => {
             setError(null);
@@ -107,7 +107,7 @@ export function ApprovalForm({
           })
         }
       >
-        {pending ? 'Šaljem…' : 'Pošalji odluku servisu'}
+        {pending ? 'Šaljem…' : undecided > 0 ? `Odaberite za još ${undecided} ${undecided === 1 ? 'stavku' : 'stavki'}` : 'Pošalji odluku servisu'}
       </Button>
     </section>
   );

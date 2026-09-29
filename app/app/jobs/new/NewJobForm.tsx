@@ -137,7 +137,8 @@ export function NewJobForm({
         return;
       }
       clearDraft(DRAFT_KEY);
-      toast.success('Nalog otvoren');
+      if (result.data?.warning) toast.warning(result.data.warning);
+      else toast.success('Nalog otvoren');
       router.replace(`/app/jobs/${result.data!.id}`);
     });
   }

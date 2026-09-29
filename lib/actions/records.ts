@@ -1,8 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { hasModule, type ModuleId, type PackageId } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
-import { requireWorkshop } from '@/lib/session';
+import { requireWorkshop, type WorkshopContext } from '@/lib/session';
 
 // Generic save/delete for package records (volt_*, gear_*, body_*, wheel_*,
 // fleet_*, moto_*). Row Level Security decides what the user may touch;
@@ -66,6 +67,37 @@ const WRITABLE: Record<string, string> = {
 
 type Values = Record<string, unknown>;
 
+// Package tables belong to their package; a few are shared through an
+// optional module (Gear with the tyre hotel, Volt with parts and service
+// plan). Checked on the server, so a request for another package's table
+// is refused even when made by hand.
+const MODULE_TABLES: Record<string, ModuleId> = {
+  gear_parts: 'parts',
+  gear_suppliers: 'parts',
+  gear_warranty_claims: 'parts',
+  gear_asset_schedule: 'service_plan',
+  gear_service_plans: 'service_plan',
+  gear_labor_norms: 'service_plan',
+  wheel_storage_locations: 'wheel_hotel',
+  wheel_tire_sets: 'wheel_hotel',
+  wheel_tires: 'wheel_hotel',
+  wheel_rims: 'wheel_hotel',
+  wheel_storage_stays: 'wheel_hotel',
+};
+
+function tablePackage(table: string): PackageId | null {
+  if (table === 'insurers') return 'body';
+  const prefix = table.split('_')[0];
+  return (['volt', 'gear', 'body', 'wheel', 'fleet', 'moto'] as PackageId[]).includes(prefix as PackageId) ? (prefix as PackageId) : null;
+}
+
+function allowedForWorkshop(ctx: WorkshopContext, table: string): boolean {
+  const owner = tablePackage(table);
+  if (owner === null || owner === ctx.pkg.id) return true;
+  const module = MODULE_TABLES[table];
+  return Boolean(module && hasModule(ctx.pkg, ctx.tenant.enabled_modules, module));
+}
+
 export async function saveRecord(
   table: string,
   values: Values,
@@ -73,7 +105,7 @@ export async function saveRecord(
 ): Promise<ActionResult<{ id: string }>> {
   const ctx = await requireWorkshop();
   const key = WRITABLE[table];
-  if (!key) return fail('Nepoznata vrsta zapisa.');
+  if (!key || !allowedForWorkshop(ctx, table)) return fail('Nepoznata vrsta zapisa.');
   // Buttons rendered on the server can't know when they'll be tapped:
   // "__now__" / "__today__" are stamped here, at the moment of saving.
   const now = new Date();
@@ -100,7 +132,7 @@ export async function saveRecord(
 export async function deleteRecord(table: string, id: string, revalidate?: string): Promise<ActionResult> {
   const ctx = await requireWorkshop();
   const key = WRITABLE[table];
-  if (!key) return fail('Nepoznata vrsta zapisa.');
+  if (!key || !allowedForWorkshop(ctx, table)) return fail('Nepoznata vrsta zapisa.');
   const { error } = await ctx.supabase.from(table).delete().eq(key, id);
   if (error) return fail(error);
   if (revalidate) revalidatePath(revalidate);

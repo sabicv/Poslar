@@ -17,7 +17,8 @@ const VARIANTS: Record<Variant, string> = {
 };
 
 const SIZES: Record<Size, string> = {
-  sm: 'h-9 px-3 text-sm gap-1.5 rounded-lg',
+  // 44 px on phones (gloves), compact 36 px from the sm breakpoint up.
+  sm: 'h-11 sm:h-9 px-3 text-sm gap-1.5 rounded-lg',
   md: 'h-11 px-4 text-sm gap-2 rounded-xl',
   lg: 'h-14 px-5 text-base gap-2.5 rounded-xl',
 };
