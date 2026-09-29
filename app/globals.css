@@ -74,6 +74,11 @@ body {
     outline: 2px solid rgb(var(--accent));
     outline-offset: 2px;
   }
+  /* A long unbroken word (link, serial number) must not stretch a grid
+     column past the phone screen; it truncates or wraps inside instead. */
+  .grid > * {
+    min-width: 0;
+  }
 }
 
 @layer utilities {

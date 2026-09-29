@@ -17,11 +17,16 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   const ctx = await requireWorkshop();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const { data } = await ctx.supabase.from('assets').select('*, client:clients(*), parent:assets!assets_parent_asset_id_tenant_id_fkey(id, identifier, make, model, asset_type)').eq('id', id).maybeSingle();
+  const { data } = await ctx.supabase.from('assets').select('*, client:clients(*)').eq('id', id).maybeSingle();
   if (!data) notFound();
-  const asset = data as unknown as Asset & { client: Client; parent: Pick<Asset, 'id' | 'identifier' | 'make' | 'model' | 'asset_type'> | null };
+  const asset = data as unknown as Asset & { client: Client };
 
-  const [{ data: jobs }, { data: readings }, { data: photos }, { data: siblings }] = await Promise.all([
+  // The parent (truck of a trailer, boat of an engine) is read on its own:
+  // the API cannot embed a table's composite key to itself.
+  const [{ data: parent }, { data: jobs }, { data: readings }, { data: photos }, { data: siblings }] = await Promise.all([
+    asset.parent_asset_id
+      ? ctx.supabase.from('assets').select('id, identifier, make, model, asset_type').eq('id', asset.parent_asset_id).maybeSingle()
+      : Promise.resolve({ data: null }),
     ctx.supabase.from('jobs').select('id, number, phase, complaint, work_summary, created_at, meter_in, meter_unit').eq('asset_id', id).order('created_at', { ascending: false }),
     ctx.supabase.from('meter_readings').select('id, value, unit, read_at, source').eq('asset_id', id).order('read_at', { ascending: false }).limit(20),
     ctx.supabase.from('attachments').select('id, path, job_id, tag').eq('asset_id', id).order('created_at', { ascending: false }).limit(12),
@@ -114,10 +119,10 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
               {asset.engine_code ? <KeyValue label="Motor">{asset.engine_code}</KeyValue> : null}
               {asset.paint_code ? <KeyValue label="Boja">{asset.paint_code}</KeyValue> : null}
               {asset.internal_number ? <KeyValue label="Interni broj">{asset.internal_number}</KeyValue> : null}
-              {asset.parent ? (
+              {parent ? (
                 <KeyValue label="Vezano uz">
-                  <Link href={`/app/assets/${asset.parent.id}`} className="text-accent">
-                    {asset.parent.identifier ?? assetTitle(asset.parent)}
+                  <Link href={`/app/assets/${parent.id}`} className="text-accent">
+                    {(parent.identifier as string | null) ?? assetTitle(parent as never)}
                   </Link>
                 </KeyValue>
               ) : null}

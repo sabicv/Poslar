@@ -12,11 +12,17 @@ function toLocalInput(iso: string | null) {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 
+// field: a visit at the client's address (no bay, the appointment replaces
+// "promised by"); meter: the object has a km / hour meter (not a split AC).
 export function OverviewEditor({
   job,
   staff,
   locked,
+  field,
+  meter,
 }: {
+  field: boolean;
+  meter: boolean;
   job: {
     id: string;
     complaint: string;
@@ -52,7 +58,7 @@ export function OverviewEditor({
         <AutoSaveTextarea initial={job.work_summary} rows={4} disabled={locked} placeholder="Što je napravljeno i preporuke" onSave={(v) => save({ work_summary: v || null })} />
       </Card>
       <Card className="grid gap-4 p-4 sm:grid-cols-2">
-        <Field label="Radnik">
+        <Field label={field ? 'Tehničar' : 'Radnik'}>
           <Select defaultValue={job.assigned_to ?? ''} disabled={locked} onChange={(e) => run(() => save({ assigned_to: e.target.value || null }), { success: 'Spremljeno' })}>
             <option value="">Nije dodijeljeno</option>
             {staff.map((s) => (
@@ -62,32 +68,38 @@ export function OverviewEditor({
             ))}
           </Select>
         </Field>
-        <Field label="Obećano do">
-          <Input
-            type="datetime-local"
-            defaultValue={toLocalInput(job.promised_at)}
-            disabled={locked}
-            onBlur={(e) => {
-              const value = e.target.value ? new Date(e.target.value).toISOString() : null;
-              if (value !== job.promised_at) run(() => save({ promised_at: value }));
-            }}
-          />
-        </Field>
-        <Field label={`Stanje pri predaji (${job.meter_unit === 'mth' ? 'mth' : 'km'})`}>
-          <Input
-            inputMode="decimal"
-            value={meterOut}
-            disabled={locked}
-            onChange={(e) => setMeterOut(e.target.value)}
-            onBlur={() => {
-              const value = meterOut ? Number(meterOut.replace(',', '.')) : null;
-              if (value !== job.meter_out && (value === null || !Number.isNaN(value))) run(() => save({ meter_out: value }));
-            }}
-          />
-        </Field>
-        <Field label="Mjesto u radionici">
-          <Input value={bay} disabled={locked} placeholder="npr. Dizalica 2" onChange={(e) => setBay(e.target.value)} onBlur={() => bay !== job.bay && run(() => save({ bay: bay || null }))} />
-        </Field>
+        {field ? null : (
+          <Field label="Obećano do">
+            <Input
+              type="datetime-local"
+              defaultValue={toLocalInput(job.promised_at)}
+              disabled={locked}
+              onBlur={(e) => {
+                const value = e.target.value ? new Date(e.target.value).toISOString() : null;
+                if (value !== job.promised_at) run(() => save({ promised_at: value }));
+              }}
+            />
+          </Field>
+        )}
+        {meter ? (
+          <Field label={`Stanje pri predaji (${job.meter_unit === 'mth' ? 'mth' : 'km'})`}>
+            <Input
+              inputMode="decimal"
+              value={meterOut}
+              disabled={locked}
+              onChange={(e) => setMeterOut(e.target.value)}
+              onBlur={() => {
+                const value = meterOut ? Number(meterOut.replace(',', '.')) : null;
+                if (value !== job.meter_out && (value === null || !Number.isNaN(value))) run(() => save({ meter_out: value }));
+              }}
+            />
+          </Field>
+        ) : null}
+        {field ? null : (
+          <Field label="Mjesto u radionici">
+            <Input value={bay} disabled={locked} placeholder="npr. Dizalica 2" onChange={(e) => setBay(e.target.value)} onBlur={() => bay !== job.bay && run(() => save({ bay: bay || null }))} />
+          </Field>
+        )}
         <label className="flex items-center gap-3 text-sm sm:col-span-2">
           <input
             type="checkbox"

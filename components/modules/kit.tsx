@@ -72,7 +72,16 @@ export function QuickForm({
       onSubmit={(event) => {
         event.preventDefault();
         const values = Object.fromEntries(fields.map((f) => [f.name, fromInput(f, state[f.name])]));
-        run(() => onSubmit(values), { success: 'Spremljeno', onDone });
+        run(
+          async () => {
+            const result = await onSubmit(values);
+            // The database names the column; the form knows its label.
+            const column = !result.ok ? /\(([a-z0-9_]+)\)\.$/.exec(result.error)?.[1] : null;
+            const field = column ? fields.find((f) => f.name === column) : null;
+            return field ? { ok: false as const, error: `Provjerite polje „${field.label}”.` } : result;
+          },
+          { success: 'Spremljeno', onDone }
+        );
       }}
     >
       {fields.map((f) => {
@@ -87,7 +96,7 @@ export function QuickForm({
           );
         }
         return (
-          <Field key={f.name} label={`${f.label}${f.required ? '' : ''}`} className={span}>
+          <Field key={f.name} label={f.required ? <>{f.label} <span className="text-crit">*</span></> : f.label} className={span}>
             {f.type === 'select' ? (
               <Select value={String(state[f.name])} onChange={(e) => set(e.target.value)}>
                 <option value="">—</option>
@@ -115,9 +124,10 @@ export function QuickForm({
           </Field>
         );
       })}
+      {missing ? <p className="col-span-2 text-xs text-muted">Polja sa zvjezdicom su obavezna.</p> : null}
       <div className="col-span-2 flex gap-2 pt-1">
         <Button type="submit" variant="primary" size="lg" className="flex-1" disabled={pending || missing}>
-          {submitLabel}
+          {pending ? 'Spremam…' : submitLabel}
         </Button>
         {onDelete ? (
           <ConfirmButton size="lg" onConfirm={() => run(onDelete, { success: 'Obrisano', onDone })}>

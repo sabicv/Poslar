@@ -44,10 +44,11 @@ export function fgasObligations(refrigerant: string | null, chargeKg: number | n
   let months: number | null = tco2e >= 500 ? 3 : tco2e >= 50 ? 6 : tco2e >= 5 ? 12 : null;
   if (months !== null && opts.sealed && tco2e < 10) months = null;
   if (months !== null && opts.leakDetection) months *= 2;
+  const shown = tco2e.toLocaleString('hr-HR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const note =
     months === null
-      ? `${tco2e} t CO₂e — ispod praga obveznih periodičnih provjera propuštanja.`
-      : `${tco2e} t CO₂e — provjera propuštanja najmanje svakih ${months} mjeseci.`;
+      ? `${shown} t CO₂e — ispod praga obveznih periodičnih provjera propuštanja.`
+      : `${shown} t CO₂e — provjera propuštanja najmanje svakih ${months} mjeseci.`;
   return { tco2e, serviceCard, leakCheckMonths: months, note };
 }
 

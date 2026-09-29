@@ -6,6 +6,7 @@ import { CalendarClock, Car, Check, CheckCircle2, Copy, FileText, MapPin, Messag
 import { ConfirmButton, Segmented, Sheet, useAction } from '@/components/client-ui';
 import { Badge, Button, Field, Input, Select, buttonClass } from '@/components/ui';
 import { fieldStep, markCustomerNotified, markReportShared, renewReportLink, scheduleJob } from '@/lib/actions/field';
+import { copyText } from '@/lib/clipboard';
 import { googleMapsLink, smsLink, wazeLink, whatsappLink } from '@/lib/contact';
 import { vocativeHR } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -72,7 +73,7 @@ export function FieldActions({ job, site, ctx, variant = 'card' }: { job: FieldJ
     const greeting = ctx.clientFirstName ? `Poštovani ${vocativeHR(ctx.clientFirstName)}, ` : 'Poštovani, ';
     const message = `${greeting}posao na vašoj adresi je završen. Izvještaj s fotografijama: ${reportUrl} — ${ctx.workshopName}`;
     if (channel === 'whatsapp') window.open(whatsappLink(phone, message), '_blank', 'noopener');
-    else void navigator.clipboard.writeText(reportUrl).then(() => toast.success('Poveznica kopirana'));
+    else void copyText(reportUrl).then((ok) => (ok ? toast.success('Poveznica kopirana') : toast.error('Kopiranje nije uspjelo — označite poveznicu i kopirajte')));
     run(() => markReportShared(job.id));
   }
 

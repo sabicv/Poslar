@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { CalendarPlus, ShieldCheck } from 'lucide-react';
 import { Badge, Card, CardHeader, EmptyState, buttonClass } from '@/components/ui';
 import { REFRIGERANTS, fgasObligations, nextLeakCheck } from '@/config/packages/air';
-import { assetTitle, clientName, daysUntil, formatDate, formatRelative } from '@/lib/format';
+import { assetTitle, clientName, daysUntil, formatDate, formatDecimal, formatNumber, formatRelative } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import { addDays, dayOf, todayInZagreb, zagrebMidnight } from '@/lib/time';
 import { cn } from '@/lib/utils';
@@ -159,8 +159,8 @@ export async function AirPage({ ctx, year: requestedYear }: { ctx: WorkshopConte
                   {[...totals.entries()].map(([gas, t]) => (
                     <tr key={gas}>
                       <td className="px-4 py-2 font-medium">{REFRIGERANTS[gas]?.label ?? gas}</td>
-                      <td className="px-4 py-2 text-right tabular">{t.charged.toFixed(2)}</td>
-                      <td className="px-4 py-2 text-right tabular">{t.recovered.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-right tabular">{formatDecimal(t.charged, 2)}</td>
+                      <td className="px-4 py-2 text-right tabular">{formatDecimal(t.recovered, 2)}</td>
                       <td className="px-4 py-2 text-right tabular">{t.checks}</td>
                       <td className={cn('px-4 py-2 text-right tabular', t.leaks && 'text-crit')}>{t.leaks}</td>
                     </tr>
@@ -185,7 +185,7 @@ export async function AirPage({ ctx, year: requestedYear }: { ctx: WorkshopConte
                       <span className="min-w-0">
                         <span className="block truncate font-medium">{clientName(asset?.client)}</span>
                         <span className="block truncate text-xs text-muted">
-                          {assetTitle(asset)} · {device.refrigerant as string} {device.charge_kg as number} kg · {duty.tco2e} t CO₂e · svakih {duty.leakCheckMonths} mj.
+                          {assetTitle(asset)} · {device.refrigerant as string} {formatNumber(Number(device.charge_kg), 2)} kg · {formatDecimal(duty.tco2e, 2)} t CO₂e · svakih {duty.leakCheckMonths} mj.
                         </span>
                         {afterRepair && <span className="block text-xs text-warn">Kontrola nakon popravka propuštanja — najkasnije mjesec dana od popravka</span>}
                       </span>

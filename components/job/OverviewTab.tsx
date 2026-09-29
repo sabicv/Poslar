@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { FieldActions, ScheduleSheet } from '@/components/field/FieldActions';
 import { Card, CardHeader, KeyValue } from '@/components/ui';
-import { phaseLabel } from '@/config/tenant.config';
+import { CLIMATE_TYPES, phaseLabel } from '@/config/tenant.config';
 import { clientName, formatDate, formatDateTime, formatMeter } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import type { JobWithRefs } from '@/types/db';
@@ -20,6 +20,8 @@ export async function OverviewTab({ ctx, job }: { ctx: WorkshopContext; job: Job
   ]);
 
   const staffList = (staff ?? []).map((s) => ({ id: s.id as string, name: (s.full_name as string | null) ?? 'Bez imena' }));
+  // Air conditioners and heat pumps have no km or hour meter to read.
+  const climate = CLIMATE_TYPES.includes(job.asset.asset_type);
   const fieldCard =
     job.work_mode === 'field' ? (
       <Card>
@@ -65,6 +67,8 @@ export async function OverviewTab({ ctx, job }: { ctx: WorkshopContext; job: Job
         }}
         staff={(staff ?? []).map((s) => ({ id: s.id as string, name: (s.full_name as string | null) ?? 'Bez imena' }))}
         locked={Boolean(job.locked_at)}
+        field={job.work_mode === 'field'}
+        meter={!climate}
       />
       </div>
 
@@ -82,9 +86,9 @@ export async function OverviewTab({ ctx, job }: { ctx: WorkshopContext; job: Job
           <CardHeader title={ctx.pkg.vocabulary.asset.one} action={<Link href={`/app/assets/${job.asset.id}`} className="text-xs text-accent">Povijest</Link>} />
           <div className="divide-y divide-line px-4">
             {job.asset.vin ? <KeyValue label="VIN / serijski">{<span className="font-mono text-xs">{job.asset.vin}</span>}</KeyValue> : null}
-            {job.asset.year ? <KeyValue label="Godište">{job.asset.year}</KeyValue> : null}
+            {job.asset.year ? <KeyValue label={climate ? 'Godina ugradnje' : 'Godište'}>{job.asset.year}</KeyValue> : null}
             {job.asset.engine_code ? <KeyValue label="Motor">{job.asset.engine_code}</KeyValue> : null}
-            <KeyValue label="Pri prijemu">{formatMeter(job.meter_in, job.meter_unit)}</KeyValue>
+            {climate && job.meter_in === null ? null : <KeyValue label="Pri prijemu">{formatMeter(job.meter_in, job.meter_unit)}</KeyValue>}
           </div>
         </Card>
         {previous?.length ? (

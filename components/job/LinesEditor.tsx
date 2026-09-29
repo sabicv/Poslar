@@ -7,6 +7,7 @@ import { ConfirmButton, Segmented, Sheet, useAction } from '@/components/client-
 import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Select, Textarea } from '@/components/ui';
 import type { LineKind } from '@/config/tenant.config';
 import { addLine, applyTemplate, createApproval, deleteLine, setLineApproval, setLinePrice, updateLine } from '@/lib/actions/jobs';
+import { copyText } from '@/lib/clipboard';
 import { formatDateTime, formatEuro } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { Approval, JobLine, LineApproval, LinePriority } from '@/types/db';
@@ -218,7 +219,7 @@ export function LinesEditor({
                 <span className="truncate font-mono">{link}</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button size="sm" onClick={() => navigator.clipboard.writeText(link).then(() => toast.success('Poveznica kopirana'))}>
+                <Button size="sm" onClick={() => copyText(link).then((ok) => (ok ? toast.success('Poveznica kopirana') : toast.error('Kopiranje nije uspjelo — označite poveznicu i kopirajte')))}>
                   <Copy className="size-4" /> Kopiraj
                 </Button>
                 <a

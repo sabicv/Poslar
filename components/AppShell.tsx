@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Bell, CalendarDays, ClipboardList, LogOut, Plus, Settings, Users, type LucideIcon } from 'lucide-react';
+import { BarChart3, Bell, CalendarDays, ClipboardList, FlaskConical, LogOut, Plus, Repeat, Settings, Users, type LucideIcon } from 'lucide-react';
 import { PRODUCT_ICONS, ProductMark } from '@/components/ProductMark';
 import { buttonClass } from '@/components/ui';
 import type { PackageId } from '@/config/tenant.config';
 import { signOut } from '@/lib/actions/auth';
+import { openDemoSeat } from '@/lib/actions/demo';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -22,6 +23,7 @@ export function AppShell({
   user,
   inboxCount,
   trialDaysLeft,
+  demo,
   children,
 }: {
   product: { id: PackageId; name: string; clients: string; modulePage: string; field: boolean };
@@ -29,6 +31,7 @@ export function AppShell({
   user: { name: string; isOwner: boolean };
   inboxCount: number;
   trialDaysLeft: number | null;
+  demo: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -41,11 +44,16 @@ export function AppShell({
   ];
   const isActive = (item: NavItem) =>
     item.exact ? pathname === item.href || pathname.startsWith('/app/jobs') : pathname === item.href || pathname.startsWith(`${item.href}/`) || (item.href === '/app/clients' && pathname.startsWith('/app/assets'));
+  // Phone header height (14 + an 11 per extra strip), so sticky bars on a
+  // page (job tabs) sit right under it: --shell-top.
+  const showTrial = trialDaysLeft !== null && trialDaysLeft <= 7;
+  const headerRem = 3.5 + (demo ? 2.75 : 0) + (showTrial ? 2.75 : 0);
 
   return (
-    <div className="lg:flex">
+    <div className="lg:flex" style={{ '--shell-top': `calc(${headerRem}rem + env(safe-area-inset-top))` } as React.CSSProperties}>
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-surface/40 px-3 py-4 lg:flex">
+        {demo ? <DemoBar product={product.id} isOwner={user.isOwner} className="mb-4 flex-wrap rounded-xl border border-line px-2 py-1.5" /> : null}
         <Link href="/app" className="mb-6 flex items-center gap-2.5 px-2">
           {workshop.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -106,6 +114,7 @@ export function AppShell({
       <div className="min-w-0 flex-1">
         {/* Phone top bar */}
         <header className="sticky top-0 z-30 border-b border-line bg-bg/85 pt-safe backdrop-blur-md lg:hidden">
+          {demo ? <DemoBar product={product.id} isOwner={user.isOwner} className="h-11 border-b border-line px-4" /> : null}
           <div className="flex h-14 items-center gap-3 px-4">
             <Link href="/app" className="flex min-w-0 flex-1 items-center gap-2.5">
               {workshop.logoUrl ? (
@@ -127,8 +136,8 @@ export function AppShell({
               <span className="hidden sm:inline">Novi nalog</span>
             </Link>
           </div>
-          {trialDaysLeft !== null && trialDaysLeft <= 7 ? (
-            <div className="px-4 pb-2">
+          {showTrial ? (
+            <div className="flex h-11 items-start px-4">
               <TrialNote days={trialDaysLeft} />
             </div>
           ) : null}
@@ -145,13 +154,40 @@ export function AppShell({
                 href={item.href}
                 className={cn('flex h-16 flex-col items-center justify-center gap-1 text-[11px]', isActive(item) ? 'text-fg' : 'text-faint')}
               >
-                <item.icon className={cn('size-5', isActive(item) && 'text-accent')} />
-                <span className="max-w-full truncate px-1">{item.label}</span>
+                <item.icon className={cn('size-5 shrink-0', isActive(item) && 'text-accent')} />
+                {/* Two short lines ("Servisni / planovi") rather than a cut-off word. */}
+                <span className="line-clamp-2 max-w-full break-words px-0.5 text-center leading-[1.1]">{item.label}</span>
               </Link>
             ))}
           </div>
         </nav>
       </div>
+    </div>
+  );
+}
+
+// Testing aid for the demo login: flip between owner and worker of the
+// same workshop in one tap, or go back to the demo centre for another
+// product.
+function DemoBar({ product, isOwner, className }: { product: PackageId; isOwner: boolean; className?: string }) {
+  return (
+    <div className={cn('flex items-center gap-2 bg-surface2/70 text-xs', className)}>
+      <span className="flex items-center gap-1.5 text-muted">
+        <FlaskConical className="size-3.5" />
+        Demo · <span className="font-medium text-fg">{isOwner ? 'Voditelj' : 'Radnik'}</span>
+      </span>
+      <span className="ml-auto flex items-center gap-1">
+        <form action={openDemoSeat}>
+          <input type="hidden" name="pkg" value={product} />
+          <input type="hidden" name="role" value={isOwner ? 'worker' : 'owner'} />
+          <button type="submit" className="inline-flex h-9 items-center gap-1 rounded-lg px-2 font-medium text-accent hover:bg-surface2">
+            <Repeat className="size-3.5" /> {isOwner ? 'Radnik' : 'Voditelj'}
+          </button>
+        </form>
+        <Link href="/demo" className="inline-flex h-9 items-center rounded-lg px-2 font-medium text-muted hover:bg-surface2 hover:text-fg">
+          Svi proizvodi
+        </Link>
+      </span>
     </div>
   );
 }

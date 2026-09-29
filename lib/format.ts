@@ -8,8 +8,33 @@ export function formatEuro(amount: number | null | undefined): string {
   return euro.format(Number(amount ?? 0));
 }
 
-export function formatNumber(value: number | null | undefined): string {
-  return value === null || value === undefined ? '—' : number.format(Number(value));
+// Up to maxDigits decimals, trailing zeros dropped: 1.8 → "1,8", 12 → "12".
+const numbers = new Map<number, Intl.NumberFormat>([[1, number]]);
+export function formatNumber(value: number | null | undefined, maxDigits = 1): string {
+  if (value === null || value === undefined) return '—';
+  if (!numbers.has(maxDigits)) numbers.set(maxDigits, new Intl.NumberFormat('hr-HR', { maximumFractionDigits: maxDigits }));
+  return numbers.get(maxDigits)!.format(Number(value));
+}
+
+// Croatian count forms: 1 nalog, 2 naloga, 5 naloga, 21 nalog, 12 naloga.
+export function plural(n: number, one: string, few: string, many: string): string {
+  const d = n % 10;
+  const dd = n % 100;
+  if (d === 1 && dd !== 11) return one;
+  if (d >= 2 && d <= 4 && (dd < 12 || dd > 14)) return few;
+  return many;
+}
+
+export function countJobs(n: number): string {
+  return `${n} ${plural(n, 'nalog', 'naloga', 'naloga')}`;
+}
+
+// Fixed decimals with a Croatian comma: 17.748 → "17,75", 1.3 → "1,3".
+const decimals = new Map<number, Intl.NumberFormat>();
+export function formatDecimal(value: number | null | undefined, digits: number): string {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
+  if (!decimals.has(digits)) decimals.set(digits, new Intl.NumberFormat('hr-HR', { minimumFractionDigits: digits, maximumFractionDigits: digits }));
+  return decimals.get(digits)!.format(Number(value));
 }
 
 export function formatMeter(value: number | null | undefined, unit: MeterUnit | null | undefined): string {

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Card, CardHeader, EmptyState, PageHeader, Stat, buttonClass } from '@/components/ui';
-import { assetTitle, clientName, formatEuro, formatRelative } from '@/lib/format';
+import { phaseLabel } from '@/config/tenant.config';
+import { assetTitle, clientName, countJobs, formatDecimal, formatEuro, formatRelative } from '@/lib/format';
 import { requireOwner } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +34,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   const { range: r } = await searchParams;
   const range: Range = r && r in RANGES ? (r as Range) : 'this_month';
   const [from, to] = bounds(range);
+  const closed = phaseLabel(ctx.pkg, 'collected');
   const sixMonthsAgo = new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1);
 
   const [{ data: done }, { data: unpaid }, { data: staff }, { data: history }] = await Promise.all([
@@ -111,19 +113,19 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Promet (preuzeto)" value={formatEuro(revenue)} hint={`${doneIds.length} naloga`} />
+        <Stat label={`Promet (${closed.toLowerCase()})`} value={formatEuro(revenue)} hint={countJobs(doneIds.length)} />
         <Stat label="Naplaćeno" value={formatEuro(paid)} tone="ok" />
-        <Stat label="Za naplatu (sve)" value={formatEuro(outstanding)} hint={`${unpaidIds.length} naloga`} tone={unpaidIds.length ? 'warn' : undefined} />
-        <Stat label="Prosječno trajanje" value={avgLead === null ? '—' : `${avgLead.toFixed(1)} d`} hint="od prijema do gotovog" />
+        <Stat label="Za naplatu (sve)" value={formatEuro(outstanding)} hint={countJobs(unpaidIds.length)} tone={unpaidIds.length ? 'warn' : undefined} />
+        <Stat label="Prosječno trajanje" value={avgLead === null ? '—' : `${formatDecimal(avgLead, 1)} d`} hint="od prijema do gotovog" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Promet po mjesecima" subtitle="Preuzeti nalozi, s PDV-om" />
+          <CardHeader title="Promet po mjesecima" subtitle={`Nalozi u fazi „${closed}”, s PDV-om`} />
           <div className="flex h-44 items-end gap-3 p-4">
             {months.map((m) => (
               <div key={m.key} className="flex flex-1 flex-col items-center gap-1.5">
-                <span className="text-[10px] tabular text-faint">{m.value ? `${Math.round(m.value / 100) / 10}k` : ''}</span>
+                <span className="text-[10px] tabular text-faint">{m.value ? `${formatDecimal(m.value / 1000, 1)}k` : ''}</span>
                 <div className="w-full rounded-t-md bg-accent/80" style={{ height: `${Math.max(2, (m.value / maxMonth) * 110)}px` }} />
                 <span className="text-xs text-muted">{m.label}</span>
               </div>
@@ -152,12 +154,12 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
                 ))}
             </ul>
           ) : (
-            <p className="px-4 py-4 text-sm text-muted">Nema preuzetih naloga u razdoblju.</p>
+            <p className="px-4 py-4 text-sm text-muted">Nema zatvorenih naloga u razdoblju.</p>
           )}
         </Card>
 
         <Card>
-          <CardHeader title="Po djelatniku" subtitle="Preuzeti nalozi u razdoblju" />
+          <CardHeader title="Po djelatniku" subtitle={`Nalozi u fazi „${closed}” u razdoblju`} />
           {perWorker.size ? (
             <ul className="divide-y divide-line">
               {[...perWorker.entries()]
@@ -166,7 +168,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
                   <li key={id} className="flex items-center justify-between px-4 py-3 text-sm">
                     <span>{id === '_' ? 'Nije dodijeljeno' : names.get(id)}</span>
                     <span className="tabular text-muted">
-                      {row.jobs} naloga · {formatEuro(row.revenue)}
+                      {countJobs(row.jobs)} · {formatEuro(row.revenue)}
                     </span>
                   </li>
                 ))}

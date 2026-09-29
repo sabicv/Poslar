@@ -12,20 +12,36 @@ import { cn } from '@/lib/utils';
 
 // Runs a Server Action with a pending flag and one toast for the outcome.
 // The action's revalidatePath refreshes the page in the same round trip.
+// On a slow connection a tap must never look ignored: after half a second
+// a "Spremam…" toast appears and turns into the result.
+let actionSeq = 0;
 export function useAction() {
   const [pending, start] = useTransition();
   function run<T>(fn: () => Promise<ActionResult<T>>, options: { success?: string; onDone?: (data: T | undefined) => void } = {}) {
+    const id = `action-${++actionSeq}`;
+    let shown = false;
+    const timer = window.setTimeout(() => {
+      shown = true;
+      toast.loading('Spremam…', { id });
+    }, 500);
     start(async () => {
       try {
         const result = await fn();
+        window.clearTimeout(timer);
         if (!result.ok) {
-          toast.error(result.error);
+          toast.error(result.error, { id });
           return;
         }
-        if (options.success) toast.success(options.success);
+        if (options.success) toast.success(options.success, { id });
+        else if (shown) toast.success('Spremljeno', { id, duration: 1500 });
         options.onDone?.(result.data);
-      } catch {
-        toast.error('Veza je prekinuta. Pokušajte ponovno.');
+      } catch (error) {
+        window.clearTimeout(timer);
+        const offline = typeof navigator !== 'undefined' && !navigator.onLine;
+        toast.error(offline ? 'Nema veze s internetom. Pokušajte ponovno kad se veza vrati.' : 'Nije uspjelo. Pokušajte ponovno.', {
+          id,
+          description: offline ? undefined : (error as Error)?.message?.slice(0, 140),
+        });
       }
     });
   }

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { Lock } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { signOut } from '@/lib/actions/auth';
+import { isDemoUser } from '@/lib/demo';
 import { formatDate } from '@/lib/format';
 import { getWorkshop, isPlatformAdmin } from '@/lib/session';
 
@@ -28,6 +29,7 @@ export default async function LockedPage() {
   if (state.kind === 'anonymous') redirect('/login');
   if (state.kind === 'active') redirect('/app');
   if (state.reason === 'no_workshop' && (await isPlatformAdmin())) redirect('/admin');
+  if (state.reason === 'no_workshop' && isDemoUser(state.user)) redirect('/demo');
 
   const text = TEXT[state.reason];
   const contact = [process.env.SUPPORT_EMAIL, process.env.SUPPORT_PHONE].filter(Boolean).join(' · ');

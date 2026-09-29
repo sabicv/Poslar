@@ -43,11 +43,17 @@ Potrebno: Node.js 20+ i **novi** Supabase projekt. Ne koristite projekt servisa 
    ```
 4. **Otvaranje:** http://localhost:3000. Za drugi proizvod na istom računalu koristite poddomenu: `http://gear.localhost:3000`, `http://wheel.localhost:3000` itd.
 
-**Demo računi** (lozinka `Demo2026!` ili vaš `DEMO_PASSWORD`):
+**Jedan račun za testiranje svega:** `demo@demo.xfiles.hr` (lozinka `Demo2026!` ili vaš `DEMO_PASSWORD`). Otvara **Demo centar** sa svih sedam proizvoda: jednim dodirom ulazite kao voditelj ili radnik bilo koje demo radionice. U aplikaciji traka **Demo** na vrhu prebacuje ulogu (voditelj ⇄ radnik) ili vraća u Demo centar. Prebacivanje radi samo između demo računa (oznaka koju postavlja seed).
+
+Pojedinačni demo računi, s istom lozinkom:
 - `vlasnik.volt@demo.xfiles.hr`: voditelj servisa (vidi cijene, naplatu, poslovanje);
 - `radnik.volt@demo.xfiles.hr`: radnik (vidi naloge, ne vidi iznose).
 
 Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `moto` i `air`. Seed na kraju ispiše i poveznice za odobrenje stranke.
+
+`npm run db:seed` vraća demo podatke na početno stanje, s današnjim datumima. Računi ostaju isti, pa se nitko ne odjavljuje.
+
+**Testiranje na mobitelu:** koristite https adresu (Vercel). Na običnoj `http://192.168.x.x` adresi mobitel ne dopušta GPS, diktiranje ni kopiranje, a svaki dodir ide do baze u Irskoj preko vašeg računala, pa je sporije nego u stvarnosti.
 
 ## Naredbe
 

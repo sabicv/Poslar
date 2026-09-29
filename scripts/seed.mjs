@@ -1,12 +1,13 @@
 // npm run db:seed — creates one demo workshop per package (Volt, Gear,
-// Body, Wheel, Fleet, Moto), each with an owner and a worker account,
+// Body, Wheel, Fleet, Moto, Air), each with an owner and a worker account,
 // customers, vehicles/machines/boats, work orders in every phase with
 // priced lines, inspections, condition reports, package records (tyre
 // hotel, DTC findings, paint recipes, field jobs, seasonal protocols) and
 // generated placeholder photos with thumbnails.
 //
-// Safe to re-run: every demo-* workshop, its files and its
-// @demo.xfiles.hr accounts are deleted first. Needs the service role key.
+// Safe to re-run: every demo-* workshop and its files are deleted first;
+// the @demo.xfiles.hr accounts are kept and reset, so a tester stays
+// signed in. Needs the service role key.
 import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -74,13 +75,33 @@ async function cleanup() {
     const paths = files.flatMap((f) => (f.has_thumb ? [f.path, `${f.path}.thumb.jpg`] : [f.path]));
     for (let i = 0; i < paths.length; i += 100) await sb.storage.from('job-files').remove(paths.slice(i, i + 100));
   }
-  for (const user of (await allUsers()).filter((u) => u.email?.endsWith(`@${DOMAIN}`))) await sb.auth.admin.deleteUser(user.id);
+  // The demo accounts themselves stay (same id, so whoever is testing stays
+  // signed in through a reset); only strays in the demo domain go.
+  const keep = new Set([`demo@${DOMAIN}`, ...DEMO_SLUGS.flatMap((s) => [`vlasnik.${s.slice(5)}@${DOMAIN}`, `radnik.${s.slice(5)}@${DOMAIN}`])]);
+  for (const user of (await allUsers()).filter((u) => u.email?.endsWith(`@${DOMAIN}`) && !keep.has(u.email))) await sb.auth.admin.deleteUser(user.id);
+  // Profiles go with their workshop (on delete cascade).
   if (ids.length) await q(sb.from('tenants').delete().in('id', ids));
   console.log(`Obrisano ${ids.length} starih demo radionica.`);
 }
 
+// app_metadata.demo lets the app switch between demo accounts (demo
+// centre); only the service role can set it. An existing account is
+// reused and reset (password, name, flag) instead of recreated.
+let existingUsers = null;
 async function createUser(email, fullName) {
-  const { data, error } = await sb.auth.admin.createUser({ email, password: PASSWORD, email_confirm: true, user_metadata: { full_name: fullName } });
+  existingUsers ??= new Map((await allUsers()).map((u) => [u.email?.toLowerCase(), u]));
+  const attrs = { email_confirm: true, user_metadata: { full_name: fullName }, app_metadata: { demo: true } };
+  const known = existingUsers.get(email.toLowerCase());
+  if (!known) {
+    const { data, error } = await sb.auth.admin.createUser({ email, password: PASSWORD, ...attrs });
+    if (error) throw new Error(`${email}: ${error.message}`);
+    return data.user;
+  }
+  // Setting a password signs the account out everywhere, so it is only
+  // reset when the demo password no longer works (changed in Tim → Lozinka).
+  const probe = createClient(URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? KEY, { auth: { autoRefreshToken: false, persistSession: false } });
+  const { error: loginError } = await probe.auth.signInWithPassword({ email, password: PASSWORD });
+  const { data, error } = await sb.auth.admin.updateUserById(known.id, loginError ? { ...attrs, password: PASSWORD } : attrs);
   if (error) throw new Error(`${email}: ${error.message}`);
   return data.user;
 }
@@ -1266,9 +1287,12 @@ for (const [name, fn] of [
   results.push({ name, ...result });
   console.log('✓');
 }
+// One login for all of them: no workshop of its own, lands on /demo.
+await createUser(`demo@${DOMAIN}`, 'Demo centar');
 const admin = await seedSuperAdmin();
 
-console.log('\nDemo računi (lozinka za sve: %s)', PASSWORD);
+console.log('\nJedan račun za sve: demo@%s (lozinka %s) → Demo centar', DOMAIN, PASSWORD);
+console.log('Demo računi (lozinka za sve: %s)', PASSWORD);
 for (const r of results) {
   console.log(`  ${r.name.padEnd(6)} vlasnik.${r.T.pkg}@${DOMAIN}   radnik.${r.T.pkg}@${DOMAIN}`);
 }

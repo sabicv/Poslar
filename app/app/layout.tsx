@@ -1,5 +1,6 @@
 import { AppShell } from '@/components/AppShell';
 import { accentStyle } from '@/config/tenant.config';
+import { isDemoUser } from '@/lib/demo';
 import { daysUntil } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
 
@@ -21,6 +22,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         user={{ name: ctx.profile.full_name ?? ctx.user.email ?? '', isOwner: ctx.isOwner }}
         inboxCount={count ?? 0}
         trialDaysLeft={trialDaysLeft}
+        demo={isDemoUser(ctx.user)}
       >
         {children}
       </AppShell>

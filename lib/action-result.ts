@@ -14,7 +14,14 @@ export function fail(error: unknown): { ok: false; error: string } {
   if (/violates check constraint "volt_intervention_compliance_required"/.test(message)) {
     return { ok: false, error: 'Potvrdite da se ne uklanjaju sustavi za ispušne plinove.' };
   }
-  if (/violates check constraint/i.test(message)) return { ok: false, error: 'Neki podatak nije ispravan.' };
+  // "wheel_tire_sets_width_check" → the column travels along in brackets,
+  // so a form can name the field in its own words ("Provjerite polje „Širina”").
+  const check = /violates check constraint "([a-z0-9_]+)"/i.exec(message);
+  if (check) {
+    const table = /relation "([a-z0-9_]+)"/i.exec(message)?.[1];
+    const column = table && check[1].startsWith(`${table}_`) ? check[1].slice(table.length + 1).replace(/_check$/, '') : null;
+    return { ok: false, error: column ? `Neki podatak nije ispravan (${column}).` : 'Neki podatak nije ispravan.' };
+  }
   if (/foreign key/i.test(message)) return { ok: false, error: 'Zapis je povezan s drugim podacima.' };
   // Anything else stays in the server log; the user gets a plain sentence.
   console.error('[action]', message);

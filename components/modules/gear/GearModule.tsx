@@ -170,7 +170,16 @@ export async function GearModule({ ctx, job, locked }: ModuleProps) {
               label="Stavka"
               initial={{ last_done_meter: meter, last_done_date: today.toISOString().slice(0, 10) }}
               fields={[
-                { name: 'task_code', label: 'Vrsta', type: 'select', options: Object.entries(TASK_PRESETS).map(([value, t]) => ({ value, label: t.label })), required: true },
+                {
+                  name: 'task_code',
+                  label: 'Vrsta',
+                  type: 'select',
+                  // A task already in this vehicle's plan is edited on its row, not added twice.
+                  options: Object.entries(TASK_PRESETS)
+                    .filter(([value]) => !(schedule ?? []).some((row) => row.task_code === value))
+                    .map(([value, t]) => ({ value, label: t.label })),
+                  required: true,
+                },
                 { name: 'label', label: 'Naziv (kako piše stranci)', required: true },
                 { name: 'interval_km', label: 'Interval', type: 'number', suffix: 'km', half: true },
                 { name: 'interval_months', label: 'Interval', type: 'number', suffix: 'mj.', half: true },

@@ -4,7 +4,7 @@ import { FieldSchedule } from '@/components/field/FieldSchedule';
 import { JobCard, type BoardJob } from '@/components/JobCard';
 import { EmptyState, Input, PageHeader, Stat, buttonClass } from '@/components/ui';
 import { PHASE_ORDER, hasFieldWork, phaseLabel, type JobPhase } from '@/config/tenant.config';
-import { formatEuro } from '@/lib/format';
+import { countJobs, formatEuro } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
 import { cn, toIlike } from '@/lib/utils';
 
@@ -104,7 +104,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
         <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat label="U radu" value={openCount ?? jobs.length} />
           <Stat label="Gotovo, čeka preuzimanje" value={jobs.filter((j) => j.phase === 'ready').length} tone="ok" />
-          <Stat label="Za naplatu" value={formatEuro(unpaidSum)} hint={`${unpaidCount} naloga`} tone={unpaidCount ? 'warn' : undefined} />
+          <Stat label="Za naplatu" value={formatEuro(unpaidSum)} hint={countJobs(unpaidCount)} tone={unpaidCount ? 'warn' : undefined} />
           <Stat label="Hitno" value={jobs.filter((j) => j.is_urgent).length} tone={jobs.some((j) => j.is_urgent) ? 'crit' : undefined} />
         </div>
       ) : null}

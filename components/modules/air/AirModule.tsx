@@ -1,7 +1,7 @@
 import { CalendarClock, Gauge, ShieldCheck } from 'lucide-react';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
 import { REFRIGERANTS, fgasObligations, nextLeakCheck } from '@/config/packages/air';
-import { assetTitle, daysUntil, formatDate, formatDateTime } from '@/lib/format';
+import { assetTitle, daysUntil, formatDate, formatDateTime, formatDecimal, formatNumber } from '@/lib/format';
 import { addMonths, dayOf, todayInZagreb } from '@/lib/time';
 import type { ModuleProps } from '../ModuleTab';
 import { DeleteRecordButton, RecordSheet } from '../kit';
@@ -82,14 +82,16 @@ export async function AirModule({ ctx, job, locked }: ModuleProps) {
         {device ? (
           <div className="p-4">
             <div className="mb-3 flex flex-wrap gap-1.5">
-              {duty.tco2e !== null ? <Badge tone="neutral">{duty.tco2e} t CO₂e</Badge> : null}
+              {duty.tco2e !== null ? <Badge tone="neutral">{formatDecimal(duty.tco2e, 2)} t CO₂e</Badge> : null}
               {duty.serviceCard ? <Badge tone="warn">Servisna kartica SK 1 obavezna (≥ 3 kg)</Badge> : null}
               {duty.leakCheckMonths ? <Badge tone="accent">Provjera propuštanja svakih {duty.leakCheckMonths} mj.</Badge> : <Badge tone="muted">Bez obvezne periodične provjere</Badge>}
             </div>
             <p className="mb-3 text-sm text-muted">{duty.note}</p>
             <div className="grid gap-x-8 sm:grid-cols-2">
-              <KeyValue label="Radna tvar">{`${device.refrigerant ?? '—'} · ${device.charge_kg ?? '—'} kg`}</KeyValue>
-              <KeyValue label="Snaga">{[device.cooling_kw && `${device.cooling_kw} kW hlađenje`, device.heating_kw && `${device.heating_kw} kW grijanje`].filter(Boolean).join(' · ') || '—'}</KeyValue>
+              <KeyValue label="Radna tvar">{`${device.refrigerant ?? '—'} · ${device.charge_kg != null ? formatNumber(Number(device.charge_kg), 2) : '—'} kg`}</KeyValue>
+              <KeyValue label="Snaga">
+                {[device.cooling_kw && `${formatNumber(Number(device.cooling_kw), 2)} kW hlađenje`, device.heating_kw && `${formatNumber(Number(device.heating_kw), 2)} kW grijanje`].filter(Boolean).join(' · ') || '—'}
+              </KeyValue>
               <KeyValue label="Serijski">{[device.indoor_serial, device.outdoor_serial].filter(Boolean).join(' / ') || '—'}</KeyValue>
               <KeyValue label="Montaža / jamstvo">{`${formatDate(device.install_date as string | null)} / ${formatDate(device.warranty_until as string | null)}`}</KeyValue>
               {duty.leakCheckMonths ? (
@@ -145,7 +147,7 @@ export async function AirModule({ ctx, job, locked }: ModuleProps) {
               <li key={entry.id as string} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-sm">
                 <span className="w-32 shrink-0 text-xs text-faint">{formatDateTime(entry.performed_at as string)}</span>
                 <span className="font-medium">{FGAS_ACTIONS[entry.action as string]}</span>
-                {Number(entry.quantity_kg) > 0 ? <Badge tone="neutral">{`${entry.quantity_kg} kg ${entry.refrigerant}`}</Badge> : null}
+                {Number(entry.quantity_kg) > 0 ? <Badge tone="neutral">{`${formatNumber(Number(entry.quantity_kg), 2)} kg ${entry.refrigerant}`}</Badge> : null}
                 {entry.leak_found === true ? <Badge tone="crit">Propuštanje: {(entry.leak_location as string | null) ?? 'da'}</Badge> : entry.action === 'leak_check' ? <Badge tone="ok">Bez propuštanja</Badge> : null}
                 <span className="text-xs text-muted">
                   {(entry.technician as { full_name: string | null } | null)?.full_name ?? ''} · cert. {(entry.technician_cert as string | null) ?? '—'}

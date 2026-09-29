@@ -56,7 +56,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     <div className="pb-24">
       <JobHeader job={job} pkg={ctx.pkg} total={total} copilot={Boolean(process.env.ANTHROPIC_API_KEY)} />
 
-      <nav className="no-scrollbar sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 -mx-4 mb-5 flex gap-1 overflow-x-auto border-b border-line bg-bg/90 px-4 backdrop-blur-md sm:mx-0 sm:px-0 lg:top-0">
+      <nav className="no-scrollbar sticky top-[var(--shell-top)] z-20 -mx-4 mb-5 flex gap-1 overflow-x-auto border-b border-line bg-bg/90 px-4 backdrop-blur-md sm:mx-0 sm:px-0 lg:top-0">
         {tabs.map((t) => (
           <Link
             key={t.id}

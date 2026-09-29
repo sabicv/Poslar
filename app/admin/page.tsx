@@ -4,7 +4,7 @@ import { ProductMark } from '@/components/ProductMark';
 import { Badge, Button, Card, CardHeader, PageHeader, Stat } from '@/components/ui';
 import { PACKAGES, accentStyle, getPackage, type PackageId } from '@/config/tenant.config';
 import { signOut } from '@/lib/actions/auth';
-import { daysUntil, formatDate, formatRelative } from '@/lib/format';
+import { countJobs, daysUntil, formatDate, formatRelative } from '@/lib/format';
 import { getAuth, isPlatformAdmin } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Tenant } from '@/types/db';
@@ -92,7 +92,7 @@ export default async function AdminPage() {
                     {[ownerName.get(t.id), t.city, t.oib && `OIB ${t.oib}`, `${staffCount.get(t.id) ?? 0} korisnika`, `od ${formatDate(t.created_at)}`].filter(Boolean).join(' · ')}
                   </p>
                   <p className="text-xs text-faint">
-                    {act ? `${act.count} naloga u 30 dana · zadnji ${formatRelative(act.last)}` : 'Nema naloga u 30 dana'}
+                    {act ? `${countJobs(act.count)} u 30 dana · zadnji ${formatRelative(act.last)}` : 'Nema naloga u 30 dana'}
                     {aiUsage.get(t.id) ? ` · Kopilot: ${aiUsage.get(t.id)!.answers} odgovora, ${Math.round(aiUsage.get(t.id)!.tokens / 1000)}k tokena` : ''}
                   </p>
                 </div>

@@ -39,9 +39,9 @@ export function JobActionBar({
           onOpenChange={setOpen}
           title="Faza naloga"
           trigger={
-            <Button size="lg" className="min-w-0 flex-1 justify-between sm:flex-none sm:justify-center">
-              <span className="truncate">{phases[index]?.label}</span>
-              <ChevronRight className="size-4 rotate-90 text-faint" />
+            <Button size="lg" className="min-w-0 flex-1 justify-between gap-1 whitespace-normal px-3 text-sm sm:flex-none sm:justify-center sm:px-5">
+              <span className="line-clamp-2 text-left leading-tight">{phases[index]?.label}</span>
+              <ChevronRight className="size-4 shrink-0 rotate-90 text-faint" />
             </Button>
           }
         >
@@ -72,9 +72,15 @@ export function JobActionBar({
         </Sheet>
 
         {next ? (
-          <Button size="lg" variant="primary" disabled={pending} onClick={() => run(() => setJobPhase(jobId, next.id))} className="min-w-0 flex-1 sm:flex-none">
-            <span className="truncate">{next.label}</span>
-            <ChevronRight className="size-4" />
+          <Button
+            size="lg"
+            variant="primary"
+            disabled={pending}
+            onClick={() => run(() => setJobPhase(jobId, next.id))}
+            className="min-w-0 flex-1 gap-1 whitespace-normal px-3 text-sm sm:flex-none sm:px-5"
+          >
+            <span className="line-clamp-2 text-center leading-tight">{next.label}</span>
+            <ChevronRight className="size-4 shrink-0" />
           </Button>
         ) : null}
 
@@ -86,7 +92,7 @@ export function JobActionBar({
               disabled={pending}
               onClick={() => run(() => setJobPaid(jobId, !paid), { success: paid ? 'Vraćeno na "Za naplatu"' : 'Označeno plaćeno' })}
               aria-label={paid ? 'Plaćeno' : 'Označi plaćeno'}
-              className="px-3.5"
+              className="px-3"
             >
               <Wallet className="size-5" />
               <span className="hidden md:inline">{paid ? 'Plaćeno' : 'Naplaćeno?'}</span>
@@ -97,7 +103,7 @@ export function JobActionBar({
               disabled={pending}
               onClick={() => run(() => setJobLocked(jobId, !locked), { success: locked ? 'Nalog otključan' : 'Nalog zaključan' })}
               aria-label={locked ? 'Otključaj' : 'Zaključaj'}
-              className="px-3.5"
+              className="px-3"
             >
               {locked ? <Lock className="size-5" /> : <LockOpen className="size-5" />}
               <span className="hidden md:inline">{locked ? 'Zaključano' : 'Zaključaj'}</span>

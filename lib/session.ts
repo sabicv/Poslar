@@ -4,6 +4,7 @@ import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { getPackage, type PackageConfig, type PackageId } from '@/config/tenant.config';
+import { isDemoUser } from '@/lib/demo';
 import { createServerSupabaseClient, type ServerSupabaseClient } from '@/lib/supabase/server';
 import type { Profile, StaffRole, Tenant, TenantStatus } from '@/types/db';
 
@@ -77,11 +78,12 @@ export const getWorkshop = cache(async (): Promise<WorkshopState> => {
 });
 
 // For every page under /app. Locked workshops land on /locked, which lives
-// outside /app so it can never redirect back here.
+// outside /app so it can never redirect back here. The demo login has no
+// workshop of its own and goes to the demo centre instead.
 export async function requireWorkshop(): Promise<WorkshopContext> {
   const state = await getWorkshop();
   if (state.kind === 'anonymous') redirect('/login');
-  if (state.kind === 'locked') redirect('/locked');
+  if (state.kind === 'locked') redirect(state.reason === 'no_workshop' && isDemoUser(state.user) ? '/demo' : '/locked');
   return state;
 }
 
