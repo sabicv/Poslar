@@ -4,7 +4,8 @@ import { Badge, Card, CardHeader, EmptyState } from '@/components/ui';
 import { SEASON_LABELS, TIRE_POSITIONS, TREAD_LIMITS } from '@/config/packages/wheel';
 import { formatDate, formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet, opts } from '../kit';
+import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet } from '../kit';
+import { opts } from '../options';
 import { StorageActions } from './StorageActions';
 
 const POSITIONS = { FL: 'Prednja lijeva', FR: 'Prednja desna', RL: 'Stražnja lijeva', RR: 'Stražnja desna', SPARE: 'Rezervna' };

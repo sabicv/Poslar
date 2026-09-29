@@ -3,7 +3,8 @@ import { Anchor, Snowflake, Sun, Warehouse } from 'lucide-react';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
 import { formatDate, formatDateTime, formatNumber } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { RecordButton, RecordSheet, opts } from '../kit';
+import { RecordButton, RecordSheet } from '../kit';
+import { opts } from '../options';
 import { ProtocolSheet } from './ProtocolSheet';
 
 const HULL = { grp: 'Stakloplastika', aluminium: 'Aluminij', wood: 'Drvo', inflatable: 'Gumenjak', steel: 'Čelik', other: 'Ostalo' };

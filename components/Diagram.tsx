@@ -1,5 +1,5 @@
-'use client';
-
+// No 'use client': the helpers (diagramFor, zonesFor) are also called on the
+// server; the component runs in the browser when a client component renders it.
 import { BODY_ZONES } from '@/config/packages/body';
 import { BOAT_ZONES, MOTO_ZONES } from '@/config/packages/moto';
 import type { AssetType } from '@/config/tenant.config';

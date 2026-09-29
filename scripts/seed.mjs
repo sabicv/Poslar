@@ -703,9 +703,9 @@ async function seedBody() {
   await q(sb.from('private_amounts').insert({ tenant_id: T.id, entity: 'body_estimates', entity_id: e2.id, field: 'approved_amount', amount: 1680 }));
   await q(
     sb.from('body_panel_damages').insert([
-      { tenant_id: T.id, estimate_id: e2.id, zone: 'rear_bumper', damage_type: 'break', size: 'large', operation: 'replace', hours_prep: 1.5, hours_paint: 2, hours_assembly: 1.2 },
-      { tenant_id: T.id, estimate_id: e2.id, zone: 'trunk', damage_type: 'deformation', size: 'medium', operation: 'repair', hours_body: 4, hours_prep: 1.5, hours_paint: 2 },
-      { tenant_id: T.id, estimate_id: e2.id, zone: 'quarter_rr', damage_type: 'dent', size: 'small', operation: 'repair', hours_body: 2.5, hours_prep: 1, hours_paint: 1.5 },
+      { tenant_id: T.id, estimate_id: e2.id, zone: 'rear_bumper', damage_type: 'break', size: 'large', operation: 'replace', hours_body: 0, hours_prep: 1.5, hours_paint: 2, hours_assembly: 1.2 },
+      { tenant_id: T.id, estimate_id: e2.id, zone: 'trunk', damage_type: 'deformation', size: 'medium', operation: 'repair', hours_body: 4, hours_prep: 1.5, hours_paint: 2, hours_assembly: 0 },
+      { tenant_id: T.id, estimate_id: e2.id, zone: 'quarter_rr', damage_type: 'dent', size: 'small', operation: 'repair', hours_body: 2.5, hours_prep: 1, hours_paint: 1.5, hours_assembly: 0 },
     ])
   );
   const [pj] = await q(
@@ -782,7 +782,7 @@ async function seedWheel() {
       sb
         .from('wheel_tire_sets')
         .insert([
-          { tenant_id: T.id, client_id: c, asset_id: a, season: 'summer', width: w, aspect: asp, rim_diameter: rim, load_index: li, speed_index: si, brand: ['Michelin', 'Continental', 'Bridgestone', 'Goodyear', 'Pirelli', 'Hankook'][i], model: 'Primacy', status: 'on_vehicle' },
+          { tenant_id: T.id, client_id: c, asset_id: a, season: 'summer', width: w, aspect: asp, rim_diameter: rim, load_index: li, speed_index: si, brand: ['Michelin', 'Continental', 'Bridgestone', 'Goodyear', 'Pirelli', 'Hankook'][i], model: 'Primacy', on_rims: false, rim_material: null, bolts_included: false, status: 'on_vehicle' },
           { tenant_id: T.id, client_id: c, asset_id: a, season: 'winter', width: w, aspect: asp, rim_diameter: rim, load_index: li, speed_index: 'H', brand: ['Nokian', 'Continental', 'Michelin', 'Goodyear', 'Kleber', 'Hankook'][i], model: 'WinterContact', on_rims: i % 2 === 0, rim_material: i % 2 === 0 ? 'steel' : null, bolts_included: i % 2 === 0, status: 'stored' },
         ])
         .select('id, season')
@@ -858,8 +858,8 @@ async function seedFleet() {
   await q(
     sb.from('fleet_accounts').insert([
       { tenant_id: T.id, client_id: t1, fleet_manager_name: 'Damir Horvat', fleet_manager_phone: '+385 91 600 1100', payment_terms_days: 30, po_required: true },
-      { tenant_id: T.id, client_id: t2, fleet_manager_name: 'Siniša Kralj', payment_terms_days: 45 },
-      { tenant_id: T.id, client_id: t3, fleet_manager_name: 'Zdenko Pavić', payment_terms_days: 60 },
+      { tenant_id: T.id, client_id: t2, fleet_manager_name: 'Siniša Kralj', fleet_manager_phone: null, payment_terms_days: 45, po_required: false },
+      { tenant_id: T.id, client_id: t3, fleet_manager_name: 'Zdenko Pavić', fleet_manager_phone: null, payment_terms_days: 60, po_required: false },
     ])
   );
   const truck1 = await asset(T, t1, { type: 'tractor_unit', id: 'ZG-4410-TH', make: 'MAN', model: 'TGX 18.470', year: 2020, fuel: 'diesel', internal: 'K-04', axles: '4x2', gvw: 18 });

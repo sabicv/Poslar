@@ -233,8 +233,6 @@ export function DeleteRecordButton({ table, id, revalidate, label = 'Obriši' }:
   );
 }
 
-export const opts = (map: Record<string, string>) => Object.entries(map).map(([value, label]) => ({ value, label }));
-
 // Owner-only amount (private_amounts) edited in a sheet; workers never get this component.
 export function PrivateAmountSheet({
   entity,

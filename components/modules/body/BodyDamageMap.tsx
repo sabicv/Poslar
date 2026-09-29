@@ -6,7 +6,8 @@ import { Sheet } from '@/components/client-ui';
 import { Badge } from '@/components/ui';
 import { BODY_DAMAGE_TYPES, BODY_OPERATIONS, BODY_ZONES } from '@/config/packages/body';
 import { deleteRecord, saveRecord } from '@/lib/actions/records';
-import { QuickForm, opts } from '../kit';
+import { QuickForm } from '../kit';
+import { opts } from '../options';
 
 interface Damage {
   id: string;

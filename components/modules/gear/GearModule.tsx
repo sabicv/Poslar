@@ -3,7 +3,8 @@ import { CalendarClock, Package, Truck } from 'lucide-react';
 import { Badge, Card, CardHeader } from '@/components/ui';
 import { daysUntil, formatDate, formatNumber } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { DeleteRecordButton, RecordButton, RecordSheet, opts } from '../kit';
+import { DeleteRecordButton, RecordButton, RecordSheet } from '../kit';
+import { opts } from '../options';
 
 const ORDER_STATUS = { to_order: 'Naručiti', ordered: 'Naručeno', arrived: 'Stiglo', installed: 'Ugrađeno', returned: 'Vraćeno' } as const;
 const ORDER_TONE = { to_order: 'warn', ordered: 'accent', arrived: 'ok', installed: 'muted', returned: 'muted' } as const;

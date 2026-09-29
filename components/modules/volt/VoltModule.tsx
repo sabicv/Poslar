@@ -3,7 +3,8 @@ import { Badge, Card, CardHeader, EmptyState } from '@/components/ui';
 import { DTC_CATEGORY_HINTS, findDtcCode } from '@/config/packages/volt-dtc';
 import { formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { DeleteRecordButton, RecordSheet, opts } from '../kit';
+import { DeleteRecordButton, RecordSheet } from '../kit';
+import { opts } from '../options';
 import { DrainChart } from './DrainChart';
 import { DtcFindingSheet } from './DtcFindingSheet';
 

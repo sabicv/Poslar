@@ -3,7 +3,8 @@ import { Badge, Card, CardHeader } from '@/components/ui';
 import { COMPLIANCE_LABELS } from '@/config/packages/fleet';
 import { daysUntil, formatDate, formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { DeleteRecordButton, RecordButton, RecordSheet, opts } from '../kit';
+import { DeleteRecordButton, RecordButton, RecordSheet } from '../kit';
+import { opts } from '../options';
 import { FieldStep } from './FieldStep';
 
 const STEPS = [

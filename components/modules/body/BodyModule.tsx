@@ -3,7 +3,8 @@ import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
 import { BODY_OPERATIONS } from '@/config/packages/body';
 import { formatDate, formatDateTime, formatNumber } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet, opts } from '../kit';
+import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet } from '../kit';
+import { opts } from '../options';
 import { BodyDamageMap } from './BodyDamageMap';
 
 const ESTIMATE_STATUS = { draft: 'U izradi', sent: 'Poslano osiguranju', approved: 'Odobreno', supplement: 'Dopuna', rejected: 'Odbijeno' };

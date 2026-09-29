@@ -25,7 +25,17 @@ const all = process.argv.includes('--all');
 const dir = path.join(root, 'supabase', 'migrations');
 const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
 
-const client = new pg.Client({ connectionString: url, password, ssl: url.includes('localhost') ? false : { rejectUnauthorized: false } });
+// Parsed by hand: with `connectionString`, pg would let the URL's (empty)
+// password override the separate one.
+const parsed = new globalThis.URL(url);
+const client = new pg.Client({
+  host: parsed.hostname,
+  port: Number(parsed.port || 5432),
+  user: decodeURIComponent(parsed.username),
+  password: password ?? decodeURIComponent(parsed.password),
+  database: parsed.pathname.slice(1) || 'postgres',
+  ssl: parsed.hostname === 'localhost' ? false : { rejectUnauthorized: false },
+});
 await client.connect();
 await client.query('create schema if not exists xfiles_meta');
 await client.query('create table if not exists xfiles_meta.migrations (name text primary key, applied_at timestamptz not null default now())');
