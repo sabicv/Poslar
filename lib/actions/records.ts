@@ -63,6 +63,9 @@ const WRITABLE: Record<string, string> = {
   moto_seasonal_protocols: 'id',
   moto_storage_locations: 'id',
   moto_storage_stays: 'id',
+  air_equipment: 'asset_id',
+  air_fgas_log: 'id',
+  maintenance_plans: 'id',
 };
 
 type Values = Record<string, unknown>;
@@ -88,7 +91,7 @@ const MODULE_TABLES: Record<string, ModuleId> = {
 function tablePackage(table: string): PackageId | null {
   if (table === 'insurers') return 'body';
   const prefix = table.split('_')[0];
-  return (['volt', 'gear', 'body', 'wheel', 'fleet', 'moto'] as PackageId[]).includes(prefix as PackageId) ? (prefix as PackageId) : null;
+  return (['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'air'] as PackageId[]).includes(prefix as PackageId) ? (prefix as PackageId) : null;
 }
 
 function allowedForWorkshop(ctx: WorkshopContext, table: string): boolean {
@@ -114,6 +117,8 @@ export async function saveRecord(
   );
   delete clean.tenant_id;
   delete clean.created_at;
+  // An F-gas record always names the technician who did it.
+  if (table === 'air_fgas_log' && !options.id) clean.technician_id = ctx.user.id;
 
   let result;
   if (options.upsertOn) {

@@ -17,8 +17,12 @@ import { body } from './packages/body';
 import { wheel } from './packages/wheel';
 import { fleet } from './packages/fleet';
 import { moto } from './packages/moto';
+import { air } from './packages/air';
 
-export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'moto';
+export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'moto' | 'air';
+// Where the work happens: the customer brings the object in, or the
+// technician goes to the customer's address.
+export type Sector = 'workshop' | 'field';
 export type MeterUnit = 'km' | 'mth';
 export type JobPhase =
   | 'intake'
@@ -32,7 +36,8 @@ export type JobPhase =
 export type LineKind = 'labor' | 'part' | 'material' | 'package' | 'sublet' | 'fee';
 export type AssetType =
   | 'car' | 'van' | 'truck' | 'tractor_unit' | 'bus' | 'trailer' | 'semi_trailer' | 'machine'
-  | 'tractor' | 'implement' | 'motorcycle' | 'scooter' | 'atv' | 'jetski' | 'boat' | 'outboard' | 'inboard';
+  | 'tractor' | 'implement' | 'motorcycle' | 'scooter' | 'atv' | 'jetski' | 'boat' | 'outboard' | 'inboard'
+  | 'ac_split' | 'ac_multi' | 'ac_ducted' | 'ac_vrf' | 'heat_pump' | 'ventilation' | 'chiller';
 
 export type ModuleId =
   | 'dvi'
@@ -52,7 +57,10 @@ export type ModuleId =
   | 'fleet_pm'
   | 'moto_seasonal'
   | 'moto_storage'
-  | 'marine';
+  | 'marine'
+  | 'field_visits'
+  | 'maintenance_plans'
+  | 'fgas';
 
 export interface Vocabulary {
   client: { one: string; many: string; new: string; acc: string };
@@ -106,6 +114,7 @@ export interface PackageConfig {
   domain: string;
   tagline: string;
   pitch: string[];
+  sector: Sector;
   accent: string;
   vocabulary: Vocabulary;
   assetTypes: AssetType[];
@@ -124,7 +133,7 @@ export interface PackageConfig {
   modulePage: string;
 }
 
-export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto };
+export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto, air };
 export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 
 export const PHASE_ORDER: JobPhase[] = [
@@ -180,9 +189,17 @@ export const ASSET_TYPE_LABELS: Record<AssetType, string> = {
   boat: 'Plovilo',
   outboard: 'Vanbrodski motor',
   inboard: 'Unutarnji motor',
+  ac_split: 'Split klima',
+  ac_multi: 'Multi-split klima',
+  ac_ducted: 'Kanalna / kazetna klima',
+  ac_vrf: 'VRF / VRV sustav',
+  heat_pump: 'Dizalica topline',
+  ventilation: 'Ventilacija / rekuperator',
+  chiller: 'Rashladnik vode (chiller)',
 };
 
-const MTH_TYPES: AssetType[] = ['machine', 'tractor', 'implement', 'jetski', 'boat', 'outboard', 'inboard'];
+const MTH_TYPES: AssetType[] = ['machine', 'tractor', 'implement', 'jetski', 'boat', 'outboard', 'inboard', 'ac_split', 'ac_multi', 'ac_ducted', 'ac_vrf', 'heat_pump', 'ventilation', 'chiller'];
+export const CLIMATE_TYPES: AssetType[] = ['ac_split', 'ac_multi', 'ac_ducted', 'ac_vrf', 'heat_pump', 'ventilation', 'chiller'];
 
 export function defaultMeterUnit(type: AssetType): MeterUnit {
   return MTH_TYPES.includes(type) ? 'mth' : 'km';
@@ -192,12 +209,14 @@ export function identifierLabel(type: AssetType): string {
   if (type === 'boat' || type === 'jetski') return 'Registarska oznaka plovila';
   if (type === 'outboard' || type === 'inboard') return 'Serijski broj motora';
   if (type === 'machine' || type === 'implement') return 'Serijski broj';
+  if (CLIMATE_TYPES.includes(type)) return 'Oznaka uređaja';
   return 'Registracija';
 }
 
 export function vinLabel(type: AssetType): string {
   if (type === 'boat' || type === 'jetski') return 'HIN / CIN (14 znakova)';
   if (type === 'outboard' || type === 'inboard') return 'Oznaka modela';
+  if (CLIMATE_TYPES.includes(type)) return 'Serijski broj';
   return 'VIN';
 }
 
@@ -216,6 +235,12 @@ export function phaseLabel(pkg: PackageConfig, phase: JobPhase): string {
 
 export function hasModule(pkg: PackageConfig, enabled: string[] | null | undefined, module: ModuleId): boolean {
   return pkg.modules.includes(module) || Boolean(enabled?.includes(module) && pkg.optionalModules.includes(module));
+}
+
+// Field work (sites, appointments, on-site timeline, customer report):
+// always for a field package, optional for a workshop that also goes out.
+export function hasFieldWork(pkg: PackageConfig, enabled: string[] | null | undefined): boolean {
+  return pkg.sector === 'field' || hasModule(pkg, enabled, 'field_visits');
 }
 
 export function findInspection(pkg: PackageConfig, code: string): InspectionTemplate | undefined {

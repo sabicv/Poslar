@@ -7,7 +7,8 @@ import { ConfirmButton, Segmented, Sheet, useAction } from '@/components/client-
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import type { AssetType, MeterUnit } from '@/config/tenant.config';
 import { deleteAsset, deleteClient, saveAsset, saveClient } from '@/lib/actions/clients';
-import type { Asset, Client } from '@/types/db';
+import { deleteSite, saveSite } from '@/lib/actions/field';
+import type { Asset, Client, Site } from '@/types/db';
 
 type ClientValues = Pick<Client, 'kind' | 'first_name' | 'last_name' | 'company_name' | 'oib' | 'phone' | 'email' | 'address' | 'city' | 'notes'>;
 
@@ -114,6 +115,7 @@ export function AssetSheet({
   asset,
   assetTypes,
   parents,
+  sites = [],
   title,
   isOwner,
 }: {
@@ -121,6 +123,7 @@ export function AssetSheet({
   asset?: Asset;
   assetTypes: { value: AssetType; label: string; unit: MeterUnit }[];
   parents: { value: string; label: string }[];
+  sites?: { value: string; label: string }[];
   title: string;
   isOwner?: boolean;
 }) {
@@ -140,6 +143,7 @@ export function AssetSheet({
     internal_number: asset?.internal_number ?? '',
     paint_code: asset?.paint_code ?? '',
     parent_asset_id: asset?.parent_asset_id ?? '',
+    site_id: asset?.site_id ?? (sites.length === 1 ? sites[0].value : ''),
     notes: asset?.notes ?? '',
   });
   const set = (key: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [key]: e.target.value }));
@@ -172,6 +176,18 @@ export function AssetSheet({
             ))}
           </Select>
         </Field>
+        {sites.length ? (
+          <Field label="Lokacija" className="col-span-2">
+            <Select value={v.site_id} onChange={set('site_id')}>
+              <option value="">—</option>
+              {sites.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        ) : null}
         <Field label="Registracija / oznaka">
           <Input value={v.identifier} className="font-mono uppercase" onChange={set('identifier')} />
         </Field>
@@ -247,6 +263,7 @@ export function AssetSheet({
                     internal_number: v.internal_number,
                     paint_code: v.paint_code,
                     parent_asset_id: v.parent_asset_id || null,
+                    site_id: v.site_id || null,
                     meter_primary_unit: asset?.meter_primary_unit ?? unit,
                     notes: v.notes,
                   }),
@@ -258,6 +275,96 @@ export function AssetSheet({
           </Button>
           {asset && isOwner ? (
             <ConfirmButton size="lg" confirmLabel="Obrisati s nalozima?" onConfirm={() => run(() => deleteAsset(asset.id), { success: 'Obrisano', onDone: () => router.replace(`/app/clients/${clientId}`) })}>
+              Obriši
+            </ConfirmButton>
+          ) : null}
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+type SiteKind = 'house' | 'flat' | 'apartment' | 'office' | 'commercial' | 'other';
+export const SITE_KIND_LABELS: Record<SiteKind, string> = { flat: 'Stan', house: 'Kuća', apartment: 'Apartman', office: 'Ured', commercial: 'Poslovni prostor', other: 'Ostalo' };
+
+// A place where the customer has devices: address, how to get in, who opens.
+export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?: Site; isOwner?: boolean }) {
+  const { pending, run } = useAction();
+  const [open, setOpen] = useState(false);
+  const [v, setV] = useState({
+    label: site?.label ?? '',
+    kind: (site?.kind ?? 'flat') as SiteKind,
+    address: site?.address ?? '',
+    city: site?.city ?? '',
+    postal_code: site?.postal_code ?? '',
+    access_notes: site?.access_notes ?? '',
+    contact_name: site?.contact_name ?? '',
+    contact_phone: site?.contact_phone ?? '',
+  });
+  const set = (key: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [key]: e.target.value }));
+
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={setOpen}
+      title={site ? 'Lokacija' : 'Nova lokacija'}
+      trigger={
+        site ? (
+          <Button size="sm" variant="ghost" aria-label="Uredi lokaciju">
+            <Pencil className="size-4" />
+          </Button>
+        ) : (
+          <Button size="sm" variant="secondary">
+            <Plus className="size-4" /> Lokacija
+          </Button>
+        )
+      }
+    >
+      <div className="space-y-3">
+        <Segmented
+          value={v.kind}
+          onChange={(kind) => setV((s) => ({ ...s, kind }))}
+          options={(['flat', 'house', 'apartment', 'office', 'commercial'] as SiteKind[]).map((k) => ({ value: k, label: SITE_KIND_LABELS[k].split(' ')[0] }))}
+        />
+        <div className="grid grid-cols-[2fr_1fr] gap-3">
+          <Field label="Adresa">
+            <Input value={v.address} onChange={set('address')} placeholder="Ulica i broj" />
+          </Field>
+          <Field label="Grad">
+            <Input value={v.city} onChange={set('city')} />
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Naziv (nije obavezno)">
+            <Input value={v.label} onChange={set('label')} placeholder="npr. Apartman 3" />
+          </Field>
+          <Field label="Poštanski broj">
+            <Input value={v.postal_code} onChange={set('postal_code')} inputMode="numeric" />
+          </Field>
+        </div>
+        <Field label="Upute za ulaz">
+          <Textarea rows={2} value={v.access_notes} onChange={set('access_notes')} placeholder="Kat, šifra ulaza, ključ kod susjeda, parking, pas…" />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Osoba na lokaciji">
+            <Input value={v.contact_name} onChange={set('contact_name')} />
+          </Field>
+          <Field label="Njezin telefon">
+            <Input type="tel" value={v.contact_phone} onChange={set('contact_phone')} />
+          </Field>
+        </div>
+        <div className="flex gap-2 pt-1">
+          <Button
+            variant="primary"
+            size="lg"
+            className="flex-1"
+            disabled={pending || v.address.trim().length < 3}
+            onClick={() => run(() => saveSite(site?.id ?? null, { ...v, client_id: clientId }), { success: 'Lokacija spremljena', onDone: () => setOpen(false) })}
+          >
+            Spremi
+          </Button>
+          {site && isOwner ? (
+            <ConfirmButton size="lg" confirmLabel="Obrisati lokaciju?" onConfirm={() => run(() => deleteSite(site.id, clientId), { success: 'Obrisano', onDone: () => setOpen(false) })}>
               Obriši
             </ConfirmButton>
           ) : null}

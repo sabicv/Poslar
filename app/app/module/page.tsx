@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AirPage } from '@/components/pages/AirPage';
 import { BodyPage } from '@/components/pages/BodyPage';
 import { FleetPage } from '@/components/pages/FleetPage';
 import { GearPage } from '@/components/pages/GearPage';
@@ -14,9 +15,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // The package's own workspace, beyond single work orders.
-export default async function ModulePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function ModulePage({ searchParams }: { searchParams: Promise<{ q?: string; y?: string }> }) {
   const ctx = await requireWorkshop();
-  const { q = '' } = await searchParams;
+  const { q = '', y } = await searchParams;
   const subtitles = {
     volt: 'Knjižnica kodova grešaka i što su kodovi zaista bili na vašim nalozima',
     gear: 'Vozila kojima uskoro dolazi servis — pozovite ih prije nego odu drugdje',
@@ -24,6 +25,7 @@ export default async function ModulePage({ searchParams }: { searchParams: Promi
     wheel: 'Setovi na čuvanju, police i pretraga po QR kodu',
     fleet: 'Rokovi koji ističu u cijelom voznom parku i zahtjevi tvrtki',
     moto: 'Vozila i plovila na zimovanju',
+    air: 'Servisi koji dospijevaju, podsjetnici klijentima i evidencija F-plinova',
   } as const;
 
   return (
@@ -35,6 +37,7 @@ export default async function ModulePage({ searchParams }: { searchParams: Promi
       {ctx.pkg.id === 'wheel' ? <WheelPage ctx={ctx} q={q} /> : null}
       {ctx.pkg.id === 'fleet' ? <FleetPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'moto' ? <MotoPage ctx={ctx} /> : null}
+      {ctx.pkg.id === 'air' ? <AirPage ctx={ctx} year={y} /> : null}
     </>
   );
 }

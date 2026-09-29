@@ -64,7 +64,7 @@ async function allUsers() {
 
 // Only the six demo workshops this script made (exact slug + demo flag),
 // never a real workshop whose name happens to start with "Demo".
-const DEMO_SLUGS = ['volt', 'gear', 'body', 'wheel', 'fleet', 'moto'].map((p) => `demo-${p}`);
+const DEMO_SLUGS = ['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'air'].map((p) => `demo-${p}`);
 
 async function cleanup() {
   const tenants = await q(sb.from('tenants').select('id').in('slug', DEMO_SLUGS).eq('settings->>demo', 'true'));
@@ -148,6 +148,7 @@ async function asset(T, clientId, a) {
         meter_primary_unit: a.unit ?? 'km',
         axle_config: a.axles ?? null,
         gvw_t: a.gvw ?? null,
+        site_id: a.site ?? null,
       })
       .select('id')
   );
@@ -198,6 +199,8 @@ async function job(T, o) {
         created_by: T.owner,
         created_at: created,
         updated_at: collected ?? finished ?? at(Math.max(0, d - 1), 12),
+        // Field work and anything else a package needs on the job row.
+        ...(o.extra ?? {}),
         is_demo: true,
       })
       .select('id, number')
@@ -1012,6 +1015,223 @@ async function seedMoto() {
 }
 
 // ---------------------------------------------------------------------
+// AIR — klime i dizalice topline, rad na terenu
+// ---------------------------------------------------------------------
+const AIR_UNITS = { a05: '°C', a06: '°C', b04: 'A', b05: 'bar', h01: 'bar', h02: 'bar', h05: '°C', h07: '%', i01: 'bar', i02: 'mbar', i03: 'm', i04: 'g' };
+
+// A wall-clock time in Zagreb, `dayOffset` days from today.
+function zagrebAt(dayOffset, hour, minute = 0) {
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zagreb' }).format(new Date(Date.now() + dayOffset * 86400000));
+  const guess = new Date(`${date}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`);
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Zagreb', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(guess);
+  const get = (t) => Number(parts.find((p) => p.type === t).value);
+  const offset = (Date.UTC(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute')) - guess.getTime()) / 60000;
+  return new Date(guess.getTime() - offset * 60000).toISOString();
+}
+
+async function seedAir() {
+  const T = await workshop({ pkg: 'air', name: 'Klima servis Polar', city: 'Zagreb', address: 'Heinzelova 62', phone: '+385 1 555 0707', owner: 'Hrvoje Vidović', worker: 'Nikola Barić' });
+  await q(sb.from('profiles').update({ fgas_certificate: 'HR-FP-2021-0418' }).eq('id', T.owner));
+  await q(sb.from('profiles').update({ fgas_certificate: 'HR-FP-2023-1127' }).eq('id', T.worker));
+
+  const site = async (clientId, s) => {
+    const [row] = await q(sb.from('sites').insert({ tenant_id: T.id, client_id: clientId, ...s }).select('id'));
+    return row.id;
+  };
+  const device = async (clientId, siteId, a, eq) => {
+    const id = await asset(T, clientId, { ...a, site: siteId, unit: 'mth' });
+    await q(sb.from('air_equipment').insert({ asset_id: id, tenant_id: T.id, ...eq }));
+    return id;
+  };
+  const plan = async (p) => {
+    const [row] = await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, interval_months: 12, template_code: 'air.service_one', ...p }).select('id'));
+    return row.id;
+  };
+
+  // Customers, places and devices
+  const kralj = await client(T, { first: 'Ivana', last: 'Kralj', phone: '+385 91 800 1100', city: 'Zagreb' });
+  const kraljFlat = await site(kralj, { kind: 'flat', address: 'Ilica 112', city: 'Zagreb', postal_code: '10000', access_notes: '3. kat, zvono Kralj. Ključ kod susjede u stanu 7.', lat: 45.8133, lng: 15.9606 });
+  const kraljAc = await device(kralj, kraljFlat, { type: 'ac_split', id: 'Dnevni boravak', make: 'Daikin', model: 'FTXP35M / RXP35M', year: 2022, vin: 'E001234' }, { refrigerant: 'R32', charge_kg: 0.8, cooling_kw: 3.5, heating_kw: 4.0, install_date: '2022-06-14', warranty_until: '2027-06-14', indoor_serial: 'E001234', outdoor_serial: 'O009876' });
+
+  const peric = await client(T, { first: 'Marko', last: 'Perić', phone: '+385 98 800 2200', city: 'Zagreb' });
+  const pericHouse = await site(peric, { kind: 'house', address: 'Trnjanska cesta 45', city: 'Zagreb', access_notes: 'Ulaz s dvorišta, pas u dvorištu — nazvati prije dolaska.', lat: 45.7958, lng: 15.9784 });
+  const pericAc = await device(peric, pericHouse, { type: 'ac_split', id: 'Spavaća soba', make: 'Mitsubishi Electric', model: 'MSZ-LN35VG', year: 2021 }, { refrigerant: 'R32', charge_kg: 1.0, cooling_kw: 3.5, install_date: '2021-05-20' });
+  const pericHp = await device(peric, pericHouse, { type: 'heat_pump', id: 'Grijanje kuće', make: 'Daikin', model: 'Altherma 3 R 8 kW', year: 2020 }, { refrigerant: 'R32', charge_kg: 1.8, heating_kw: 8, install_date: '2020-10-02' });
+
+  const bura = await client(T, { company: 'Apartmani Bura d.o.o.', first: 'Tea', last: 'Jurković', phone: '+385 95 800 3300', city: 'Samobor' });
+  const buraA1 = await site(bura, { kind: 'apartment', label: 'Apartman A1', address: 'Samoborska cesta 5', city: 'Samobor', access_notes: 'Ključ u sefu uz ulaz, šifra 4471. Gosti odlaze do 10 h.', contact_name: 'Tea Jurković', contact_phone: '+385 95 800 3300' });
+  const buraA2 = await site(bura, { kind: 'apartment', label: 'Apartman A2', address: 'Samoborska cesta 5', city: 'Samobor', access_notes: 'Isti sef, šifra 4471.' });
+  const buraAc1 = await device(bura, buraA1, { type: 'ac_split', id: 'A1', make: 'Gree', model: 'Pular GWH12AGB', year: 2023 }, { refrigerant: 'R32', charge_kg: 0.7, cooling_kw: 3.5, install_date: '2023-05-10' });
+  const buraAc2 = await device(bura, buraA2, { type: 'ac_split', id: 'A2', make: 'Gree', model: 'Pular GWH12AGB', year: 2023 }, { refrigerant: 'R32', charge_kg: 0.7, cooling_kw: 3.5, install_date: '2023-05-10' });
+
+  const ured = await client(T, { company: 'Ured Centar d.o.o.', first: 'Goran', last: 'Šimunović', phone: '+385 1 600 7788', city: 'Zagreb', oib: '98765432106' });
+  const uredSite = await site(ured, { kind: 'office', label: 'Poslovni prostor, 4. kat', address: 'Vukovarska avenija 200', city: 'Zagreb', access_notes: 'Prijava na recepciji, vanjske jedinice na krovu — ključ kod domara.', contact_name: 'Domar Ivo', contact_phone: '+385 91 600 1234' });
+  const uredVrv = await device(ured, uredSite, { type: 'ac_vrf', id: 'VRV krov', make: 'Daikin', model: 'VRV IV RXYQ10U', year: 2018 }, { refrigerant: 'R410A', charge_kg: 8.5, indoor_units: 9, cooling_kw: 28, heating_kw: 31.5, install_date: '2018-04-12' });
+
+  const horvat = await client(T, { first: 'Ana', last: 'Horvat', phone: '+385 99 800 4400', city: 'Zagreb' });
+  const horvatFlat = await site(horvat, { kind: 'flat', address: 'Savska cesta 30', city: 'Zagreb', access_notes: '5. kat, lift radi.' });
+  const horvatNew = await device(horvat, horvatFlat, { type: 'ac_split', id: 'Radna soba', make: 'Daikin', model: 'Perfera FTXM25R' }, { refrigerant: 'R32', charge_kg: 0.75, cooling_kw: 2.5 });
+
+  // Maintenance plans (one overdue, a few due soon)
+  const planKralj = await plan({ client_id: kralj, site_id: kraljFlat, asset_id: kraljAc, title: 'Godišnji servis klime', next_due_date: day(0) });
+  await plan({ client_id: peric, site_id: pericHouse, asset_id: pericHp, title: 'Godišnji servis dizalice topline', next_due_date: day(-10), template_code: 'air.heat_pump_service' });
+  await plan({ client_id: peric, site_id: pericHouse, asset_id: pericAc, title: 'Godišnji servis klime', next_due_date: day(20) });
+  await plan({ client_id: bura, site_id: buraA1, asset_id: buraAc1, title: 'Servis klime prije sezone', next_due_date: day(12) });
+  const planA2 = await plan({ client_id: bura, site_id: buraA2, asset_id: buraAc2, title: 'Servis klime prije sezone', next_due_date: day(12) });
+  await plan({ client_id: ured, site_id: uredSite, asset_id: uredVrv, title: 'Provjera propuštanja VRV sustava', next_due_date: day(8), template_code: 'air.leak_check' });
+
+  const serviceLines = [
+    { kind: 'package', d: 'Godišnji servis klima uređaja — 1 unutarnja jedinica', unit: 'paušal', price: 60 },
+    { kind: 'material', d: 'Sredstvo za čišćenje i dezinfekciju isparivača', price: 8 },
+  ];
+
+  // Today 08:00 — Ivana Kralj: done, report sent (she was at work).
+  const j1 = await job(T, {
+    client: kralj,
+    asset: kraljAc,
+    phase: 'ready',
+    d: 0,
+    complaint: 'Godišnji servis klime',
+    summary: 'Očišćeni filteri i isparivač, dezinficirano, odvod kondenzata protočan. Izolacija cijevi na vanjskoj jedinici oštećena od sunca — preporuka zamjene.',
+    source: 'field',
+    lines: serviceLines,
+    extra: {
+      work_mode: 'field',
+      site_id: kraljFlat,
+      plan_id: planKralj,
+      scheduled_start: zagrebAt(0, 8),
+      scheduled_end: zagrebAt(0, 9),
+      departed_at: zagrebAt(0, 7, 40),
+      customer_notified_at: zagrebAt(0, 7, 41),
+      arrived_at: zagrebAt(0, 8, 3),
+      arrived_lat: 45.81327,
+      arrived_lng: 15.96071,
+      left_at: zagrebAt(0, 8, 58),
+      finished_at: zagrebAt(0, 8, 58),
+      report_shared_at: zagrebAt(0, 9, 1),
+    },
+  });
+  await q(sb.from('maintenance_plans').update({ next_due_date: day(365), last_job_id: j1.id }).eq('id', planKralj));
+  await inspection(
+    T,
+    j1.id,
+    'air.service_split',
+    'Godišnji servis klima uređaja',
+    [
+      ['a01', 'ok'], ['a02', 'ok'], ['a03', 'ok'], ['a04', 'ok'], ['a05', 'ok', 11.5], ['a06', 'ok', 9.5],
+      ['b01', 'ok'], ['b02', 'ok'], ['b03', 'ok'], ['b04', 'ok', 3.8], ['b05', 'ok', 9.2],
+      ['c01', 'ok'], ['c02', 'warn', null, 'Izolacija na vanjskoj jedinici ispucala od sunca'], ['c03', 'ok'], ['c04', 'ok'], ['c05', 'ok'],
+      ['d01', 'ok'], ['d02', 'ok'],
+    ],
+    { completed: true, d: 0, units: AIR_UNITS }
+  );
+  await photo(T, j1.id, { label: 'Isparivač — prije', sub: 'Ilica 112 · Daikin FTXP35M', tag: 'before', hue: 30, customer: true, d: 0, when: zagrebAt(0, 8, 6) });
+  await photo(T, j1.id, { label: 'Isparivač — poslije', sub: 'Očišćeno i dezinficirano', tag: 'after', hue: 175, customer: true, d: 0, when: zagrebAt(0, 8, 50) });
+  await photo(T, j1.id, { label: 'Natpisna pločica', sub: 'R32 · 0,80 kg', tag: 'nameplate', hue: 210, d: 0, when: zagrebAt(0, 8, 8) });
+
+  // Today 10:00 — Marko Perić: heat pump, technician on site now.
+  const j2 = await job(T, {
+    client: peric,
+    asset: pericHp,
+    phase: 'in_progress',
+    d: 0,
+    complaint: 'Godišnji servis dizalice topline, Ne grije dovoljno u kupaonici',
+    source: 'field',
+    lines: [{ kind: 'package', d: 'Godišnji servis dizalice topline', unit: 'paušal', price: 120 }],
+    extra: {
+      work_mode: 'field',
+      site_id: pericHouse,
+      scheduled_start: zagrebAt(0, 10),
+      scheduled_end: zagrebAt(0, 12),
+      departed_at: zagrebAt(0, 9, 35),
+      customer_notified_at: zagrebAt(0, 9, 36),
+      arrived_at: zagrebAt(0, 10, 2),
+      arrived_lat: 45.79581,
+      arrived_lng: 15.97843,
+    },
+  });
+  await inspection(T, j2.id, 'air.heat_pump', 'Servis dizalice topline', [['h01', 'warn', 0.9, 'Dopunjeno na 1,5 bar'], ['h02', 'ok', 1.0], ['h03', 'ok'], ['h07', 'warn', 35]], { d: 0, units: AIR_UNITS });
+  await messages(T, j2.id, 'Anoda spremnika na 35 % — imamo li zamjensku u kombiju?', 'U kombiju je jedna, uzmi je i dodaj stavku.');
+
+  // Today 13:00 — apartment A1: water leaking, owner not there.
+  await job(T, {
+    client: bura,
+    asset: buraAc1,
+    phase: 'diagnosis',
+    d: 1,
+    urgent: true,
+    complaint: 'Curi voda, gosti dolaze u 15 h',
+    source: 'phone',
+    extra: { work_mode: 'field', site_id: buraA1, scheduled_start: zagrebAt(0, 13), scheduled_end: zagrebAt(0, 14) },
+  });
+
+  // Today 15:30 — office VRV leak check (owner goes himself).
+  await job(T, {
+    client: ured,
+    asset: uredVrv,
+    phase: 'diagnosis',
+    d: 5,
+    assigned: 'owner',
+    complaint: 'Periodična provjera propuštanja (F-plin)',
+    source: 'phone',
+    lines: [{ d: 'Periodična provjera propuštanja s upisom u evidenciju', unit: 'paušal', price: 40 }],
+    extra: { work_mode: 'field', site_id: uredSite, scheduled_start: zagrebAt(0, 15, 30), scheduled_end: zagrebAt(0, 16, 30) },
+  });
+
+  // Tomorrow 09:00 — new installation.
+  await job(T, {
+    client: horvat,
+    asset: horvatNew,
+    phase: 'diagnosis',
+    d: 3,
+    complaint: 'Montaža novog uređaja 2,5 kW u radnu sobu',
+    source: 'phone',
+    lines: [{ kind: 'package', d: 'Montaža split klime do 3,5 kW (do 3 m instalacije)', unit: 'paušal', price: 280 }],
+    extra: { work_mode: 'field', site_id: horvatFlat, scheduled_start: zagrebAt(1, 9), scheduled_end: zagrebAt(1, 13) },
+  });
+
+  // Waiting for a date — from the maintenance plan.
+  await job(T, {
+    client: bura,
+    asset: buraAc2,
+    phase: 'intake',
+    d: 1,
+    assigned: false,
+    complaint: 'Servis klime prije sezone',
+    source: 'phone',
+    extra: { work_mode: 'field', site_id: buraA2, plan_id: planA2 },
+  });
+
+  // History: last month's service and last year's leak repair on the VRV.
+  await job(T, { client: peric, asset: pericAc, phase: 'collected', paid: true, d: 25, complaint: 'Godišnji servis klime', source: 'field', lines: serviceLines, extra: { work_mode: 'field', site_id: pericHouse, arrived_at: at(25, 9), left_at: at(25, 10) } });
+  const leakJob = await job(T, {
+    client: ured,
+    asset: uredVrv,
+    phase: 'collected',
+    paid: true,
+    d: 350,
+    complaint: 'Slabo hladi — sumnja na propuštanje',
+    summary: 'Pronađeno propuštanje na holender spoju unutarnje jedinice 4. Spoj prerađen, tlačna proba, vakuum, dopuna 1,2 kg R410A.',
+    source: 'field',
+    lines: [
+      { d: 'Traženje i popravak propuštanja', qty: 3, price: 55 },
+      { kind: 'material', d: 'Radna tvar R410A', qty: 1200, unit: 'g', price: 0.09 },
+    ],
+    extra: { work_mode: 'field', site_id: uredSite, arrived_at: at(350, 9), left_at: at(350, 13) },
+  });
+  await q(
+    sb.from('air_fgas_log').insert([
+      { tenant_id: T.id, job_id: leakJob.id, asset_id: uredVrv, refrigerant: 'R410A', action: 'leak_check', quantity_kg: 0, leak_found: true, leak_location: 'Holender spoj, unutarnja jedinica 4', cause: null, technician_id: T.owner, technician_cert: 'HR-FP-2021-0418', performed_at: at(350, 9, 30) },
+      { tenant_id: T.id, job_id: leakJob.id, asset_id: uredVrv, refrigerant: 'R410A', action: 'repair', quantity_kg: 0, leak_found: false, leak_location: null, cause: 'Spoj prerađen, tlačna proba dušikom 40 bar bez pada', technician_id: T.owner, technician_cert: 'HR-FP-2021-0418', performed_at: at(350, 11) },
+      { tenant_id: T.id, job_id: leakJob.id, asset_id: uredVrv, refrigerant: 'R410A', action: 'top_up', quantity_kg: 1.2, leak_found: false, leak_location: null, cause: null, technician_id: T.owner, technician_cert: 'HR-FP-2021-0418', performed_at: at(350, 12, 30) },
+      // Control check within a month of the repair, as the rules require.
+      { tenant_id: T.id, job_id: leakJob.id, asset_id: uredVrv, refrigerant: 'R410A', action: 'leak_check', quantity_kg: 0, leak_found: false, leak_location: null, cause: 'Kontrola nakon popravka — bez propuštanja', technician_id: T.owner, technician_cert: 'HR-FP-2021-0418', performed_at: at(324, 10) },
+    ])
+  );
+  return { T, links: [] };
+}
+
+// ---------------------------------------------------------------------
 // Super admin (optional)
 // ---------------------------------------------------------------------
 async function seedSuperAdmin() {
@@ -1039,6 +1259,7 @@ for (const [name, fn] of [
   ['Wheel', seedWheel],
   ['Fleet', seedFleet],
   ['Moto', seedMoto],
+  ['Air', seedAir],
 ]) {
   process.stdout.write(`  ${name}… `);
   const result = await fn();

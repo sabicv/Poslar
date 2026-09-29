@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { ClipboardList, Search } from 'lucide-react';
+import { CalendarDays, ClipboardList, Search } from 'lucide-react';
+import { FieldSchedule } from '@/components/field/FieldSchedule';
 import { JobCard, type BoardJob } from '@/components/JobCard';
 import { EmptyState, Input, PageHeader, Stat, buttonClass } from '@/components/ui';
-import { PHASE_ORDER, phaseLabel, type JobPhase } from '@/config/tenant.config';
+import { PHASE_ORDER, hasFieldWork, phaseLabel, type JobPhase } from '@/config/tenant.config';
 import { formatEuro } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
 import { cn, toIlike } from '@/lib/utils';
@@ -12,9 +13,32 @@ const JOB_FIELDS =
 
 type Filter = 'active' | 'mine' | 'urgent' | 'unpaid' | 'archive';
 
-export default async function JobsBoard({ searchParams }: { searchParams: Promise<{ q?: string; f?: string }> }) {
+export default async function JobsBoard({ searchParams }: { searchParams: Promise<{ q?: string; f?: string; view?: string; d?: string; t?: string }> }) {
   const ctx = await requireWorkshop();
-  const { q = '', f } = await searchParams;
+  const { q = '', f, view, d, t } = await searchParams;
+
+  // Field work: the day schedule is the start page of a field package,
+  // and one tap away for a workshop that also goes out.
+  const field = hasFieldWork(ctx.pkg, ctx.tenant.enabled_modules);
+  const showSchedule = field && (view === 'dan' || (view !== 'faze' && !q && !f && ctx.pkg.sector === 'field'));
+  const viewSwitch = field ? (
+    <div className="flex gap-1 rounded-xl border border-line bg-surface p-1">
+      <Link href="/app?view=dan" className={cn(buttonClass(showSchedule ? 'primary' : 'ghost', 'sm'))}>
+        <CalendarDays className="size-4" /> Raspored
+      </Link>
+      <Link href="/app?view=faze" className={cn(buttonClass(showSchedule ? 'ghost' : 'primary', 'sm'))}>
+        <ClipboardList className="size-4" /> Po fazama
+      </Link>
+    </div>
+  ) : null;
+  if (showSchedule) {
+    return (
+      <>
+        <PageHeader title="Raspored" subtitle={ctx.isOwner ? 'Posjeti po danima i tehničarima' : `Dobro došli, ${ctx.profile.full_name?.split(' ')[0] ?? ''}`} action={viewSwitch} />
+        <FieldSchedule ctx={ctx} day={d} tech={t} />
+      </>
+    );
+  }
   const filter: Filter = (['active', 'mine', 'urgent', 'unpaid', 'archive'] as const).includes(f as Filter) ? (f as Filter) : 'active';
   const search = q.trim();
 
@@ -74,7 +98,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHeader title="Nalozi" subtitle={ctx.isOwner ? 'Pregled radionice' : `Dobro došli, ${ctx.profile.full_name?.split(' ')[0] ?? ''}`} />
+      <PageHeader title="Nalozi" subtitle={ctx.isOwner ? 'Pregled radionice' : `Dobro došli, ${ctx.profile.full_name?.split(' ')[0] ?? ''}`} action={viewSwitch} />
 
       {ctx.isOwner && filter === 'active' && !search ? (
         <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -97,7 +121,11 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
           .map((chip) => (
             <Link
               key={chip.id}
-              href={chip.id === 'active' ? `/app${search ? `?q=${encodeURIComponent(search)}` : ''}` : `/app?f=${chip.id}${search ? `&q=${encodeURIComponent(search)}` : ''}`}
+              href={
+                chip.id === 'active'
+                  ? `/app?view=faze${search ? `&q=${encodeURIComponent(search)}` : ''}`
+                  : `/app?f=${chip.id}${search ? `&q=${encodeURIComponent(search)}` : ''}`
+              }
               className={cn(buttonClass(filter === chip.id ? 'primary' : 'secondary', 'sm'), 'shrink-0 rounded-full')}
             >
               {chip.label}

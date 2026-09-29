@@ -23,6 +23,7 @@ export const moto: PackageConfig = {
     'Konzervacija i dekonzervacija kao gotovi protokoli',
     'HIN/CIN, serijski broj motora i motosati po motoru',
   ],
+  sector: 'workshop',
   accent: '#2BD4E6',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },

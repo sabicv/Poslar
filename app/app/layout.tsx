@@ -16,7 +16,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="accent-scope min-h-dvh" style={accentStyle(ctx.pkg)}>
       <AppShell
-        product={{ id: ctx.pkg.id, name: ctx.pkg.product, clients: ctx.pkg.vocabulary.client.many, modulePage: ctx.pkg.modulePage }}
+        product={{ id: ctx.pkg.id, name: ctx.pkg.product, clients: ctx.pkg.vocabulary.client.many, modulePage: ctx.pkg.modulePage, field: ctx.pkg.sector === 'field' }}
         workshop={{ name: ctx.tenant.name, logoUrl: ctx.tenant.logo_url }}
         user={{ name: ctx.profile.full_name ?? ctx.user.email ?? '', isOwner: ctx.isOwner }}
         inboxCount={count ?? 0}

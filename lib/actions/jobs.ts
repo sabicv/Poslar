@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { PACKAGES, PHASE_ORDER, defaultMeterUnit, phaseLabel, type AssetType, type JobPhase, type LineKind } from '@/config/tenant.config';
+import { CLIMATE_TYPES, PACKAGES, PHASE_ORDER, defaultMeterUnit, phaseLabel, type AssetType, type JobPhase, type LineKind } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop, type WorkshopContext } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -42,7 +42,7 @@ const newJobSchema = z.object({
   newAsset: z
     .object({
       assetType: z.enum(assetTypes),
-      identifier: optionalText.transform((v) => (v ? v.toUpperCase() : null)),
+      identifier: optionalText,
       make: optionalText,
       model: optionalText,
       year: z.number().int().min(1900).max(2100).nullable(),
@@ -55,6 +55,25 @@ const newJobSchema = z.object({
   isUrgent: z.boolean(),
   promisedAt: z.string().nullable(),
   source: z.enum(['workshop', 'phone', 'field']),
+  // Field work: where, when and who (all optional for the workshop).
+  field: z
+    .object({
+      siteId: z.string().uuid().nullable(),
+      newSite: z
+        .object({
+          address: z.string().trim().min(3, 'Upišite adresu lokacije.').max(200),
+          city: optionalText,
+          kind: z.enum(['house', 'flat', 'apartment', 'office', 'commercial', 'other']),
+          accessNotes: z.string().trim().max(500).optional().transform((v) => (v ? v : null)),
+        })
+        .nullable(),
+      scheduledStart: z.string().nullable(),
+      durationMin: z.number().int().min(15).max(720).nullable(),
+      assignedTo: z.string().uuid().nullable(),
+      planId: z.string().uuid().nullable(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export type NewJobInput = z.input<typeof newJobSchema>;
@@ -79,6 +98,27 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
     clientId = data.id as string;
   }
 
+  // Field job: an existing site of this client, or a new one.
+  const f = v.field ?? null;
+  let siteId: string | null = null;
+  if (f) {
+    if (f.siteId) {
+      const { data } = await ctx.supabase.from('sites').select('client_id').eq('id', f.siteId).single();
+      if (!data || data.client_id !== clientId) return fail('Lokacija ne pripada odabranom klijentu.');
+      siteId = f.siteId;
+    } else if (f.newSite) {
+      const { data, error } = await ctx.supabase
+        .from('sites')
+        .insert({ tenant_id, client_id: clientId, address: f.newSite.address, city: f.newSite.city, kind: f.newSite.kind, access_notes: f.newSite.accessNotes })
+        .select('id')
+        .single();
+      if (error) return fail(error);
+      siteId = data.id as string;
+    } else {
+      return fail('Odaberite ili upišite lokaciju (adresu).');
+    }
+  }
+
   let assetId = v.assetId;
   let meterUnit = 'km';
   if (!assetId) {
@@ -87,7 +127,7 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
     meterUnit = defaultMeterUnit(a.assetType);
     const { data, error } = await ctx.supabase
       .from('assets')
-      .insert({ tenant_id, client_id: clientId, asset_type: a.assetType, identifier: a.identifier, make: a.make, model: a.model, year: a.year, vin: a.vin, meter_primary_unit: meterUnit })
+      .insert({ tenant_id, client_id: clientId, site_id: siteId, asset_type: a.assetType, identifier: a.identifier && !CLIMATE_TYPES.includes(a.assetType) ? a.identifier.toUpperCase() : a.identifier, make: a.make, model: a.model, year: a.year, vin: a.vin, meter_primary_unit: meterUnit })
       .select('id')
       .single();
     if (error) return fail(error);
@@ -99,6 +139,8 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
     clientId = data.client_id as string;
   }
 
+  const start = f?.scheduledStart ? new Date(f.scheduledStart) : null;
+  if (start && Number.isNaN(start.getTime())) return fail('Neispravan termin.');
   const { data: job, error } = await ctx.supabase
     .from('jobs')
     .insert({
@@ -110,9 +152,15 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
       meter_unit: meterUnit,
       is_urgent: v.isUrgent,
       promised_at: v.promisedAt,
-      source: v.source,
+      source: f ? 'field' : v.source,
       created_by: ctx.user.id,
-      assigned_to: ctx.isOwner ? null : ctx.user.id,
+      assigned_to: f?.assignedTo ?? (ctx.isOwner ? null : ctx.user.id),
+      work_mode: f ? 'field' : 'workshop',
+      site_id: siteId,
+      scheduled_start: start?.toISOString() ?? null,
+      scheduled_end: start ? new Date(start.getTime() + (f?.durationMin ?? 60) * 60000).toISOString() : null,
+      phase: start ? 'diagnosis' : 'intake',
+      plan_id: f?.planId ?? null,
     })
     .select('id, number')
     .single();

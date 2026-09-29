@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { AssetSheet, ClientSheet } from '@/components/ClientForms';
+import { MapPin } from 'lucide-react';
+import { AssetSheet, ClientSheet, SITE_KIND_LABELS, SiteSheet } from '@/components/ClientForms';
 import { BackLink, Badge, ButtonLink, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
-import { ASSET_TYPE_LABELS, PHASE_TONE, defaultMeterUnit, phaseLabel } from '@/config/tenant.config';
+import { ASSET_TYPE_LABELS, PHASE_TONE, defaultMeterUnit, hasFieldWork, phaseLabel } from '@/config/tenant.config';
+import { googleMapsLink } from '@/lib/contact';
 import { assetTitle, clientName, formatDate, formatEuro } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
-import type { Asset, Client, Job } from '@/types/db';
+import type { Asset, Client, Job, Site } from '@/types/db';
 
 export const metadata: Metadata = { title: 'Stranka' };
 
@@ -14,14 +16,19 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const ctx = await requireWorkshop();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const [{ data: client }, { data: assets }, { data: jobs }] = await Promise.all([
+  const field = hasFieldWork(ctx.pkg, ctx.tenant.enabled_modules);
+  const [{ data: client }, { data: assets }, { data: jobs }, { data: siteRows }] = await Promise.all([
     ctx.supabase.from('clients').select('*').eq('id', id).maybeSingle(),
     ctx.supabase.from('assets').select('*').eq('client_id', id).order('created_at'),
     ctx.supabase.from('jobs').select('id, number, phase, complaint, created_at, payment_status, asset_id').eq('client_id', id).order('created_at', { ascending: false }).limit(100),
+    field ? ctx.supabase.from('sites').select('*').eq('client_id', id).order('created_at') : Promise.resolve({ data: [] }),
   ]);
   if (!client) notFound();
   const c = client as Client;
   const list = (assets ?? []) as Asset[];
+  const sites = (siteRows ?? []) as Site[];
+  const siteLabel = (s: Site) => [s.label, s.address, s.city].filter(Boolean).join(', ');
+  const siteOptions = sites.map((s) => ({ value: s.id, label: siteLabel(s) }));
   const jobList = (jobs ?? []) as Pick<Job, 'id' | 'number' | 'phase' | 'complaint' | 'created_at' | 'payment_status' | 'asset_id'>[];
 
   let totals = new Map<string, number>();
@@ -43,10 +50,36 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       />
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="space-y-4">
+          {field ? (
+            <Card>
+              <CardHeader title="Lokacije" subtitle="Adrese na kojima klijent ima uređaje" action={<SiteSheet clientId={c.id} />} />
+              {sites.length ? (
+                <ul className="divide-y divide-line">
+                  {sites.map((s) => (
+                    <li key={s.id} className="flex items-start gap-3 px-4 py-3">
+                      <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
+                      <div className="min-w-0 flex-1">
+                        <a href={googleMapsLink(s)} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium hover:underline">
+                          {siteLabel(s)}
+                        </a>
+                        <p className="text-xs text-muted">
+                          {[SITE_KIND_LABELS[s.kind], `${list.filter((a) => a.site_id === s.id).length} uređaja`, s.contact_name && `${s.contact_name} ${s.contact_phone ?? ''}`].filter(Boolean).join(' · ')}
+                        </p>
+                        {s.access_notes ? <p className="mt-0.5 text-xs text-warn">{s.access_notes}</p> : null}
+                      </div>
+                      <SiteSheet clientId={c.id} site={s} isOwner={ctx.isOwner} />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="px-4 py-4 text-sm text-muted">Nema upisanih lokacija. Dodaju se i same pri otvaranju terenskog naloga.</p>
+              )}
+            </Card>
+          ) : null}
           <Card>
             <CardHeader
               title={ctx.pkg.vocabulary.asset.many}
-              action={<AssetSheet clientId={c.id} assetTypes={assetTypes} parents={parents} title={ctx.pkg.vocabulary.asset.new} />}
+              action={<AssetSheet clientId={c.id} assetTypes={assetTypes} parents={parents} sites={siteOptions} title={ctx.pkg.vocabulary.asset.new} />}
             />
             {list.length ? (
               <ul className="divide-y divide-line">
@@ -60,6 +93,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                       <span className="block text-xs text-muted">
                         {ASSET_TYPE_LABELS[a.asset_type]}
                         {a.year ? ` · ${a.year}` : ''}
+                        {a.site_id && sites.find((s) => s.id === a.site_id) ? ` · ${siteLabel(sites.find((s) => s.id === a.site_id)!)}` : ''}
                       </span>
                     </Link>
                     <ButtonLink href={`/app/jobs/new?asset=${a.id}`} size="sm" variant="primary">

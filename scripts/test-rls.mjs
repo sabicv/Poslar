@@ -226,6 +226,33 @@ await as(U.bOwner, async () => {
   check('sidewall repair is flagged not allowed (or no job yet)', r === undefined || r.allowed === false);
 });
 
+console.log('\nField work');
+{
+  const [site] = await as(U.aWorker, () => q(`insert into public.sites (tenant_id, client_id, address, city) values ($1,$2,'Ilica 112','Zagreb') returning id`, [tA, ids.client]));
+  const [plan] = await as(U.aOwner, () =>
+    q(`insert into public.maintenance_plans (tenant_id, client_id, site_id, title, interval_months, next_due_date) values ($1,$2,$3,'Godišnji servis',12,'2026-01-10') returning id`, [tA, ids.client, site.id])
+  );
+  const [fieldJob] = await as(U.aWorker, () =>
+    q(`insert into public.jobs (tenant_id, client_id, asset_id, work_mode, site_id, plan_id, scheduled_start) values ($1,$2,$3,'field',$4,$5, now()) returning id, report_token`, [tA, ids.client, ids.asset, site.id, plan.id])
+  );
+  check('worker can add a site and a field job', Boolean(site?.id && fieldJob?.id));
+  check('every job gets a report link token', /^[0-9a-f-]{36}$/.test(fieldJob.report_token));
+  await as(U.aWorker, () => q(`update public.jobs set phase = 'ready', finished_at = '2026-10-01T09:00:00Z', left_at = now() where id = $1`, [fieldJob.id]));
+  const [advanced] = await q(`select next_due_date::text as d, last_job_id from public.maintenance_plans where id = $1`, [plan.id]);
+  check('finishing the job moves the plan one interval on', advanced.d === '2027-10-01' && advanced.last_job_id === fieldJob.id, JSON.stringify(advanced));
+  check('worker cannot delete a site', (await as(U.aWorker, () => q(`delete from public.sites where id = $1 returning id`, [site.id]))).length === 0);
+  await as(U.bOwner, async () => {
+    check("other workshop sees none of A's sites", (await q(`select id from public.sites`)).length === 0);
+    check("other workshop sees none of A's plans", (await q(`select id from public.maintenance_plans`)).length === 0);
+    const [bClient] = await q(`select id from public.clients limit 1`);
+    const [bAsset] = await q(`insert into public.assets (tenant_id, client_id, asset_type) values ($1,$2,'ac_split') returning id`, [tB, bClient.id]);
+    check(
+      "other workshop cannot attach a job to A's site",
+      await fails(() => q(`insert into public.jobs (tenant_id, client_id, asset_id, site_id) values ($1,$2,$3,$4)`, [tB, bClient.id, bAsset.id, site.id]))
+    );
+  });
+}
+
 // The public approval page calls decide_approval with the service role.
 console.log('\nCustomer approval (atomic)');
 {

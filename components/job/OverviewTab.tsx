@@ -1,7 +1,8 @@
 import Link from 'next/link';
+import { FieldActions, ScheduleSheet } from '@/components/field/FieldActions';
 import { Card, CardHeader, KeyValue } from '@/components/ui';
 import { phaseLabel } from '@/config/tenant.config';
-import { clientName, formatDate, formatMeter } from '@/lib/format';
+import { clientName, formatDate, formatDateTime, formatMeter } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import type { JobWithRefs } from '@/types/db';
 import { OverviewEditor } from './OverviewEditor';
@@ -18,8 +19,37 @@ export async function OverviewTab({ ctx, job }: { ctx: WorkshopContext; job: Job
       .limit(5),
   ]);
 
+  const staffList = (staff ?? []).map((s) => ({ id: s.id as string, name: (s.full_name as string | null) ?? 'Bez imena' }));
+  const fieldCard =
+    job.work_mode === 'field' ? (
+      <Card>
+        <CardHeader
+          title="Posjet na lokaciji"
+          subtitle={job.scheduled_start ? `Termin ${formatDateTime(job.scheduled_start)}${job.assignee?.full_name ? ` · ${job.assignee.full_name}` : ''}` : 'Još nije zakazano'}
+          action={<ScheduleSheet jobId={job.id} current={{ start: job.scheduled_start, end: job.scheduled_end, assignedTo: job.assigned_to }} staff={staffList} />}
+        />
+        <div className="p-4">
+          <FieldActions
+            variant="panel"
+            job={job}
+            site={job.site}
+            ctx={{
+              workshopName: ctx.tenant.name,
+              techName: job.assignee?.full_name ?? ctx.profile.full_name ?? 'Tehničar',
+              clientFirstName: job.client.kind === 'person' ? job.client.first_name : null,
+              clientPhone: job.client.phone,
+              appUrl: process.env.NEXT_PUBLIC_APP_URL ?? '',
+              isOwner: ctx.isOwner,
+            }}
+          />
+        </div>
+      </Card>
+    ) : null;
+
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+      <div className="space-y-4">
+      {fieldCard}
       <OverviewEditor
         job={{
           id: job.id,
@@ -36,6 +66,7 @@ export async function OverviewTab({ ctx, job }: { ctx: WorkshopContext; job: Job
         staff={(staff ?? []).map((s) => ({ id: s.id as string, name: (s.full_name as string | null) ?? 'Bez imena' }))}
         locked={Boolean(job.locked_at)}
       />
+      </div>
 
       <div className="space-y-4">
         <Card>

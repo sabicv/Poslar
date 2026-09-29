@@ -2,14 +2,15 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { PACKAGES, type AssetType } from '@/config/tenant.config';
+import { CLIMATE_TYPES, PACKAGES, type AssetType } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop } from '@/lib/session';
 import { toIlike } from '@/lib/utils';
-import type { Asset, Client } from '@/types/db';
+import type { Asset, Client, Site } from '@/types/db';
 
 export interface ClientHit extends Pick<Client, 'id' | 'kind' | 'first_name' | 'last_name' | 'company_name' | 'phone'> {
-  assets: Pick<Asset, 'id' | 'asset_type' | 'identifier' | 'make' | 'model' | 'meter_primary_unit'>[];
+  assets: Pick<Asset, 'id' | 'asset_type' | 'identifier' | 'make' | 'model' | 'meter_primary_unit' | 'site_id'>[];
+  sites: Pick<Site, 'id' | 'label' | 'kind' | 'address' | 'city' | 'access_notes'>[];
 }
 
 // One box for the intake desk: plate, serial, name, company or phone.
@@ -20,10 +21,10 @@ export async function searchClients(query: string): Promise<ClientHit[]> {
   const like = toIlike(q);
   const compact = toIlike(q.replace(/[\s-]/g, ''));
 
-  const [byClient, byAsset] = await Promise.all([
+  const [byClient, byAsset, bySite] = await Promise.all([
     ctx.supabase
       .from('clients')
-      .select('id, kind, first_name, last_name, company_name, phone, assets(id, asset_type, identifier, make, model, meter_primary_unit)')
+      .select('id, kind, first_name, last_name, company_name, phone, assets(id, asset_type, identifier, make, model, meter_primary_unit, site_id), sites(id, label, kind, address, city, access_notes)')
       .or(`first_name.ilike.${like},last_name.ilike.${like},company_name.ilike.${like},phone.ilike.${compact},oib.ilike.${like}`)
       .limit(8),
     ctx.supabase
@@ -31,14 +32,16 @@ export async function searchClients(query: string): Promise<ClientHit[]> {
       .select('client_id')
       .or(`identifier.ilike.${like},identifier.ilike.${compact},vin.ilike.${like},internal_number.ilike.${like}`)
       .limit(8),
+    // Field work: "Ilica 12" finds the customer by the address of their site.
+    ctx.supabase.from('sites').select('client_id').or(`address.ilike.${like},label.ilike.${like}`).limit(8),
   ]);
 
   const hits = new Map<string, ClientHit>((byClient.data ?? []).map((c) => [c.id as string, c as unknown as ClientHit]));
-  const missing = (byAsset.data ?? []).map((a) => a.client_id as string).filter((id) => !hits.has(id));
+  const missing = [...(byAsset.data ?? []), ...(bySite.data ?? [])].map((a) => a.client_id as string).filter((id, i, all) => !hits.has(id) && all.indexOf(id) === i);
   if (missing.length) {
     const { data } = await ctx.supabase
       .from('clients')
-      .select('id, kind, first_name, last_name, company_name, phone, assets(id, asset_type, identifier, make, model, meter_primary_unit)')
+      .select('id, kind, first_name, last_name, company_name, phone, assets(id, asset_type, identifier, make, model, meter_primary_unit, site_id), sites(id, label, kind, address, city, access_notes)')
       .in('id', missing);
     for (const c of data ?? []) hits.set(c.id as string, c as unknown as ClientHit);
   }
@@ -93,7 +96,7 @@ const assetSchema = z.object({
   client_id: z.string().uuid(),
   parent_asset_id: z.string().uuid().nullable().optional(),
   asset_type: z.enum(assetTypes),
-  identifier: text(40).transform((v) => (v ? v.toUpperCase() : null)),
+  identifier: text(60),
   vin: text(40).transform((v) => (v ? v.toUpperCase() : null)),
   make: text(80),
   model: text(80),
@@ -108,6 +111,7 @@ const assetSchema = z.object({
   paint_code: text(40),
   axle_config: text(20),
   gvw_t: num,
+  site_id: z.string().uuid().nullable().optional(),
   notes: text(2000),
 });
 
@@ -115,9 +119,14 @@ export async function saveAsset(id: string | null, values: z.input<typeof assetS
   const ctx = await requireWorkshop();
   const parsed = assetSchema.safeParse(values);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite podatke.');
+  // Plates are upper case; a climate device's label ("Dnevni boravak") is not.
+  const row = {
+    ...parsed.data,
+    identifier: parsed.data.identifier && !CLIMATE_TYPES.includes(parsed.data.asset_type) ? parsed.data.identifier.toUpperCase() : parsed.data.identifier,
+  };
   const query = id
-    ? ctx.supabase.from('assets').update(parsed.data).eq('id', id).select('id').single()
-    : ctx.supabase.from('assets').insert({ ...parsed.data, tenant_id: ctx.tenant.id }).select('id').single();
+    ? ctx.supabase.from('assets').update(row).eq('id', id).select('id').single()
+    : ctx.supabase.from('assets').insert({ ...row, tenant_id: ctx.tenant.id }).select('id').single();
   const { data, error } = await query;
   if (error) return fail(error);
   revalidatePath(`/app/assets/${data.id}`);

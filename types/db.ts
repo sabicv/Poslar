@@ -37,6 +37,7 @@ export interface Profile {
   full_name: string | null;
   phone: string | null;
   role: StaffRole;
+  fgas_certificate?: string | null;
   created_at: string;
 }
 
@@ -61,6 +62,7 @@ export interface Asset {
   tenant_id: string;
   client_id: string;
   parent_asset_id: string | null;
+  site_id: string | null;
   asset_type: AssetType;
   identifier: string | null;
   vin: string | null;
@@ -108,9 +110,55 @@ export interface Job {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  // Field work (0009_field.sql)
+  work_mode: 'workshop' | 'field';
+  site_id: string | null;
+  scheduled_start: string | null;
+  scheduled_end: string | null;
+  departed_at: string | null;
+  arrived_at: string | null;
+  arrived_lat: number | null;
+  arrived_lng: number | null;
+  left_at: string | null;
+  customer_notified_at: string | null;
+  report_token: string;
+  report_shared_at: string | null;
+  plan_id: string | null;
 }
 
-export type JobWithRefs = Job & { client: Client; asset: Asset; assignee: { id: string; full_name: string | null } | null };
+export interface Site {
+  id: string;
+  tenant_id: string;
+  client_id: string;
+  label: string | null;
+  kind: 'house' | 'flat' | 'apartment' | 'office' | 'commercial' | 'other';
+  address: string;
+  city: string | null;
+  postal_code: string | null;
+  lat: number | null;
+  lng: number | null;
+  access_notes: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+}
+
+export interface MaintenancePlan {
+  id: string;
+  tenant_id: string;
+  client_id: string;
+  site_id: string | null;
+  asset_id: string | null;
+  title: string;
+  interval_months: number;
+  next_due_date: string;
+  template_code: string | null;
+  active: boolean;
+  last_job_id: string | null;
+  last_reminded_at: string | null;
+  notes: string | null;
+}
+
+export type JobWithRefs = Job & { client: Client; asset: Asset; assignee: { id: string; full_name: string | null } | null; site: Site | null };
 
 export interface JobLine {
   id: string;

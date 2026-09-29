@@ -72,6 +72,7 @@ export const body: PackageConfig = {
     'Lakirnica: šifra, receptura i grami, cilj i stvarno',
     'Zapisnik za osiguranje s fotografijama prije i poslije',
   ],
+  sector: 'workshop',
   accent: '#FF4D9A',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },

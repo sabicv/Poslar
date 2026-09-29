@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createHash } from 'node:crypto';
 import { BODY_DAMAGE_TYPES, BODY_OPERATIONS, BODY_ZONES } from '@/config/packages/body';
+import { fgasObligations } from '@/config/packages/air';
 import { COMPLIANCE_LABELS } from '@/config/packages/fleet';
 import { DTC_CATEGORY_HINTS, findDtcCode } from '@/config/packages/volt-dtc';
 import { ASSET_TYPE_LABELS, METER_LABELS, phaseLabel, type MeterUnit } from '@/config/tenant.config';
@@ -19,6 +20,7 @@ type Json = Record<string, unknown>;
 
 const FUEL: Record<string, string> = { petrol: 'benzin', diesel: 'dizel', hybrid: 'hibrid', plugin: 'plug-in hibrid', electric: 'električni', lpg: 'LPG', cng: 'CNG' };
 const STATUS: Record<string, string> = { ok: 'OK', warn: 'pratiti', crit: 'hitno', na: 'n/p', not_checked: 'nije provjereno' };
+const SITE_KIND: Record<string, string> = { house: 'kuća', flat: 'stan', apartment: 'apartman', office: 'ured', commercial: 'poslovni prostor', other: 'ostalo' };
 const APPROVAL: Record<string, string> = { approved: 'radi se', proposed: 'predloženo stranci', declined: 'stranka odbila', deferred: 'odgođeno' };
 
 // Drops null, undefined, empty strings, empty arrays and empty objects, so
@@ -49,7 +51,7 @@ export async function buildCopilotContext(ctx: WorkshopContext, jobId: string): 
   const s = ctx.supabase;
   const { data: job } = await s
     .from('jobs')
-    .select('id, number, created_at, phase, complaint, diagnosis_notes, work_summary, meter_in, meter_unit, is_urgent, asset:assets(*)')
+    .select('id, number, created_at, phase, complaint, diagnosis_notes, work_summary, meter_in, meter_unit, is_urgent, work_mode, asset:assets(*), site:sites(kind)')
     .eq('id', jobId)
     .maybeSingle();
   if (!job) return null;
@@ -86,6 +88,8 @@ export async function buildCopilotContext(ctx: WorkshopContext, jobId: string): 
     work_order_id: `NO-${new Date(job.created_at as string).getFullYear()}-${String(job.number).padStart(3, '0')}`,
     faza: phaseLabel(ctx.pkg, job.phase as never),
     hitno: job.is_urgent || null,
+    // Only the kind of place, never the address or access notes (door codes).
+    rad_na_terenu: job.work_mode === 'field' ? { vrsta_objekta: SITE_KIND[(job.site as unknown as { kind: string } | null)?.kind ?? ''] ?? 'lokacija klijenta' } : null,
     equipment: {
       category: ASSET_TYPE_LABELS[asset.asset_type],
       brand: asset.make,
@@ -252,6 +256,18 @@ async function packageData(ctx: WorkshopContext, jobId: string, asset: Json & { 
         s.from('moto_seasonal_protocols').select('kind, fuel_stabilized, battery_maintained, anodes_wear_pct, completed_at').eq('job_id', jobId),
       ]);
       return { motor: engine, plovilo: vessel, sezonski_protokoli: protocols };
+    }
+    case 'air': {
+      const [{ data: device }, { data: log }] = await Promise.all([
+        s.from('air_equipment').select('refrigerant, charge_kg, hermetically_sealed, leak_detection, indoor_units, cooling_kw, heating_kw, install_date, warranty_until').eq('asset_id', asset.id).maybeSingle(),
+        s.from('air_fgas_log').select('refrigerant, action, quantity_kg, leak_found, leak_location, cause, performed_at').eq('asset_id', asset.id).order('performed_at', { ascending: false }).limit(10),
+      ]);
+      const duty = device ? fgasObligations(device.refrigerant as string | null, num(device.charge_kg), { sealed: device.hermetically_sealed as boolean, leakDetection: device.leak_detection as boolean }) : null;
+      return {
+        uredjaj: device,
+        f_plin_obveze: duty ? { t_co2e: duty.tco2e, servisna_kartica_sk1: duty.serviceCard, provjera_propustanja_mjeseci: duty.leakCheckMonths, napomena: duty.note } : null,
+        radionica_evidencija_f_plina: log,
+      };
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Anchor, Cog, Disc3, SprayCan, Truck, Zap, type LucideIcon } from 'lucide-react';
+import { Anchor, Cog, Disc3, Fan, SprayCan, Truck, Zap, type LucideIcon } from 'lucide-react';
 import type { PackageId } from '@/config/tenant.config';
 import { cn } from '@/lib/utils';
 
@@ -9,6 +9,7 @@ export const PRODUCT_ICONS: Record<PackageId, LucideIcon> = {
   wheel: Disc3,
   fleet: Truck,
   moto: Anchor,
+  air: Fan,
 };
 
 export function ProductMark({ id, className }: { id: PackageId; className?: string }) {

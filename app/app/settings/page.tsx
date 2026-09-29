@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Badge, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
+import { hasModule } from '@/config/tenant.config';
 import { formatDate } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
 import type { Profile } from '@/types/db';
@@ -9,6 +10,7 @@ export const metadata: Metadata = { title: 'Postavke' };
 
 const MODULE_LABELS: Record<string, string> = {
   dvi: 'Digitalna inspekcija (DVI)',
+  field_visits: 'Rad na terenu: lokacije, raspored, poruka „Na putu”, izvještaj za klijenta',
   condition_report: 'Zapisnik o stanju pri prijemu',
   approvals: 'Odobrenje stranke putem poveznice',
   service_plan: 'Servisni plan vozila',
@@ -29,7 +31,11 @@ export default async function SettingsPage() {
           <Card>
             <CardHeader title="Moj račun" subtitle={ctx.user.email} />
             <div className="p-4">
-              <ProfileForm fullName={ctx.profile.full_name ?? ''} phone={ctx.profile.phone ?? ''} />
+              <ProfileForm
+                fullName={ctx.profile.full_name ?? ''}
+                phone={ctx.profile.phone ?? ''}
+                fgasCertificate={hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'fgas') ? (ctx.profile.fgas_certificate ?? '') : undefined}
+              />
             </div>
           </Card>
           <Card>

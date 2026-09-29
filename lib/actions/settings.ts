@@ -51,11 +51,15 @@ export async function setOptionalModule(module: string, enabled: boolean): Promi
   return { ok: true };
 }
 
-export async function updateMyProfile(values: { full_name: string; phone: string }): Promise<ActionResult> {
+export async function updateMyProfile(values: { full_name: string; phone: string; fgas_certificate?: string }): Promise<ActionResult> {
   const ctx = await requireWorkshop();
   const { error } = await ctx.supabase
     .from('profiles')
-    .update({ full_name: values.full_name.trim().slice(0, 120) || null, phone: values.phone.trim().slice(0, 40) || null })
+    .update({
+      full_name: values.full_name.trim().slice(0, 120) || null,
+      phone: values.phone.trim().slice(0, 40) || null,
+      ...(values.fgas_certificate !== undefined ? { fgas_certificate: values.fgas_certificate.trim().slice(0, 60) || null } : {}),
+    })
     .eq('id', ctx.user.id);
   if (error) return fail(error);
   revalidatePath('/app', 'layout');

@@ -24,6 +24,7 @@ export const fleet: PackageConfig = {
     'Kamion + prikolica, traktor + priključak — svaki sa svojom poviješću',
     'Zakonski rokovi i terenski nalog s lokacijom i potpisom',
   ],
+  sector: 'workshop',
   accent: '#FF8A1F',
   vocabulary: {
     client: { one: 'Tvrtka', many: 'Tvrtke', new: 'Nova tvrtka', acc: 'tvrtku' },

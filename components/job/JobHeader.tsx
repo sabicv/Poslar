@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { Lock, Phone } from 'lucide-react';
+import { KeyRound, Lock, MapPin, Phone } from 'lucide-react';
 import { CopilotDrawer } from '@/components/copilot/CopilotDrawer';
 import { Badge, BackLink, Dot } from '@/components/ui';
 import { ASSET_TYPE_LABELS, PHASE_TONE, phaseLabel, type PackageConfig } from '@/config/tenant.config';
+import { googleMapsLink } from '@/lib/contact';
 import { assetTitle, clientName, formatDateTime, formatEuro, formatMeter } from '@/lib/format';
 import type { JobWithRefs } from '@/types/db';
 
@@ -48,6 +49,19 @@ export function JobHeader({ job, pkg, total, copilot }: { job: JobWithRefs; pkg:
               </a>
             ) : null}
           </div>
+          {job.work_mode === 'field' && job.site ? (
+            <div className="mt-2 space-y-1 text-sm">
+              <a href={googleMapsLink(job.site)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-fg hover:underline">
+                <MapPin className="size-4 text-accent" />
+                {[job.site.label, job.site.address, job.site.city].filter(Boolean).join(', ')}
+              </a>
+              {job.site.access_notes ? (
+                <p className="flex items-start gap-1.5 text-warn">
+                  <KeyRound className="mt-0.5 size-3.5 shrink-0" /> {job.site.access_notes}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         {total !== null ? (
           <div className="text-right">

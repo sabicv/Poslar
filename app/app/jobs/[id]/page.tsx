@@ -29,7 +29,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const { tab = 'pregled' } = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
-  const { data } = await ctx.supabase.from('jobs').select('*, client:clients(*), asset:assets(*), assignee:profiles(id, full_name)').eq('id', id).maybeSingle();
+  const { data } = await ctx.supabase.from('jobs').select('*, client:clients(*), asset:assets(*), assignee:profiles(id, full_name), site:sites(*)').eq('id', id).maybeSingle();
   if (!data) notFound();
   const job = data as unknown as JobWithRefs;
 

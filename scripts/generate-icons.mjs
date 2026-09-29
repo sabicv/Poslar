@@ -1,4 +1,4 @@
-// Generates app icons for all six products into public/icons:
+// Generates app icons for all seven products into public/icons:
 //   <id>-192.png, <id>-512.png, <id>-maskable-512.png, <id>-180.png (Apple)
 // A rounded accent tile with the product's glyph (same shapes as the
 // lucide icons used in the app). Run: npm run icons
@@ -30,6 +30,11 @@ const PRODUCTS = {
     glyph: '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
   },
   moto: { accent: '#2BD4E6', fg: '#0a0a0b', glyph: '<path d="M12 22V8M5 12H2a10 10 0 0 0 20 0h-3"/><circle cx="12" cy="5" r="3"/>' },
+  air: {
+    accent: '#5EEAD4',
+    fg: '#0a0a0b',
+    glyph: '<path d="M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z"/><path d="M12 12v.01"/>',
+  },
 };
 
 function svg({ accent, fg, glyph }, size, { maskable = false } = {}) {

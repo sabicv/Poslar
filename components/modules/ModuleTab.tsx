@@ -6,6 +6,7 @@ import { GearModule } from './gear/GearModule';
 import { MotoModule } from './moto/MotoModule';
 import { VoltModule } from './volt/VoltModule';
 import { WheelModule } from './wheel/WheelModule';
+import { AirModule } from './air/AirModule';
 
 export interface ModuleProps {
   ctx: WorkshopContext;
@@ -28,5 +29,7 @@ export function ModuleTab(props: ModuleProps) {
       return <FleetModule {...props} />;
     case 'moto':
       return <MotoModule {...props} />;
+    case 'air':
+      return <AirModule {...props} />;
   }
 }

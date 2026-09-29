@@ -12,6 +12,7 @@ export const volt: PackageConfig = {
     'Parazitska potrošnja s grafom pada struje',
     'Trajni dnevnik zahvata na modulima s backupom',
   ],
+  sector: 'workshop',
   accent: '#3D9BFF',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },
@@ -108,7 +109,7 @@ export const volt: PackageConfig = {
     },
   ],
   modules: ['condition_report', 'approvals', 'volt_diagnostics', 'dvi'],
-  optionalModules: ['service_plan', 'parts'],
+  optionalModules: ['service_plan', 'parts', 'field_visits'],
   moduleTab: 'Dijagnostika',
   modulePage: 'Kodovi i slučajevi',
 };

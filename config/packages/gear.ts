@@ -112,6 +112,7 @@ export const gear: PackageConfig = {
     'Servisni plan vozila: ulje, filteri, remen — po km i vremenu',
     'Dijelovi s kataloškim brojem, dobavljačem i jamstvom',
   ],
+  sector: 'workshop',
   accent: '#9580FF',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },
@@ -221,7 +222,7 @@ export const gear: PackageConfig = {
     },
   ],
   modules: ['dvi', 'condition_report', 'approvals', 'service_plan', 'parts'],
-  optionalModules: ['wheel_hotel'],
+  optionalModules: ['wheel_hotel', 'field_visits'],
   moduleTab: 'Servis i dijelovi',
   modulePage: 'Servisni plan',
 };

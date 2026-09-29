@@ -1,6 +1,6 @@
 # X-Files
 
-Jedna aplikacija za radionice, šest proizvoda. Svaka radionica ima točno jedan paket, a paket se prepoznaje po domeni:
+Jedna aplikacija za radionice i servise na terenu, sedam proizvoda. Svaka radionica ima točno jedan paket, a paket se prepoznaje po domeni:
 
 | Paket | Domena | Za koga |
 |---|---|---|
@@ -10,6 +10,7 @@ Jedna aplikacija za radionice, šest proizvoda. Svaka radionica ima točno jedan
 | **Wheel Files** | wheelfiles.hr | vulkanizeri, geometrija, hotel za gume |
 | **Fleet Files** | fleetfiles.hr | teretni program, građevina, flote |
 | **Moto Files** | motofiles.hr | motocikli, quadovi, nautika |
+| **Air Files** | airfiles.hr | klime, dizalice topline, ventilacija (rad na terenu) |
 
 Zajedničko svima:
 - radni nalog po fazama;
@@ -37,7 +38,7 @@ Potrebno: Node.js 20+ i **novi** Supabase projekt. Ne koristite projekt servisa 
    ```bash
    npm install
    npm run db:migrate   # tablice, sigurnosna pravila (RLS), spremišta za datoteke
-   npm run db:seed      # 6 demo radionica s podacima i fotografijama
+   npm run db:seed      # 7 demo radionica s podacima i fotografijama
    npm run dev
    ```
 4. **Otvaranje:** http://localhost:3000. Za drugi proizvod na istom računalu koristite poddomenu: `http://gear.localhost:3000`, `http://wheel.localhost:3000` itd.
@@ -46,7 +47,7 @@ Potrebno: Node.js 20+ i **novi** Supabase projekt. Ne koristite projekt servisa 
 - `vlasnik.volt@demo.xfiles.hr`: voditelj servisa (vidi cijene, naplatu, poslovanje);
 - `radnik.volt@demo.xfiles.hr`: radnik (vidi naloge, ne vidi iznose).
 
-Isto vrijedi za `gear`, `body`, `wheel`, `fleet` i `moto`. Seed na kraju ispiše i poveznice za odobrenje stranke.
+Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `moto` i `air`. Seed na kraju ispiše i poveznice za odobrenje stranke.
 
 ## Naredbe
 
@@ -57,14 +58,14 @@ Isto vrijedi za `gear`, `body`, `wheel`, `fleet` i `moto`. Seed na kraju ispiše
 | `npm run type-check` | provjera tipova |
 | `npm run db:migrate` | primjenjuje nove migracije (`-- --all` ponovno sve, sigurno je) |
 | `npm run db:seed` | briše i ponovno stvara samo demo radionice |
-| `npm run db:test` | 59 sigurnosnih testova baze na lokalnom Postgresu (PGlite), bez Supabasea, uključujući izravne napade preko API-ja |
-| `npm run icons` | ponovno generira ikone aplikacije za svih 6 proizvoda |
+| `npm run db:test` | 66 sigurnosnih testova baze na lokalnom Postgresu (PGlite), bez Supabasea, uključujući izravne napade preko API-ja |
+| `npm run icons` | ponovno generira ikone aplikacije za svih 7 proizvoda |
 
 ## Objava (Vercel)
 
 1. `npx vercel` pa `npx vercel --prod` (regija `dub1` — Dublin, uz bazu u eu-west-1 — je u `vercel.json`).
 2. U Vercelu, Settings → Environment Variables, upišite iste varijable kao u `.env.local`, osim `SUPABASE_DB_URL` i demo varijabli. `NEXT_PUBLIC_APP_URL` postavite na pravu adresu.
-3. Domene: dodajte `voltfiles.hr`, `gearfiles.hr` i ostale na isti projekt. Aplikacija sama bira proizvod po domeni. Za adrese koje nisu domena proizvoda vrijedi `NEXT_PUBLIC_DEFAULT_PACKAGE`.
+3. Domene: dodajte `voltfiles.hr`, `gearfiles.hr`, `airfiles.hr` i ostale na isti projekt. Aplikacija sama bira proizvod po domeni. Za adrese koje nisu domena proizvoda vrijedi `NEXT_PUBLIC_DEFAULT_PACKAGE`.
 4. U Supabaseu, Authentication → URL Configuration, dodajte te domene.
 5. **Prije javne samoregistracije:** u Supabaseu postavite vlastiti SMTP (Authentication → Emails → SMTP, npr. Resend) i uključite *Confirm email*. Zatim u Vercelu postavite `REGISTRATION_EMAIL_CONFIRM=1`. Bez vlastitog SMTP-a Supabase šalje e-mail samo članovima tima, pa potvrda ne bi stigla radionicama.
 
@@ -92,7 +93,9 @@ Isto vrijedi za `gear`, `body`, `wheel`, `fleet` i `moto`. Seed na kraju ispiše
     - brojeve naloga uvijek dodjeljuje baza;
     - poruke i povijest naloga ne mogu se krivotvoriti;
     - odluka mušterije sprema se odjednom i cijela;
-    - ograničenje broja registracija.
+    - ograničenje broja registracija;
+  - `0008` paket Air;
+  - `0009` terenski sloj: lokacije, termini i posjeti, servisni planovi, uređaji i evidencija F-plina.
 - **Izolacija radionica:** svaki red ima `tenant_id`, a veze među tablicama idu preko `(id, tenant_id)`. Zato ni greška u kodu ne može povezati podatke dviju radionica. Pravila pristupa rade u samoj bazi, ne samo u sučelju.
 - **Novac:**
   - cijene (`job_line_prices`), privatni iznosi, cjenici i računi flota vidljivi su **samo voditelju**, i to na razini baze;
@@ -100,11 +103,23 @@ Isto vrijedi za `gear`, `body`, `wheel`, `fleet` i `moto`. Seed na kraju ispiše
   - zaključani nalog ne dopušta izmjenu stavki;
   - radnik vidi je li nalog plaćen (bez iznosa), da zna smije li predati vozilo. To je namjerno.
 - **Zaključavanje radionice:** Super Admin (`/admin`) može isključiti radionicu ili produljiti probu. Isključena radionica ili istekla proba odmah ne vidi ništa, a podaci ostaju sačuvani.
+- **Rad na terenu** (paket Air; za Volt, Gear i Wheel uključuje se kao modul „Rad na terenu”). Izrađen je prema analizi vodećih alata; odluke i izvori su u [docs/terenski-sloj.md](docs/terenski-sloj.md).
+  - Klijent ima lokacije (adresa, upute za ulaz, osoba na licu mjesta), a uređaji su na lokaciji.
+  - Početna stranica je raspored dana, s filtrom po tehničaru, „Rutom dana” i popisom „Nezakazano”.
+  - Na posjetu vode tri dodira:
+    - **Na putu:** otvara WhatsApp ili SMS s procjenom dolaska;
+    - **Stigao:** sprema vrijeme i GPS;
+    - **Završio:** nalog prelazi u „Odrađeno”.
+
+    Poruke idu s mobitela tehničara, bez plaćenih API-ja.
+  - Izvještaj za klijenta je javna poveznica `/r/<token>` bez prijave. Sadrži vremena, GPS, fotografije prije i poslije s otiskom, nalaze i zapis o plinu. Nema cijena ni uputa za ulaz. Voditelj može izdati novu poveznicu.
+  - Servisni planovi: klijent se pojavi na popisu mjesec dana prije roka, uz podsjetnik i gumb „Zakaži”. Kad se nalog završi, plan se sam pomakne za interval.
+  - F-plin (Air): t CO₂e, SK 1 i rokovi provjere propuštanja računaju se iz natpisne pločice. Stranica prikazuje i kontrolu u roku mjesec dana nakon popravka, dnevnik s certifikatom servisera i godišnji zbroj po radnoj tvari. Pravila su pomoć; za obrasce vrijedi važeći propis.
 - **Instalacija na mobitel (PWA):** manifest po domeni (ime i ikona proizvoda), service worker sa stranicom za rad bez veze, puni zaslon na Androidu i iPhoneu.
 - **AI Kopilot** (gumb na radnom nalogu):
   - Izrađuje uputu u četiri dijela: dijagnostika, protokol, specifikacije i obvezne fotografije. Uz to odgovara na glasovna ili pisana pitanja.
-  - Podaci naloga slažu se na serveru s pravima prijavljenog korisnika. U njima su vozilo, stavke, nalazi, kodovi i podaci radionice poput momenata pritezanja i potvrđenih uzroka iz arhive.
-  - Ime, telefon, OIB i registracija mušterije, kao ni cijene, ne šalju se AI-ju.
+  - Podaci naloga slažu se na serveru s pravima prijavljenog korisnika. U njima su vozilo ili uređaj, stavke, nalazi, kodovi i podaci radionice poput momenata pritezanja i potvrđenih uzroka iz arhive. Za terenski nalog šalje se i vrsta objekta te obveze vezane uz F-plin.
+  - Ime, telefon, OIB i registracija mušterije, adresa i upute za ulaz, kao ni cijene, ne šalju se AI-ju.
   - Ista uputa za nepromijenjen nalog dolazi iz povijesti, odmah i bez novog troška.
   - Dnevni limit po radionici zadaje `AI_DAILY_LIMIT`, a potrošnja se vidi u `/admin`.
   - Za rad treba `ANTHROPIC_API_KEY`. Bez ključa gumb objašnjava da Kopilot nije uključen.

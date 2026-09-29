@@ -33,6 +33,7 @@ export const wheel: PackageConfig = {
     'Šara u tri točke po gumi, DOT i stanje naplatka',
     'Geometrija prije i poslije, moment pritezanja u Nm',
   ],
+  sector: 'workshop',
   accent: '#D5DBE3',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },
@@ -107,7 +108,7 @@ export const wheel: PackageConfig = {
     },
   ],
   modules: ['dvi', 'approvals', 'wheel_hotel', 'wheel_torque', 'wheel_alignment'],
-  optionalModules: ['condition_report'],
+  optionalModules: ['condition_report', 'field_visits'],
   moduleTab: 'Gume i hotel',
   modulePage: 'Hotel za gume',
 };

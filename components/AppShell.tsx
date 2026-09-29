@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Bell, ClipboardList, LogOut, Plus, Settings, Users, type LucideIcon } from 'lucide-react';
+import { BarChart3, Bell, CalendarDays, ClipboardList, LogOut, Plus, Settings, Users, type LucideIcon } from 'lucide-react';
 import { PRODUCT_ICONS, ProductMark } from '@/components/ProductMark';
 import { buttonClass } from '@/components/ui';
 import type { PackageId } from '@/config/tenant.config';
@@ -24,7 +24,7 @@ export function AppShell({
   trialDaysLeft,
   children,
 }: {
-  product: { id: PackageId; name: string; clients: string; modulePage: string };
+  product: { id: PackageId; name: string; clients: string; modulePage: string; field: boolean };
   workshop: { name: string; logoUrl: string | null };
   user: { name: string; isOwner: boolean };
   inboxCount: number;
@@ -33,7 +33,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const items: NavItem[] = [
-    { href: '/app', label: 'Nalozi', icon: ClipboardList, exact: true },
+    { href: '/app', label: product.field ? 'Raspored' : 'Nalozi', icon: product.field ? CalendarDays : ClipboardList, exact: true },
     { href: '/app/clients', label: product.clients, icon: Users },
     { href: '/app/module', label: product.modulePage, icon: PRODUCT_ICONS[product.id] },
     ...(user.isOwner ? [{ href: '/app/business', label: 'Poslovanje', icon: BarChart3 }] : []),

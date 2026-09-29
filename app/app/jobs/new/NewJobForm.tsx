@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Building2, Check, Search, User, X } from 'lucide-react';
+import { Building2, Check, MapPin, Search, User, X } from 'lucide-react';
 import { DictateButton, Segmented } from '@/components/client-ui';
 import { Button, Card, Field, Input, Select, Textarea } from '@/components/ui';
 import type { AssetType, MeterUnit, Vocabulary } from '@/config/tenant.config';
@@ -15,14 +15,30 @@ import { cn } from '@/lib/utils';
 
 const DRAFT_KEY = 'draft:new-job';
 
-interface Preset {
-  id: string;
-  asset_type: AssetType;
-  identifier: string | null;
-  make: string | null;
-  model: string | null;
-  meter_primary_unit: MeterUnit;
+type SiteKind = 'house' | 'flat' | 'apartment' | 'office' | 'commercial' | 'other';
+const SITE_KINDS: { value: SiteKind; label: string }[] = [
+  { value: 'flat', label: 'Stan' },
+  { value: 'house', label: 'Kuća' },
+  { value: 'apartment', label: 'Apartman' },
+  { value: 'office', label: 'Ured' },
+  { value: 'commercial', label: 'Poslovni' },
+];
+
+export interface NewJobPreset {
   client: ClientHit;
+  assetId: string | null;
+  siteId: string | null;
+  planId: string | null;
+  templateCode: string | null;
+  complaint: string | null;
+}
+
+export interface FieldOptions {
+  enabled: boolean;
+  defaultMode: 'workshop' | 'field';
+  staff: { id: string; name: string }[];
+  me: string;
+  isOwner: boolean;
 }
 
 export function NewJobForm({
@@ -33,6 +49,7 @@ export function NewJobForm({
   templates,
   isFleet,
   preset,
+  field,
 }: {
   vocabulary: Vocabulary;
   assetTypes: { value: AssetType; label: string; unit: MeterUnit }[];
@@ -40,44 +57,54 @@ export function NewJobForm({
   symptoms: string[];
   templates: { code: string; name: string }[];
   isFleet: boolean;
-  preset: Preset | null;
+  preset: NewJobPreset | null;
+  field: FieldOptions;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
 
+  const [mode, setMode] = useState<'workshop' | 'field'>(field.enabled ? field.defaultMode : 'workshop');
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<ClientHit[]>([]);
   const [client, setClient] = useState<ClientHit | null>(preset?.client ?? null);
-  const [assetId, setAssetId] = useState<string | null>(preset?.id ?? null);
+  const [assetId, setAssetId] = useState<string | null>(preset?.assetId ?? null);
+  const [siteId, setSiteId] = useState<string | null>(preset?.siteId ?? (preset?.client.sites?.length === 1 ? preset.client.sites[0].id : null));
+  const [newSite, setNewSite] = useState({ address: '', city: '', kind: 'flat' as SiteKind, accessNotes: '' });
   const [newClient, setNewClient] = useState({ kind: (isFleet ? 'company' : 'person') as 'person' | 'company', firstName: '', lastName: '', companyName: '', phone: '', oib: '' });
   const [newAsset, setNewAsset] = useState({ assetType: defaultAssetType, identifier: '', make: '', model: '', year: '', vin: '' });
-  const [complaint, setComplaint] = useState('');
+  const [complaint, setComplaint] = useState(preset?.complaint ?? '');
   const [picked, setPicked] = useState<string[]>([]);
   const [meterIn, setMeterIn] = useState('');
-  const [templateCode, setTemplateCode] = useState('');
+  const [templateCode, setTemplateCode] = useState(preset?.templateCode ?? '');
   const [isUrgent, setIsUrgent] = useState(false);
   const [promisedAt, setPromisedAt] = useState('');
   const [source, setSource] = useState<'workshop' | 'phone' | 'field'>('workshop');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('08:00');
+  const [duration, setDuration] = useState('60');
+  const [tech, setTech] = useState(field.isOwner ? '' : field.me);
   const restored = useRef(false);
+  const isField = mode === 'field';
 
   // Unsaved intake survives a closed tab or a dead battery.
   useEffect(() => {
     if (restored.current || preset) return;
     restored.current = true;
-    const draft = readDraft<{ complaint: string; picked: string[]; newClient: typeof newClient; newAsset: typeof newAsset; meterIn: string }>(DRAFT_KEY);
+    const draft = readDraft<{ complaint: string; picked: string[]; newClient: typeof newClient; newAsset: typeof newAsset; meterIn: string; newSite?: typeof newSite }>(DRAFT_KEY);
     if (draft) {
       setComplaint(draft.complaint ?? '');
       setPicked(draft.picked ?? []);
       if (draft.newClient) setNewClient(draft.newClient);
       if (draft.newAsset) setNewAsset(draft.newAsset);
+      if (draft.newSite) setNewSite(draft.newSite);
       setMeterIn(draft.meterIn ?? '');
     }
   }, [preset]);
 
   useEffect(() => {
     if (!restored.current) return;
-    writeDraft(DRAFT_KEY, { complaint, picked, newClient, newAsset, meterIn });
-  }, [complaint, picked, newClient, newAsset, meterIn]);
+    writeDraft(DRAFT_KEY, { complaint, picked, newClient, newAsset, meterIn, newSite });
+  }, [complaint, picked, newClient, newAsset, meterIn, newSite]);
 
   useEffect(() => {
     if (client || query.trim().length < 2) {
@@ -94,20 +121,33 @@ export function NewJobForm({
     return () => window.clearTimeout(timer);
   }, [query, client]);
 
+  const sites = client?.sites ?? [];
+  const usingNewSite = isField && (!client || siteId === null);
+  // On the road, show only the devices at the chosen address.
+  const visibleAssets = !client ? [] : isField ? (usingNewSite ? [] : client.assets.filter((a) => a.site_id === siteId || a.site_id === null)) : client.assets;
   const selectedAsset = client?.assets.find((a) => a.id === assetId) ?? null;
   const meterUnit: MeterUnit = selectedAsset?.meter_primary_unit ?? assetTypes.find((t) => t.value === newAsset.assetType)?.unit ?? 'km';
 
   function pickClient(hit: ClientHit) {
     setClient(hit);
-    setAssetId(hit.assets.length === 1 ? hit.assets[0].id : null);
+    const onlySite = (hit.sites ?? []).length === 1 ? hit.sites[0].id : null;
+    setSiteId(onlySite);
+    const candidates = isField && onlySite ? hit.assets.filter((a) => a.site_id === onlySite || a.site_id === null) : hit.assets;
+    setAssetId(candidates.length === 1 ? candidates[0].id : null);
     setQuery('');
     setHits([]);
+  }
+
+  function chooseSite(id: string | null) {
+    setSiteId(id);
+    const candidates = client && id ? client.assets.filter((a) => a.site_id === id || a.site_id === null) : [];
+    setAssetId(candidates.length === 1 ? candidates[0].id : null);
   }
 
   function useQueryAsNew() {
     const text = query.trim();
     // A plate-looking query becomes the identifier, anything else the name.
-    if (/\d/.test(text) && text.length <= 12) setNewAsset((a) => ({ ...a, identifier: text.toUpperCase() }));
+    if (!isField && /\d/.test(text) && text.length <= 12) setNewAsset((a) => ({ ...a, identifier: text.toUpperCase() }));
     else if (newClient.kind === 'company') setNewClient((c) => ({ ...c, companyName: text }));
     else {
       const [first, ...rest] = text.split(' ');
@@ -126,11 +166,21 @@ export function NewJobForm({
         assetId,
         newAsset: assetId ? null : { ...newAsset, year: newAsset.year ? Number(newAsset.year) : null },
         complaint: fullComplaint,
-        meterIn: meterIn ? Number(meterIn.replace(/\s/g, '').replace(',', '.')) : null,
+        meterIn: !isField && meterIn ? Number(meterIn.replace(/\s/g, '').replace(',', '.')) : null,
         templateCode: templateCode || null,
         isUrgent,
-        promisedAt: promisedAt ? new Date(promisedAt).toISOString() : null,
+        promisedAt: !isField && promisedAt ? new Date(promisedAt).toISOString() : null,
         source,
+        field: isField
+          ? {
+              siteId: usingNewSite ? null : siteId,
+              newSite: usingNewSite ? newSite : null,
+              scheduledStart: date ? new Date(`${date}T${time || '08:00'}`).toISOString() : null,
+              durationMin: Number(duration),
+              assignedTo: tech || null,
+              planId: preset?.planId ?? null,
+            }
+          : null,
       });
       if (!result.ok) {
         toast.error(result.error);
@@ -138,18 +188,28 @@ export function NewJobForm({
       }
       clearDraft(DRAFT_KEY);
       if (result.data?.warning) toast.warning(result.data.warning);
-      else toast.success('Nalog otvoren');
+      else toast.success(isField && date ? 'Posjet zakazan' : 'Nalog otvoren');
       router.replace(`/app/jobs/${result.data!.id}`);
     });
   }
 
   return (
     <div className="space-y-4">
-      {/* Customer + object */}
+      {field.enabled && field.defaultMode === 'workshop' ? (
+        <Segmented
+          value={mode}
+          onChange={setMode}
+          size="lg"
+          options={[
+            { value: 'workshop', label: 'U radionici' },
+            { value: 'field', label: 'Na terenu' },
+          ]}
+        />
+      ) : null}
+
+      {/* Customer */}
       <Card className="p-4">
-        <h2 className="mb-3 text-sm font-semibold">
-          {vocabulary.client.one} i {vocabulary.asset.one.toLowerCase()}
-        </h2>
+        <h2 className="mb-3 text-sm font-semibold">{isField ? vocabulary.client.one : `${vocabulary.client.one} i ${vocabulary.asset.one.toLowerCase()}`}</h2>
         {client ? (
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-3 rounded-xl border border-accent/40 bg-accent/5 px-3 py-2.5">
@@ -160,46 +220,39 @@ export function NewJobForm({
                   {client.phone ? <span className="block text-xs text-muted">{client.phone}</span> : null}
                 </span>
               </div>
-              <Button size="sm" variant="ghost" onClick={() => { setClient(null); setAssetId(null); }} aria-label="Promijeni">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setClient(null);
+                  setAssetId(null);
+                  setSiteId(null);
+                }}
+                aria-label="Promijeni"
+              >
                 <X className="size-4" />
               </Button>
             </div>
-            <div className="grid gap-2">
-              {client.assets.map((asset) => (
-                <button
-                  key={asset.id}
-                  type="button"
-                  onClick={() => setAssetId(asset.id)}
-                  className={cn('flex items-center justify-between rounded-xl border px-3 py-2.5 text-left', assetId === asset.id ? 'border-accent bg-accent/5' : 'border-line hover:border-faint/60')}
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium">{assetTitle(asset)}</span>
-                    <span className="block font-mono text-xs text-muted">{asset.identifier ?? '—'}</span>
-                  </span>
-                  {assetId === asset.id ? <Check className="size-4 text-accent" /> : null}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => setAssetId(null)}
-                className={cn('rounded-xl border border-dashed px-3 py-2.5 text-left text-sm', assetId === null ? 'border-accent text-fg' : 'border-line text-muted')}
-              >
-                + {vocabulary.asset.new}
-              </button>
-            </div>
+            {!isField ? <AssetChoice assets={visibleAssets} assetId={assetId} onPick={setAssetId} newLabel={vocabulary.asset.new} /> : null}
           </div>
         ) : (
           <div className="space-y-4">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
-              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Traži: ${vocabulary.identifier.toLowerCase()}, ime ili telefon`} className="pl-9" autoFocus />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={isField ? 'Traži: ime, telefon ili adresa' : `Traži: ${vocabulary.identifier.toLowerCase()}, ime ili telefon`}
+                className="pl-9"
+                autoFocus
+              />
               {hits.length > 0 || query.trim().length >= 2 ? (
                 <div className="absolute inset-x-0 top-12 z-20 overflow-hidden rounded-xl border border-line bg-surface shadow-2xl shadow-black/40">
                   {hits.map((hit) => (
                     <button key={hit.id} type="button" onClick={() => pickClient(hit)} className="block w-full border-b border-line px-3 py-2.5 text-left last:border-0 hover:bg-surface2">
                       <span className="block text-sm font-medium">{clientName(hit)}</span>
                       <span className="block truncate text-xs text-muted">
-                        {[hit.phone, ...hit.assets.map((a) => a.identifier ?? assetTitle(a))].filter(Boolean).join(' · ')}
+                        {[hit.phone, ...(isField ? (hit.sites ?? []).map((s) => s.address) : hit.assets.map((a) => a.identifier ?? assetTitle(a)))].filter(Boolean).join(' · ')}
                       </span>
                     </button>
                   ))}
@@ -243,37 +296,96 @@ export function NewJobForm({
           </div>
         )}
 
-        {!assetId ? (
-          <div className="mt-4 space-y-3 border-t border-line pt-4">
-            <Field label="Vrsta">
-              <Select value={newAsset.assetType} onChange={(e) => setNewAsset((a) => ({ ...a, assetType: e.target.value as AssetType }))}>
-                {assetTypes.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
+        {!isField && !assetId ? <NewAssetFields vocabulary={vocabulary} assetTypes={assetTypes} value={newAsset} onChange={setNewAsset} /> : null}
+      </Card>
+
+      {/* Field: where, which device, when */}
+      {isField ? (
+        <Card className="space-y-4 p-4">
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <MapPin className="size-4 text-accent" /> Lokacija
+          </h2>
+          {sites.length ? (
+            <div className="grid gap-2">
+              {sites.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => chooseSite(s.id)}
+                  className={cn('flex items-center justify-between rounded-xl border px-3 py-2.5 text-left', siteId === s.id ? 'border-accent bg-accent/5' : 'border-line hover:border-faint/60')}
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{[s.label, s.address].filter(Boolean).join(' · ')}</span>
+                    <span className="block truncate text-xs text-muted">{[s.city, s.access_notes].filter(Boolean).join(' · ')}</span>
+                  </span>
+                  {siteId === s.id ? <Check className="size-4 text-accent" /> : null}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => chooseSite(null)}
+                className={cn('rounded-xl border border-dashed px-3 py-2.5 text-left text-sm', siteId === null ? 'border-accent text-fg' : 'border-line text-muted')}
+              >
+                + Nova lokacija
+              </button>
+            </div>
+          ) : null}
+          {usingNewSite ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-[2fr_1fr] gap-3">
+                <Field label="Adresa">
+                  <Input value={newSite.address} onChange={(e) => setNewSite((s) => ({ ...s, address: e.target.value }))} placeholder="Ulica i broj" autoComplete="street-address" />
+                </Field>
+                <Field label="Grad">
+                  <Input value={newSite.city} onChange={(e) => setNewSite((s) => ({ ...s, city: e.target.value }))} />
+                </Field>
+              </div>
+              <Segmented value={newSite.kind} onChange={(kind) => setNewSite((s) => ({ ...s, kind }))} options={SITE_KINDS} />
+              <Field label="Upute za ulaz (nije obavezno)">
+                <Input value={newSite.accessNotes} onChange={(e) => setNewSite((s) => ({ ...s, accessNotes: e.target.value }))} placeholder="Kat, šifra ulaza, ključ kod susjeda, parking…" />
+              </Field>
+            </div>
+          ) : null}
+
+          <div className="border-t border-line pt-4">
+            <h3 className="mb-2 text-sm font-semibold">{vocabulary.asset.one}</h3>
+            {client && !usingNewSite ? <AssetChoice assets={visibleAssets} assetId={assetId} onPick={setAssetId} newLabel={vocabulary.asset.new} /> : null}
+            {!assetId ? <NewAssetFields vocabulary={vocabulary} assetTypes={assetTypes} value={newAsset} onChange={setNewAsset} field /> : null}
+          </div>
+
+          <div className="grid gap-3 border-t border-line pt-4 sm:grid-cols-2">
+            <Field label="Datum posjeta">
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </Field>
+            <Field label="Vrijeme">
+              <Input type="time" step={900} value={time} onChange={(e) => setTime(e.target.value)} />
+            </Field>
+            <Field label="Trajanje" className="sm:col-span-2">
+              <Segmented
+                value={duration}
+                onChange={setDuration}
+                options={[
+                  { value: '60', label: '1 h' },
+                  { value: '120', label: '2 h' },
+                  { value: '240', label: '4 h' },
+                  { value: '480', label: 'Dan' },
+                ]}
+              />
+            </Field>
+            <Field label="Tehničar" className="sm:col-span-2">
+              <Select value={tech} onChange={(e) => setTech(e.target.value)}>
+                <option value="">Nije dodijeljeno</option>
+                {field.staff.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
                   </option>
                 ))}
               </Select>
             </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label={vocabulary.identifier}>
-                <Input value={newAsset.identifier} className="font-mono uppercase" onChange={(e) => setNewAsset((a) => ({ ...a, identifier: e.target.value }))} />
-              </Field>
-              <Field label="Godište">
-                <Input inputMode="numeric" maxLength={4} value={newAsset.year} onChange={(e) => setNewAsset((a) => ({ ...a, year: e.target.value.replace(/\D/g, '') }))} />
-              </Field>
-              <Field label="Marka">
-                <Input value={newAsset.make} onChange={(e) => setNewAsset((a) => ({ ...a, make: e.target.value }))} />
-              </Field>
-              <Field label="Model">
-                <Input value={newAsset.model} onChange={(e) => setNewAsset((a) => ({ ...a, model: e.target.value }))} />
-              </Field>
-            </div>
-            <Field label="VIN / serijski broj">
-              <Input value={newAsset.vin} className="font-mono uppercase" onChange={(e) => setNewAsset((a) => ({ ...a, vin: e.target.value }))} />
-            </Field>
+            {!date ? <p className="text-xs text-faint sm:col-span-2">Bez datuma nalog ide u „Nezakazano” u rasporedu.</p> : null}
           </div>
-        ) : null}
-      </Card>
+        </Card>
+      ) : null}
 
       {/* Complaint */}
       <Card className="p-4">
@@ -286,26 +398,30 @@ export function NewJobForm({
                 key={symptom}
                 type="button"
                 onClick={() => setPicked((p) => (on ? p.filter((s) => s !== symptom) : [...p, symptom]))}
-                className={cn('h-10 rounded-full border px-3.5 text-sm transition-colors', on ? 'border-accent bg-accent/15 text-fg' : 'border-line text-muted hover:text-fg')}
+                className={cn('h-11 rounded-full border px-3.5 text-sm transition-colors sm:h-10', on ? 'border-accent bg-accent/15 text-fg' : 'border-line text-muted hover:text-fg')}
               >
                 {symptom}
               </button>
             );
           })}
         </div>
-        <Textarea value={complaint} onChange={(e) => setComplaint(e.target.value)} rows={3} placeholder="Opis kvara riječima stranke" />
+        <Textarea value={complaint} onChange={(e) => setComplaint(e.target.value)} rows={3} placeholder="Opis kvara riječima klijenta" />
         <div className="mt-2">
           <DictateButton onText={(text) => setComplaint((c) => (c ? `${c.trimEnd()} ${text}` : text))} />
         </div>
       </Card>
 
       <Card className="grid gap-4 p-4 sm:grid-cols-2">
-        <Field label={`Stanje brojila (${meterUnit === 'mth' ? 'motosati' : 'km'})`}>
-          <Input inputMode="decimal" value={meterIn} onChange={(e) => setMeterIn(e.target.value)} />
-        </Field>
-        <Field label="Obećano do">
-          <Input type="datetime-local" value={promisedAt} onChange={(e) => setPromisedAt(e.target.value)} />
-        </Field>
+        {!isField ? (
+          <>
+            <Field label={`Stanje brojila (${meterUnit === 'mth' ? 'motosati' : 'km'})`}>
+              <Input inputMode="decimal" value={meterIn} onChange={(e) => setMeterIn(e.target.value)} />
+            </Field>
+            <Field label="Obećano do">
+              <Input type="datetime-local" value={promisedAt} onChange={(e) => setPromisedAt(e.target.value)} />
+            </Field>
+          </>
+        ) : null}
         <Field label="Predložak posla">
           <Select value={templateCode} onChange={(e) => setTemplateCode(e.target.value)}>
             <option value="">Bez predloška</option>
@@ -316,13 +432,15 @@ export function NewJobForm({
             ))}
           </Select>
         </Field>
-        <Field label="Kako je stiglo">
-          <Select value={source} onChange={(e) => setSource(e.target.value as typeof source)}>
-            <option value="workshop">Došao u radionicu</option>
-            <option value="phone">Telefonom</option>
-            <option value="field">Teren</option>
-          </Select>
-        </Field>
+        {!isField ? (
+          <Field label="Kako je stiglo">
+            <Select value={source} onChange={(e) => setSource(e.target.value as typeof source)}>
+              <option value="workshop">Došao u radionicu</option>
+              <option value="phone">Telefonom</option>
+              <option value="field">Teren</option>
+            </Select>
+          </Field>
+        ) : null}
         <label className="flex items-center gap-3 text-sm sm:col-span-2">
           <input type="checkbox" checked={isUrgent} onChange={(e) => setIsUrgent(e.target.checked)} className="size-5 accent-[rgb(var(--crit))]" />
           Hitno
@@ -331,9 +449,90 @@ export function NewJobForm({
 
       <div className="sticky bottom-20 z-10 lg:bottom-4">
         <Button variant="primary" size="lg" className="w-full shadow-2xl shadow-black/50" disabled={pending} onClick={submit}>
-          {pending ? 'Otvaram…' : 'Otvori nalog'}
+          {pending ? 'Spremam…' : isField ? (date ? 'Zakaži posjet' : 'Otvori nalog bez termina') : 'Otvori nalog'}
         </Button>
       </div>
+    </div>
+  );
+}
+
+function AssetChoice({
+  assets,
+  assetId,
+  onPick,
+  newLabel,
+}: {
+  assets: ClientHit['assets'];
+  assetId: string | null;
+  onPick: (id: string | null) => void;
+  newLabel: string;
+}) {
+  return (
+    <div className="grid gap-2">
+      {assets.map((asset) => (
+        <button
+          key={asset.id}
+          type="button"
+          onClick={() => onPick(asset.id)}
+          className={cn('flex items-center justify-between rounded-xl border px-3 py-2.5 text-left', assetId === asset.id ? 'border-accent bg-accent/5' : 'border-line hover:border-faint/60')}
+        >
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-medium">{assetTitle(asset)}</span>
+            <span className="block font-mono text-xs text-muted">{asset.identifier ?? '—'}</span>
+          </span>
+          {assetId === asset.id ? <Check className="size-4 text-accent" /> : null}
+        </button>
+      ))}
+      <button type="button" onClick={() => onPick(null)} className={cn('rounded-xl border border-dashed px-3 py-2.5 text-left text-sm', assetId === null ? 'border-accent text-fg' : 'border-line text-muted')}>
+        + {newLabel}
+      </button>
+    </div>
+  );
+}
+
+type NewAsset = { assetType: AssetType; identifier: string; make: string; model: string; year: string; vin: string };
+
+function NewAssetFields({
+  vocabulary,
+  assetTypes,
+  value,
+  onChange,
+  field = false,
+}: {
+  vocabulary: Vocabulary;
+  assetTypes: { value: AssetType; label: string }[];
+  value: NewAsset;
+  onChange: (update: (v: NewAsset) => NewAsset) => void;
+  field?: boolean;
+}) {
+  return (
+    <div className={cn('space-y-3', !field && 'mt-4 border-t border-line pt-4')}>
+      <Field label="Vrsta">
+        <Select value={value.assetType} onChange={(e) => onChange((a) => ({ ...a, assetType: e.target.value as AssetType }))}>
+          {assetTypes.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Marka">
+          <Input value={value.make} onChange={(e) => onChange((a) => ({ ...a, make: e.target.value }))} placeholder={field ? 'npr. Daikin' : undefined} />
+        </Field>
+        <Field label="Model">
+          <Input value={value.model} onChange={(e) => onChange((a) => ({ ...a, model: e.target.value }))} placeholder={field ? 'npr. FTXP35M' : undefined} />
+        </Field>
+        <Field label={field ? 'Oznaka (npr. Dnevni boravak)' : vocabulary.identifier}>
+          <Input value={value.identifier} className={cn(!field && 'font-mono uppercase')} onChange={(e) => onChange((a) => ({ ...a, identifier: e.target.value }))} />
+        </Field>
+        <Field label={field ? 'Godina ugradnje' : 'Godište'}>
+          <Input inputMode="numeric" maxLength={4} value={value.year} onChange={(e) => onChange((a) => ({ ...a, year: e.target.value.replace(/\D/g, '') }))} />
+        </Field>
+      </div>
+      <Field label={field ? 'Serijski broj' : 'VIN / serijski broj'}>
+        <Input value={value.vin} className="font-mono uppercase" onChange={(e) => onChange((a) => ({ ...a, vin: e.target.value }))} />
+      </Field>
     </div>
   );
 }

@@ -9,15 +9,15 @@ import { createStaff, removeStaff, resetStaffPassword, setOptionalModule, setSta
 import { randomId } from '@/lib/ids';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 
-export function ProfileForm({ fullName, phone }: { fullName: string; phone: string }) {
+export function ProfileForm({ fullName, phone, fgasCertificate }: { fullName: string; phone: string; fgasCertificate?: string }) {
   const { pending, run } = useAction();
-  const [v, setV] = useState({ full_name: fullName, phone });
+  const [v, setV] = useState({ full_name: fullName, phone, fgas_certificate: fgasCertificate ?? '' });
   return (
     <form
       className="space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => updateMyProfile(v), { success: 'Spremljeno' });
+        run(() => updateMyProfile(fgasCertificate === undefined ? { full_name: v.full_name, phone: v.phone } : v), { success: 'Spremljeno' });
       }}
     >
       <Field label="Ime i prezime">
@@ -26,6 +26,11 @@ export function ProfileForm({ fullName, phone }: { fullName: string; phone: stri
       <Field label="Telefon">
         <Input type="tel" value={v.phone} onChange={(e) => setV((s) => ({ ...s, phone: e.target.value }))} />
       </Field>
+      {fgasCertificate !== undefined ? (
+        <Field label="Broj F-plin certifikata" hint="Sam se upisuje u evidenciju F-plina i izvještaj klijentu.">
+          <Input value={v.fgas_certificate} onChange={(e) => setV((s) => ({ ...s, fgas_certificate: e.target.value }))} />
+        </Field>
+      ) : null}
       <Button type="submit" disabled={pending}>
         Spremi
       </Button>
