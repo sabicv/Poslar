@@ -81,20 +81,20 @@ export function FieldActions({ job, site, ctx, variant = 'card' }: { job: FieldJ
 
   const primary =
     step === 'planned' ? (
-      <Button variant="primary" size="lg" className="flex-1" disabled={pending} onClick={() => setOnTheWay(true)}>
+      <Button variant="primary" size="lg" className="min-w-0 flex-1 whitespace-normal leading-tight" disabled={pending} onClick={() => setOnTheWay(true)}>
         <Car className="size-5" /> Na putu
       </Button>
     ) : step === 'driving' ? (
-      <Button variant="primary" size="lg" className="flex-1" disabled={pending} onClick={arrived}>
+      <Button variant="primary" size="lg" className="min-w-0 flex-1 whitespace-normal leading-tight" disabled={pending} onClick={arrived}>
         <MapPin className="size-5" /> Stigao
       </Button>
     ) : step === 'working' ? (
-      <ConfirmButton variant="primary" size="lg" className="flex-1" confirmLabel="Potvrdi: posao završen" onConfirm={() => run(() => fieldStep(job.id, 'left'), { success: 'Završeno na lokaciji' })}>
+      <ConfirmButton variant="primary" size="lg" className="min-w-0 flex-1 whitespace-normal leading-tight" confirmLabel="Potvrdi: posao završen" onConfirm={() => run(() => fieldStep(job.id, 'left'), { success: 'Završeno na lokaciji' })}>
         <CheckCircle2 className="size-5" /> Završio
       </ConfirmButton>
     ) : (
-      <Button variant="ok" size="lg" className="flex-1" disabled={pending} onClick={() => shareReport('whatsapp')}>
-        <Send className="size-5" /> {job.report_shared_at ? 'Pošalji izvještaj ponovno' : 'Pošalji izvještaj'}
+      <Button variant="ok" size="lg" className="min-w-0 flex-1 whitespace-normal leading-tight" disabled={pending} onClick={() => shareReport('whatsapp')}>
+        <Send className="size-5" /> {job.report_shared_at ? 'Pošalji ponovno' : 'Pošalji izvještaj'}
       </Button>
     );
 
