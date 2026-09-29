@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dark is the default: workshops are dim, screens are greasy, and a dark
+   UI in the style of Linear/Vercel keeps status colours readable.
+   Values are RGB triplets for Tailwind's alpha modifiers. */
+:root {
+  --bg: 9 9 11;
+  --surface: 17 17 20;
+  --surface2: 26 26 30;
+  --line: 40 40 46;
+  --fg: 237 237 240;
+  --muted: 161 161 170;
+  --faint: 113 113 122;
+  --ok: 52 211 153;
+  --warn: 251 191 36;
+  --crit: 248 113 113;
+  --accent: 61 155 255;
+  --accent-fg: 255 255 255;
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: 248 248 250;
+  --surface: 255 255 255;
+  --surface2: 241 241 244;
+  --line: 226 226 232;
+  --fg: 20 20 24;
+  --muted: 82 82 91;
+  --faint: 120 120 130;
+  --ok: 5 150 105;
+  --warn: 202 111 4;
+  --crit: 220 38 38;
+  color-scheme: light;
+}
+
+/* The product accent is set per element (config/tenant.config.ts → accentStyle). */
+.accent-scope {
+  --accent: var(--accent-dark);
+  --accent-fg: var(--accent-fg-dark);
+}
+[data-theme='light'] .accent-scope {
+  --accent: var(--accent-light);
+  --accent-fg: var(--accent-fg-light);
+}
+
+html,
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* no zoom-on-focus on iPhone */
+  }
+  ::selection {
+    background: rgb(var(--accent) / 0.35);
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}

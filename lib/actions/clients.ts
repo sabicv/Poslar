@@ -1,0 +1,147 @@
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+import { PACKAGES, type AssetType } from '@/config/tenant.config';
+import { fail, type ActionResult } from '@/lib/action-result';
+import { requireWorkshop } from '@/lib/session';
+import { toIlike } from '@/lib/utils';
+import type { Asset, Client } from '@/types/db';
+
+export interface ClientHit extends Pick<Client, 'id' | 'kind' | 'first_name' | 'last_name' | 'company_name' | 'phone'> {
+  assets: Pick<Asset, 'id' | 'asset_type' | 'identifier' | 'make' | 'model' | 'meter_primary_unit'>[];
+}
+
+// One box for the intake desk: plate, serial, name, company or phone.
+export async function searchClients(query: string): Promise<ClientHit[]> {
+  const ctx = await requireWorkshop();
+  const q = query.trim();
+  if (q.length < 2) return [];
+  const like = toIlike(q);
+  const compact = toIlike(q.replace(/[\s-]/g, ''));
+
+  const [byClient, byAsset] = await Promise.all([
+    ctx.supabase
+      .from('clients')
+      .select('id, kind, first_name, last_name, company_name, phone, assets(id, asset_type, identifier, make, model, meter_primary_unit)')
+      .or(`first_name.ilike.${like},last_name.ilike.${like},company_name.ilike.${like},phone.ilike.${compact},oib.ilike.${like}`)
+      .limit(8),
+    ctx.supabase
+      .from('assets')
+      .select('client_id')
+      .or(`identifier.ilike.${like},identifier.ilike.${compact},vin.ilike.${like},internal_number.ilike.${like}`)
+      .limit(8),
+  ]);
+
+  const hits = new Map<string, ClientHit>((byClient.data ?? []).map((c) => [c.id as string, c as unknown as ClientHit]));
+  const missing = (byAsset.data ?? []).map((a) => a.client_id as string).filter((id) => !hits.has(id));
+  if (missing.length) {
+    const { data } = await ctx.supabase
+      .from('clients')
+      .select('id, kind, first_name, last_name, company_name, phone, assets(id, asset_type, identifier, make, model, meter_primary_unit)')
+      .in('id', missing);
+    for (const c of data ?? []) hits.set(c.id as string, c as unknown as ClientHit);
+  }
+  return [...hits.values()].slice(0, 10);
+}
+
+const text = (max = 200) => z.string().trim().max(max).nullable().optional().transform((v) => (v ? v : null));
+
+const clientSchema = z.object({
+  kind: z.enum(['person', 'company']),
+  first_name: text(),
+  last_name: text(),
+  company_name: text(),
+  oib: z.string().trim().regex(/^\d{11}$/, 'OIB ima 11 znamenki.').nullable().optional().or(z.literal('')).transform((v) => v || null),
+  phone: text(40),
+  email: text(),
+  address: text(),
+  city: text(),
+  notes: text(2000),
+});
+
+export async function saveClient(id: string | null, values: z.input<typeof clientSchema>): Promise<ActionResult<{ id: string }>> {
+  const ctx = await requireWorkshop();
+  const parsed = clientSchema.safeParse(values);
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite podatke.');
+  const v = parsed.data;
+  if (!(v.company_name || v.last_name || v.first_name)) return fail('Upišite ime ili naziv.');
+  const query = id
+    ? ctx.supabase.from('clients').update(v).eq('id', id).select('id').single()
+    : ctx.supabase.from('clients').insert({ ...v, tenant_id: ctx.tenant.id }).select('id').single();
+  const { data, error } = await query;
+  if (error) return fail(error);
+  revalidatePath('/app/clients');
+  revalidatePath(`/app/clients/${data.id}`);
+  return { ok: true, data: { id: data.id as string } };
+}
+
+export async function deleteClient(id: string): Promise<ActionResult> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Brisanje je dopušteno voditelju servisa.');
+  const { error, count } = await ctx.supabase.from('clients').delete({ count: 'exact' }).eq('id', id);
+  if (error) return fail(error);
+  if (!count) return fail('Nije obrisano.');
+  revalidatePath('/app/clients');
+  return { ok: true };
+}
+
+const assetTypes = Object.values(PACKAGES).flatMap((p) => p.assetTypes) as [AssetType, ...AssetType[]];
+const num = z.number().nullable().optional();
+
+const assetSchema = z.object({
+  client_id: z.string().uuid(),
+  parent_asset_id: z.string().uuid().nullable().optional(),
+  asset_type: z.enum(assetTypes),
+  identifier: text(40).transform((v) => (v ? v.toUpperCase() : null)),
+  vin: text(40).transform((v) => (v ? v.toUpperCase() : null)),
+  make: text(80),
+  model: text(80),
+  variant: text(80),
+  year: z.number().int().min(1900).max(2100).nullable().optional(),
+  engine_code: text(40),
+  fuel: z.enum(['petrol', 'diesel', 'hybrid', 'plugin', 'electric', 'lpg', 'cng']).nullable().optional(),
+  power_kw: num,
+  internal_number: text(40),
+  meter_primary_unit: z.enum(['km', 'mth']),
+  meter_secondary_unit: z.enum(['km', 'mth']).nullable().optional(),
+  paint_code: text(40),
+  axle_config: text(20),
+  gvw_t: num,
+  notes: text(2000),
+});
+
+export async function saveAsset(id: string | null, values: z.input<typeof assetSchema>): Promise<ActionResult<{ id: string }>> {
+  const ctx = await requireWorkshop();
+  const parsed = assetSchema.safeParse(values);
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite podatke.');
+  const query = id
+    ? ctx.supabase.from('assets').update(parsed.data).eq('id', id).select('id').single()
+    : ctx.supabase.from('assets').insert({ ...parsed.data, tenant_id: ctx.tenant.id }).select('id').single();
+  const { data, error } = await query;
+  if (error) return fail(error);
+  revalidatePath(`/app/assets/${data.id}`);
+  revalidatePath(`/app/clients/${parsed.data.client_id}`);
+  return { ok: true, data: { id: data.id as string } };
+}
+
+export async function deleteAsset(id: string): Promise<ActionResult> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Brisanje je dopušteno voditelju servisa.');
+  const { error, count } = await ctx.supabase.from('assets').delete({ count: 'exact' }).eq('id', id);
+  if (error) return fail(error);
+  if (!count) return fail('Nije obrisano.');
+  revalidatePath('/app/clients');
+  return { ok: true };
+}
+
+export async function addMeterReading(assetId: string, unit: 'km' | 'mth', value: number, jobId: string | null): Promise<ActionResult> {
+  const ctx = await requireWorkshop();
+  if (!(value >= 0)) return fail('Upišite stanje brojila.');
+  const { error } = await ctx.supabase
+    .from('meter_readings')
+    .insert({ tenant_id: ctx.tenant.id, asset_id: assetId, job_id: jobId, unit, value, source: 'manual', created_by: ctx.user.id });
+  if (error) return fail(error);
+  revalidatePath(`/app/assets/${assetId}`);
+  return { ok: true };
+}
