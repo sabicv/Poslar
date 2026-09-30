@@ -27,7 +27,7 @@ export function ChargeCalculator({ jobId, assetId, refrigerant, certificate }: {
             <Calculator className="size-4 text-accent" /> Dopuna za duljinu instalacije
           </span>
         }
-        subtitle="Tvorničko punjenje i g/m pročitajte u uputama za montažu uređaja"
+        subtitle="Vrijednosti iz uputa za montažu"
       />
       <div className="space-y-3 p-4">
         <div className="grid grid-cols-3 gap-3">

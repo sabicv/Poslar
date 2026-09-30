@@ -148,13 +148,7 @@ function ReportForm({
         />
         <div className="p-4">
           <Diagram kind={diagram} marked={marked} onZone={setZone} disabled={readOnly} />
-          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-faint">
-            {Object.entries(MARK_CODES).map(([c, l]) => (
-              <span key={c}>
-                <b className="font-mono text-muted">{c}</b> {l}
-              </span>
-            ))}
-          </div>
+          {/* The list below names every mark in full, so no separate legend. */}
           {marks.length ? (
             <ul className="mt-4 divide-y divide-line rounded-xl border border-line">
               {marks.map((m, i) => (

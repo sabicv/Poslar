@@ -1,5 +1,6 @@
 'use server';
 
+import { plural } from '@/lib/format';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { CLIMATE_TYPES, PACKAGES, PHASE_ORDER, defaultMeterUnit, phaseLabel, type AssetType, type JobPhase, type LineKind } from '@/config/tenant.config';
@@ -169,7 +170,7 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
   if (v.meterIn !== null) {
     await ctx.supabase.from('meter_readings').insert({ tenant_id, asset_id: assetId, job_id: job.id, unit: meterUnit, value: v.meterIn, source: 'intake', created_by: ctx.user.id });
   }
-  await logEvent(ctx, job.id, 'created', `Nalog ${job.number} otvorio/la ${actorName(ctx)}`);
+  await logEvent(ctx, job.id, 'created', `Nalog ${job.number} otvoren · ${actorName(ctx)}`);
 
   // The job exists either way; a template that fails is reported, not hidden.
   const template = v.templateCode ? await insertTemplate(ctx, job.id, v.templateCode) : null;
@@ -506,7 +507,7 @@ export async function linesFromInspection(jobId: string, inspectionId: string): 
     (inserted ?? []).map((line) => ctx.supabase.from('inspection_results').update({ job_line_id: line.id }).eq('id', line.inspection_result_id))
   );
   if (links.some((l) => l.error)) return fail('Stavke su dodane, ali dio nalaza nije povezan. Osvježite stranicu.');
-  await logEvent(ctx, jobId, 'inspection', `Iz inspekcije predloženo ${results.length} stavki`);
+  await logEvent(ctx, jobId, 'inspection', `Iz inspekcije predloženo: ${results.length} ${plural(results.length, 'stavka', 'stavke', 'stavki')}`);
   revalidatePath(jobPath(jobId));
   return { ok: true, data: { count: results.length } };
 }
@@ -542,7 +543,7 @@ export async function signConditionReport(jobId: string, kind: 'intake' | 'hando
     .eq('job_id', jobId)
     .eq('kind', kind);
   if (error) return fail(error);
-  await logEvent(ctx, jobId, 'signature', `Zapisnik (${kind === 'intake' ? 'prijem' : 'predaja'}) potpisao/la ${signerName || 'stranka'}`);
+  await logEvent(ctx, jobId, 'signature', `Zapisnik (${kind === 'intake' ? 'prijem' : 'predaja'}) potpisan · ${signerName || 'stranka'}`);
   revalidatePath(jobPath(jobId));
   return { ok: true };
 }
@@ -663,7 +664,7 @@ export async function createApproval(jobId: string): Promise<ActionResult<{ toke
     .single();
   if (error) return fail(error);
   await ctx.supabase.from('jobs').update({ phase: 'awaiting_approval' }).eq('id', jobId).in('phase', ['intake', 'diagnosis']);
-  await logEvent(ctx, jobId, 'approval', `Poslano na odobrenje (${count} stavki)`);
+  await logEvent(ctx, jobId, 'approval', `Poslano na odobrenje: ${count} ${plural(count, 'stavka', 'stavke', 'stavki')}`);
   revalidatePath(jobPath(jobId));
   return { ok: true, data: { token: data.token as string } };
 }

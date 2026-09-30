@@ -33,7 +33,7 @@ export async function MotoPage({ ctx }: { ctx: WorkshopContext }) {
               <Card key={s.id} className="p-4">
                 <p className="font-mono text-lg font-bold text-accent">{where.get(s.location_id)}</p>
                 {s.asset ? (
-                  <Link href={`/app/assets/${s.asset.id}`} className="block text-sm font-medium hover:underline">
+                  <Link prefetch={false} href={`/app/assets/${s.asset.id}`} className="block text-sm font-medium hover:underline">
                     {assetTitle(s.asset)} {s.asset.identifier ? <span className="font-mono text-muted">· {s.asset.identifier}</span> : null}
                   </Link>
                 ) : null}

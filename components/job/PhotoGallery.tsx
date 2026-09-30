@@ -1,5 +1,6 @@
 'use client';
 
+import { plural } from '@/lib/format';
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -65,7 +66,7 @@ export function PhotoGallery({
     }
     setProgress(null);
     if (failed) toast.error(`${failed} datoteka nije poslano. Provjerite vezu i pokušajte ponovno.`);
-    else toast.success(all.length === 1 ? 'Fotografija spremljena' : `${all.length} datoteka spremljeno`);
+    else toast.success(all.length === 1 ? 'Fotografija spremljena' : `${all.length} ${plural(all.length, 'datoteka spremljena', 'datoteke spremljene', 'datoteka spremljeno')}`);
     router.refresh();
   }
 

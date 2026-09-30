@@ -25,7 +25,7 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Postavke" subtitle={`${ctx.pkg.product} · ${t.name}`} />
+      <PageHeader title="Postavke" />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-4">
           <Card>
@@ -44,6 +44,7 @@ export default async function SettingsPage() {
               <ThemeToggle />
             </div>
           </Card>
+          {ctx.isOwner ? (
           <Card>
             <CardHeader title="Pretplata" />
             <div className="divide-y divide-line px-4">
@@ -52,15 +53,15 @@ export default async function SettingsPage() {
                 <Badge tone={t.status === 'active' ? 'ok' : t.status === 'trial' ? 'warn' : 'crit'}>{t.status === 'active' ? 'Aktivno' : t.status === 'trial' ? 'Probno razdoblje' : 'Isključeno'}</Badge>
               </KeyValue>
               {t.status === 'trial' ? <KeyValue label="Proba traje do">{formatDate(t.trial_ends_at)}</KeyValue> : null}
-              <KeyValue label="Uloga">{ctx.isOwner ? 'Voditelj servisa' : 'Radnik'}</KeyValue>
             </div>
           </Card>
+          ) : null}
         </div>
 
         {ctx.isOwner ? (
           <div className="space-y-4">
             <Card>
-              <CardHeader title="Radionica" subtitle="Podaci na nalozima i poveznicama za stranke" />
+              <CardHeader title="Radionica" />
               <div className="space-y-5 p-4">
                 <LogoUpload tenantId={t.id} logoUrl={t.logo_url} />
                 <WorkshopForm tenant={{ name: t.name, oib: t.oib ?? '', phone: t.phone ?? '', email: t.email ?? '', address: t.address ?? '', city: t.city ?? '' }} />

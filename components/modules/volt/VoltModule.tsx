@@ -74,7 +74,6 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
               <ScanLine className="size-4 text-accent" /> Dijagnostika i kodovi grešaka
             </span>
           }
-          subtitle="Početno skeniranje → mjerenja → popravak → kontrolno skeniranje"
           action={
             !readOnly ? (
               <RecordSheet
@@ -275,7 +274,6 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
       <Card>
         <CardHeader
           title="Parazitska potrošnja"
-          subtitle="Očitanja od zaključavanja do spavanja sabirnica"
           action={
             !readOnly ? (
               <RecordSheet
@@ -364,7 +362,6 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
               <Cpu className="size-4 text-accent" /> Zahvati na modulima
             </span>
           }
-          subtitle="Trajni zapis: modul, softver prije/poslije, backup originala"
           action={
             !readOnly ? (
               <RecordSheet

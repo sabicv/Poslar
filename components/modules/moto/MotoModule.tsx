@@ -39,7 +39,6 @@ export async function MotoModule({ ctx, job, locked }: ModuleProps) {
               <Snowflake className="size-4 text-accent" /> Konzervacija i dekonzervacija
             </span>
           }
-          subtitle="Protokol s kontrolnom listom, stabilizatorom goriva, akumulatorom i anodama"
           action={
             !locked ? (
               <div className="flex gap-2">
@@ -158,7 +157,6 @@ export async function MotoModule({ ctx, job, locked }: ModuleProps) {
         <Card>
           <CardHeader
             title="Motor"
-            subtitle="Serijski broj, snaga i zadnja zamjena impelera"
             action={
               <RecordSheet
                 table="moto_engine_details"

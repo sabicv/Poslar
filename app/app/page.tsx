@@ -2,9 +2,9 @@ import Link from 'next/link';
 import { CalendarDays, ClipboardList, Search } from 'lucide-react';
 import { FieldSchedule } from '@/components/field/FieldSchedule';
 import { JobCard, type BoardJob } from '@/components/JobCard';
-import { EmptyState, Input, PageHeader, Stat, buttonClass } from '@/components/ui';
+import { EmptyState, Input, PageHeader, buttonClass } from '@/components/ui';
 import { PHASE_ORDER, hasFieldWork, phaseLabel, type JobPhase } from '@/config/tenant.config';
-import { countJobs, formatEuro } from '@/lib/format';
+import { formatEuro } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
 import { cn, toIlike } from '@/lib/utils';
 
@@ -21,20 +21,22 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   // and one tap away for a workshop that also goes out.
   const field = hasFieldWork(ctx.pkg, ctx.tenant.enabled_modules);
   const showSchedule = field && (view === 'dan' || (view !== 'faze' && !q && !f && ctx.pkg.sector === 'field'));
+  // The title already names the current view; the button offers the other one.
   const viewSwitch = field ? (
-    <div className="flex gap-1 rounded-xl border border-line bg-surface p-1">
-      <Link href="/app?view=dan" className={cn(buttonClass(showSchedule ? 'primary' : 'ghost', 'sm'))}>
-        <CalendarDays className="size-4" /> Raspored
-      </Link>
-      <Link href="/app?view=faze" className={cn(buttonClass(showSchedule ? 'ghost' : 'primary', 'sm'))}>
+    showSchedule ? (
+      <Link href="/app?view=faze" className={buttonClass('secondary', 'sm')}>
         <ClipboardList className="size-4" /> Po fazama
       </Link>
-    </div>
+    ) : (
+      <Link href="/app?view=dan" className={buttonClass('secondary', 'sm')}>
+        <CalendarDays className="size-4" /> Raspored
+      </Link>
+    )
   ) : null;
   if (showSchedule) {
     return (
       <>
-        <PageHeader title="Raspored" subtitle={ctx.isOwner ? 'Posjeti po danima i tehničarima' : `Dobro došli, ${ctx.profile.full_name?.split(' ')[0] ?? ''}`} action={viewSwitch} />
+        <PageHeader title="Raspored" action={viewSwitch} />
         <FieldSchedule ctx={ctx} day={d} tech={t} />
       </>
     );
@@ -88,26 +90,19 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   const grouped = PHASE_ORDER.map((phase) => ({ phase, jobs: jobs.filter((j) => j.phase === phase) })).filter((g) => g.jobs.length > 0);
   const openCount = filter === 'active' && !search ? jobs.length : null;
 
-  const chips: { id: Filter; label: string; ownerOnly?: boolean }[] = [
-    { id: 'active', label: 'U radu' },
+  // Counts live in the filter chips themselves (no separate stat tiles).
+  const urgentCount = filter === 'active' && !search ? jobs.filter((j) => j.is_urgent).length : null;
+  const chips: { id: Filter; label: string; count?: string | null; ownerOnly?: boolean }[] = [
+    { id: 'active', label: 'U radu', count: openCount ? String(openCount) : null },
     { id: 'mine', label: 'Moji' },
-    { id: 'urgent', label: 'Hitno' },
-    { id: 'unpaid', label: 'Za naplatu', ownerOnly: true },
+    { id: 'urgent', label: 'Hitno', count: urgentCount ? String(urgentCount) : null },
+    { id: 'unpaid', label: 'Za naplatu', count: unpaidCount ? formatEuro(unpaidSum) : null, ownerOnly: true },
     { id: 'archive', label: 'Arhiva' },
   ];
 
   return (
     <>
-      <PageHeader title="Nalozi" subtitle={ctx.isOwner ? 'Pregled radionice' : `Dobro došli, ${ctx.profile.full_name?.split(' ')[0] ?? ''}`} action={viewSwitch} />
-
-      {ctx.isOwner && filter === 'active' && !search ? (
-        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat label="U radu" value={openCount ?? jobs.length} />
-          <Stat label="Gotovo, čeka preuzimanje" value={jobs.filter((j) => j.phase === 'ready').length} tone="ok" />
-          <Stat label="Za naplatu" value={formatEuro(unpaidSum)} hint={countJobs(unpaidCount)} tone={unpaidCount ? 'warn' : undefined} />
-          <Stat label="Hitno" value={jobs.filter((j) => j.is_urgent).length} tone={jobs.some((j) => j.is_urgent) ? 'crit' : undefined} />
-        </div>
-      ) : null}
+      <PageHeader title="Nalozi" action={viewSwitch} />
 
       <form className="relative mb-4" action="/app">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
@@ -129,6 +124,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
               className={cn(buttonClass(filter === chip.id ? 'primary' : 'secondary', 'sm'), 'shrink-0 rounded-full')}
             >
               {chip.label}
+              {chip.count ? <span className={cn('ml-1 tabular', filter === chip.id ? 'opacity-80' : 'text-muted')}>{chip.count}</span> : null}
             </Link>
           ))}
       </div>
@@ -163,7 +159,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
               </h2>
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {group.jobs.map((job) => (
-                  <JobCard key={job.id} job={job} pkg={ctx.pkg} total={totals.get(job.id)} showMoney={ctx.isOwner} />
+                  <JobCard key={job.id} job={job} pkg={ctx.pkg} total={totals.get(job.id)} showMoney={ctx.isOwner} showPhase={false} />
                 ))}
               </div>
             </section>

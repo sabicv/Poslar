@@ -103,7 +103,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeader title="Poslovanje" subtitle="Vidi samo voditelj servisa" />
+      <PageHeader title="Poslovanje" />
       <div className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         {(Object.keys(RANGES) as Range[]).map((key) => (
           <Link key={key} href={`/app/business?range=${key}`} className={cn(buttonClass(range === key ? 'primary' : 'secondary', 'sm'), 'shrink-0 rounded-full')}>
@@ -112,16 +112,18 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
         ))}
       </div>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {/* The unpaid total heads its own list below instead of a tile of its own. */}
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <Stat label={`Promet (${closed.toLowerCase()})`} value={formatEuro(revenue)} hint={countJobs(doneIds.length)} />
         <Stat label="Naplaćeno" value={formatEuro(paid)} tone="ok" />
-        <Stat label="Za naplatu (sve)" value={formatEuro(outstanding)} hint={countJobs(unpaidIds.length)} tone={unpaidIds.length ? 'warn' : undefined} />
-        <Stat label="Prosječno trajanje" value={avgLead === null ? '—' : `${formatDecimal(avgLead, 1)} d`} hint="od prijema do gotovog" />
+        <div className="col-span-2 lg:col-span-1">
+          <Stat label="Prosječno trajanje" value={avgLead === null ? '—' : `${formatDecimal(avgLead, 1)} d`} hint="od prijema do gotovog" />
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Promet po mjesecima" subtitle={`Nalozi u fazi „${closed}”, s PDV-om`} />
+          <CardHeader title="Promet po mjesecima" subtitle="S PDV-om" />
           <div className="flex h-44 items-end gap-3 p-4">
             {months.map((m) => (
               <div key={m.key} className="flex flex-1 flex-col items-center gap-1.5">
@@ -159,7 +161,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
         </Card>
 
         <Card>
-          <CardHeader title="Po djelatniku" subtitle={`Nalozi u fazi „${closed}” u razdoblju`} />
+          <CardHeader title="Po djelatniku"  />
           {perWorker.size ? (
             <ul className="divide-y divide-line">
               {[...perWorker.entries()]
@@ -179,12 +181,12 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
         </Card>
 
         <Card>
-          <CardHeader title="Za naplatu" subtitle="Gotovi i preuzeti, a nisu označeni plaćenima" />
+          <CardHeader title="Za naplatu" action={unpaidIds.length ? <span className="text-sm font-semibold tabular text-warn">{formatEuro(outstanding)}</span> : null} />
           {(unpaid ?? []).length ? (
             <ul className="divide-y divide-line">
               {(unpaid ?? []).map((j) => (
                 <li key={j.id as string}>
-                  <Link href={`/app/jobs/${j.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface2">
+                  <Link prefetch={false} href={`/app/jobs/${j.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface2">
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm">
                         {clientName(j.client as never)} <span className="text-faint">· #{j.number as number}</span>

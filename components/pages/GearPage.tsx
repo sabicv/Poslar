@@ -44,7 +44,7 @@ export async function GearPage({ ctx }: { ctx: WorkshopContext }) {
         <Card key={asset.id}>
           <CardHeader
             title={
-              <Link href={`/app/assets/${asset.id}`} className="hover:underline">
+              <Link prefetch={false} href={`/app/assets/${asset.id}`} className="hover:underline">
                 {asset.identifier ? <span className="mr-2 font-mono">{asset.identifier}</span> : null}
                 {assetTitle(asset)}
               </Link>

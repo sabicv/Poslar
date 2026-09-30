@@ -50,10 +50,9 @@ export async function AirModule({ ctx, job, locked }: ModuleProps) {
         <CardHeader
           title={
             <span className="flex items-center gap-2">
-              <Gauge className="size-4 text-accent" /> {assetTitle(job.asset)}
+              <Gauge className="size-4 text-accent" /> Natpisna pločica
             </span>
           }
-          subtitle="Podaci s natpisne pločice — iz njih se računaju obveze"
           action={
             <RecordSheet
               table="air_equipment"
@@ -118,7 +117,7 @@ export async function AirModule({ ctx, job, locked }: ModuleProps) {
               <ShieldCheck className="size-4 text-accent" /> Evidencija F-plina
             </span>
           }
-          subtitle="Svaka intervencija s radnom tvari — čuva se najmanje 5 godina"
+          subtitle="Čuva se najmanje 5 godina"
           action={
             !locked ? (
               <RecordSheet

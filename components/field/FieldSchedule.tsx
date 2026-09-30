@@ -3,7 +3,7 @@ import { AlertTriangle, CalendarPlus, KeyRound, MapPin, Route } from 'lucide-rea
 import { Badge, Card, EmptyState, buttonClass } from '@/components/ui';
 import { PHASE_TONE, hasModule, phaseLabel, type JobPhase } from '@/config/tenant.config';
 import { dayRouteLink } from '@/lib/contact';
-import { assetTitle, clientName } from '@/lib/format';
+import { assetTitle, clientName, plural } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import { addDays, dayOf, formatDayLabel, formatTime, todayInZagreb, weekStart, zagrebMidnight } from '@/lib/time';
 import { cn } from '@/lib/utils';
@@ -152,7 +152,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
       {showPlans && (plans as { count: number | null }).count ? (
         <Link href="/app/module" className="flex items-center gap-2 rounded-xl border border-warn/40 bg-warn/10 px-4 py-3 text-sm">
           <CalendarPlus className="size-4 text-warn" />
-          <span className="flex-1">{(plans as { count: number }).count} servisa dospijeva u sljedećih 30 dana — zakažite ih</span>
+          <span className="flex-1">{(plans as { count: number }).count} {plural((plans as { count: number }).count, 'servis dospijeva', 'servisa dospijevaju', 'servisa dospijeva')} u sljedećih 30 dana — zakažite ih</span>
           <span aria-hidden>→</span>
         </Link>
       ) : null}
@@ -170,7 +170,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
                     <p className="text-base font-semibold tabular">{formatTime(v.scheduled_start)}</p>
                     <p className="text-[11px] text-faint tabular">{formatTime(v.scheduled_end)}</p>
                   </div>
-                  <Link href={`/app/jobs/${v.id}`} className="min-w-0 flex-1">
+                  <Link prefetch={false} href={`/app/jobs/${v.id}`} className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-1.5 text-[15px] font-medium">
                       {clientName(v.client)}
                       {v.is_urgent ? <Badge tone="crit">Hitno</Badge> : null}
@@ -190,7 +190,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
                         <KeyRound className="mt-0.5 size-3 shrink-0" /> {v.site.access_notes}
                       </p>
                     ) : null}
-                    {ctx.isOwner && v.assignee?.full_name ? <p className="mt-1 text-xs text-faint">{v.assignee.full_name}</p> : null}
+                    {ctx.isOwner && tech === 'all' && v.assignee?.full_name ? <p className="mt-1 text-xs text-faint">{v.assignee.full_name}</p> : null}
                   </Link>
                 </div>
                 <div className="mt-3">
@@ -212,7 +212,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
           <ul className="space-y-2">
             {((unscheduled ?? []) as unknown as Visit[]).map((v) => (
               <li key={v.id} className="flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3">
-                <Link href={`/app/jobs/${v.id}`} className="min-w-0 flex-1">
+                <Link prefetch={false} href={`/app/jobs/${v.id}`} className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{clientName(v.client)}</p>
                   <p className="truncate text-xs text-muted">
                     {[v.site?.address, v.site?.city].filter(Boolean).join(', ') || 'bez adrese'} · {v.complaint ?? assetTitle(v.asset)}

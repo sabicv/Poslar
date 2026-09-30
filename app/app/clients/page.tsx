@@ -56,21 +56,21 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
         <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
           {clients.map((c) => (
             <li key={c.id}>
-              <Link href={`/app/clients/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface2">
+              <Link prefetch={false} href={`/app/clients/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface2">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface2 text-muted">
                   {c.kind === 'company' ? <Building2 className="size-4" /> : <User className="size-4" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">{clientName(c)}</span>
-                  <span className="block truncate text-xs text-muted">
-                    {c.assets.length
-                      ? c.assets
-                          .slice(0, 3)
-                          .map((a) => a.identifier ?? assetTitle(a))
-                          .join(' · ')
-                      : 'bez objekata'}
-                    {c.assets.length > 3 ? ` +${c.assets.length - 3}` : ''}
-                  </span>
+                  {c.assets.length ? (
+                    <span className="block truncate text-xs text-muted">
+                      {c.assets
+                        .slice(0, 3)
+                        .map((a) => a.identifier ?? assetTitle(a))
+                        .join(' · ')}
+                      {c.assets.length > 3 ? ` +${c.assets.length - 3}` : ''}
+                    </span>
+                  ) : null}
                 </span>
                 {c.phone ? <span className="hidden text-sm tabular text-muted sm:block">{c.phone}</span> : null}
               </Link>

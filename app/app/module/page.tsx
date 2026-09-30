@@ -18,19 +18,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ModulePage({ searchParams }: { searchParams: Promise<{ q?: string; y?: string }> }) {
   const ctx = await requireWorkshop();
   const { q = '', y } = await searchParams;
-  const subtitles = {
-    volt: 'Knjižnica kodova grešaka i što su kodovi zaista bili na vašim nalozima',
-    gear: 'Vozila kojima uskoro dolazi servis — pozovite ih prije nego odu drugdje',
-    body: 'Svi aktivni popravci po fazama proizvodnje',
-    wheel: 'Setovi na čuvanju, police i pretraga po QR kodu',
-    fleet: 'Rokovi koji ističu u cijelom voznom parku i zahtjevi tvrtki',
-    moto: 'Vozila i plovila na zimovanju',
-    air: 'Servisi koji dospijevaju, podsjetnici klijentima i evidencija F-plinova',
-  } as const;
 
   return (
     <>
-      <PageHeader title={ctx.pkg.modulePage} subtitle={subtitles[ctx.pkg.id]} />
+      <PageHeader title={ctx.pkg.modulePage} />
       {ctx.pkg.id === 'volt' ? <VoltPage ctx={ctx} q={q} /> : null}
       {ctx.pkg.id === 'gear' ? <GearPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'body' ? <BodyPage ctx={ctx} /> : null}

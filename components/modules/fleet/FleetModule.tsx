@@ -118,7 +118,6 @@ export async function FleetModule({ ctx, job, locked }: ModuleProps) {
               <ShieldCheck className="size-4 text-accent" /> Zakonski rokovi
             </span>
           }
-          subtitle="Tehnički, tahograf, preventivni, ADR, vatrogasni aparat…"
           action={
             <RecordSheet
               table="fleet_compliance_items"
@@ -176,7 +175,6 @@ export async function FleetModule({ ctx, job, locked }: ModuleProps) {
                 <Timer className="size-4 text-accent" /> Zastoj vozila
               </span>
             }
-            subtitle="Koliko vozilo nije zarađivalo"
           />
           <div className="space-y-3 p-4">
             {!locked ? (
@@ -216,7 +214,7 @@ export async function FleetModule({ ctx, job, locked }: ModuleProps) {
 
         {/* Coupled units */}
         <Card>
-          <CardHeader title="Priključna vozila" subtitle="Prikolice i priključci vezani uz ovo vozilo" />
+          <CardHeader title="Priključna vozila" />
           {trailers?.length ? (
             <ul className="divide-y divide-line">
               {trailers.map((t) => (

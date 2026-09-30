@@ -260,7 +260,7 @@ async function job(T, o) {
     if (prices.length) await q(sb.from('job_line_prices').insert(prices));
   }
 
-  const events = [{ event_type: 'created', message: `Nalog ${row.number} otvorio/la ${T.ownerName}`, created_at: created, actor_id: T.owner }];
+  const events = [{ event_type: 'created', message: `Nalog ${row.number} otvoren · ${T.ownerName}`, created_at: created, actor_id: T.owner }];
   if (o.phase !== 'intake') events.push({ event_type: 'phase', message: `${PHASE_HR[o.phase]} · ${T.workerName}`, created_at: finished ?? at(Math.max(0, d - 1), 10), actor_id: T.worker });
   if (collected) events.push({ event_type: 'phase', message: `Preuzeto · ${T.ownerName}`, created_at: collected, actor_id: T.owner });
   if (o.paid) events.push({ event_type: 'payment', message: 'Označeno plaćeno', created_at: collected ?? finished, actor_id: T.owner });

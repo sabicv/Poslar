@@ -71,8 +71,9 @@ export default async function ApprovePage({ params }: { params: Promise<{ token:
       <section className="rounded-2xl border border-line bg-surface p-5">
         <p className="text-sm text-muted">Radni nalog #{job.number as number}</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          {assetTitle(asset)} {asset?.identifier ? <span className="font-mono text-lg text-muted">· {asset.identifier}</span> : null}
+          {assetTitle(asset)}
         </h1>
+        {asset?.identifier ? <p className="font-mono text-lg text-muted">{asset.identifier}</p> : null}
         {job.complaint ? <p className="mt-2 text-sm text-muted">Vaš zahtjev: {job.complaint as string}</p> : null}
       </section>
 

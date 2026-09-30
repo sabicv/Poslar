@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from 'next';
-import { headers } from 'next/headers';
 import { GeistMono } from 'geist/font/mono';
 import { GeistSans } from 'geist/font/sans';
 import { Toaster } from 'sonner';
 import { ServiceWorker } from '@/components/ServiceWorker';
-import { accentStyle, resolvePackageFromHost } from '@/config/tenant.config';
+import { accentStyle } from '@/config/tenant.config';
+import { packageForRequest } from '@/lib/package-for-request';
 import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const pkg = resolvePackageFromHost((await headers()).get('host'));
+  const { pkg } = await packageForRequest();
   return {
     title: { default: pkg.product, template: `%s · ${pkg.product}` },
     description: pkg.tagline,
@@ -31,7 +31,7 @@ export const viewport: Viewport = {
 const THEME_SCRIPT = `try{if(localStorage.getItem('theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const pkg = resolvePackageFromHost((await headers()).get('host'));
+  const { pkg } = await packageForRequest();
   return (
     <html lang="hr" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>

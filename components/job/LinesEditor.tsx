@@ -99,7 +99,7 @@ export function LinesEditor({
           if (!rows.length) return null;
           return (
             <Card key={group.title}>
-              <CardHeader title={group.title} subtitle={`${rows.length} ${rows.length === 1 ? 'stavka' : 'stavki'}`} />
+              <CardHeader title={group.title} />
               <ul className="divide-y divide-line">
                 {rows.map((line) => (
                   <li key={line.id}>
@@ -113,9 +113,11 @@ export function LinesEditor({
                       <span className="min-w-0 flex-1">
                         <span className={cn('block text-sm', line.approval === 'declined' && 'text-muted line-through')}>{line.description}</span>
                         <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted">
-                          <span className="tabular">
-                            {Number(line.qty).toLocaleString('hr-HR')} {line.unit}
-                          </span>
+                          {Number(line.qty) === 1 && line.unit === 'paušal' ? null : (
+                            <span className="tabular">
+                              {Number(line.qty).toLocaleString('hr-HR')} {line.unit}
+                            </span>
+                          )}
                           {line.priority ? <Badge tone={PRIORITY[line.priority].tone}>{PRIORITY[line.priority].label}</Badge> : null}
                           {line.source === 'inspection' ? <Badge tone="muted">Iz inspekcije</Badge> : null}
                           {line.approval === 'deferred' ? <Badge tone="muted">Odgođeno</Badge> : null}
@@ -124,7 +126,14 @@ export function LinesEditor({
                       {isOwner ? (
                         <span className="shrink-0 text-right">
                           <span className="block text-sm font-medium tabular">{prices[line.id] ? formatEuro(net(Number(line.qty), prices[line.id])) : '—'}</span>
-                          {prices[line.id] ? <span className="block text-xs text-faint tabular">{formatEuro(prices[line.id].unit_price)} / {line.unit}</span> : <span className="block text-xs text-warn">bez cijene</span>}
+                          {/* Unit price only when it differs from the line amount. */}
+                          {!prices[line.id] ? (
+                            <span className="block text-xs text-warn">bez cijene</span>
+                          ) : Number(line.qty) !== 1 || Number(prices[line.id].discount_pct) ? (
+                            <span className="block text-xs text-faint tabular">
+                              {formatEuro(prices[line.id].unit_price)} / {line.unit}
+                            </span>
+                          ) : null}
                         </span>
                       ) : null}
                     </button>

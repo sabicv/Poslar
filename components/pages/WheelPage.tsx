@@ -97,7 +97,7 @@ export async function WheelPage({ ctx, q }: { ctx: WorkshopContext; q: string })
                     <p className="text-sm font-medium">{clientName(stay.set.client)}</p>
                     <p className="text-xs text-muted">
                       {stay.set.asset?.identifier ? (
-                        <Link href={`/app/assets/${stay.set.asset.id}`} className="font-mono hover:underline">
+                        <Link prefetch={false} href={`/app/assets/${stay.set.asset.id}`} className="font-mono hover:underline">
                           {stay.set.asset.identifier}
                         </Link>
                       ) : null}{' '}

@@ -82,7 +82,7 @@ export async function VoltPage({ ctx, q }: { ctx: WorkshopContext; q: string }) 
                       <ul className="space-y-1">
                         {list.slice(0, 5).map((c, i) => (
                           <li key={i}>
-                            <Link href={`/app/jobs/${c.jobId}?tab=modul`} className="hover:underline">
+                            <Link prefetch={false} href={`/app/jobs/${c.jobId}?tab=modul`} className="hover:underline">
                               {c.cause}
                             </Link>
                             {c.note ? <span className="text-muted"> — {c.note}</span> : null}
@@ -91,17 +91,15 @@ export async function VoltPage({ ctx, q }: { ctx: WorkshopContext; q: string }) 
                       </ul>
                     </div>
                   ) : null}
+                  {/* The same general advice fits every code of a category, so it stays folded. */}
                   {hints ? (
-                    <div className="grid gap-3 text-muted sm:grid-cols-2">
-                      <div>
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-faint">Česti uzroci</p>
+                    <details className="text-muted">
+                      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-faint">Česti uzroci i prva mjerenja ({entry?.category})</summary>
+                      <div className="mt-2 grid gap-3 sm:grid-cols-2">
                         <ul className="list-disc space-y-0.5 pl-4">{hints.causes.map((c) => <li key={c}>{c}</li>)}</ul>
-                      </div>
-                      <div>
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-faint">Prvo izmjeriti</p>
                         <ul className="list-disc space-y-0.5 pl-4">{hints.tests.map((t) => <li key={t}>{t}</li>)}</ul>
                       </div>
-                    </div>
+                    </details>
                   ) : null}
                 </div>
               </Card>

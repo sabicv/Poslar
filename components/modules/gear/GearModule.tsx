@@ -52,7 +52,6 @@ export async function GearModule({ ctx, job, locked }: ModuleProps) {
               <Package className="size-4 text-accent" /> Dijelovi na nalogu
             </span>
           }
-          subtitle="Kataloški broj, dobavljač i status narudžbe za svaku stavku vrste Dio"
           action={
             <RecordSheet
               table="gear_suppliers"
@@ -160,7 +159,6 @@ export async function GearModule({ ctx, job, locked }: ModuleProps) {
               <CalendarClock className="size-4 text-accent" /> Servisni plan vozila
             </span>
           }
-          subtitle="Što prije nastupi: kilometri ili vrijeme"
           action={
             <RecordSheet
               table="gear_asset_schedule"

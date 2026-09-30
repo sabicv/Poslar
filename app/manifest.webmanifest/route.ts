@@ -1,9 +1,10 @@
-import { resolvePackageFromHost } from '@/config/tenant.config';
+import { packageForRequest } from '@/lib/package-for-request';
 
-// One manifest per product domain: Volt Files installs as "Volt Files"
-// with the blue icon, Gear Files as "Gear Files" with the violet one.
-export function GET(request: Request) {
-  const pkg = resolvePackageFromHost(request.headers.get('host'));
+// One manifest per product: Volt Files installs as "Volt Files" with the
+// blue icon, Air Files as "Air Files". On a product domain the domain
+// decides; elsewhere the signed-in workshop does (so it is private).
+export async function GET() {
+  const { pkg, byDomain } = await packageForRequest();
   const manifest = {
     id: `/?product=${pkg.id}`,
     name: pkg.product,
@@ -27,6 +28,6 @@ export function GET(request: Request) {
     ],
   };
   return new Response(JSON.stringify(manifest), {
-    headers: { 'Content-Type': 'application/manifest+json', 'Cache-Control': 'public, max-age=3600' },
+    headers: { 'Content-Type': 'application/manifest+json', 'Cache-Control': byDomain ? 'public, max-age=3600' : 'private, max-age=300' },
   });
 }

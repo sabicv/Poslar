@@ -74,7 +74,7 @@ export async function InspectionTab({ ctx, job, locked }: { ctx: WorkshopContext
       {!current ? (
         <p className="text-sm text-muted">
           Nalazi u žutom i crvenom jednim dodirom postaju predložene stavke, a stranka ih odobrava putem poveznice (kartica{' '}
-          <Link href={`/app/jobs/${job.id}?tab=stavke`} className="text-accent">
+          <Link prefetch={false} href={`/app/jobs/${job.id}?tab=stavke`} className="text-accent">
             Stavke
           </Link>
           ).

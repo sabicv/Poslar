@@ -46,28 +46,31 @@ export function OverviewEditor({
   return (
     <div className="space-y-4">
       <Card className="p-4">
-        <p className="mb-1.5 text-xs font-medium text-muted">Opis kvara / zahtjev stranke</p>
+        <p className="mb-1.5 text-xs font-medium text-muted">Opis kvara</p>
         <AutoSaveTextarea initial={job.complaint} disabled={locked} onSave={(v) => save({ complaint: v || null })} />
       </Card>
       <Card className="p-4">
-        <p className="mb-1.5 text-xs font-medium text-muted">Dijagnoza i bilješke (interno)</p>
+        <p className="mb-1.5 text-xs font-medium text-muted">Bilješke (interno)</p>
         <AutoSaveTextarea initial={job.diagnosis_notes} rows={4} disabled={locked} placeholder="Mjerenja, zaključci, što je provjereno…" onSave={(v) => save({ diagnosis_notes: v || null })} />
       </Card>
       <Card className="p-4">
-        <p className="mb-1.5 text-xs font-medium text-muted">Obavljeni radovi (ide na nalog za stranku)</p>
+        <p className="mb-1.5 text-xs font-medium text-muted">Obavljeni radovi (vidi stranka)</p>
         <AutoSaveTextarea initial={job.work_summary} rows={4} disabled={locked} placeholder="Što je napravljeno i preporuke" onSave={(v) => save({ work_summary: v || null })} />
       </Card>
       <Card className="grid gap-4 p-4 sm:grid-cols-2">
-        <Field label={field ? 'Tehničar' : 'Radnik'}>
-          <Select defaultValue={job.assigned_to ?? ''} disabled={locked} onChange={(e) => run(() => save({ assigned_to: e.target.value || null }), { success: 'Spremljeno' })}>
-            <option value="">Nije dodijeljeno</option>
-            {staff.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        {/* On a field visit the technician is chosen with the appointment. */}
+        {field ? null : (
+          <Field label="Radnik">
+            <Select defaultValue={job.assigned_to ?? ''} disabled={locked} onChange={(e) => run(() => save({ assigned_to: e.target.value || null }), { success: 'Spremljeno' })}>
+              <option value="">Nije dodijeljeno</option>
+              {staff.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
         {field ? null : (
           <Field label="Obećano do">
             <Input

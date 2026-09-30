@@ -155,7 +155,8 @@ export function InspectionRunner({
 
   return (
     <div className="space-y-4">
-      <Card className="sticky top-[calc(6.25rem+env(safe-area-inset-top))] z-10 p-4 lg:top-12">
+      {/* Sticks under the header and the job tabs (2.75rem), whatever the header's height. */}
+      <Card className="sticky top-[calc(var(--shell-top)+2.75rem)] z-10 p-4 lg:top-12">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-sm font-semibold">{inspection.title}</p>
@@ -207,7 +208,12 @@ export function InspectionRunner({
                       <button
                         type="button"
                         disabled={readOnly}
-                        onClick={() => setOpenNote(openNote === item.code ? null : item.code)}
+                        onClick={() => {
+                          // With a note already there the field is open: take the finger to it.
+                          if (r?.note) return document.getElementById(`note-${item.code}`)?.focus();
+                          setOpenNote(openNote === item.code ? null : item.code);
+                          if (openNote !== item.code) setTimeout(() => document.getElementById(`note-${item.code}`)?.focus(), 0);
+                        }}
                         className={cn('flex size-9 items-center justify-center rounded-lg hover:bg-surface2', r?.note ? 'text-accent' : 'text-faint')}
                         aria-label="Napomena"
                       >
@@ -251,6 +257,7 @@ export function InspectionRunner({
                   {item.unit && thresholdHint(item) ? <p className="mt-1 text-[11px] text-faint">{thresholdHint(item)}</p> : null}
                   {openNote === item.code || r?.note ? (
                     <Input
+                      id={`note-${item.code}`}
                       className="mt-2 h-9"
                       disabled={readOnly}
                       placeholder="Napomena"

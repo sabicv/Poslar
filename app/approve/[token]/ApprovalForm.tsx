@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { Check, X } from 'lucide-react';
 import { Button, Field, Input } from '@/components/ui';
 import { submitApproval } from '@/lib/actions/public';
-import { formatEuro } from '@/lib/format';
+import { formatEuro, plural } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 const PRIORITY = {
@@ -107,7 +107,7 @@ export function ApprovalForm({
           })
         }
       >
-        {pending ? 'Šaljem…' : undecided > 0 ? `Odaberite za još ${undecided} ${undecided === 1 ? 'stavku' : 'stavki'}` : 'Pošalji odluku servisu'}
+        {pending ? 'Šaljem…' : undecided > 0 ? `Odaberite za još ${undecided} ${plural(undecided, 'stavku', 'stavke', 'stavki')}` : 'Pošalji odluku servisu'}
       </Button>
     </section>
   );

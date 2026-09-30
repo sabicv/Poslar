@@ -69,7 +69,6 @@ export async function WheelModule({ ctx, job, locked }: ModuleProps) {
               <Disc3 className="size-4 text-accent" /> Setovi guma — {ctx.pkg.vocabulary.client.one.toLowerCase()}
             </span>
           }
-          subtitle="Šara u tri točke, DOT, lokacija u hotelu"
           action={
             <RecordSheet
               table="wheel_tire_sets"

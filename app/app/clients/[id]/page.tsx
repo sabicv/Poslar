@@ -12,6 +12,8 @@ import type { Asset, Client, Job, Site } from '@/types/db';
 
 export const metadata: Metadata = { title: 'Stranka' };
 
+// Each fact once: contact details only in "Podaci", a device's address only
+// on its location (devices are listed under the location they are at).
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireWorkshop();
   const { id } = await params;
@@ -39,89 +41,97 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const lifetime = [...totals.values()].reduce((a, b) => a + b, 0);
   const assetTypes = ctx.pkg.assetTypes.map((t) => ({ value: t, label: ASSET_TYPE_LABELS[t], unit: defaultMeterUnit(t) }));
   const parents = list.map((a) => ({ value: a.id, label: `${a.identifier ?? ''} ${assetTitle(a)}`.trim() }));
+  const address = [c.address, c.city].filter(Boolean).join(', ');
+
+  const assetRow = (a: Asset, indent = false) => (
+    <li key={a.id} className={indent ? 'flex items-center gap-3 py-2.5 pl-11 pr-4' : 'flex items-center gap-3 px-4 py-3'}>
+      <Link prefetch={false} href={`/app/assets/${a.id}`} className="min-w-0 flex-1 hover:underline">
+        <span className="block text-sm font-medium">
+          {a.identifier ? <span className="mr-2 font-mono">{a.identifier}</span> : null}
+          {assetTitle(a)}
+        </span>
+        <span className="block text-xs text-muted">
+          {ASSET_TYPE_LABELS[a.asset_type]}
+          {a.year ? ` · ${a.year}` : ''}
+        </span>
+      </Link>
+      <ButtonLink href={`/app/jobs/new?asset=${a.id}`} size="sm" variant="primary">
+        Nalog
+      </ButtonLink>
+    </li>
+  );
+  const newAsset = <AssetSheet clientId={c.id} assetTypes={assetTypes} parents={parents} sites={siteOptions} title={ctx.pkg.vocabulary.asset.new} />;
+  const unplaced = list.filter((a) => !a.site_id || !sites.some((s) => s.id === a.site_id));
 
   return (
     <>
       <PageHeader
         back={<BackLink href="/app/clients">{ctx.pkg.vocabulary.client.many}</BackLink>}
         title={clientName(c)}
-        subtitle={[c.phone, c.city].filter(Boolean).join(' · ')}
         action={<ClientSheet client={c} title={`Uredi — ${ctx.pkg.vocabulary.client.one.toLowerCase()}`} isOwner={ctx.isOwner} />}
       />
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="space-y-4">
           {field ? (
             <Card>
-              <CardHeader title="Lokacije" subtitle="Adrese na kojima klijent ima uređaje" action={<SiteSheet clientId={c.id} />} />
-              {sites.length ? (
+              <CardHeader
+                title={`Lokacije i ${ctx.pkg.vocabulary.asset.many.toLowerCase()}`}
+                action={
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <SiteSheet clientId={c.id} />
+                    {newAsset}
+                  </div>
+                }
+              />
+              {sites.length || list.length ? (
                 <ul className="divide-y divide-line">
                   {sites.map((s) => (
-                    <li key={s.id} className="flex items-start gap-3 px-4 py-3">
-                      <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
-                      <div className="min-w-0 flex-1">
-                        <a href={googleMapsLink(s)} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium hover:underline">
-                          {siteLabel(s)}
-                        </a>
-                        <p className="text-xs text-muted">
-                          {[SITE_KIND_LABELS[s.kind], `${list.filter((a) => a.site_id === s.id).length} uređaja`, s.contact_name && `${s.contact_name} ${s.contact_phone ?? ''}`].filter(Boolean).join(' · ')}
-                        </p>
-                        {s.access_notes ? <p className="mt-0.5 text-xs text-warn">{s.access_notes}</p> : null}
+                    <li key={s.id}>
+                      <div className="flex items-start gap-3 px-4 py-3">
+                        <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
+                        <div className="min-w-0 flex-1">
+                          <a href={googleMapsLink(s)} target="_blank" rel="noopener noreferrer" className="block text-sm font-medium hover:underline">
+                            {siteLabel(s)}
+                          </a>
+                          <p className="text-xs text-muted">{[SITE_KIND_LABELS[s.kind], s.contact_name && `${s.contact_name} ${s.contact_phone ?? ''}`.trim()].filter(Boolean).join(' · ')}</p>
+                          {s.access_notes ? <p className="mt-0.5 text-xs text-warn">{s.access_notes}</p> : null}
+                        </div>
+                        <SiteSheet clientId={c.id} site={s} isOwner={ctx.isOwner} />
                       </div>
-                      <SiteSheet clientId={c.id} site={s} isOwner={ctx.isOwner} />
+                      {list.some((a) => a.site_id === s.id) ? <ul className="border-t border-line/60">{list.filter((a) => a.site_id === s.id).map((a) => assetRow(a, true))}</ul> : null}
                     </li>
                   ))}
+                  {unplaced.map((a) => assetRow(a))}
                 </ul>
               ) : (
-                <p className="px-4 py-4 text-sm text-muted">Nema upisanih lokacija. Dodaju se i same pri otvaranju terenskog naloga.</p>
+                <p className="px-4 py-4 text-sm text-muted">Nema upisanih lokacija ni uređaja. Dodaju se i sami pri zakazivanju posjeta.</p>
               )}
             </Card>
-          ) : null}
+          ) : (
+            <Card>
+              <CardHeader title={ctx.pkg.vocabulary.asset.many} action={newAsset} />
+              {list.length ? <ul className="divide-y divide-line">{list.map((a) => assetRow(a))}</ul> : <p className="px-4 py-4 text-sm text-muted">Nema upisanih objekata.</p>}
+            </Card>
+          )}
           <Card>
-            <CardHeader
-              title={ctx.pkg.vocabulary.asset.many}
-              action={<AssetSheet clientId={c.id} assetTypes={assetTypes} parents={parents} sites={siteOptions} title={ctx.pkg.vocabulary.asset.new} />}
-            />
-            {list.length ? (
-              <ul className="divide-y divide-line">
-                {list.map((a) => (
-                  <li key={a.id} className="flex items-center gap-3 px-4 py-3">
-                    <Link href={`/app/assets/${a.id}`} className="min-w-0 flex-1 hover:underline">
-                      <span className="block text-sm font-medium">
-                        {a.identifier ? <span className="mr-2 font-mono">{a.identifier}</span> : null}
-                        {assetTitle(a)}
-                      </span>
-                      <span className="block text-xs text-muted">
-                        {ASSET_TYPE_LABELS[a.asset_type]}
-                        {a.year ? ` · ${a.year}` : ''}
-                        {a.site_id && sites.find((s) => s.id === a.site_id) ? ` · ${siteLabel(sites.find((s) => s.id === a.site_id)!)}` : ''}
-                      </span>
-                    </Link>
-                    <ButtonLink href={`/app/jobs/new?asset=${a.id}`} size="sm" variant="primary">
-                      Nalog
-                    </ButtonLink>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="px-4 py-4 text-sm text-muted">Nema upisanih objekata.</p>
-            )}
-          </Card>
-          <Card>
-            <CardHeader title="Nalozi" subtitle={`${jobList.length} ukupno`} />
+            <CardHeader title="Nalozi" />
             {jobList.length ? (
               <ul className="divide-y divide-line">
                 {jobList.map((j) => (
                   <li key={j.id}>
-                    <Link href={`/app/jobs/${j.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface2">
-                      <span className="w-12 text-xs text-faint">#{j.number}</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm">{j.complaint ?? '—'}</span>
-                        <span className="block text-xs text-muted">
-                          {formatDate(j.created_at)} · {list.find((a) => a.id === j.asset_id)?.identifier ?? ''}
+                    {/* Two lines: what was done (and the amount), then when, on what, and where it stands. */}
+                    <Link prefetch={false} href={`/app/jobs/${j.id}`} className="block px-4 py-3 hover:bg-surface2">
+                      <span className="flex items-baseline justify-between gap-3">
+                        <span className="min-w-0 truncate text-sm">
+                          <span className="text-faint">#{j.number}</span> {j.complaint ?? '—'}
                         </span>
+                        {ctx.isOwner && totals.has(j.id) ? <span className="shrink-0 text-sm tabular text-muted">{formatEuro(totals.get(j.id))}</span> : null}
                       </span>
-                      <Badge tone={PHASE_TONE[j.phase]}>{phaseLabel(ctx.pkg, j.phase)}</Badge>
-                      {ctx.isOwner && totals.has(j.id) ? <span className="w-24 text-right text-sm tabular text-muted">{formatEuro(totals.get(j.id))}</span> : null}
+                      <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                        {formatDate(j.created_at)}
+                        {list.length > 1 && list.find((a) => a.id === j.asset_id)?.identifier ? <span>· {list.find((a) => a.id === j.asset_id)!.identifier}</span> : null}
+                        <Badge tone={PHASE_TONE[j.phase]}>{phaseLabel(ctx.pkg, j.phase)}</Badge>
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -134,8 +144,6 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         <Card className="h-fit">
           <CardHeader title="Podaci" />
           <div className="divide-y divide-line px-4">
-            <KeyValue label="Vrsta">{c.kind === 'company' ? 'Tvrtka' : 'Osoba'}</KeyValue>
-            {c.oib ? <KeyValue label="OIB">{c.oib}</KeyValue> : null}
             {c.phone ? (
               <KeyValue label="Telefon">
                 <a href={`tel:${c.phone.replace(/\s/g, '')}`} className="text-accent">
@@ -144,8 +152,10 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               </KeyValue>
             ) : null}
             {c.email ? <KeyValue label="E-mail">{c.email}</KeyValue> : null}
-            {c.address ? <KeyValue label="Adresa">{[c.address, c.city].filter(Boolean).join(', ')}</KeyValue> : null}
+            {address ? <KeyValue label="Adresa">{address}</KeyValue> : null}
+            {c.oib ? <KeyValue label="OIB">{c.oib}</KeyValue> : null}
             {ctx.isOwner ? <KeyValue label="Ukupno potrošeno">{formatEuro(lifetime)}</KeyValue> : null}
+            {!c.phone && !c.email && !address && !c.oib && !ctx.isOwner ? <p className="py-3 text-sm text-muted">Nema upisanih podataka.</p> : null}
           </div>
           {c.notes ? <p className="border-t border-line px-4 py-3 text-sm text-muted">{c.notes}</p> : null}
         </Card>

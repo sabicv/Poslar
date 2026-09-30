@@ -33,12 +33,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   if (!data) notFound();
   const job = data as unknown as JobWithRefs;
 
-  let total: number | null = null;
-  if (ctx.isOwner) {
-    const { data: t } = await ctx.supabase.from('job_totals').select('gross_total').eq('job_id', id).maybeSingle();
-    total = t ? Number(t.gross_total) : 0;
-  }
-
+  // "Dnevnik" is this job's log; the object's history is its own page.
   const tabs = [
     { id: 'pregled', label: 'Pregled' },
     { id: 'stavke', label: 'Stavke' },
@@ -47,20 +42,20 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     { id: 'modul', label: ctx.pkg.moduleTab },
     { id: 'foto', label: 'Fotografije' },
     { id: 'poruke', label: 'Poruke' },
-    { id: 'povijest', label: 'Povijest' },
+    { id: 'povijest', label: 'Dnevnik' },
   ];
   const active = tabs.some((t) => t.id === tab) ? tab : 'pregled';
   const locked = Boolean(job.locked_at);
 
   return (
     <div className="pb-24">
-      <JobHeader job={job} pkg={ctx.pkg} total={total} copilot={Boolean(process.env.ANTHROPIC_API_KEY)} />
+      <JobHeader job={job} backHref="/app" backLabel={ctx.pkg.sector === 'field' ? 'Raspored' : 'Nalozi'} copilot={Boolean(process.env.ANTHROPIC_API_KEY)} />
 
       <nav className="no-scrollbar sticky top-[var(--shell-top)] z-20 -mx-4 mb-5 flex gap-1 overflow-x-auto border-b border-line bg-bg/90 px-4 backdrop-blur-md sm:mx-0 sm:px-0 lg:top-0">
         {tabs.map((t) => (
           <Link
             key={t.id}
-            href={`/app/jobs/${id}${t.id === 'pregled' ? '' : `?tab=${t.id}`}`}
+            prefetch={false} href={`/app/jobs/${id}${t.id === 'pregled' ? '' : `?tab=${t.id}`}`}
             replace
             scroll={false}
             className={cn(

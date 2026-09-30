@@ -11,12 +11,13 @@ export type BoardJob = Pick<Job, 'id' | 'number' | 'phase' | 'complaint' | 'is_u
   assignee: { full_name: string | null } | null;
 };
 
-export function JobCard({ job, pkg, total, showMoney }: { job: BoardJob; pkg: PackageConfig; total?: number; showMoney: boolean }) {
+// showPhase=false inside a list already grouped under the phase name.
+export function JobCard({ job, pkg, total, showMoney, showPhase = true }: { job: BoardJob; pkg: PackageConfig; total?: number; showMoney: boolean; showPhase?: boolean }) {
   const promised = daysUntil(job.promised_at);
   const unpaid = showMoney && job.payment_status === 'unpaid' && (job.phase === 'ready' || job.phase === 'collected');
   return (
     <Link
-      href={`/app/jobs/${job.id}`}
+      prefetch={false} href={`/app/jobs/${job.id}`}
       className="group block rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-faint/60 active:bg-surface2"
     >
       <div className="flex items-start justify-between gap-3">
@@ -35,10 +36,12 @@ export function JobCard({ job, pkg, total, showMoney }: { job: BoardJob; pkg: Pa
       </div>
       {job.complaint ? <p className="mt-2 line-clamp-2 text-sm text-muted">{job.complaint}</p> : null}
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <Badge tone={PHASE_TONE[job.phase as JobPhase]}>
-          <Dot tone={PHASE_TONE[job.phase as JobPhase]} />
-          {phaseLabel(pkg, job.phase as JobPhase)}
-        </Badge>
+        {showPhase ? (
+          <Badge tone={PHASE_TONE[job.phase as JobPhase]}>
+            <Dot tone={PHASE_TONE[job.phase as JobPhase]} />
+            {phaseLabel(pkg, job.phase as JobPhase)}
+          </Badge>
+        ) : null}
         {job.is_urgent ? <Badge tone="crit">Hitno</Badge> : null}
         {unpaid ? <Badge tone="warn">Za naplatu</Badge> : null}
         {promised !== null && job.phase !== 'collected' ? (

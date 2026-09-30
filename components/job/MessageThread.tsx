@@ -48,7 +48,7 @@ export function MessageThread({
     <div className="space-y-4">
       {messages.length === 0 ? (
         <EmptyState icon={<HandHelping className="size-8" />} title="Nema poruka">
-          {isOwner ? 'Pošaljite radniku zadatak vezan uz ovaj nalog.' : 'Zapeli ste? Pošaljite voditelju „Trebam pomoć”.'}
+          {isOwner ? (jobId ? 'Pošaljite radniku zadatak vezan uz ovaj nalog.' : 'Pošaljite radniku zadatak koji nije vezan uz nalog.') : 'Zapeli ste? Pošaljite voditelju „Trebam pomoć”.'}
         </EmptyState>
       ) : (
         <ul className="space-y-3">

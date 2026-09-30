@@ -1,5 +1,6 @@
 'use client';
 
+import { plural } from '@/lib/format';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BarChart3, Bell, CalendarDays, ClipboardList, FlaskConical, LogOut, Plus, Repeat, Settings, Users, type LucideIcon } from 'lucide-react';
@@ -195,7 +196,7 @@ function DemoBar({ product, isOwner, className }: { product: PackageId; isOwner:
 function TrialNote({ days }: { days: number }) {
   return (
     <p className={cn('rounded-lg border px-3 py-2 text-xs', days <= 3 ? 'border-warn/40 bg-warn/10 text-warn' : 'border-line bg-surface2 text-muted')}>
-      Probno razdoblje: {days <= 0 ? 'završava danas' : `još ${days} ${days === 1 ? 'dan' : 'dana'}`}
+      Probno razdoblje: {days <= 0 ? 'završava danas' : `još ${days} ${plural(days, 'dan', 'dana', 'dana')}`}
     </p>
   );
 }

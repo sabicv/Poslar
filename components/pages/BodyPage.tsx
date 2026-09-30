@@ -45,7 +45,7 @@ export async function BodyPage({ ctx }: { ctx: WorkshopContext }) {
                 const estimate = estimateOf.get(job.id as string);
                 const asset = job.asset as unknown as { identifier: string | null; make: string | null; model: string | null; asset_type: never };
                 return (
-                  <Link key={job.id as string} href={`/app/jobs/${job.id}?tab=modul`} className="block rounded-xl border border-line bg-surface p-3 hover:border-faint/60">
+                  <Link key={job.id as string} prefetch={false} href={`/app/jobs/${job.id}?tab=modul`} className="block rounded-xl border border-line bg-surface p-3 hover:border-faint/60">
                     <div className="flex items-center gap-2">
                       {asset?.identifier ? <span className="font-mono text-xs font-semibold">{asset.identifier}</span> : null}
                       <span className="text-xs text-faint">#{job.number as number}</span>

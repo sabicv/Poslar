@@ -1,6 +1,5 @@
 import { Clock, Droplets, FileCheck2, Paintbrush, ScanEye } from 'lucide-react';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
-import { BODY_OPERATIONS } from '@/config/packages/body';
 import { formatDate, formatDateTime, formatNumber } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
 import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet } from '../kit';
@@ -118,7 +117,7 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
       {/* Damage map */}
       {estimate ? (
         <Card>
-          <CardHeader title="Mapa oštećenja" subtitle="Dodirnite dio vozila: vrsta oštećenja, operacija i sati po fazi" />
+          <CardHeader title="Mapa oštećenja" subtitle="Dodirnite dio vozila" />
           <div className="p-4">
             <BodyDamageMap
               estimateId={estimate.id as string}
@@ -152,9 +151,6 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
                 </div>
               ))}
             </div>
-            <p className="mt-2 text-xs text-faint">
-              Operacije: {Object.values(BODY_OPERATIONS).join(' · ')}
-            </p>
           </div>
         </Card>
       ) : null}

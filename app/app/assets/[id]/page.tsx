@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AssetSheet } from '@/components/ClientForms';
 import { BackLink, Badge, ButtonLink, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
-import { ASSET_TYPE_LABELS, METER_LABELS, PHASE_TONE, defaultMeterUnit, identifierLabel, phaseLabel, vinLabel } from '@/config/tenant.config';
+import { ASSET_TYPE_LABELS, CLIMATE_TYPES, PHASE_TONE, defaultMeterUnit, phaseLabel, vinLabel } from '@/config/tenant.config';
 import { assetTitle, clientName, formatDate, formatMeter } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
 import { signPaths } from '@/lib/signed';
@@ -39,19 +39,20 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   const gallery = [...(photos ?? []), ...(jobPhotos ?? [])].slice(0, 12);
   const signed = await signPaths(ctx.supabase, gallery.map((p) => p.path as string));
   const unit = asset.meter_primary_unit;
-  const last = readings?.[0];
+  // Air conditioners and heat pumps have no meter to read.
+  const climate = CLIMATE_TYPES.includes(asset.asset_type);
 
   return (
     <>
       <PageHeader
         back={<BackLink href={`/app/clients/${asset.client.id}`}>{clientName(asset.client)}</BackLink>}
         title={
-          <span className="flex items-center gap-3">
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
             {asset.identifier ? <span className="rounded-lg border border-line bg-surface px-2 font-mono text-lg">{asset.identifier}</span> : null}
             {assetTitle(asset)}
           </span>
         }
-        subtitle={`${ASSET_TYPE_LABELS[asset.asset_type]}${asset.year ? ` · ${asset.year}` : ''} · ${(jobs ?? []).length} posjeta`}
+        subtitle={`${ASSET_TYPE_LABELS[asset.asset_type]}${asset.year ? ` · ${asset.year}` : ''}`}
         action={
           <>
             <AssetSheet
@@ -78,7 +79,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                 {(jobs ?? []).map((j) => (
                   <li key={j.id as string} className="relative border-l border-line pb-5 pl-5 last:pb-0">
                     <span className="absolute -left-[5px] top-1.5 size-2.5 rounded-full border-2 border-bg bg-accent" />
-                    <Link href={`/app/jobs/${j.id}`} className="group block">
+                    <Link prefetch={false} href={`/app/jobs/${j.id}`} className="group block">
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
                         <span>{formatDate(j.created_at as string)}</span>
                         <span>#{j.number as number}</span>
@@ -111,24 +112,26 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div className="space-y-4">
+          {/* Only details that exist; an empty card is left out. */}
+          {asset.vin || asset.engine_code || asset.paint_code || asset.internal_number || parent ? (
           <Card>
             <CardHeader title="Podaci" />
             <div className="divide-y divide-line px-4">
-              <KeyValue label={identifierLabel(asset.asset_type)}>{asset.identifier ?? '—'}</KeyValue>
-              <KeyValue label={vinLabel(asset.asset_type)}>{asset.vin ? <span className="font-mono text-xs">{asset.vin}</span> : '—'}</KeyValue>
+              {asset.vin ? <KeyValue label={vinLabel(asset.asset_type)}>{<span className="font-mono text-xs">{asset.vin}</span>}</KeyValue> : null}
               {asset.engine_code ? <KeyValue label="Motor">{asset.engine_code}</KeyValue> : null}
               {asset.paint_code ? <KeyValue label="Boja">{asset.paint_code}</KeyValue> : null}
               {asset.internal_number ? <KeyValue label="Interni broj">{asset.internal_number}</KeyValue> : null}
               {parent ? (
                 <KeyValue label="Vezano uz">
-                  <Link href={`/app/assets/${parent.id}`} className="text-accent">
+                  <Link prefetch={false} href={`/app/assets/${parent.id}`} className="text-accent">
                     {(parent.identifier as string | null) ?? assetTitle(parent as never)}
                   </Link>
                 </KeyValue>
               ) : null}
-              <KeyValue label={METER_LABELS[unit].long}>{last ? formatMeter(last.value as number, unit) : '—'}</KeyValue>
             </div>
           </Card>
+          ) : null}
+          {climate ? null : (
           <Card>
             <CardHeader title="Očitanja brojila" />
             <div className="p-4">
@@ -145,6 +148,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
               ) : null}
             </div>
           </Card>
+          )}
         </div>
       </div>
     </>

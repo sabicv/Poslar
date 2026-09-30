@@ -198,11 +198,8 @@ export default async function WorkReport({ params }: { params: Promise<{ token: 
         </section>
       ) : null}
 
-      <p className="mt-8 text-center text-xs text-faint">
-        {tenant.name as string}
-        {tenant.phone ? ` · ${tenant.phone}` : ''}
-        {tenant.email ? ` · ${tenant.email}` : ''}
-      </p>
+      {/* Name, address and phone head the page; the footer adds only the e-mail. */}
+      {tenant.email ? <p className="mt-8 text-center text-xs text-faint">{tenant.email as string}</p> : null}
     </main>
   );
 }

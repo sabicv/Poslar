@@ -132,7 +132,7 @@ export async function AirPage({ ctx, year: requestedYear }: { ctx: WorkshopConte
                 <ShieldCheck className="size-4 text-accent" /> F-plinovi {year}
               </span>
             }
-            subtitle="Ukupno po radnoj tvari — podloga za godišnje izvješće"
+            subtitle="Po radnoj tvari, za godišnje izvješće"
             action={
               <div className="flex gap-1">
                 {[year - 1, year].map((y) => (
@@ -174,7 +174,7 @@ export async function AirPage({ ctx, year: requestedYear }: { ctx: WorkshopConte
         </Card>
 
         <Card>
-          <CardHeader title="Provjere propuštanja koje dolaze" subtitle="Uređaji ≥ 5 t CO₂e: rok u sljedećih 60 dana, bez zapisa ili kontrola nakon popravka" />
+          <CardHeader title="Provjere propuštanja u sljedećih 60 dana" />
           {leakDue.length ? (
             <ul className="divide-y divide-line">
               {leakDue.map(({ device, duty, due, afterRepair }) => {
