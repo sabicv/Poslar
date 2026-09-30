@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Moon, Sun, Upload, UserPlus } from 'lucide-react';
 import { ConfirmButton, Segmented, Sheet, useAction } from '@/components/client-ui';
 import { Badge, Button, Field, Input } from '@/components/ui';
-import { createStaff, removeStaff, resetStaffPassword, setOptionalModule, setStaffRole, setTenantLogo, updateMyProfile, updateTenant } from '@/lib/actions/settings';
+import { createStaff, removeStaff, resetStaffPassword, setOptionalModule, setStaffRole, setTenantLogo, updateBilling, updateMyProfile, updateTenant } from '@/lib/actions/settings';
 import { randomId } from '@/lib/ids';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 
@@ -97,6 +97,37 @@ export function WorkshopForm({ tenant }: { tenant: { name: string; oib: string; 
         <Input value={v.city} onChange={set('city')} />
       </Field>
       <div className="col-span-2">
+        <Button type="submit" variant="primary" disabled={pending}>
+          Spremi
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// IBAN, VAT status and a line of text for the invoice.
+export function BillingForm({ billing }: { billing: { iban: string; vatRegistered: boolean; note: string } }) {
+  const { pending, run } = useAction();
+  const [v, setV] = useState(billing);
+  return (
+    <form
+      className="grid gap-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        run(() => updateBilling({ iban: v.iban, vat_registered: v.vatRegistered, invoice_note: v.note }), { success: 'Podaci za račun spremljeni' });
+      }}
+    >
+      <Field label="IBAN (za plaćanje na račun)">
+        <Input value={v.iban} onChange={(e) => setV((s) => ({ ...s, iban: e.target.value }))} placeholder="HR12 3456 7890 1234 5678 9" className="font-mono" />
+      </Field>
+      <label className="flex min-h-11 items-center gap-3 text-sm">
+        <input type="checkbox" checked={v.vatRegistered} onChange={(e) => setV((s) => ({ ...s, vatRegistered: e.target.checked }))} className="size-5" />
+        Obrt je u sustavu PDV-a
+      </label>
+      <Field label="Napomena na računu (nije obavezno)">
+        <Input value={v.note} maxLength={300} onChange={(e) => setV((s) => ({ ...s, note: e.target.value }))} placeholder="npr. Hvala na povjerenju!" />
+      </Field>
+      <div>
         <Button type="submit" variant="primary" disabled={pending}>
           Spremi
         </Button>

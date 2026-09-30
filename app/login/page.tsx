@@ -1,22 +1,23 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
-import { ProductMark } from '@/components/ProductMark';
-import { resolvePackageFromHost } from '@/config/tenant.config';
+import { BrandMark, ProductMark } from '@/components/ProductMark';
+import { BRAND, matchPackageFromHost } from '@/config/tenant.config';
 import { LoginForm } from './LoginForm';
 
 export const metadata: Metadata = { title: 'Prijava' };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  const pkg = resolvePackageFromHost((await headers()).get('host'));
+  // A product domain shows its product; any other address the X-Files brand.
+  const pkg = matchPackageFromHost((await headers()).get('host'));
   const { next } = await searchParams;
   const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '/app';
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-5 pb-safe pt-safe">
       <Link href="/" className="mb-8 flex items-center gap-2.5">
-        <ProductMark id={pkg.id} />
-        <span className="font-semibold tracking-tight">{pkg.product}</span>
+        {pkg ? <ProductMark id={pkg.id} /> : <BrandMark />}
+        <span className="font-semibold tracking-tight">{pkg ? pkg.product : BRAND.name}</span>
       </Link>
       <h1 className="text-2xl font-semibold tracking-tight">Prijava</h1>
       <p className="mb-6 mt-1 text-sm text-muted">E-mail i lozinka koje ste dobili od voditelja servisa.</p>

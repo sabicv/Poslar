@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { HandHelping, Send } from 'lucide-react';
-import { useAction } from '@/components/client-ui';
+import { DictateButton, useAction } from '@/components/client-ui';
 import { Badge, Button, EmptyState, Select, Textarea } from '@/components/ui';
 import { sendMessage, setMessageStatus } from '@/lib/actions/jobs';
 import { cn } from '@/lib/utils';
@@ -95,7 +95,10 @@ export function MessageThread({
             <p className="mb-2 text-xs text-muted">Dodajte radnike u Postavke → Tim da biste im slali zadatke.</p>
           )
         ) : null}
-        <Textarea rows={2} value={body} onChange={(e) => setBody(e.target.value)} placeholder={isOwner ? 'Zadatak…' : 'Opišite gdje ste zapeli…'} />
+        <div className="flex items-start gap-2">
+          <Textarea rows={2} value={body} onChange={(e) => setBody(e.target.value)} placeholder={isOwner ? 'Zadatak…' : 'Opišite gdje ste zapeli…'} />
+          <DictateButton compact onText={(text) => setBody((b) => (b ? `${b.trimEnd()} ${text}` : text))} />
+        </div>
         <div className="mt-2 flex justify-end">
           <Button variant={isOwner ? 'primary' : 'danger'} disabled={pending || !body.trim() || (isOwner && !receiver)} onClick={send} data-me={me}>
             {isOwner ? <Send className="size-4" /> : <HandHelping className="size-4" />}

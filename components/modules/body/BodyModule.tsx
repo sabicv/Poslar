@@ -2,6 +2,7 @@ import { Clock, Droplets, FileCheck2, Paintbrush, ScanEye } from 'lucide-react';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
 import { formatDate, formatDateTime, formatNumber } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
+import { MoreSections, foldable } from '../more';
 import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { BodyDamageMap } from './BodyDamageMap';
@@ -14,7 +15,7 @@ const PHASES = { disassembly: 'Rastavljanje', bodywork: 'Limarija', prep: 'Pripr
 const ADAS = { front_camera: 'Prednja kamera', radar: 'Radar', parking_sensors: 'Parkirni senzori', surround_cameras: 'Kamere 360°', blind_spot: 'Mrtvi kut' };
 const MATERIAL = { basecoat: 'Baza', clearcoat: 'Lak', primer: 'Temeljna', filler: 'Kit', thinner: 'Razrjeđivač', hardener: 'Otvrdnjivač', abrasive: 'Brusni materijal', masking: 'Maskiranje', other: 'Ostalo' };
 
-export async function BodyModule({ ctx, job, locked }: ModuleProps) {
+export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
   const path = `/app/jobs/${job.id}`;
   const s = ctx.supabase;
   const [{ data: estimates }, { data: insurers }, { data: paint }, { data: phases }, { data: adas }, { data: materials }, { data: staff }] = await Promise.all([
@@ -41,16 +42,24 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
     { body: 0, prep: 0, paint: 0, assembly: 0 }
   );
   const openPhase = (phases ?? []).find((p) => !p.finished_at);
+  // Core: estimate, damage map, paint code. The rest with "Više" or once it has data.
+  const { show, hidden } = foldable(extras);
+  const anyHours = hours.body + hours.prep + hours.paint + hours.assembly > 0;
+  const showRecipe = (m: unknown[]) => show('receptura boje', m.length > 0);
+  const showPhases = show('faze proizvodnje', (phases ?? []).length > 0);
+  const showAdas = show('ADAS', (adas ?? []).length > 0);
+  const showMaterials = show('materijal', (materials ?? []).length > 0);
+  const showNewInsurer = show('novo osiguranje', false);
   const mix = ((paint?.mix as { id: string; sort: number; component_code: string; target_g: number | null; actual_g: number | null }[] | undefined) ?? []).sort((a, b) => a.sort - b.sort);
 
   const estimateFields = [
     { name: 'insurer_id', label: 'Osiguranje', type: 'select' as const, options: insurerOptions },
     { name: 'claim_number', label: 'Broj štete', half: true },
-    { name: 'policy_number', label: 'Broj police', half: true },
+    { name: 'policy_number', label: 'Broj police', half: true, extra: true },
     { name: 'loss_date', label: 'Datum štete', type: 'date' as const, half: true },
-    { name: 'loss_type', label: 'Vrsta štete', type: 'select' as const, options: opts(LOSS_TYPE), half: true },
-    { name: 'assessor_name', label: 'Procjenitelj', half: true },
-    { name: 'inspected_at', label: 'Očevid', type: 'datetime' as const, half: true },
+    { name: 'loss_type', label: 'Vrsta štete', type: 'select' as const, options: opts(LOSS_TYPE), half: true, extra: true },
+    { name: 'assessor_name', label: 'Procjenitelj', half: true, extra: true },
+    { name: 'inspected_at', label: 'Očevid', type: 'datetime' as const, half: true, extra: true },
     { name: 'status', label: 'Status', type: 'select' as const, options: opts(ESTIMATE_STATUS), required: true },
   ];
 
@@ -67,18 +76,20 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
           subtitle={estimate ? ESTIMATE_STATUS[estimate.status as keyof typeof ESTIMATE_STATUS] : 'Za osiguranje ili privatnu procjenu'}
           action={
             <div className="flex gap-2">
-              <RecordSheet
-                table="insurers"
-                title="Novo osiguranje"
-                revalidate={path}
-                label="Osiguranje"
-                fields={[
-                  { name: 'name', label: 'Naziv', required: true },
-                  { name: 'contact', label: 'Kontakt', half: true },
-                  { name: 'phone', label: 'Telefon', half: true },
-                  { name: 'email', label: 'E-mail' },
-                ]}
-              />
+              {showNewInsurer ? (
+                <RecordSheet
+                  table="insurers"
+                  title="Novo osiguranje"
+                  revalidate={path}
+                  label="Osiguranje"
+                  fields={[
+                    { name: 'name', label: 'Naziv', required: true },
+                    { name: 'contact', label: 'Kontakt', half: true },
+                    { name: 'phone', label: 'Telefon', half: true },
+                    { name: 'email', label: 'E-mail' },
+                  ]}
+                />
+              ) : null}
               {!locked ? (
                 estimate ? (
                   <RecordSheet table="body_estimates" title="Procjena" id={estimate.id as string} revalidate={path} initial={estimate} label="Uredi" fields={estimateFields} />
@@ -136,6 +147,7 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
                 note: d.note as string | null,
               }))}
             />
+            {anyHours ? (
             <div className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
               {(
                 [
@@ -151,6 +163,7 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
                 </div>
               ))}
             </div>
+            ) : null}
           </div>
         </Card>
       ) : null}
@@ -177,18 +190,18 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
                 fields={[
                   { name: 'paint_code', label: 'Šifra boje', half: true },
                   { name: 'paint_name', label: 'Naziv boje', half: true },
-                  { name: 'paint_system', label: 'Sustav (proizvođač)', half: true },
-                  { name: 'variant', label: 'Varijanta', half: true },
-                  { name: 'coat_structure', label: 'Struktura', type: 'select', options: opts(COAT), half: true },
-                  { name: 'color_match', label: 'Pogađanje nijanse', type: 'select', options: opts(MATCH), half: true },
-                  { name: 'booth_temp_c', label: 'Kabina — temperatura', type: 'number', suffix: '°C', half: true },
-                  { name: 'booth_humidity_pct', label: 'Kabina — vlaga', type: 'number', suffix: '%', half: true },
+                  { name: 'paint_system', label: 'Sustav (proizvođač)', half: true, extra: true },
+                  { name: 'variant', label: 'Varijanta', half: true, extra: true },
+                  { name: 'coat_structure', label: 'Struktura', type: 'select', options: opts(COAT), half: true, extra: true },
+                  { name: 'color_match', label: 'Pogađanje nijanse', type: 'select', options: opts(MATCH), half: true, extra: true },
+                  { name: 'booth_temp_c', label: 'Kabina — temperatura', type: 'number', suffix: '°C', half: true, extra: true },
+                  { name: 'booth_humidity_pct', label: 'Kabina — vlaga', type: 'number', suffix: '%', half: true, extra: true },
                 ]}
               />
             ) : null
           }
         />
-        {paint ? (
+        {paint && showRecipe(mix) ? (
           <div className="p-4">
             <div className="mb-2 flex items-center justify-between">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">Receptura</p>
@@ -239,6 +252,7 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
       </Card>
 
       {/* Production phases */}
+      {showPhases ? (
       <Card>
         <CardHeader
           title={
@@ -281,8 +295,10 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
           ) : null}
         </div>
       </Card>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
+        {showAdas ? (
         <Card>
           <CardHeader
             title={
@@ -320,7 +336,9 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Nakon zamjene vjetrobrana, branika ili geometrije: kalibracija kamera i radara.</p>
           )}
         </Card>
+        ) : null}
 
+        {showMaterials ? (
         <Card>
           <CardHeader
             title={
@@ -362,7 +380,9 @@ export async function BodyModule({ ctx, job, locked }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Nema zapisa.</p>
           )}
         </Card>
+        ) : null}
       </div>
+      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

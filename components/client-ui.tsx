@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition, type ReactNode } from 'reac
 import { createPortal } from 'react-dom';
 import { Drawer } from 'vaul';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, MapPin, Mic, MicOff, X } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, MapPin, Mic, MicOff, X } from 'lucide-react';
 import { Button } from '@/components/ui';
 import type { ActionResult } from '@/lib/action-result';
 import { useSpeechToText } from '@/lib/useSpeechToText';
@@ -17,10 +17,12 @@ import { cn } from '@/lib/utils';
 let actionSeq = 0;
 export function useAction() {
   const [pending, start] = useTransition();
-  function run<T>(fn: () => Promise<ActionResult<T>>, options: { success?: string; onDone?: (data: T | undefined) => void } = {}) {
+  // quiet: autosave that shows its own status — only an error pops up.
+  function run<T>(fn: () => Promise<ActionResult<T>>, options: { success?: string; onDone?: (data: T | undefined) => void; quiet?: boolean } = {}) {
     const id = `action-${++actionSeq}`;
     let shown = false;
     const timer = window.setTimeout(() => {
+      if (options.quiet) return;
       shown = true;
       toast.loading('Spremam…', { id });
     }, 500);
@@ -174,10 +176,23 @@ export function ConfirmButton({
   );
 }
 
-// Appends dictated Croatian speech to a text field.
-export function DictateButton({ onText }: { onText: (text: string) => void }) {
+// Appends dictated Croatian speech to a text field. compact: a microphone
+// icon that sits beside a one-line field.
+export function DictateButton({ onText, compact = false }: { onText: (text: string) => void; compact?: boolean }) {
   const { isSupported, isRecording, interimText, toggleRecording } = useSpeechToText({ onFinalText: onText });
   if (!isSupported) return null;
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={toggleRecording}
+        aria-label={isRecording ? 'Zaustavi diktiranje' : 'Diktiraj'}
+        className={cn('flex size-11 shrink-0 items-center justify-center rounded-xl border', isRecording ? 'border-crit/40 bg-crit/15 text-crit' : 'border-line text-muted hover:text-fg')}
+      >
+        {isRecording ? <MicOff className="size-4" /> : <Mic className="size-4" />}
+      </button>
+    );
+  }
   return (
     <div className="flex items-center gap-2">
       <Button size="sm" variant={isRecording ? 'danger' : 'ghost'} onClick={toggleRecording} aria-label="Diktiraj">
@@ -186,6 +201,16 @@ export function DictateButton({ onText }: { onText: (text: string) => void }) {
       </Button>
       {interimText ? <span className="truncate text-xs text-faint">{interimText}</span> : null}
     </div>
+  );
+}
+
+// The one "Više polja" switch of a form: rarely needed fields stay folded.
+export function MoreToggle({ open, onToggle, className }: { open: boolean; onToggle: () => void; className?: string }) {
+  return (
+    <button type="button" onClick={onToggle} className={cn('flex w-full items-center justify-center gap-1.5 py-1.5 text-sm font-medium text-muted hover:text-fg', className)}>
+      <ChevronDown className={cn('size-4 transition-transform', open && 'rotate-180')} />
+      {open ? 'Manje polja' : 'Više polja'}
+    </button>
   );
 }
 
@@ -409,8 +434,17 @@ export function AutoSaveTextarea({
 
   function save(next = value) {
     if (next === saved) return;
-    run(() => onSave(next), { onDone: () => setSaved(next) });
+    run(() => onSave(next), { onDone: () => setSaved(next), quiet: true });
   }
+
+  // Saved a moment after the last keystroke too, not only on leaving the
+  // field: closing the app mid-sentence loses nothing.
+  useEffect(() => {
+    if (value === saved || disabled) return;
+    const timer = window.setTimeout(() => save(value), 1200);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, saved, disabled]);
 
   return (
     <div className="space-y-1.5">
@@ -435,7 +469,7 @@ export function AutoSaveTextarea({
         ) : (
           <span />
         )}
-        <span className="text-xs text-faint">{pending ? 'Spremam…' : value !== saved ? 'Nespremljeno' : ''}</span>
+        <span className="text-xs text-faint">{pending ? 'Spremam…' : value !== saved ? 'Upisujem…' : saved !== initial ? 'Spremljeno' : ''}</span>
       </div>
     </div>
   );

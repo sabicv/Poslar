@@ -66,12 +66,13 @@ export function Card({ className, children }: { className?: string; children: Re
 
 export function CardHeader({ title, action, subtitle }: { title: ReactNode; action?: ReactNode; subtitle?: ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3">
-      <div className="min-w-0">
+    // On a narrow phone the buttons drop under the title instead of squeezing it.
+    <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 border-b border-line px-4 py-3">
+      <div className="min-w-[9rem] flex-1">
         <h3 className="text-sm font-semibold text-fg">{title}</h3>
         {subtitle ? <p className="mt-0.5 text-xs text-muted">{subtitle}</p> : null}
       </div>
-      {action}
+      {action ? <div className="max-w-full shrink-0">{action}</div> : null}
     </div>
   );
 }

@@ -7,6 +7,8 @@ import path from 'node:path';
 import sharp from 'sharp';
 
 const PRODUCTS = {
+  // The X-Files brand itself: on an address that is no product's domain.
+  xfiles: { accent: '#F4F4F5', fg: '#0a0a0b', glyph: '<path d="M18 6 6 18M6 6l12 12"/>' },
   volt: { accent: '#3D9BFF', fg: '#ffffff', glyph: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>' },
   gear: {
     accent: '#9580FF',

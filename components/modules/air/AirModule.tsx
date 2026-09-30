@@ -4,6 +4,7 @@ import { REFRIGERANTS, fgasObligations, nextLeakCheck } from '@/config/packages/
 import { assetTitle, daysUntil, formatDate, formatDateTime, formatDecimal, formatNumber } from '@/lib/format';
 import { addMonths, dayOf, todayInZagreb } from '@/lib/time';
 import type { ModuleProps } from '../ModuleTab';
+import { MoreSections, foldable } from '../more';
 import { DeleteRecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { ChargeCalculator } from './ChargeCalculator';
@@ -19,7 +20,7 @@ export const FGAS_ACTIONS: Record<string, string> = {
 
 const gasOptions = Object.entries(REFRIGERANTS).map(([value, g]) => ({ value, label: `${g.label} · GWP ${g.gwp}` }));
 
-export async function AirModule({ ctx, job, locked }: ModuleProps) {
+export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
   const path = `/app/jobs/${job.id}`;
   const s = ctx.supabase;
   const [{ data: device }, { data: log }, { data: plans }, { data: me }] = await Promise.all([
@@ -42,6 +43,8 @@ export async function AirModule({ ctx, job, locked }: ModuleProps) {
   const plan = (plans ?? []).find((p) => p.asset_id === job.asset.id) ?? (plans ?? []).find((p) => !p.asset_id && p.site_id === job.site_id) ?? null;
   const today = todayInZagreb();
   const refrigerant = (device?.refrigerant as string | null) ?? 'R32';
+  const { show, hidden } = foldable(extras);
+  const showCalculator = !locked && show('dopuna za duljinu cijevi', false);
 
   return (
     <div className="space-y-4">
@@ -65,15 +68,15 @@ export async function AirModule({ ctx, job, locked }: ModuleProps) {
               fields={[
                 { name: 'refrigerant', label: 'Radna tvar', type: 'select', options: gasOptions, half: true, required: true },
                 { name: 'charge_kg', label: 'Tvorničko punjenje', type: 'number', suffix: 'kg', half: true, required: true },
-                { name: 'cooling_kw', label: 'Snaga hlađenja', type: 'number', suffix: 'kW', half: true },
-                { name: 'heating_kw', label: 'Snaga grijanja', type: 'number', suffix: 'kW', half: true },
-                { name: 'indoor_units', label: 'Broj unutarnjih jedinica', type: 'number', half: true },
-                { name: 'install_date', label: 'Datum montaže', type: 'date', half: true },
-                { name: 'indoor_serial', label: 'Serijski — unutarnja', half: true },
-                { name: 'outdoor_serial', label: 'Serijski — vanjska', half: true },
-                { name: 'warranty_until', label: 'Jamstvo do', type: 'date', half: true },
-                { name: 'hermetically_sealed', label: 'Hermetički zatvoren sustav', type: 'checkbox' },
-                { name: 'leak_detection', label: 'Ugrađen sustav za otkrivanje propuštanja', type: 'checkbox' },
+                { name: 'cooling_kw', label: 'Snaga hlađenja', type: 'number', suffix: 'kW', half: true, extra: true },
+                { name: 'heating_kw', label: 'Snaga grijanja', type: 'number', suffix: 'kW', half: true, extra: true },
+                { name: 'indoor_units', label: 'Broj unutarnjih jedinica', type: 'number', half: true, extra: true },
+                { name: 'install_date', label: 'Datum montaže', type: 'date', half: true, extra: true },
+                { name: 'indoor_serial', label: 'Serijski — unutarnja', half: true, extra: true },
+                { name: 'outdoor_serial', label: 'Serijski — vanjska', half: true, extra: true },
+                { name: 'warranty_until', label: 'Jamstvo do', type: 'date', half: true, extra: true },
+                { name: 'hermetically_sealed', label: 'Hermetički zatvoren sustav', type: 'checkbox', extra: true },
+                { name: 'leak_detection', label: 'Ugrađen sustav za otkrivanje propuštanja', type: 'checkbox', extra: true },
               ]}
             />
           }
@@ -85,7 +88,8 @@ export async function AirModule({ ctx, job, locked }: ModuleProps) {
               {duty.serviceCard ? <Badge tone="warn">Servisna kartica SK 1 obavezna (≥ 3 kg)</Badge> : null}
               {duty.leakCheckMonths ? <Badge tone="accent">Provjera propuštanja svakih {duty.leakCheckMonths} mj.</Badge> : <Badge tone="muted">Bez obvezne periodične provjere</Badge>}
             </div>
-            <p className="mb-3 text-sm text-muted">{duty.note}</p>
+            {/* The badges already say it; the sentence only helps when gas data is missing. */}
+            {duty.tco2e === null ? <p className="mb-3 text-sm text-muted">{duty.note}</p> : null}
             <div className="grid gap-x-8 sm:grid-cols-2">
               <KeyValue label="Radna tvar">{`${device.refrigerant ?? '—'} · ${device.charge_kg != null ? formatNumber(Number(device.charge_kg), 2) : '—'} kg`}</KeyValue>
               <KeyValue label="Snaga">
@@ -132,7 +136,7 @@ export async function AirModule({ ctx, job, locked }: ModuleProps) {
                   { name: 'refrigerant', label: 'Radna tvar', type: 'select', options: gasOptions, half: true, required: true },
                   { name: 'quantity_kg', label: 'Količina', type: 'number', suffix: 'kg', half: true },
                   { name: 'leak_found', label: 'Pronađeno propuštanje', type: 'checkbox' },
-                  { name: 'leak_location', label: 'Mjesto propuštanja' },
+                  { name: 'leak_location', label: 'Mjesto propuštanja', extra: true },
                   { name: 'cause', label: 'Uzrok i poduzete mjere', type: 'textarea' },
                   { name: 'technician_cert', label: 'Broj certifikata servisera', required: true },
                 ]}
@@ -166,7 +170,7 @@ export async function AirModule({ ctx, job, locked }: ModuleProps) {
       </Card>
 
       {/* Extra charge calculator */}
-      {!locked ? <ChargeCalculator jobId={job.id} assetId={job.asset.id} refrigerant={refrigerant} certificate={(me?.fgas_certificate as string | null) ?? ''} /> : null}
+      {showCalculator ? <ChargeCalculator jobId={job.id} assetId={job.asset.id} refrigerant={refrigerant} certificate={(me?.fgas_certificate as string | null) ?? ''} /> : null}
 
       {/* Maintenance plan */}
       <Card>
@@ -214,6 +218,7 @@ export async function AirModule({ ctx, job, locked }: ModuleProps) {
           <p className="px-4 py-3 text-sm text-muted">Nakon uključivanja klijent se mjesec dana prije roka sam pojavi u „Servisni planovi”, spreman za podsjetnik i zakazivanje.</p>
         )}
       </Card>
+      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

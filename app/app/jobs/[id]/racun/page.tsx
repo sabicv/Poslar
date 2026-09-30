@@ -1,0 +1,48 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { InvoiceDocument } from '@/components/invoice/InvoiceDocument';
+import { BackLink } from '@/components/ui';
+import { loadInvoice } from '@/lib/invoice';
+import { requireOwner } from '@/lib/session';
+import { InvoiceActions } from './InvoiceActions';
+
+export const metadata: Metadata = { title: 'Račun' };
+
+// The owner turns a job into an invoice: issue (number), print or save as
+// PDF, send the customer a link. The fiscal receipt itself comes from the
+// workshop's own till; its number can be written here.
+export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
+  const ctx = await requireOwner();
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  const invoice = await loadInvoice(ctx.supabase, { id });
+  if (!invoice) notFound();
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+  const title = invoice.number ? `Račun br. ${invoice.number}/${invoice.year}` : 'Račun';
+  const missingPrices = invoice.lines.some((l) => !l.unit_price);
+
+  return (
+    <div className="space-y-5 pb-10">
+      <div className="space-y-4 print:hidden">
+        <BackLink href={`/app/jobs/${id}?tab=stavke`}>Nalog #{invoice.jobNumber}</BackLink>
+        <InvoiceActions
+          jobId={id}
+          issued={invoice.number !== null}
+          title={title}
+          link={`${appUrl}/racun/${invoice.token}`}
+          workshopName={invoice.workshop.name}
+          clientPhone={invoice.clientPhone}
+          clientFirstName={invoice.clientFirstName}
+          fiscalRef={invoice.fiscalRef}
+          empty={invoice.lines.length === 0}
+        />
+        {missingPrices ? <p className="rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">Neke stavke nemaju cijenu — upišite je u kartici Stavke.</p> : null}
+        {!invoice.billing.iban || !invoice.workshop.oib ? (
+          <p className="text-xs text-muted">OIB i IBAN obrta upisuju se u Postavke → Radionica; tada se sami pojave na računu.</p>
+        ) : null}
+      </div>
+      <InvoiceDocument data={invoice} />
+    </div>
+  );
+}

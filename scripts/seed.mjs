@@ -120,7 +120,13 @@ async function workshop({ pkg, name, city, address, phone, owner, worker }) {
       p_trial_days: 30,
     })
   );
-  await q(sb.from('tenants').update({ slug: `demo-${pkg}`, address, email: `info@${pkg}.${DOMAIN}`, settings: { demo: true } }).eq('id', tenantId));
+  // A demo OIB and IBAN (the standard HR example account) so the invoice looks complete.
+  await q(
+    sb
+      .from('tenants')
+      .update({ slug: `demo-${pkg}`, address, email: `info@${pkg}.${DOMAIN}`, oib: '58234167900', settings: { demo: true, iban: 'HR1210010051863000160', vat_registered: true } })
+      .eq('id', tenantId)
+  );
   const workerUser = await createUser(`radnik.${pkg}@${DOMAIN}`, worker);
   await q(sb.from('profiles').insert({ id: workerUser.id, tenant_id: tenantId, full_name: worker, role: 'worker' }));
   return { id: tenantId, pkg, owner: ownerUser.id, worker: workerUser.id, ownerName: owner, workerName: worker };

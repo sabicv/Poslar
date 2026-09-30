@@ -28,6 +28,30 @@ export async function updateTenant(values: z.input<typeof tenantSchema>): Promis
   return { ok: true };
 }
 
+// What the invoice needs besides name, OIB and address; kept in the
+// workshop's settings next to anything already there.
+const billingSchema = z.object({
+  iban: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/\s+/g, '').toUpperCase())
+    .refine((v) => v === '' || /^HR\d{19}$/.test(v), 'IBAN: HR i 19 znamenki.'),
+  vat_registered: z.boolean(),
+  invoice_note: z.string().trim().max(300),
+});
+
+export async function updateBilling(values: z.input<typeof billingSchema>): Promise<ActionResult> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Podatke za račun uređuje voditelj servisa.');
+  const parsed = billingSchema.safeParse(values);
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite podatke.');
+  const settings = { ...((ctx.tenant.settings as Record<string, unknown> | null) ?? {}), iban: parsed.data.iban || null, vat_registered: parsed.data.vat_registered, invoice_note: parsed.data.invoice_note || null };
+  const { error } = await ctx.supabase.from('tenants').update({ settings }).eq('id', ctx.tenant.id);
+  if (error) return fail(error);
+  revalidatePath('/app/settings');
+  return { ok: true };
+}
+
 export async function setTenantLogo(logoUrl: string | null): Promise<ActionResult> {
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Logo mijenja voditelj servisa.');

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pencil, Plus } from 'lucide-react';
-import { ConfirmButton, Segmented, Sheet, useAction } from '@/components/client-ui';
+import { ConfirmButton, DictateButton, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import type { AssetType, MeterUnit } from '@/config/tenant.config';
 import { deleteAsset, deleteClient, saveAsset, saveClient } from '@/lib/actions/clients';
@@ -12,6 +12,20 @@ import type { Asset, Client, Site } from '@/types/db';
 
 type ClientValues = Pick<Client, 'kind' | 'first_name' | 'last_name' | 'company_name' | 'oib' | 'phone' | 'email' | 'address' | 'city' | 'notes'>;
 
+const filled = (...values: (string | null | undefined)[]) => values.some((x) => Boolean(x && String(x).trim()));
+
+// A text field with a microphone beside it.
+function DictatedTextarea({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      <Textarea rows={2} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+      <DictateButton compact onText={(text) => onChange(value ? `${value.trimEnd()} ${text}` : text)} />
+    </div>
+  );
+}
+
+// Core: who and how to reach them. A company doubles as a partner
+// (another workshop, a dealer, an insurer). The rest: "Više polja".
 export function ClientSheet({ client, title, isOwner }: { client?: Client; title: string; isOwner?: boolean }) {
   const router = useRouter();
   const { pending, run } = useAction();
@@ -28,7 +42,9 @@ export function ClientSheet({ client, title, isOwner }: { client?: Client; title
     city: client?.city ?? '',
     notes: client?.notes ?? '',
   });
+  const [more, setMore] = useState(() => filled(client?.oib, client?.email, client?.address, client?.city, client?.notes, client?.kind === 'company' ? client?.first_name : null));
   const set = (key: keyof ClientValues) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [key]: e.target.value }));
+  const company = v.kind === 'company';
 
   return (
     <Sheet
@@ -48,38 +64,56 @@ export function ClientSheet({ client, title, isOwner }: { client?: Client; title
       }
     >
       <div className="space-y-4">
-        <Segmented value={v.kind} onChange={(kind) => setV((s) => ({ ...s, kind }))} options={[{ value: 'person', label: 'Osoba' }, { value: 'company', label: 'Tvrtka' }]} />
-        {v.kind === 'company' ? (
-          <Field label="Naziv tvrtke">
-            <Input value={v.company_name ?? ''} onChange={set('company_name')} />
-          </Field>
-        ) : null}
+        <Segmented value={v.kind} onChange={(kind) => setV((s) => ({ ...s, kind }))} options={[{ value: 'person', label: 'Osoba' }, { value: 'company', label: 'Tvrtka / suradnik' }]} />
         <div className="grid grid-cols-2 gap-3">
-          <Field label={v.kind === 'company' ? 'Kontakt — ime' : 'Ime'}>
-            <Input value={v.first_name ?? ''} onChange={set('first_name')} />
-          </Field>
-          <Field label={v.kind === 'company' ? 'Kontakt — prezime' : 'Prezime'}>
-            <Input value={v.last_name ?? ''} onChange={set('last_name')} />
-          </Field>
-          <Field label="Telefon">
+          {company ? (
+            <Field label="Naziv tvrtke" className="col-span-2">
+              <Input value={v.company_name ?? ''} onChange={set('company_name')} />
+            </Field>
+          ) : (
+            <>
+              <Field label="Ime">
+                <Input value={v.first_name ?? ''} onChange={set('first_name')} />
+              </Field>
+              <Field label="Prezime">
+                <Input value={v.last_name ?? ''} onChange={set('last_name')} />
+              </Field>
+            </>
+          )}
+          <Field label="Telefon" className="col-span-2">
             <Input type="tel" value={v.phone ?? ''} onChange={set('phone')} />
           </Field>
-          <Field label="OIB">
-            <Input inputMode="numeric" maxLength={11} value={v.oib ?? ''} onChange={set('oib')} />
-          </Field>
-          <Field label="E-mail" className="col-span-2">
-            <Input type="email" value={v.email ?? ''} onChange={set('email')} />
-          </Field>
-          <Field label="Adresa">
-            <Input value={v.address ?? ''} onChange={set('address')} />
-          </Field>
-          <Field label="Grad">
-            <Input value={v.city ?? ''} onChange={set('city')} />
-          </Field>
+          {more ? (
+            <>
+              {company ? (
+                <>
+                  <Field label="Kontakt — ime">
+                    <Input value={v.first_name ?? ''} onChange={set('first_name')} />
+                  </Field>
+                  <Field label="Kontakt — prezime">
+                    <Input value={v.last_name ?? ''} onChange={set('last_name')} />
+                  </Field>
+                </>
+              ) : null}
+              <Field label="OIB">
+                <Input inputMode="numeric" maxLength={11} value={v.oib ?? ''} onChange={set('oib')} />
+              </Field>
+              <Field label="E-mail">
+                <Input type="email" value={v.email ?? ''} onChange={set('email')} />
+              </Field>
+              <Field label="Adresa">
+                <Input value={v.address ?? ''} onChange={set('address')} />
+              </Field>
+              <Field label="Grad">
+                <Input value={v.city ?? ''} onChange={set('city')} />
+              </Field>
+              <Field label="Napomena" className="col-span-2">
+                <DictatedTextarea value={v.notes ?? ''} onChange={(notes) => setV((s) => ({ ...s, notes }))} />
+              </Field>
+            </>
+          ) : null}
         </div>
-        <Field label="Napomena">
-          <Textarea rows={2} value={v.notes ?? ''} onChange={set('notes')} />
-        </Field>
+        <MoreToggle open={more} onToggle={() => setMore((m) => !m)} />
         <div className="flex gap-2">
           <Button
             variant="primary"
@@ -110,6 +144,8 @@ export function ClientSheet({ client, title, isOwner }: { client?: Client; title
   );
 }
 
+// Core: plate or label, make, model (and where it is, on the road). The
+// rest: "Više polja".
 export function AssetSheet({
   clientId,
   asset,
@@ -146,6 +182,9 @@ export function AssetSheet({
     site_id: asset?.site_id ?? (sites.length === 1 ? sites[0].value : ''),
     notes: asset?.notes ?? '',
   });
+  const [more, setMore] = useState(() =>
+    filled(asset?.vin, asset?.year?.toString(), asset?.engine_code, asset?.fuel, asset?.internal_number, asset?.paint_code, asset?.parent_asset_id, asset?.notes)
+  );
   const set = (key: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [key]: e.target.value }));
   const unit = assetTypes.find((t) => t.value === v.asset_type)?.unit ?? 'km';
 
@@ -167,15 +206,6 @@ export function AssetSheet({
       }
     >
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Vrsta" className="col-span-2">
-          <Select value={v.asset_type} onChange={set('asset_type')}>
-            {assetTypes.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </Select>
-        </Field>
         {sites.length ? (
           <Field label="Lokacija" className="col-span-2">
             <Select value={v.site_id} onChange={set('site_id')}>
@@ -188,11 +218,8 @@ export function AssetSheet({
             </Select>
           </Field>
         ) : null}
-        <Field label="Registracija / oznaka">
+        <Field label="Registracija / oznaka" className="col-span-2">
           <Input value={v.identifier} className="font-mono uppercase" onChange={set('identifier')} />
-        </Field>
-        <Field label="Godište">
-          <Input inputMode="numeric" maxLength={4} value={v.year} onChange={set('year')} />
         </Field>
         <Field label="Marka">
           <Input value={v.make} onChange={set('make')} />
@@ -200,46 +227,64 @@ export function AssetSheet({
         <Field label="Model">
           <Input value={v.model} onChange={set('model')} />
         </Field>
-        <Field label="VIN / HIN / serijski" className="col-span-2">
-          <Input value={v.vin} className="font-mono uppercase" onChange={set('vin')} />
-        </Field>
-        <Field label="Oznaka motora">
-          <Input value={v.engine_code} onChange={set('engine_code')} />
-        </Field>
-        <Field label="Gorivo">
-          <Select value={v.fuel} onChange={set('fuel')}>
-            <option value="">—</option>
-            <option value="petrol">Benzin</option>
-            <option value="diesel">Dizel</option>
-            <option value="hybrid">Hibrid</option>
-            <option value="plugin">Plug-in hibrid</option>
-            <option value="electric">Električni</option>
-            <option value="lpg">Plin (LPG)</option>
-            <option value="cng">CNG</option>
-          </Select>
-        </Field>
-        <Field label="Interni / garažni broj">
-          <Input value={v.internal_number} onChange={set('internal_number')} />
-        </Field>
-        <Field label="Šifra boje">
-          <Input value={v.paint_code} onChange={set('paint_code')} />
-        </Field>
-        {parents.length ? (
-          <Field label="Nadređeno vozilo (npr. tegljač za prikolicu)" className="col-span-2">
-            <Select value={v.parent_asset_id} onChange={set('parent_asset_id')}>
-              <option value="">—</option>
-              {parents.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </Select>
-          </Field>
+        {more ? (
+          <>
+            {assetTypes.length > 1 ? (
+              <Field label="Vrsta" className="col-span-2">
+                <Select value={v.asset_type} onChange={set('asset_type')}>
+                  {assetTypes.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : null}
+            <Field label="Godište">
+              <Input inputMode="numeric" maxLength={4} value={v.year} onChange={set('year')} />
+            </Field>
+            <Field label="VIN / HIN / serijski">
+              <Input value={v.vin} className="font-mono uppercase" onChange={set('vin')} />
+            </Field>
+            <Field label="Oznaka motora">
+              <Input value={v.engine_code} onChange={set('engine_code')} />
+            </Field>
+            <Field label="Gorivo">
+              <Select value={v.fuel} onChange={set('fuel')}>
+                <option value="">—</option>
+                <option value="petrol">Benzin</option>
+                <option value="diesel">Dizel</option>
+                <option value="hybrid">Hibrid</option>
+                <option value="plugin">Plug-in hibrid</option>
+                <option value="electric">Električni</option>
+                <option value="lpg">Plin (LPG)</option>
+                <option value="cng">CNG</option>
+              </Select>
+            </Field>
+            <Field label="Interni / garažni broj">
+              <Input value={v.internal_number} onChange={set('internal_number')} />
+            </Field>
+            <Field label="Šifra boje">
+              <Input value={v.paint_code} onChange={set('paint_code')} />
+            </Field>
+            {parents.length ? (
+              <Field label="Nadređeno vozilo (npr. tegljač za prikolicu)" className="col-span-2">
+                <Select value={v.parent_asset_id} onChange={set('parent_asset_id')}>
+                  <option value="">—</option>
+                  {parents.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ) : null}
+            <Field label="Napomena" className="col-span-2">
+              <DictatedTextarea value={v.notes} onChange={(notes) => setV((s) => ({ ...s, notes }))} />
+            </Field>
+          </>
         ) : null}
-        <Field label="Napomena" className="col-span-2">
-          <Textarea rows={2} value={v.notes} onChange={set('notes')} />
-        </Field>
-        <p className="col-span-2 text-xs text-faint">Brojilo: {unit === 'mth' ? 'motosati' : 'kilometri'}</p>
+        <MoreToggle open={more} onToggle={() => setMore((m) => !m)} className="col-span-2" />
         <div className="col-span-2 flex gap-2">
           <Button
             variant="primary"
@@ -287,7 +332,8 @@ export function AssetSheet({
 type SiteKind = 'house' | 'flat' | 'apartment' | 'office' | 'commercial' | 'other';
 export const SITE_KIND_LABELS: Record<SiteKind, string> = { flat: 'Stan', house: 'Kuća', apartment: 'Apartman', office: 'Ured', commercial: 'Poslovni prostor', other: 'Ostalo' };
 
-// A place where the customer has devices: address, how to get in, who opens.
+// A place where the customer has devices. Core: address and how to get in;
+// kind, name, postcode and a contact on site: "Više polja".
 export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?: Site; isOwner?: boolean }) {
   const { pending, run } = useAction();
   const [open, setOpen] = useState(false);
@@ -301,6 +347,7 @@ export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?
     contact_name: site?.contact_name ?? '',
     contact_phone: site?.contact_phone ?? '',
   });
+  const [more, setMore] = useState(() => filled(site?.label, site?.postal_code, site?.contact_name, site?.contact_phone));
   const set = (key: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [key]: e.target.value }));
 
   return (
@@ -321,11 +368,6 @@ export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?
       }
     >
       <div className="space-y-3">
-        <Segmented
-          value={v.kind}
-          onChange={(kind) => setV((s) => ({ ...s, kind }))}
-          options={(['flat', 'house', 'apartment', 'office', 'commercial'] as SiteKind[]).map((k) => ({ value: k, label: SITE_KIND_LABELS[k].split(' ')[0] }))}
-        />
         <div className="grid grid-cols-[2fr_1fr] gap-3">
           <Field label="Adresa">
             <Input value={v.address} onChange={set('address')} placeholder="Ulica i broj" />
@@ -334,25 +376,33 @@ export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?
             <Input value={v.city} onChange={set('city')} />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Naziv (nije obavezno)">
-            <Input value={v.label} onChange={set('label')} placeholder="npr. Apartman 3" />
-          </Field>
-          <Field label="Poštanski broj">
-            <Input value={v.postal_code} onChange={set('postal_code')} inputMode="numeric" />
-          </Field>
-        </div>
         <Field label="Upute za ulaz">
-          <Textarea rows={2} value={v.access_notes} onChange={set('access_notes')} placeholder="Kat, šifra ulaza, ključ kod susjeda, parking, pas…" />
+          <DictatedTextarea value={v.access_notes} onChange={(access_notes) => setV((s) => ({ ...s, access_notes }))} placeholder="Kat, šifra, ključ kod susjeda, pas…" />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Osoba na lokaciji">
-            <Input value={v.contact_name} onChange={set('contact_name')} />
-          </Field>
-          <Field label="Njezin telefon">
-            <Input type="tel" value={v.contact_phone} onChange={set('contact_phone')} />
-          </Field>
-        </div>
+        {more ? (
+          <>
+            <Segmented
+              value={v.kind}
+              onChange={(kind) => setV((s) => ({ ...s, kind }))}
+              options={(['flat', 'house', 'apartment', 'office', 'commercial'] as SiteKind[]).map((k) => ({ value: k, label: SITE_KIND_LABELS[k].split(' ')[0] }))}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Naziv">
+                <Input value={v.label} onChange={set('label')} placeholder="npr. Apartman 3" />
+              </Field>
+              <Field label="Poštanski broj">
+                <Input value={v.postal_code} onChange={set('postal_code')} inputMode="numeric" />
+              </Field>
+              <Field label="Osoba na lokaciji">
+                <Input value={v.contact_name} onChange={set('contact_name')} />
+              </Field>
+              <Field label="Njezin telefon">
+                <Input type="tel" value={v.contact_phone} onChange={set('contact_phone')} />
+              </Field>
+            </div>
+          </>
+        ) : null}
+        <MoreToggle open={more} onToggle={() => setMore((m) => !m)} />
         <div className="flex gap-2 pt-1">
           <Button
             variant="primary"

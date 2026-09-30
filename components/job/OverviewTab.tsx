@@ -10,7 +10,7 @@ import { OverviewEditor } from './OverviewEditor';
 
 // Client and object details are not repeated here: the header names them
 // and links to their pages, where everything about them lives once.
-export async function OverviewTab({ ctx, job }: { ctx: WorkshopContext; job: JobWithRefs }) {
+export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; job: JobWithRefs; extras: boolean }) {
   const [{ data: staff }, { count: earlier }] = await Promise.all([
     ctx.supabase.from('profiles').select('id, full_name, role').order('full_name'),
     ctx.supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('asset_id', job.asset.id).neq('id', job.id),
@@ -66,6 +66,7 @@ export async function OverviewTab({ ctx, job }: { ctx: WorkshopContext; job: Job
           locked={Boolean(job.locked_at)}
           field={field}
           meter={!climate}
+          extras={extras}
         />
       </div>
 

@@ -12,6 +12,8 @@ export interface ModuleProps {
   ctx: WorkshopContext;
   job: JobWithRefs;
   locked: boolean;
+  // "Više" is open: show the sections a small workshop rarely needs.
+  extras: boolean;
 }
 
 // The package's own tab on a work order.

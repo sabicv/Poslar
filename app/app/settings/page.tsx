@@ -4,7 +4,8 @@ import { hasModule } from '@/config/tenant.config';
 import { formatDate } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
 import type { Profile } from '@/types/db';
-import { LogoUpload, ModuleToggles, ProfileForm, TeamManager, ThemeToggle, WorkshopForm } from './SettingsForms';
+import { billingFrom } from '@/components/invoice/InvoiceDocument';
+import { BillingForm, LogoUpload, ModuleToggles, ProfileForm, TeamManager, ThemeToggle, WorkshopForm } from './SettingsForms';
 
 export const metadata: Metadata = { title: 'Postavke' };
 
@@ -65,6 +66,12 @@ export default async function SettingsPage() {
               <div className="space-y-5 p-4">
                 <LogoUpload tenantId={t.id} logoUrl={t.logo_url} />
                 <WorkshopForm tenant={{ name: t.name, oib: t.oib ?? '', phone: t.phone ?? '', email: t.email ?? '', address: t.address ?? '', city: t.city ?? '' }} />
+              </div>
+            </Card>
+            <Card>
+              <CardHeader title="Račun" subtitle="Pojavljuje se na računu za stranku" />
+              <div className="p-4">
+                <BillingForm billing={(() => { const b = billingFrom(t.settings); return { iban: b.iban ?? '', vatRegistered: b.vatRegistered, note: b.note ?? '' }; })()} />
               </div>
             </Card>
             <Card>

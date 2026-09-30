@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { Plus } from 'lucide-react';
-import { ConfirmButton, Sheet, useAction } from '@/components/client-ui';
+import { ChevronDown, Plus } from 'lucide-react';
+import { ConfirmButton, DictateButton, Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import type { ActionResult } from '@/lib/action-result';
 import { deleteRecord, savePrivateAmount, saveRecord } from '@/lib/actions/records';
@@ -20,6 +20,8 @@ export interface FieldDef {
   placeholder?: string;
   half?: boolean;
   required?: boolean;
+  // Rarely needed: behind the form's "Više polja" button (shown anyway when filled).
+  extra?: boolean;
 }
 
 type Values = Record<string, unknown>;
@@ -65,6 +67,10 @@ export function QuickForm({
   const { pending, run } = useAction();
   const [state, setState] = useState<Record<string, string | boolean>>(() => Object.fromEntries(fields.map((f) => [f.name, toInput(f, initial[f.name])])));
   const missing = fields.some((f) => f.required && (state[f.name] === '' || state[f.name] === undefined));
+  const hasExtra = fields.some((f) => f.extra);
+  // Open from the start when an extra field already holds something.
+  const [more, setMore] = useState(() => fields.some((f) => f.extra && initial[f.name] !== null && initial[f.name] !== undefined && initial[f.name] !== '' && initial[f.name] !== false));
+  const visible = fields.filter((f) => !f.extra || more);
 
   return (
     <form
@@ -84,7 +90,7 @@ export function QuickForm({
         );
       }}
     >
-      {fields.map((f) => {
+      {visible.map((f) => {
         const set = (value: string | boolean) => setState((s) => ({ ...s, [f.name]: value }));
         const span = f.half ? 'col-span-1' : 'col-span-2';
         if (f.type === 'checkbox') {
@@ -107,7 +113,10 @@ export function QuickForm({
                 ))}
               </Select>
             ) : f.type === 'textarea' ? (
-              <Textarea rows={2} value={String(state[f.name])} placeholder={f.placeholder} onChange={(e) => set(e.target.value)} />
+              <div className="flex items-start gap-2">
+                <Textarea rows={2} value={String(state[f.name])} placeholder={f.placeholder} onChange={(e) => set(e.target.value)} />
+                <DictateButton compact onText={(text) => setState((s) => ({ ...s, [f.name]: s[f.name] ? `${String(s[f.name]).trimEnd()} ${text}` : text }))} />
+              </div>
             ) : (
               <div className="relative">
                 <Input
@@ -124,6 +133,12 @@ export function QuickForm({
           </Field>
         );
       })}
+      {hasExtra ? (
+        <button type="button" onClick={() => setMore((m) => !m)} className="col-span-2 flex items-center justify-center gap-1.5 py-1 text-sm font-medium text-muted hover:text-fg">
+          <ChevronDown className={cn('size-4 transition-transform', more && 'rotate-180')} />
+          {more ? 'Manje polja' : 'Više polja'}
+        </button>
+      ) : null}
       {missing ? <p className="col-span-2 text-xs text-muted">Polja sa zvjezdicom su obavezna.</p> : null}
       <div className="col-span-2 flex gap-2 pt-1">
         <Button type="submit" variant="primary" size="lg" className="flex-1" disabled={pending || missing}>

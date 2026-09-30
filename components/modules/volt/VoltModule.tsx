@@ -1,8 +1,9 @@
 import { Battery, Cpu, KeyRound, ScanLine, Zap } from 'lucide-react';
-import { Badge, Card, CardHeader, EmptyState } from '@/components/ui';
+import { Badge, Card, CardHeader } from '@/components/ui';
 import { DTC_CATEGORY_HINTS, findDtcCode } from '@/config/packages/volt-dtc';
 import { formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
+import { MoreSections, foldable } from '../more';
 import { DeleteRecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { DrainChart } from './DrainChart';
@@ -32,7 +33,7 @@ const INTERVENTION_RESULT = { success: 'Uspješno', partial: 'Djelomično', reve
 const KEY_TYPE = { remote: 'Daljinski', flip: 'Preklopni', keyless: 'Keyless', card: 'Kartica', mechanical: 'Mehanički' };
 const KEY_METHOD = { obd: 'OBD', eeprom: 'EEPROM', oem_online: 'OEM online' };
 
-export async function VoltModule({ ctx, job, locked }: ModuleProps) {
+export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
   const path = `/app/jobs/${job.id}`;
   const s = ctx.supabase;
   const [scans, findings, battery, charging, sessions, interventions, keys, files, custom] = await Promise.all([
@@ -63,6 +64,12 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
   const customByCode = new Map((custom.data ?? []).map((c) => [c.code as string, c]));
   const fileOptions = (files.data ?? []).map((f) => ({ value: f.id as string, label: (f.caption as string | null) ?? (f.path as string).split('/').pop()! }));
   const readOnly = locked;
+  // Core: fault codes and the battery. The rest shows with "Više" or once it has data.
+  const { show, hidden } = foldable(extras);
+  const showCharging = show('punjenje', (charging.data ?? []).length > 0);
+  const showDrain = show('struja mirovanja', (sessions.data ?? []).length > 0);
+  const showModules = show('zahvati na modulima', (interventions.data ?? []).length > 0);
+  const showKeys = show('ključevi', (keys.data ?? []).length > 0);
 
   return (
     <div className="space-y-4">
@@ -85,8 +92,8 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
                 initial={{ kind: (scans.data ?? []).length ? 'control' : 'initial', meter_value: job.meter_in }}
                 fields={[
                   { name: 'kind', label: 'Vrsta', type: 'select', options: opts(SCAN_KIND), required: true, half: true },
-                  { name: 'tool', label: 'Uređaj', placeholder: 'npr. Autel MS909', half: true },
-                  { name: 'meter_value', label: 'Stanje brojila', type: 'number', suffix: 'km' },
+                  { name: 'tool', label: 'Uređaj', placeholder: 'npr. Autel MS909', half: true, extra: true },
+                  { name: 'meter_value', label: 'Stanje brojila', type: 'number', suffix: 'km', extra: true },
                 ]}
               />
             ) : null
@@ -134,12 +141,12 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
                                     trigger={<button className="text-xs text-accent">Uredi</button>}
                                     fields={[
                                       { name: 'status', label: 'Status', type: 'select', options: opts(FINDING_STATUS), half: true },
-                                      { name: 'module', label: 'Modul', half: true },
-                                      { name: 'description', label: 'Opis' },
+                                      { name: 'module', label: 'Modul', half: true, extra: true },
+                                      { name: 'description', label: 'Opis', extra: true },
                                       { name: 'confirmed_cause', label: 'Potvrđeni uzrok (za arhivu riješenih slučajeva)', type: 'textarea' },
                                       { name: 'resolution_note', label: 'Kako je riješeno', type: 'textarea' },
-                                      { name: 'cleared', label: 'Kod obrisan', type: 'checkbox', half: true },
-                                      { name: 'returned_after_clear', label: 'Vratio se', type: 'checkbox', half: true },
+                                      { name: 'cleared', label: 'Kod obrisan', type: 'checkbox', half: true, extra: true },
+                                      { name: 'returned_after_clear', label: 'Vratio se', type: 'checkbox', half: true, extra: true },
                                     ]}
                                   />
                                 </span>
@@ -193,13 +200,13 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
                   fields={[
                     { name: 'battery_type', label: 'Vrsta', type: 'select', options: opts(BATTERY_TYPE), half: true },
                     { name: 'rest_voltage_v', label: 'Napon mirovanja', type: 'number', suffix: 'V', half: true },
-                    { name: 'rated_cca_a', label: 'Nazivni CCA', type: 'number', suffix: 'A', half: true },
+                    { name: 'rated_cca_a', label: 'Nazivni CCA', type: 'number', suffix: 'A', half: true, extra: true },
                     { name: 'measured_cca_a', label: 'Izmjereni CCA', type: 'number', suffix: 'A', half: true },
-                    { name: 'soh_pct', label: 'SOH', type: 'number', suffix: '%', half: true },
-                    { name: 'soc_pct', label: 'SOC', type: 'number', suffix: '%', half: true },
-                    { name: 'cranking_min_v', label: 'Min. napon pri startu', type: 'number', suffix: 'V', half: true },
+                    { name: 'soh_pct', label: 'SOH', type: 'number', suffix: '%', half: true, extra: true },
+                    { name: 'soc_pct', label: 'SOC', type: 'number', suffix: '%', half: true, extra: true },
+                    { name: 'cranking_min_v', label: 'Min. napon pri startu', type: 'number', suffix: 'V', half: true, extra: true },
                     { name: 'result', label: 'Rezultat', type: 'select', options: opts(BATTERY_RESULT), half: true },
-                    { name: 'registered_in_car', label: 'Novi akumulator registriran u vozilu (BMS)', type: 'checkbox' },
+                    { name: 'registered_in_car', label: 'Novi akumulator registriran u vozilu (BMS)', type: 'checkbox', extra: true },
                   ]}
                 />
               ) : null
@@ -224,6 +231,7 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
           )}
         </Card>
 
+        {showCharging ? (
         <Card>
           <CardHeader
             title={
@@ -268,9 +276,11 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
             </ul>
           )}
         </Card>
+        ) : null}
       </div>
 
       {/* Parasitic drain */}
+      {showDrain ? (
       <Card>
         <CardHeader
           title="Parazitska potrošnja"
@@ -353,8 +363,10 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
           </div>
         )}
       </Card>
+      ) : null}
 
       {/* Module interventions */}
+      {showModules ? (
       <Card>
         <CardHeader
           title={
@@ -408,8 +420,10 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
           </ul>
         )}
       </Card>
+      ) : null}
 
       {/* Keys */}
+      {showKeys ? (
       <Card>
         <CardHeader
           title={
@@ -456,10 +470,9 @@ export async function VoltModule({ ctx, job, locked }: ModuleProps) {
           </ul>
         )}
       </Card>
-
-      {!(scans.data ?? []).length && !(battery.data ?? []).length && !(sessions.data ?? []).length ? (
-        <EmptyState title="Dijagnostika još nije započeta">Krenite od početnog skeniranja ili testa akumulatora.</EmptyState>
       ) : null}
+
+      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

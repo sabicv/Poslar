@@ -3,12 +3,12 @@ import { KeyRound, Lock, MapPin, Phone } from 'lucide-react';
 import { CopilotDrawer } from '@/components/copilot/CopilotDrawer';
 import { Badge, BackLink } from '@/components/ui';
 import { ASSET_TYPE_LABELS } from '@/config/tenant.config';
-import { assetTitle, clientName, formatMeter } from '@/lib/format';
+import { assetTitle, clientName } from '@/lib/format';
 import type { JobWithRefs } from '@/types/db';
 
 // Everything about the job exactly once: the phase lives in the bottom
 // bar, the amount in Stavke, "promised by" in Pregled, client details on
-// the client page (the name here links there). On a field visit the
+// the client page (the name here links there), km in Pregled. On a field visit the
 // call and navigation buttons sit in the visit card, so the header only
 // names the address.
 export function JobHeader({ job, backHref, backLabel, copilot }: { job: JobWithRefs; backHref: string; backLabel: string; copilot: boolean }) {
@@ -39,7 +39,6 @@ export function JobHeader({ job, backHref, backLabel, copilot }: { job: JobWithR
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
           {job.asset.identifier ? <span className="rounded-md border border-line bg-surface px-1.5 font-mono text-xs font-semibold text-fg">{job.asset.identifier}</span> : null}
           <span>{ASSET_TYPE_LABELS[job.asset.asset_type]}</span>
-          {job.meter_in !== null ? <span>{formatMeter(job.meter_in, job.meter_unit)}</span> : null}
           <Link prefetch={false} href={`/app/clients/${job.client.id}`} className="hover:text-fg hover:underline">
             {clientName(job.client)}
           </Link>

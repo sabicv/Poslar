@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Link from 'next/link';
-import { ProductMark } from '@/components/ProductMark';
-import { PACKAGE_IDS, matchPackageFromHost, resolvePackageFromHost, type PackageId } from '@/config/tenant.config';
+import { BrandMark, ProductMark } from '@/components/ProductMark';
+import { BRAND, PACKAGE_IDS, matchPackageFromHost, resolvePackageFromHost, type PackageId } from '@/config/tenant.config';
 import { RegisterForm } from './RegisterForm';
 
 export const metadata: Metadata = { title: 'Registracija' };
@@ -20,8 +20,8 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col px-5 pb-safe pt-safe">
       <Link href="/" className="mb-8 mt-10 flex items-center gap-2.5">
-        <ProductMark id={pkg.id} />
-        <span className="font-semibold tracking-tight">{pkg.product}</span>
+        {matched ? <ProductMark id={matched.id} /> : <BrandMark />}
+        <span className="font-semibold tracking-tight">{matched ? matched.product : BRAND.name}</span>
       </Link>
       <h1 className="text-2xl font-semibold tracking-tight">Registracija radionice</h1>
       <p className="mb-6 mt-1 text-sm text-muted">

@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Camera, CheckCircle2, ListPlus, MessageSquare, Plus } from 'lucide-react';
-import { ConfirmButton, Segmented, useAction } from '@/components/client-ui';
+import { ConfirmButton, DictateButton, Segmented, useAction } from '@/components/client-ui';
 import { Badge, Button, Card, Input, Select } from '@/components/ui';
 import type { InspectionItem, InspectionTemplate } from '@/config/tenant.config';
 import { completeInspection, deleteInspection, linesFromInspection, saveInspectionResult, startInspection } from '@/lib/actions/jobs';
@@ -256,9 +256,11 @@ export function InspectionRunner({
                   </div>
                   {item.unit && thresholdHint(item) ? <p className="mt-1 text-[11px] text-faint">{thresholdHint(item)}</p> : null}
                   {openNote === item.code || r?.note ? (
+                    <div className="mt-2 flex gap-2">
                     <Input
+                      key={r?.note ?? ''}
                       id={`note-${item.code}`}
-                      className="mt-2 h-9"
+                      className="h-11"
                       disabled={readOnly}
                       placeholder="Napomena"
                       defaultValue={r?.note ?? ''}
@@ -267,6 +269,8 @@ export function InspectionRunner({
                         if (note !== (r?.note ?? null)) save(item, { note });
                       }}
                     />
+                    {!readOnly ? <DictateButton compact onText={(text) => save(item, { note: r?.note ? `${r.note.trimEnd()} ${text}` : text })} /> : null}
+                    </div>
                   ) : null}
                   {r?.photo_ids?.length ? (
                     <div className="mt-2 flex gap-2">

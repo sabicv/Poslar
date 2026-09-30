@@ -3,6 +3,7 @@ import { Anchor, Snowflake, Sun, Warehouse } from 'lucide-react';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
 import { formatDate, formatDateTime, formatNumber } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
+import { MoreSections, foldable } from '../more';
 import { RecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { ProtocolSheet } from './ProtocolSheet';
@@ -13,7 +14,7 @@ const POSITION = { single: 'Jedan motor', port: 'Lijevi', starboard: 'Desni', ce
 const BOATS = ['boat', 'jetski'];
 const ENGINES = ['outboard', 'inboard', 'jetski', 'boat'];
 
-export async function MotoModule({ ctx, job, locked }: ModuleProps) {
+export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
   const path = `/app/jobs/${job.id}`;
   const s = ctx.supabase;
   const type = job.asset.asset_type;
@@ -28,6 +29,11 @@ export async function MotoModule({ ctx, job, locked }: ModuleProps) {
   const locationLabel = new Map((locations ?? []).map((l) => [l.id as string, `${l.area} · ${l.slot}`]));
   const isOutboard = type === 'outboard' || type === 'inboard';
   const protocolTemplate = (kind: string) => (kind === 'dewinterize' ? 'moto.dewinterize' : isOutboard || BOATS.includes(type) ? 'moto.winterize_outboard' : 'moto.winterize_moto');
+
+  // Core: seasonal protocol and storage. Vessel and engine data with "Više" or once entered.
+  const { show, hidden } = foldable(extras);
+  const showVessel = BOATS.includes(type) && show('plovilo', Boolean(vessel));
+  const showEngine = ENGINES.includes(type) && show('motor', Boolean(engine));
 
   return (
     <div className="space-y-4">
@@ -109,7 +115,7 @@ export async function MotoModule({ ctx, job, locked }: ModuleProps) {
       </Card>
 
       {/* Vessel */}
-      {BOATS.includes(type) ? (
+      {showVessel ? (
         <Card>
           <CardHeader
             title={
@@ -129,9 +135,9 @@ export async function MotoModule({ ctx, job, locked }: ModuleProps) {
                 fields={[
                   { name: 'vessel_name', label: 'Ime plovila', half: true },
                   { name: 'registration_mark', label: 'Registarska oznaka', half: true },
-                  { name: 'length_m', label: 'Duljina', type: 'number', suffix: 'm', half: true },
-                  { name: 'beam_m', label: 'Širina', type: 'number', suffix: 'm', half: true },
-                  { name: 'hull_material', label: 'Trup', type: 'select', options: opts(HULL), half: true },
+                  { name: 'length_m', label: 'Duljina', type: 'number', suffix: 'm', half: true, extra: true },
+                  { name: 'beam_m', label: 'Širina', type: 'number', suffix: 'm', half: true, extra: true },
+                  { name: 'hull_material', label: 'Trup', type: 'select', options: opts(HULL), half: true, extra: true },
                   { name: 'home_port', label: 'Matična luka', half: true },
                   { name: 'berth', label: 'Vez' },
                 ]}
@@ -153,7 +159,7 @@ export async function MotoModule({ ctx, job, locked }: ModuleProps) {
       ) : null}
 
       {/* Engine */}
-      {ENGINES.includes(type) ? (
+      {showEngine ? (
         <Card>
           <CardHeader
             title="Motor"
@@ -169,10 +175,10 @@ export async function MotoModule({ ctx, job, locked }: ModuleProps) {
                 fields={[
                   { name: 'engine_serial', label: 'Serijski broj motora' },
                   { name: 'power_hp', label: 'Snaga', type: 'number', suffix: 'KS', half: true },
-                  { name: 'stroke', label: 'Takt', type: 'select', options: opts(STROKE), half: true },
-                  { name: 'position', label: 'Položaj', type: 'select', options: opts(POSITION) },
-                  { name: 'impeller_replaced_mth', label: 'Impeler zamijenjen na', type: 'number', suffix: 'mth', half: true },
-                  { name: 'impeller_replaced_date', label: 'Impeler zamijenjen', type: 'date', half: true },
+                  { name: 'stroke', label: 'Takt', type: 'select', options: opts(STROKE), half: true, extra: true },
+                  { name: 'position', label: 'Položaj', type: 'select', options: opts(POSITION), extra: true },
+                  { name: 'impeller_replaced_mth', label: 'Impeler zamijenjen na', type: 'number', suffix: 'mth', half: true, extra: true },
+                  { name: 'impeller_replaced_date', label: 'Impeler zamijenjen', type: 'date', half: true, extra: true },
                 ]}
               />
             }
@@ -244,6 +250,7 @@ export async function MotoModule({ ctx, job, locked }: ModuleProps) {
           ) : null}
         </div>
       </Card>
+      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

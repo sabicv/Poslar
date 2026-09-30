@@ -65,10 +65,10 @@ export async function GearModule({ ctx, job, locked }: ModuleProps) {
               }
               fields={[
                 { name: 'name', label: 'Naziv', required: true },
-                { name: 'contact', label: 'Kontakt osoba', half: true },
+                { name: 'contact', label: 'Kontakt osoba', half: true, extra: true },
                 { name: 'phone', label: 'Telefon', half: true },
-                { name: 'delivery_days', label: 'Rok isporuke', type: 'number', suffix: 'dana', half: true },
-                { name: 'customer_number', label: 'Naš kupčev broj', half: true },
+                { name: 'delivery_days', label: 'Rok isporuke', type: 'number', suffix: 'dana', half: true, extra: true },
+                { name: 'customer_number', label: 'Naš kupčev broj', half: true, extra: true },
               ]}
             />
           }
@@ -135,12 +135,12 @@ export async function GearModule({ ctx, job, locked }: ModuleProps) {
                         label="Detalji"
                         fields={[
                           { name: 'catalog_number', label: 'Kataloški broj', half: true },
-                          { name: 'oe_number', label: 'OE broj', half: true },
-                          { name: 'brand', label: 'Proizvođač', half: true },
+                          { name: 'oe_number', label: 'OE broj', half: true, extra: true },
+                          { name: 'brand', label: 'Proizvođač', half: true, extra: true },
                           { name: 'supplier_id', label: 'Dobavljač', type: 'select', options: supplierOptions, half: true },
-                          { name: 'supplier_order_no', label: 'Broj narudžbe', half: true },
+                          { name: 'supplier_order_no', label: 'Broj narudžbe', half: true, extra: true },
                           { name: 'order_status', label: 'Status', type: 'select', options: opts(ORDER_STATUS), half: true, required: true },
-                          { name: 'serial_or_lot', label: 'Serijski broj / LOT (jamstvo)' },
+                          { name: 'serial_or_lot', label: 'Serijski broj / LOT (jamstvo)', extra: true },
                         ]}
                       />
                     </div>
@@ -181,10 +181,10 @@ export async function GearModule({ ctx, job, locked }: ModuleProps) {
                 { name: 'label', label: 'Naziv (kako piše stranci)', required: true },
                 { name: 'interval_km', label: 'Interval', type: 'number', suffix: 'km', half: true },
                 { name: 'interval_months', label: 'Interval', type: 'number', suffix: 'mj.', half: true },
-                { name: 'last_done_meter', label: 'Zadnje obavljeno na', type: 'number', suffix: 'km', half: true },
-                { name: 'last_done_date', label: 'Zadnje obavljeno', type: 'date', half: true },
-                { name: 'next_due_meter', label: 'Sljedeće na', type: 'number', suffix: 'km', half: true },
-                { name: 'next_due_date', label: 'Sljedeće do', type: 'date', half: true },
+                { name: 'last_done_meter', label: 'Zadnje obavljeno na', type: 'number', suffix: 'km', half: true, extra: true },
+                { name: 'last_done_date', label: 'Zadnje obavljeno', type: 'date', half: true, extra: true },
+                { name: 'next_due_meter', label: 'Sljedeće na', type: 'number', suffix: 'km', half: true, extra: true },
+                { name: 'next_due_date', label: 'Sljedeće do', type: 'date', half: true, extra: true },
               ]}
             />
           }
@@ -206,19 +206,23 @@ export async function GearModule({ ctx, job, locked }: ModuleProps) {
               };
               return (
                 <li key={row.id as string} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">{row.label as string}</p>
+                  <div className="min-w-[10rem] flex-1">
+                    <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                      {row.label as string}
+                      <Badge tone={overdue ? 'crit' : soon ? 'warn' : 'ok'}>{overdue ? 'Prekoračeno' : soon ? 'Uskoro' : 'U redu'}</Badge>
+                    </p>
                     <p className="text-xs text-muted">
                       Sljedeće: {[row.next_due_meter !== null && `${formatNumber(row.next_due_meter as number)} km`, row.next_due_date && formatDate(row.next_due_date as string)].filter(Boolean).join(' ili ') || '—'}
                     </p>
                   </div>
-                  <Badge tone={overdue ? 'crit' : soon ? 'warn' : 'ok'}>{overdue ? 'Prekoračeno' : soon ? 'Uskoro' : 'U redu'}</Badge>
-                  {!locked ? (
-                    <RecordButton table="gear_asset_schedule" id={row.id as string} revalidate={path} size="sm" values={doneValues} success="Plan pomaknut">
-                      Obavljeno sada
-                    </RecordButton>
-                  ) : null}
-                  <DeleteRecordButton table="gear_asset_schedule" id={row.id as string} revalidate={path} />
+                  <div className="flex items-center gap-2">
+                    {!locked ? (
+                      <RecordButton table="gear_asset_schedule" id={row.id as string} revalidate={path} size="sm" values={doneValues} success="Plan pomaknut">
+                        Obavljeno sada
+                      </RecordButton>
+                    ) : null}
+                    <DeleteRecordButton table="gear_asset_schedule" id={row.id as string} revalidate={path} />
+                  </div>
                 </li>
               );
             })}

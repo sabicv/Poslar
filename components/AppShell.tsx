@@ -53,7 +53,7 @@ export function AppShell({
   return (
     <div className="lg:flex" style={{ '--shell-top': `calc(${headerRem}rem + env(safe-area-inset-top))` } as React.CSSProperties}>
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-surface/40 px-3 py-4 lg:flex">
+      <aside className="sticky top-0 hidden h-dvh print:!hidden w-60 shrink-0 flex-col border-r border-line bg-surface/40 px-3 py-4 lg:flex">
         {demo ? <DemoBar product={product.id} isOwner={user.isOwner} className="mb-4 flex-wrap rounded-xl border border-line px-2 py-1.5" /> : null}
         <Link href="/app" className="mb-6 flex items-center gap-2.5 px-2">
           {workshop.logoUrl ? (
@@ -114,7 +114,7 @@ export function AppShell({
 
       <div className="min-w-0 flex-1">
         {/* Phone top bar */}
-        <header className="sticky top-0 z-30 border-b border-line bg-bg/85 pt-safe backdrop-blur-md lg:hidden">
+        <header className="sticky top-0 z-30 border-b border-line bg-bg/85 pt-safe backdrop-blur-md print:hidden lg:hidden">
           {demo ? <DemoBar product={product.id} isOwner={user.isOwner} className="h-11 border-b border-line px-4" /> : null}
           <div className="flex h-14 items-center gap-3 px-4">
             <Link href="/app" className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -144,10 +144,10 @@ export function AppShell({
           ) : null}
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">{children}</main>
+        <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8 print:max-w-none print:p-0">{children}</main>
 
         {/* Phone bottom navigation */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 pb-safe backdrop-blur-md lg:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 pb-safe backdrop-blur-md print:hidden lg:hidden">
           <div className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
             {items.map((item) => (
               <Link

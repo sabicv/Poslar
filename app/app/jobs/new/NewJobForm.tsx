@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Building2, Check, MapPin, Search, User, X } from 'lucide-react';
+import { Building2, Check, ChevronDown, MapPin, Search, User, X } from 'lucide-react';
 import { DictateButton, Segmented } from '@/components/client-ui';
 import { Button, Card, Field, Input, Select, Textarea } from '@/components/ui';
 import type { AssetType, MeterUnit, Vocabulary } from '@/config/tenant.config';
@@ -41,6 +41,8 @@ export interface FieldOptions {
   isOwner: boolean;
 }
 
+// Intake in three blocks: who, what (object), what to do. Everything a
+// small workshop rarely needs sits behind one "Više podataka" button.
 export function NewJobForm({
   vocabulary,
   assetTypes,
@@ -64,13 +66,14 @@ export function NewJobForm({
   const [pending, start] = useTransition();
 
   const [mode, setMode] = useState<'workshop' | 'field'>(field.enabled ? field.defaultMode : 'workshop');
+  const [more, setMore] = useState(false);
   const [query, setQuery] = useState('');
   const [hits, setHits] = useState<ClientHit[]>([]);
   const [client, setClient] = useState<ClientHit | null>(preset?.client ?? null);
   const [assetId, setAssetId] = useState<string | null>(preset?.assetId ?? null);
   const [siteId, setSiteId] = useState<string | null>(preset?.siteId ?? (preset?.client.sites?.length === 1 ? preset.client.sites[0].id : null));
   const [newSite, setNewSite] = useState({ address: '', city: '', kind: 'flat' as SiteKind, accessNotes: '' });
-  const [newClient, setNewClient] = useState({ kind: (isFleet ? 'company' : 'person') as 'person' | 'company', firstName: '', lastName: '', companyName: '', phone: '', oib: '' });
+  const [newClient, setNewClient] = useState({ kind: (isFleet ? 'company' : 'person') as 'person' | 'company', name: '', companyName: '', phone: '', oib: '' });
   const [newAsset, setNewAsset] = useState({ assetType: defaultAssetType, identifier: '', make: '', model: '', year: '', vin: '' });
   const [complaint, setComplaint] = useState(preset?.complaint ?? '');
   const [picked, setPicked] = useState<string[]>([]);
@@ -94,7 +97,7 @@ export function NewJobForm({
     if (draft) {
       setComplaint(draft.complaint ?? '');
       setPicked(draft.picked ?? []);
-      if (draft.newClient) setNewClient(draft.newClient);
+      if (draft.newClient && 'name' in draft.newClient) setNewClient(draft.newClient);
       if (draft.newAsset) setNewAsset(draft.newAsset);
       if (draft.newSite) setNewSite(draft.newSite);
       setMeterIn(draft.meterIn ?? '');
@@ -149,20 +152,20 @@ export function NewJobForm({
     // A plate-looking query becomes the identifier, anything else the name.
     if (!isField && /\d/.test(text) && text.length <= 12) setNewAsset((a) => ({ ...a, identifier: text.toUpperCase() }));
     else if (newClient.kind === 'company') setNewClient((c) => ({ ...c, companyName: text }));
-    else {
-      const [first, ...rest] = text.split(' ');
-      setNewClient((c) => ({ ...c, firstName: first ?? '', lastName: rest.join(' ') }));
-    }
+    else setNewClient((c) => ({ ...c, name: text }));
     setQuery('');
     setHits([]);
   }
 
   function submit() {
     const fullComplaint = [picked.join(', '), complaint.trim()].filter(Boolean).join('. ');
+    // One "Ime i prezime" field; the last word is the surname.
+    const words = newClient.name.trim().split(/\s+/).filter(Boolean);
+    const person = { firstName: words.length > 1 ? words.slice(0, -1).join(' ') : words[0] ?? '', lastName: words.length > 1 ? words[words.length - 1] : '' };
     start(async () => {
       const result = await createJob({
         clientId: client?.id ?? null,
-        newClient: client ? null : newClient,
+        newClient: client ? null : { kind: newClient.kind, firstName: person.firstName, lastName: person.lastName, companyName: newClient.companyName, phone: newClient.phone, oib: newClient.oib },
         assetId,
         newAsset: assetId ? null : { ...newAsset, year: newAsset.year ? Number(newAsset.year) : null },
         complaint: fullComplaint,
@@ -207,7 +210,7 @@ export function NewJobForm({
         />
       ) : null}
 
-      {/* Customer */}
+      {/* Who */}
       <Card className="p-4">
         <h2 className="mb-3 text-sm font-semibold">{isField ? vocabulary.client.one : `${vocabulary.client.one} i ${vocabulary.asset.one.toLowerCase()}`}</h2>
         {client ? (
@@ -236,7 +239,7 @@ export function NewJobForm({
             {!isField ? <AssetChoice assets={visibleAssets} assetId={assetId} onPick={setAssetId} newLabel={vocabulary.asset.new} /> : null}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
               <Input
@@ -268,35 +271,32 @@ export function NewJobForm({
               onChange={(kind) => setNewClient((c) => ({ ...c, kind }))}
               options={[
                 { value: 'person', label: 'Osoba' },
-                { value: 'company', label: 'Tvrtka' },
+                { value: 'company', label: 'Tvrtka / suradnik' },
               ]}
             />
-            {newClient.kind === 'company' ? (
-              <Field label="Naziv tvrtke">
-                <Input value={newClient.companyName} onChange={(e) => setNewClient((c) => ({ ...c, companyName: e.target.value }))} />
-              </Field>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Ime">
-                  <Input value={newClient.firstName} autoComplete="off" onChange={(e) => setNewClient((c) => ({ ...c, firstName: e.target.value }))} />
-                </Field>
-                <Field label="Prezime">
-                  <Input value={newClient.lastName} autoComplete="off" onChange={(e) => setNewClient((c) => ({ ...c, lastName: e.target.value }))} />
-                </Field>
-              </div>
-            )}
             <div className="grid grid-cols-2 gap-3">
+              {newClient.kind === 'company' ? (
+                <Field label="Naziv tvrtke">
+                  <Input value={newClient.companyName} onChange={(e) => setNewClient((c) => ({ ...c, companyName: e.target.value }))} />
+                </Field>
+              ) : (
+                <Field label="Ime i prezime">
+                  <Input value={newClient.name} autoComplete="off" onChange={(e) => setNewClient((c) => ({ ...c, name: e.target.value }))} />
+                </Field>
+              )}
               <Field label="Telefon">
                 <Input type="tel" value={newClient.phone} onChange={(e) => setNewClient((c) => ({ ...c, phone: e.target.value }))} />
               </Field>
+            </div>
+            {more ? (
               <Field label="OIB">
                 <Input inputMode="numeric" maxLength={11} value={newClient.oib} onChange={(e) => setNewClient((c) => ({ ...c, oib: e.target.value }))} />
               </Field>
-            </div>
+            ) : null}
           </div>
         )}
 
-        {!isField && !assetId ? <NewAssetFields vocabulary={vocabulary} assetTypes={assetTypes} value={newAsset} onChange={setNewAsset} /> : null}
+        {!isField && !assetId ? <NewAssetFields vocabulary={vocabulary} assetTypes={assetTypes} value={newAsset} onChange={setNewAsset} more={more} /> : null}
       </Card>
 
       {/* Field: where, which device, when */}
@@ -340,17 +340,24 @@ export function NewJobForm({
                   <Input value={newSite.city} onChange={(e) => setNewSite((s) => ({ ...s, city: e.target.value }))} />
                 </Field>
               </div>
-              <Segmented value={newSite.kind} onChange={(kind) => setNewSite((s) => ({ ...s, kind }))} options={SITE_KINDS} />
-              <Field label="Upute za ulaz (nije obavezno)">
-                <Input value={newSite.accessNotes} onChange={(e) => setNewSite((s) => ({ ...s, accessNotes: e.target.value }))} placeholder="Kat, šifra ulaza, ključ kod susjeda, parking…" />
-              </Field>
+              {more ? (
+                <>
+                  <Segmented value={newSite.kind} onChange={(kind) => setNewSite((s) => ({ ...s, kind }))} options={SITE_KINDS} />
+                  <Field label="Upute za ulaz">
+                    <div className="flex gap-2">
+                      <Input value={newSite.accessNotes} onChange={(e) => setNewSite((s) => ({ ...s, accessNotes: e.target.value }))} placeholder="Kat, šifra, ključ kod susjeda…" />
+                      <DictateButton compact onText={(text) => setNewSite((s) => ({ ...s, accessNotes: s.accessNotes ? `${s.accessNotes.trimEnd()} ${text}` : text }))} />
+                    </div>
+                  </Field>
+                </>
+              ) : null}
             </div>
           ) : null}
 
           <div className="border-t border-line pt-4">
             <h3 className="mb-2 text-sm font-semibold">{vocabulary.asset.one}</h3>
             {client && !usingNewSite ? <AssetChoice assets={visibleAssets} assetId={assetId} onPick={setAssetId} newLabel={vocabulary.asset.new} /> : null}
-            {!assetId ? <NewAssetFields vocabulary={vocabulary} assetTypes={assetTypes} value={newAsset} onChange={setNewAsset} field /> : null}
+            {!assetId ? <NewAssetFields vocabulary={vocabulary} assetTypes={assetTypes} value={newAsset} onChange={setNewAsset} field more={more} /> : null}
           </div>
 
           <div className="grid gap-3 border-t border-line pt-4 sm:grid-cols-2">
@@ -360,34 +367,40 @@ export function NewJobForm({
             <Field label="Vrijeme">
               <Input type="time" step={900} value={time} onChange={(e) => setTime(e.target.value)} />
             </Field>
-            <Field label="Trajanje" className="sm:col-span-2">
-              <Segmented
-                value={duration}
-                onChange={setDuration}
-                options={[
-                  { value: '60', label: '1 h' },
-                  { value: '120', label: '2 h' },
-                  { value: '240', label: '4 h' },
-                  { value: '480', label: 'Dan' },
-                ]}
-              />
-            </Field>
-            <Field label="Tehničar" className="sm:col-span-2">
-              <Select value={tech} onChange={(e) => setTech(e.target.value)}>
-                <option value="">Nije dodijeljeno</option>
-                {field.staff.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+            {more ? (
+              <>
+                <Field label="Trajanje" className="sm:col-span-2">
+                  <Segmented
+                    value={duration}
+                    onChange={setDuration}
+                    options={[
+                      { value: '60', label: '1 h' },
+                      { value: '120', label: '2 h' },
+                      { value: '240', label: '4 h' },
+                      { value: '480', label: 'Dan' },
+                    ]}
+                  />
+                </Field>
+                {field.staff.length > 1 ? (
+                  <Field label="Tehničar" className="sm:col-span-2">
+                    <Select value={tech} onChange={(e) => setTech(e.target.value)}>
+                      <option value="">Nije dodijeljeno</option>
+                      {field.staff.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                ) : null}
+              </>
+            ) : null}
             {!date ? <p className="text-xs text-faint sm:col-span-2">Bez datuma nalog ide u „Nezakazano” u rasporedu.</p> : null}
           </div>
         </Card>
       ) : null}
 
-      {/* Complaint */}
+      {/* What to do */}
       <Card className="p-4">
         <h2 className="mb-3 text-sm font-semibold">Što treba napraviti</h2>
         <div className="mb-3 flex flex-wrap gap-2">
@@ -411,41 +424,50 @@ export function NewJobForm({
         </div>
       </Card>
 
-      <Card className="grid gap-4 p-4 sm:grid-cols-2">
-        {!isField ? (
-          <>
-            <Field label={`Stanje brojila (${meterUnit === 'mth' ? 'motosati' : 'km'})`}>
-              <Input inputMode="decimal" value={meterIn} onChange={(e) => setMeterIn(e.target.value)} />
+      {more ? (
+        <Card className="grid gap-4 p-4 sm:grid-cols-2">
+          {!isField ? (
+            <>
+              <Field label={`Stanje brojila (${meterUnit === 'mth' ? 'motosati' : 'km'})`}>
+                <Input inputMode="decimal" value={meterIn} onChange={(e) => setMeterIn(e.target.value)} />
+              </Field>
+              <Field label="Obećano do">
+                <Input type="datetime-local" value={promisedAt} onChange={(e) => setPromisedAt(e.target.value)} />
+              </Field>
+            </>
+          ) : null}
+          {templates.length ? (
+            <Field label="Predložak posla">
+              <Select value={templateCode} onChange={(e) => setTemplateCode(e.target.value)}>
+                <option value="">Bez predloška</option>
+                {templates.map((t) => (
+                  <option key={t.code} value={t.code}>
+                    {t.name}
+                  </option>
+                ))}
+              </Select>
             </Field>
-            <Field label="Obećano do">
-              <Input type="datetime-local" value={promisedAt} onChange={(e) => setPromisedAt(e.target.value)} />
+          ) : null}
+          {!isField ? (
+            <Field label="Kako je stiglo">
+              <Select value={source} onChange={(e) => setSource(e.target.value as typeof source)}>
+                <option value="workshop">Došao u radionicu</option>
+                <option value="phone">Telefonom</option>
+                <option value="field">Teren</option>
+              </Select>
             </Field>
-          </>
-        ) : null}
-        <Field label="Predložak posla">
-          <Select value={templateCode} onChange={(e) => setTemplateCode(e.target.value)}>
-            <option value="">Bez predloška</option>
-            {templates.map((t) => (
-              <option key={t.code} value={t.code}>
-                {t.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        {!isField ? (
-          <Field label="Kako je stiglo">
-            <Select value={source} onChange={(e) => setSource(e.target.value as typeof source)}>
-              <option value="workshop">Došao u radionicu</option>
-              <option value="phone">Telefonom</option>
-              <option value="field">Teren</option>
-            </Select>
-          </Field>
-        ) : null}
-        <label className="flex items-center gap-3 text-sm sm:col-span-2">
-          <input type="checkbox" checked={isUrgent} onChange={(e) => setIsUrgent(e.target.checked)} className="size-5 accent-[rgb(var(--crit))]" />
-          Hitno
-        </label>
-      </Card>
+          ) : null}
+          <label className="flex items-center gap-3 text-sm sm:col-span-2">
+            <input type="checkbox" checked={isUrgent} onChange={(e) => setIsUrgent(e.target.checked)} className="size-5 accent-[rgb(var(--crit))]" />
+            Hitno
+          </label>
+        </Card>
+      ) : null}
+
+      <button type="button" onClick={() => setMore((m) => !m)} className="flex w-full items-center justify-center gap-1.5 rounded-xl py-2 text-sm font-medium text-muted hover:text-fg">
+        <ChevronDown className={cn('size-4 transition-transform', more && 'rotate-180')} />
+        {more ? 'Manje podataka' : isField ? 'Više podataka (vrsta, serijski, trajanje, tehničar…)' : 'Više podataka (OIB, VIN, km, rok, predložak, hitno…)'}
+      </button>
 
       <div className="sticky bottom-20 z-10 lg:bottom-4">
         <Button variant="primary" size="lg" className="w-full shadow-2xl shadow-black/50" disabled={pending} onClick={submit}>
@@ -492,47 +514,59 @@ function AssetChoice({
 
 type NewAsset = { assetType: AssetType; identifier: string; make: string; model: string; year: string; vin: string };
 
+// Core: plate (or a room label for a device), make and model. Type, year and
+// serial number only with "Više podataka".
 function NewAssetFields({
   vocabulary,
   assetTypes,
   value,
   onChange,
   field = false,
+  more,
 }: {
   vocabulary: Vocabulary;
   assetTypes: { value: AssetType; label: string }[];
   value: NewAsset;
   onChange: (update: (v: NewAsset) => NewAsset) => void;
   field?: boolean;
+  more: boolean;
 }) {
   return (
     <div className={cn('space-y-3', !field && 'mt-4 border-t border-line pt-4')}>
-      <Field label="Vrsta">
-        <Select value={value.assetType} onChange={(e) => onChange((a) => ({ ...a, assetType: e.target.value as AssetType }))}>
-          {assetTypes.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </Select>
-      </Field>
       <div className="grid grid-cols-2 gap-3">
+        <Field label={field ? 'Gdje je (npr. Dnevni boravak)' : vocabulary.identifier} className="col-span-2">
+          <Input value={value.identifier} className={cn(!field && 'font-mono uppercase')} onChange={(e) => onChange((a) => ({ ...a, identifier: e.target.value }))} />
+        </Field>
         <Field label="Marka">
           <Input value={value.make} onChange={(e) => onChange((a) => ({ ...a, make: e.target.value }))} placeholder={field ? 'npr. Daikin' : undefined} />
         </Field>
         <Field label="Model">
           <Input value={value.model} onChange={(e) => onChange((a) => ({ ...a, model: e.target.value }))} placeholder={field ? 'npr. FTXP35M' : undefined} />
         </Field>
-        <Field label={field ? 'Oznaka (npr. Dnevni boravak)' : vocabulary.identifier}>
-          <Input value={value.identifier} className={cn(!field && 'font-mono uppercase')} onChange={(e) => onChange((a) => ({ ...a, identifier: e.target.value }))} />
-        </Field>
-        <Field label={field ? 'Godina ugradnje' : 'Godište'}>
-          <Input inputMode="numeric" maxLength={4} value={value.year} onChange={(e) => onChange((a) => ({ ...a, year: e.target.value.replace(/\D/g, '') }))} />
-        </Field>
       </div>
-      <Field label={field ? 'Serijski broj' : 'VIN / serijski broj'}>
-        <Input value={value.vin} className="font-mono uppercase" onChange={(e) => onChange((a) => ({ ...a, vin: e.target.value }))} />
-      </Field>
+      {more ? (
+        <>
+          {assetTypes.length > 1 ? (
+            <Field label="Vrsta">
+              <Select value={value.assetType} onChange={(e) => onChange((a) => ({ ...a, assetType: e.target.value as AssetType }))}>
+                {assetTypes.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : null}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={field ? 'Godina ugradnje' : 'Godište'}>
+              <Input inputMode="numeric" maxLength={4} value={value.year} onChange={(e) => onChange((a) => ({ ...a, year: e.target.value.replace(/\D/g, '') }))} />
+            </Field>
+            <Field label={field ? 'Serijski broj' : 'VIN'}>
+              <Input value={value.vin} className="font-mono uppercase" onChange={(e) => onChange((a) => ({ ...a, vin: e.target.value }))} />
+            </Field>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

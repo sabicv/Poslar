@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Check, PenLine } from 'lucide-react';
 import { Diagram, MARK_CODES, zonesFor, type DiagramKind, type MarkCode } from '@/components/Diagram';
@@ -94,6 +94,8 @@ function ReportForm({
   const [signer, setSigner] = useState(report?.signer_name ?? clientName);
   const [signature, setSignature] = useState<Blob | null>(null);
   const [dirty, setDirty] = useState(!report && Boolean(copyFrom));
+  // Set by a tap (mark, equipment, fuel): only real changes save themselves.
+  const [touched, setTouched] = useState(false);
   const signed = Boolean(report?.signed_at);
   const readOnly = locked || signed;
 
@@ -103,10 +105,11 @@ function ReportForm({
 
   function toggleMark(zoneCode: string, code: MarkCode) {
     setDirty(true);
+    setTouched(true);
     setMarks((all) => (all.some((m) => m.zone === zoneCode && m.code === code) ? all.filter((m) => !(m.zone === zoneCode && m.code === code)) : [...all, { zone: zoneCode, code }]));
   }
 
-  function save(after?: () => void) {
+  function save(after?: () => void, quiet = false) {
     run(
       () =>
         saveConditionReport(jobId, kind, {
@@ -116,7 +119,8 @@ function ReportForm({
           fuel_level: fuel as (typeof FUEL)[number] | null,
         }),
       {
-        success: after ? undefined : 'Zapisnik spremljen',
+        success: after || quiet ? undefined : 'Zapisnik spremljen',
+        quiet,
         onDone: () => {
           setDirty(false);
           after?.();
@@ -124,6 +128,14 @@ function ReportForm({
       }
     );
   }
+
+  // No "Spremi" button: every change saves itself a moment later.
+  useEffect(() => {
+    if (!touched || !dirty || readOnly) return;
+    const timer = window.setTimeout(() => save(undefined, true), 800);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [touched, dirty, marks, present, fuel, readOnly]);
 
   async function sign() {
     if (!signature) return toast.error('Potpis je prazan.');
@@ -176,6 +188,7 @@ function ReportForm({
                   checked={present[item] ?? false}
                   onChange={(e) => {
                     setDirty(true);
+                    setTouched(true);
                     setPresent((p) => ({ ...p, [item]: e.target.checked }));
                   }}
                   className="size-5 accent-[rgb(var(--ok))]"
@@ -190,16 +203,13 @@ function ReportForm({
               disabled={readOnly}
               onChange={(f) => {
                 setDirty(true);
+                setTouched(true);
                 setFuel(f);
               }}
               options={FUEL.map((f) => ({ value: f, label: f === '0' ? 'Prazno' : f === '1' ? 'Puno' : f }))}
             />
           </Field>
-          {!readOnly ? (
-            <Button variant={dirty ? 'primary' : 'secondary'} disabled={pending} onClick={() => save()}>
-              Spremi zapisnik
-            </Button>
-          ) : null}
+          {!readOnly ? <p className="text-xs text-faint">{pending ? 'Spremam…' : dirty ? (touched ? 'Upisujem…' : '') : report ? 'Spremljeno' : ''}</p> : null}
         </div>
       </Card>
 

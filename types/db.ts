@@ -124,6 +124,11 @@ export interface Job {
   report_token: string;
   report_shared_at: string | null;
   plan_id: string | null;
+  invoice_number: number | null;
+  invoice_year: number | null;
+  invoice_issued_at: string | null;
+  invoice_fiscal_ref: string | null;
+  invoice_token: string;
 }
 
 export interface Site {

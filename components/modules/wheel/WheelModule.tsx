@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { Disc3, Gauge, QrCode, Ruler, Wrench } from 'lucide-react';
-import { Badge, Card, CardHeader, EmptyState } from '@/components/ui';
+import { Badge, Card, CardHeader } from '@/components/ui';
 import { SEASON_LABELS, TIRE_POSITIONS, TREAD_LIMITS } from '@/config/packages/wheel';
 import { formatDate, formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
+import { MoreSections, foldable } from '../more';
 import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { StorageActions } from './StorageActions';
@@ -25,7 +26,7 @@ export function treadTone(season: string, mm: number | null): 'ok' | 'warn' | 'c
   return mm < limits.crit ? 'crit' : mm < limits.warn ? 'warn' : 'ok';
 }
 
-export async function WheelModule({ ctx, job, locked }: ModuleProps) {
+export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
   const path = `/app/jobs/${job.id}`;
   const s = ctx.supabase;
   const [{ data: sets }, { data: locations }, { data: torque }, { data: specs }, { data: repairs }, { data: balancing }, { data: alignments }] = await Promise.all([
@@ -59,6 +60,13 @@ export async function WheelModule({ ctx, job, locked }: ModuleProps) {
     }
   }
 
+  // Core: tyre sets and the hotel. The rest with "Više" or once it has data.
+  const { show, hidden } = foldable(extras);
+  const showTorque = show('moment pritezanja', (torque ?? []).length > 0);
+  const showRepairs = show('popravak gume', (repairs ?? []).length > 0);
+  const showBalancing = show('balansiranje', (balancing ?? []).length > 0);
+  const showAlignment = show('geometrija', (alignments ?? []).length > 0);
+
   return (
     <div className="space-y-4">
       {/* Tyre sets and hotel */}
@@ -83,21 +91,21 @@ export async function WheelModule({ ctx, job, locked }: ModuleProps) {
                 { name: 'width', label: 'Širina', type: 'number', placeholder: '205', half: true },
                 { name: 'aspect', label: 'Visina', type: 'number', placeholder: '55', half: true },
                 { name: 'rim_diameter', label: 'Promjer', type: 'number', placeholder: '16', half: true },
-                { name: 'load_index', label: 'Indeks nosivosti', placeholder: '91', half: true },
-                { name: 'speed_index', label: 'Indeks brzine', placeholder: 'V', half: true },
+                { name: 'load_index', label: 'Indeks nosivosti', placeholder: '91', half: true, extra: true },
+                { name: 'speed_index', label: 'Indeks brzine', placeholder: 'V', half: true, extra: true },
                 { name: 'brand', label: 'Marka', half: true },
-                { name: 'model', label: 'Model' },
+                { name: 'model', label: 'Model', extra: true },
                 { name: 'on_rims', label: 'Na naplatcima', type: 'checkbox', half: true },
-                { name: 'bolts_included', label: 'S vijcima', type: 'checkbox', half: true },
-                { name: 'rim_material', label: 'Naplatci', type: 'select', options: [{ value: 'alloy', label: 'Alu' }, { value: 'steel', label: 'Čelični' }], half: true },
-                { name: 'lock_key_location', label: 'Ključ sig. vijaka', placeholder: 'npr. u pretincu', half: true },
+                { name: 'bolts_included', label: 'S vijcima', type: 'checkbox', half: true, extra: true },
+                { name: 'rim_material', label: 'Naplatci', type: 'select', options: [{ value: 'alloy', label: 'Alu' }, { value: 'steel', label: 'Čelični' }], half: true, extra: true },
+                { name: 'lock_key_location', label: 'Ključ sig. vijaka', placeholder: 'npr. u pretincu', half: true, extra: true },
                 { name: 'notes', label: 'Napomena', type: 'textarea' },
               ]}
             />
           }
         />
         {!sets?.length ? (
-          <p className="px-4 py-4 text-sm text-muted">Nema setova. Dodajte set koji je na vozilu i onaj koji ostaje kod vas na čuvanju.</p>
+          <p className="px-4 py-4 text-sm text-muted">Nema setova. Dodajte set koji je na vozilu i onaj koji ostaje kod vas na čuvanju. Šara se mjeri u tri točke, a boja se sama odredi prema sezoni.</p>
         ) : (
           <div className="divide-y divide-line">
             {sets.map((set) => {
@@ -193,6 +201,7 @@ export async function WheelModule({ ctx, job, locked }: ModuleProps) {
       </Card>
 
       {/* Torque */}
+      {showTorque ? (
       <Card>
         <CardHeader
           title={
@@ -242,9 +251,11 @@ export async function WheelModule({ ctx, job, locked }: ModuleProps) {
           <p className="px-4 py-4 text-sm text-muted">Nema zapisa za ovaj nalog.</p>
         )}
       </Card>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Repairs */}
+        {showRepairs ? (
         <Card>
           <CardHeader
             title="Popravak gume"
@@ -279,8 +290,10 @@ export async function WheelModule({ ctx, job, locked }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Popravljiv je samo gazeći sloj; rame i bok znače novu gumu.</p>
           )}
         </Card>
+        ) : null}
 
         {/* Balancing */}
+        {showBalancing ? (
         <Card>
           <CardHeader
             title="Balansiranje"
@@ -316,9 +329,11 @@ export async function WheelModule({ ctx, job, locked }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Nema zapisa.</p>
           )}
         </Card>
+        ) : null}
       </div>
 
       {/* Alignment */}
+      {showAlignment ? (
       <Card>
         <CardHeader
           title={
@@ -423,8 +438,9 @@ export async function WheelModule({ ctx, job, locked }: ModuleProps) {
           <p className="px-4 py-4 text-sm text-muted">Nema mjerenja geometrije na ovom nalogu.</p>
         )}
       </Card>
+      ) : null}
 
-      {!sets?.length && !torque?.length ? <EmptyState title="Počnite sa setom guma">Izmjerite šaru u tri točke po gumi — boja se sama odredi prema sezoni.</EmptyState> : null}
+      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

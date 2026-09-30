@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Copy, Link2, MessageCircle, Plus, Send } from 'lucide-react';
-import { ConfirmButton, Segmented, Sheet, useAction } from '@/components/client-ui';
-import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Select, Textarea } from '@/components/ui';
+import Link from 'next/link';
+import { Copy, FileText, Link2, MessageCircle, Plus, Send } from 'lucide-react';
+import { ConfirmButton, DictateButton, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
+import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Select, Textarea, buttonClass } from '@/components/ui';
 import type { LineKind } from '@/config/tenant.config';
 import { addLine, applyTemplate, createApproval, deleteLine, setLineApproval, setLinePrice, updateLine } from '@/lib/actions/jobs';
 import { copyText } from '@/lib/clipboard';
@@ -172,6 +173,9 @@ export function LinesEditor({
             <span>Ukupno</span>
             <span className="tabular">{formatEuro(grossTotal)}</span>
           </div>
+          <Link href={`/app/jobs/${jobId}/racun`} prefetch={false} className={cn(buttonClass('primary', 'lg'), 'mt-3 w-full')}>
+            <FileText className="size-5" /> Račun
+          </Link>
         </Card>
       ) : null}
 
@@ -272,6 +276,10 @@ function LineSheet({ open, onClose, jobId, line, price, isOwner }: { open: boole
   const [unitPrice, setUnitPrice] = useState(price ? String(price.unit_price) : '');
   const [discount, setDiscount] = useState(price ? String(price.discount_pct) : '0');
   const [vat, setVat] = useState(price ? String(price.vat_rate) : '25');
+  // Core: kind, what, how many, price. Unit, discount, VAT and the customer
+  // approval flow: "Više polja" (open when a line already uses them).
+  const defaultUnit = (k: LineKind) => (k === 'labor' ? 'h' : k === 'material' ? 'l' : 'kom');
+  const [more, setMore] = useState(() => Boolean(line && (line.approval !== 'approved' || line.unit !== defaultUnit(line.kind))) || Boolean(price && (Number(price.discount_pct) !== 0 || Number(price.vat_rate) !== 25)));
 
   function save() {
     const values = { kind, description, qty: num(qty) || 0, unit: unit || 'kom', approval, priority: priority || null };
@@ -297,17 +305,29 @@ function LineSheet({ open, onClose, jobId, line, price, isOwner }: { open: boole
           value={kind}
           onChange={(k) => {
             setKind(k);
-            if (!line) setUnit(k === 'labor' ? 'h' : k === 'material' ? 'l' : 'kom');
+            if (!line) setUnit(defaultUnit(k));
           }}
           options={(['labor', 'part', 'material', 'fee'] as LineKind[]).map((k) => ({ value: k, label: KIND_LABELS[k] }))}
         />
         <Field label="Opis">
-          <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} autoFocus={!line} />
+          <div className="flex items-start gap-2">
+            <Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} autoFocus={!line} />
+            <DictateButton compact onText={(text) => setDescription((d) => (d ? `${d.trimEnd()} ${text}` : text))} />
+          </div>
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Količina">
+          <Field label={`Količina (${unit})`}>
             <Input inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} />
           </Field>
+          {isOwner ? (
+            <Field label="Cijena / jed. (€)">
+              <Input inputMode="decimal" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="0,00" />
+            </Field>
+          ) : null}
+        </div>
+        {more ? (
+        <>
+        <div className="grid grid-cols-3 gap-3">
           <Field label="Jedinica">
             <Select value={unit} onChange={(e) => setUnit(e.target.value)}>
               {['h', 'kom', 'l', 'kg', 'g', 'm', 'paušal', 'set'].map((u) => (
@@ -317,20 +337,17 @@ function LineSheet({ open, onClose, jobId, line, price, isOwner }: { open: boole
               ))}
             </Select>
           </Field>
+          {isOwner ? (
+            <>
+              <Field label="Popust %">
+                <Input inputMode="decimal" value={discount} onChange={(e) => setDiscount(e.target.value)} />
+              </Field>
+              <Field label="PDV %">
+                <Input inputMode="decimal" value={vat} onChange={(e) => setVat(e.target.value)} />
+              </Field>
+            </>
+          ) : null}
         </div>
-        {isOwner ? (
-          <div className="grid grid-cols-3 gap-3">
-            <Field label="Cijena / jed. (€)">
-              <Input inputMode="decimal" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="0,00" />
-            </Field>
-            <Field label="Popust %">
-              <Input inputMode="decimal" value={discount} onChange={(e) => setDiscount(e.target.value)} />
-            </Field>
-            <Field label="PDV %">
-              <Input inputMode="decimal" value={vat} onChange={(e) => setVat(e.target.value)} />
-            </Field>
-          </div>
-        ) : null}
         <Field label="Status">
           <Segmented
             value={approval}
@@ -355,6 +372,9 @@ function LineSheet({ open, onClose, jobId, line, price, isOwner }: { open: boole
             />
           </Field>
         ) : null}
+        </>
+        ) : null}
+        <MoreToggle open={more} onToggle={() => setMore((m) => !m)} />
         <div className="flex gap-2 pt-2">
           <Button variant="primary" size="lg" className="flex-1" disabled={pending || !description.trim()} onClick={save}>
             Spremi

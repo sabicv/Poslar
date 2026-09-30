@@ -272,5 +272,26 @@ console.log('\nCustomer approval (atomic)');
   check('an expired link is refused', await fails(() => decide([{ lineId: l0, decision: 'approved' }], expired.token)));
 }
 
+// Invoices are numbered per workshop and year, and only the owner issues them.
+console.log('\nInvoices');
+{
+  const issue = (user, jobId) => as(user, () => q(`select * from public.issue_invoice($1)`, [jobId]));
+  check('worker cannot issue an invoice', await fails(() => issue(U.aWorker, ids.job)));
+  const [first] = await issue(U.aOwner, ids.job);
+  check('first invoice of the year is number 1', first.o_number === 1 && first.o_year >= 2026, JSON.stringify(first));
+  const [again] = await issue(U.aOwner, ids.job);
+  check('issuing the same job again keeps its number', again.o_number === 1, JSON.stringify(again));
+  const [other] = await as(U.aOwner, () => q(`insert into public.jobs (tenant_id, client_id, asset_id) values ($1,$2,$3) returning id`, [tA, ids.client, ids.asset]));
+  const [second] = await issue(U.aOwner, other.id);
+  check('the next job gets number 2', second.o_number === 2, JSON.stringify(second));
+  await as(U.aWorker, async () => {
+    check('worker cannot renumber an invoice', await fails(() => q(`update public.jobs set invoice_number = 7 where id = $1`, [ids.job])));
+    check('worker cannot write the fiscal receipt number', await fails(() => q(`update public.jobs set invoice_fiscal_ref = 'x' where id = $1`, [ids.job])));
+  });
+  check("another workshop cannot issue A's invoice", await fails(() => issue(U.bOwner, other.id)));
+  const [issued] = await q(`select invoice_token from public.jobs where id = $1`, [ids.job]);
+  check('every job has a private invoice link token', /^[0-9a-f-]{36}$/.test(String(issued.invoice_token)), String(issued.invoice_token));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

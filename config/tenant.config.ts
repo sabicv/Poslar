@@ -287,6 +287,14 @@ function luminance([r, g, b]: [number, number, number]): number {
 // accent (Wheel silver) is darkened for the light theme so accent text
 // stays readable on white, and text on an accent button flips between
 // black and white by contrast.
+// The umbrella brand, for an address that is no product's domain (the
+// Vercel URL) and a visitor who is not signed in.
+export const BRAND = { id: 'xfiles', name: 'X-Files', tagline: 'Aplikacija za obrtnike i servise', accent: '#F4F4F5' } as const;
+
+export function brandAccentStyle(): CSSProperties {
+  return accentStyle({ accent: BRAND.accent } as PackageConfig);
+}
+
 export function accentStyle(pkg: PackageConfig): CSSProperties {
   const rgb = hexToRgb(pkg.accent);
   const onLight = luminance(rgb) > 0.35 ? (rgb.map((c) => Math.round(c * 0.42)) as [number, number, number]) : rgb;

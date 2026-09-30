@@ -52,9 +52,11 @@ export function BodyDamageMap({ estimateId, jobId, damages, readOnly }: { estima
                   <Badge tone="accent">{BODY_OPERATIONS[d.operation]}</Badge>
                   {d.damage_type ? <Badge tone="warn">{BODY_DAMAGE_TYPES[d.damage_type]}</Badge> : null}
                 </div>
-                <p className="mt-1 text-xs tabular text-muted">
-                  Lim {d.hours_body} h · priprema {d.hours_prep} h · lak {d.hours_paint} h · sastavljanje {d.hours_assembly} h
-                </p>
+                {d.hours_body + d.hours_prep + d.hours_paint + d.hours_assembly > 0 ? (
+                  <p className="mt-1 text-xs tabular text-muted">
+                    Lim {d.hours_body} h · priprema {d.hours_prep} h · lak {d.hours_paint} h · sastavljanje {d.hours_assembly} h
+                  </p>
+                ) : null}
               </button>
             </li>
           ))}
@@ -67,12 +69,12 @@ export function BodyDamageMap({ estimateId, jobId, damages, readOnly }: { estima
             initial={current ? { ...current } : { operation: 'repair', hours_body: 0, hours_prep: 0, hours_paint: 0, hours_assembly: 0 }}
             fields={[
               { name: 'damage_type', label: 'Oštećenje', type: 'select', options: opts(BODY_DAMAGE_TYPES), half: true },
-              { name: 'size', label: 'Veličina', type: 'select', options: opts(SIZE), half: true },
+              { name: 'size', label: 'Veličina', type: 'select', options: opts(SIZE), half: true, extra: true },
               { name: 'operation', label: 'Operacija', type: 'select', options: opts(BODY_OPERATIONS), required: true },
-              { name: 'hours_body', label: 'Limarija', type: 'number', suffix: 'h', half: true },
-              { name: 'hours_prep', label: 'Priprema', type: 'number', suffix: 'h', half: true },
-              { name: 'hours_paint', label: 'Lakiranje', type: 'number', suffix: 'h', half: true },
-              { name: 'hours_assembly', label: 'Sastavljanje', type: 'number', suffix: 'h', half: true },
+              { name: 'hours_body', label: 'Limarija', type: 'number', suffix: 'h', half: true, extra: true },
+              { name: 'hours_prep', label: 'Priprema', type: 'number', suffix: 'h', half: true, extra: true },
+              { name: 'hours_paint', label: 'Lakiranje', type: 'number', suffix: 'h', half: true, extra: true },
+              { name: 'hours_assembly', label: 'Sastavljanje', type: 'number', suffix: 'h', half: true, extra: true },
               { name: 'note', label: 'Napomena', type: 'textarea' },
             ]}
             onSubmit={(values) =>

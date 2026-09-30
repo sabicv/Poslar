@@ -3,6 +3,7 @@ import { Badge, Card, CardHeader } from '@/components/ui';
 import { COMPLIANCE_LABELS } from '@/config/packages/fleet';
 import { daysUntil, formatDate, formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
+import { MoreSections, foldable } from '../more';
 import { DeleteRecordButton, RecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { FieldStep } from './FieldStep';
@@ -23,7 +24,7 @@ export function complianceTone(days: number | null): 'crit' | 'warn' | 'ok' | 'm
   return 'ok';
 }
 
-export async function FleetModule({ ctx, job, locked }: ModuleProps) {
+export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
   const path = `/app/jobs/${job.id}`;
   const s = ctx.supabase;
   const [{ data: field }, { data: compliance }, { data: downtime }, { data: trailers }] = await Promise.all([
@@ -37,9 +38,16 @@ export async function FleetModule({ ctx, job, locked }: ModuleProps) {
   const hours =
     field?.work_started && field?.work_finished ? (new Date(field.work_finished as string).getTime() - new Date(field.work_started as string).getTime()) / 3600000 : null;
 
+  // Core: legal deadlines. The rest with "Više" or once it has data.
+  const { show, hidden } = foldable(extras);
+  const showField = show('terenski nalog', isField);
+  const showDowntime = show('zastoj', (downtime ?? []).length > 0);
+  const showTrailers = show('priključna vozila', (trailers ?? []).length > 0);
+
   return (
     <div className="space-y-4">
       {/* Field job timeline */}
+      {showField ? (
       <Card>
         <CardHeader
           title={
@@ -109,6 +117,7 @@ export async function FleetModule({ ctx, job, locked }: ModuleProps) {
           )}
         </div>
       </Card>
+      ) : null}
 
       {/* Compliance */}
       <Card>
@@ -168,6 +177,7 @@ export async function FleetModule({ ctx, job, locked }: ModuleProps) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Downtime */}
+        {showDowntime ? (
         <Card>
           <CardHeader
             title={
@@ -211,8 +221,10 @@ export async function FleetModule({ ctx, job, locked }: ModuleProps) {
             })}
           </div>
         </Card>
+        ) : null}
 
         {/* Coupled units */}
+        {showTrailers ? (
         <Card>
           <CardHeader title="Priključna vozila" />
           {trailers?.length ? (
@@ -234,6 +246,7 @@ export async function FleetModule({ ctx, job, locked }: ModuleProps) {
             </div>
           ) : null}
         </Card>
+        ) : null}
       </div>
 
       {!compliance?.length ? (
@@ -241,6 +254,7 @@ export async function FleetModule({ ctx, job, locked }: ModuleProps) {
           <CalendarX2 className="size-3.5" /> Rokovi se prate po vozilu, ne po nalogu — vide se na svakom sljedećem nalogu.
         </p>
       ) : null}
+      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }
