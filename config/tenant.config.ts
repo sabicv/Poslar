@@ -136,6 +136,19 @@ export interface PackageConfig {
 export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto, air };
 export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 
+// Three groups so a visitor first says how he works, then picks the trade:
+// the customer comes to him, he goes to the customer, or he looks after
+// vehicles that live on the road. New trades join one of these.
+export type TradeGroupId = 'radionica' | 'teren' | 'cesta';
+export const TRADE_GROUPS: { id: TradeGroupId; name: string; hint: string; packages: PackageId[] }[] = [
+  { id: 'radionica', name: 'Radionica', hint: 'Mušterija dovozi vozilo k vama', packages: ['volt', 'gear', 'body', 'wheel', 'moto'] },
+  { id: 'teren', name: 'Teren', hint: 'Vi idete k mušteriji', packages: ['air'] },
+  { id: 'cesta', name: 'Cesta', hint: 'Kamioni, strojevi i vozni parkovi', packages: ['fleet'] },
+];
+export function tradeGroupOf(id: PackageId): TradeGroupId {
+  return TRADE_GROUPS.find((g) => g.packages.includes(id))?.id ?? 'radionica';
+}
+
 export const PHASE_ORDER: JobPhase[] = [
   'intake',
   'diagnosis',

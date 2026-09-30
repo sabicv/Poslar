@@ -108,6 +108,13 @@ await as(U.aOwner, async () => {
   const [t] = await q(`select net_total, gross_total from public.job_totals where job_id = $1`, [ids.job]);
   check('owner sees totals (1.5 h × 60 € = 90 €, 112.50 € with VAT)', Number(t?.net_total) === 90 && Number(t?.gross_total) === 112.5, JSON.stringify(t));
 });
+// A workshop outside the VAT system charges no VAT, so its totals carry none.
+await q(`update public.tenants set settings = settings || '{"vat_registered": false}' where id = $1`, [tA]);
+await as(U.aOwner, async () => {
+  const [t] = await q(`select net_total, gross_total from public.job_totals where job_id = $1`, [ids.job]);
+  check('outside the VAT system the total has no VAT (90 €)', Number(t?.gross_total) === 90, JSON.stringify(t));
+});
+await q(`update public.tenants set settings = settings - 'vat_registered' where id = $1`, [tA]);
 
 console.log('\nWorker A');
 await as(U.aWorker, async () => {

@@ -40,20 +40,24 @@ export function billingFrom(settings: unknown): InvoiceBilling {
   return { iban: s.iban?.trim() || null, vatRegistered: s.vat_registered !== false, note: s.invoice_note?.trim() || null };
 }
 
+export const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+
+// Each line to the cent, VAT once per rate on the sum of its lines — the
+// way accounting and e-Račun count it, so the PDF and the export agree.
+export function lineAmount(l: InvoiceLine) {
+  return round2(l.qty * l.unit_price * (1 - l.discount_pct / 100));
+}
+
 export function invoiceTotals(lines: InvoiceLine[], vatRegistered: boolean) {
-  const byRate = new Map<number, { base: number; vat: number }>();
-  let net = 0;
+  const bases = new Map<number, number>();
   for (const l of lines) {
-    const amount = l.qty * l.unit_price * (1 - l.discount_pct / 100);
-    net += amount;
     const rate = vatRegistered ? l.vat_rate : 0;
-    const row = byRate.get(rate) ?? { base: 0, vat: 0 };
-    row.base += amount;
-    row.vat += (amount * rate) / 100;
-    byRate.set(rate, row);
+    bases.set(rate, round2((bases.get(rate) ?? 0) + lineAmount(l)));
   }
-  const vat = [...byRate.values()].reduce((s, r) => s + r.vat, 0);
-  return { net, vat, gross: net + vat, byRate: [...byRate.entries()].filter(([rate]) => rate > 0).sort((a, b) => b[0] - a[0]) };
+  const rates = [...bases.entries()].map(([rate, base]) => [rate, { base, vat: round2((base * rate) / 100) }] as [number, { base: number; vat: number }]);
+  const net = round2(rates.reduce((s, [, r]) => s + r.base, 0));
+  const vat = round2(rates.reduce((s, [, r]) => s + r.vat, 0));
+  return { net, vat, gross: round2(net + vat), allRates: rates, byRate: rates.filter(([rate]) => rate > 0).sort((a, b) => b[0] - a[0]) };
 }
 
 // A plain A4 page: always black on white, on screen and on paper.
@@ -118,7 +122,7 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
                   {l.discount_pct ? ` − ${l.discount_pct} %` : ''}
                 </p>
               </td>
-              <td className="whitespace-nowrap py-2 pl-2 text-right tabular-nums">{formatEuro(l.qty * l.unit_price * (1 - l.discount_pct / 100))}</td>
+              <td className="whitespace-nowrap py-2 pl-2 text-right tabular-nums">{formatEuro(lineAmount(l))}</td>
             </tr>
           ))}
         </tbody>

@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { billingFrom } from '@/components/invoice/InvoiceDocument';
 import { Card, CardHeader, EmptyState, PageHeader, Stat, buttonClass } from '@/components/ui';
+import { zagrebDate } from '@/lib/invoice';
+import { AccountingExport } from './AccountingExport';
 import { phaseLabel } from '@/config/tenant.config';
 import { assetTitle, clientName, countJobs, formatDecimal, formatEuro, formatRelative } from '@/lib/format';
 import { requireOwner } from '@/lib/session';
@@ -37,7 +40,8 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   const closed = phaseLabel(ctx.pkg, 'collected');
   const sixMonthsAgo = new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1);
 
-  const [{ data: done }, { data: unpaid }, { data: staff }, { data: history }] = await Promise.all([
+  const yearAgo = new Date(new Date().getFullYear(), new Date().getMonth() - 12, 1);
+  const [{ data: done }, { data: unpaid }, { data: staff }, { data: history }, { data: issued }] = await Promise.all([
     ctx.supabase
       .from('jobs')
       .select('id, created_at, finished_at, collected_at, payment_status, assigned_to')
@@ -51,7 +55,14 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
       .order('finished_at'),
     ctx.supabase.from('profiles').select('id, full_name'),
     ctx.supabase.from('jobs').select('id, collected_at').gte('collected_at', sixMonthsAgo.toISOString()),
+    ctx.supabase.from('jobs').select('invoice_issued_at').not('invoice_number', 'is', null).gte('invoice_issued_at', yearAgo.toISOString()),
   ]);
+  // Issued invoices per month, for the accountant's export.
+  const invoicesPerMonth: Record<string, number> = {};
+  for (const j of issued ?? []) {
+    const month = zagrebDate(j.invoice_issued_at as string).slice(0, 7);
+    invoicesPerMonth[month] = (invoicesPerMonth[month] ?? 0) + 1;
+  }
 
   const doneIds = (done ?? []).map((j) => j.id as string);
   const unpaidIds = (unpaid ?? []).map((j) => j.id as string);
@@ -123,7 +134,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Promet po mjesecima" subtitle="S PDV-om" />
+          <CardHeader title="Promet po mjesecima" subtitle={billingFrom(ctx.tenant.settings).vatRegistered ? 'S PDV-om' : undefined} />
           <div className="flex h-44 items-end gap-3 p-4">
             {months.map((m) => (
               <div key={m.key} className="flex flex-1 flex-col items-center gap-1.5">
@@ -206,6 +217,8 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
             </div>
           )}
         </Card>
+
+        <AccountingExport perMonth={invoicesPerMonth} today={zagrebDate(new Date().toISOString())} />
       </div>
     </>
   );

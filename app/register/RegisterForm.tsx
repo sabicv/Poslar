@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProductMark } from '@/components/ProductMark';
 import { Button, Field, Input } from '@/components/ui';
-import { PACKAGES, accentStyle, type PackageId } from '@/config/tenant.config';
+import { PACKAGES, TRADE_GROUPS, accentStyle, tradeGroupOf, type PackageId } from '@/config/tenant.config';
 import { registerWorkshop } from '@/lib/actions/public';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 export function RegisterForm({ initialPackage, packageLocked }: { initialPackage: PackageId; packageLocked: boolean }) {
   const router = useRouter();
   const [pkg, setPkg] = useState<PackageId>(initialPackage);
+  const group = TRADE_GROUPS.find((g) => g.id === tradeGroupOf(pkg))!;
   const [form, setForm] = useState({ workshopName: '', fullName: '', email: '', password: '', phone: '', city: '', oib: '', website: '' });
   const [accept, setAccept] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,10 +59,24 @@ export function RegisterForm({ initialPackage, packageLocked }: { initialPackage
   return (
     <form onSubmit={submit} className="space-y-5">
       {!packageLocked ? (
-        <div className="space-y-1.5">
-          <span className="block text-xs font-medium text-muted">Djelatnost</span>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {Object.values(PACKAGES).map((p) => (
+        <div className="space-y-2">
+          <span className="block text-xs font-medium text-muted">Kako radite?</span>
+          <div className="grid grid-cols-3 gap-1 rounded-xl border border-line bg-surface p-1">
+            {TRADE_GROUPS.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => setPkg(g.packages.includes(pkg) ? pkg : g.packages[0])}
+                aria-pressed={group.id === g.id}
+                className={cn('h-10 rounded-lg text-sm font-medium transition-colors', group.id === g.id ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg')}
+              >
+                {g.name}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-faint">{group.hint}</p>
+          <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-3">
+            {group.packages.map((id) => PACKAGES[id]).map((p) => (
               <button
                 key={p.id}
                 type="button"

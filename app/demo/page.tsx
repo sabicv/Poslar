@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { FlaskConical } from 'lucide-react';
 import { ProductMark } from '@/components/ProductMark';
 import { Button } from '@/components/ui';
-import { PACKAGES, accentStyle, type PackageId } from '@/config/tenant.config';
+import { PACKAGES, TRADE_GROUPS, accentStyle, type PackageId } from '@/config/tenant.config';
 import { openDemoSeat } from '@/lib/actions/demo';
 import { signOut } from '@/lib/actions/auth';
 import { demoSeat, isDemoUser, type DemoRole } from '@/lib/demo';
@@ -61,56 +61,62 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
         <p className="mt-4 rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-sm text-crit">Prebacivanje nije uspjelo. Pokušajte ponovno za minutu.</p>
       ) : null}
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {Object.values(PACKAGES).map((pkg) => {
-          const tenant = byPackage.get(pkg.id);
-          return (
-            <section key={pkg.id} className="accent-scope rounded-2xl border border-line bg-surface p-4" style={accentStyle(pkg)}>
-              <div className="flex items-start gap-3">
-                <ProductMark id={pkg.id} className="size-10" />
-                <div className="min-w-0">
-                  <h2 className="font-semibold">{pkg.product}</h2>
-                  <p className="text-xs text-muted">{pkg.tagline}</p>
+      {TRADE_GROUPS.map((group) => (
+        <section key={group.id} className="mt-7">
+          <h2 className="text-lg font-semibold">{group.name}</h2>
+          <p className="text-sm text-muted">{group.hint}</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {group.packages.map((id) => PACKAGES[id]).map((pkg) => {
+              const tenant = byPackage.get(pkg.id);
+              return (
+                <section key={pkg.id} className="accent-scope rounded-2xl border border-line bg-surface p-4" style={accentStyle(pkg)}>
+                  <div className="flex items-start gap-3">
+                    <ProductMark id={pkg.id} className="size-10" />
+                    <div className="min-w-0">
+                      <h3 className="font-semibold">{pkg.product}</h3>
+                      <p className="text-xs text-muted">{pkg.tagline}</p>
+                      {tenant ? (
+                        <p className="mt-1 truncate text-xs text-faint">
+                          {tenant.name} · {tenant.city}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
                   {tenant ? (
-                    <p className="mt-1 truncate text-xs text-faint">
-                      {tenant.name} · {tenant.city}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-              {tenant ? (
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  {ROLES.map(({ role, label, hint }) => {
-                    const active = current?.pkg === pkg.id && current.role === role;
-                    return (
-                      <form key={role} action={openDemoSeat}>
-                        <input type="hidden" name="pkg" value={pkg.id} />
-                        <input type="hidden" name="role" value={role} />
-                        <button
-                          type="submit"
-                          className={cn(
-                            'flex h-auto min-h-14 w-full flex-col items-start justify-center rounded-xl border px-3 py-2 text-left transition-colors',
-                            active ? 'border-accent bg-accent/15' : 'border-line bg-surface2 hover:border-faint/60'
-                          )}
-                        >
-                          <span className="text-sm font-medium">
-                            {label}
-                            {active ? <span className="ml-1.5 text-xs font-normal text-accent">· sada</span> : null}
-                          </span>
-                          <span className="block w-full truncate text-xs text-muted">{nameOf(tenant.id, role) ?? hint}</span>
-                          <span className="block w-full truncate text-[11px] text-faint">{hint}</span>
-                        </button>
-                      </form>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="mt-4 text-xs text-faint">Demo radionica još nije napravljena.</p>
-              )}
-            </section>
-          );
-        })}
-      </div>
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      {ROLES.map(({ role, label, hint }) => {
+                        const active = current?.pkg === pkg.id && current.role === role;
+                        return (
+                          <form key={role} action={openDemoSeat}>
+                            <input type="hidden" name="pkg" value={pkg.id} />
+                            <input type="hidden" name="role" value={role} />
+                            <button
+                              type="submit"
+                              className={cn(
+                                'flex h-auto min-h-14 w-full flex-col items-start justify-center rounded-xl border px-3 py-2 text-left transition-colors',
+                                active ? 'border-accent bg-accent/15' : 'border-line bg-surface2 hover:border-faint/60'
+                              )}
+                            >
+                              <span className="text-sm font-medium">
+                                {label}
+                                {active ? <span className="ml-1.5 text-xs font-normal text-accent">· sada</span> : null}
+                              </span>
+                              <span className="block w-full truncate text-xs text-muted">{nameOf(tenant.id, role) ?? hint}</span>
+                              <span className="block w-full truncate text-[11px] text-faint">{hint}</span>
+                            </button>
+                          </form>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="mt-4 text-xs text-faint">Demo radionica još nije napravljena.</p>
+                  )}
+                </section>
+              );
+            })}
+          </div>
+        </section>
+      ))}
     </main>
   );
 }

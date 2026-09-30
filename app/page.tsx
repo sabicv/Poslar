@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { Camera, Check, ClipboardCheck, EyeOff, History, Mic, MessageCircle, Receipt, ShieldCheck, Smartphone } from 'lucide-react';
 import { BrandMark, ProductMark } from '@/components/ProductMark';
 import { ButtonLink } from '@/components/ui';
-import { BRAND, PACKAGES, accentStyle, matchPackageFromHost, type PackageConfig, type PackageId } from '@/config/tenant.config';
+import { BRAND, PACKAGES, TRADE_GROUPS, accentStyle, matchPackageFromHost, type PackageConfig, type PackageId } from '@/config/tenant.config';
 import { getAuth } from '@/lib/session';
 
 // The landing page sells the product by itself: what it does in a day's
@@ -158,15 +158,23 @@ export default async function Home() {
             <>
               <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Izaberite svoj zanat</h2>
               <p className="mt-2 text-muted">Svaki paket govori jezikom vašeg posla. Isti temelj, drugačiji detalji.</p>
-              <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {Object.values(PACKAGES).map((p) => (
-                  <Link key={p.id} href={`/register?paket=${p.id}`} className="accent-scope group flex items-start gap-3 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-accent/60" style={accentStyle(p)}>
-                    <ProductMark id={p.id} className="size-10" />
-                    <span className="min-w-0">
-                      <span className="block font-semibold">{p.product}</span>
-                      <span className="block text-sm text-muted">{p.tagline}</span>
-                    </span>
-                  </Link>
+              <div className="mt-8 space-y-8">
+                {TRADE_GROUPS.map((g) => (
+                  <div key={g.id}>
+                    <h3 className="text-lg font-semibold">{g.name}</h3>
+                    <p className="text-sm text-muted">{g.hint}</p>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {g.packages.map((id) => PACKAGES[id]).map((p) => (
+                        <Link key={p.id} href={`/register?paket=${p.id}`} className="accent-scope group flex items-start gap-3 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-accent/60" style={accentStyle(p)}>
+                          <ProductMark id={p.id} className="size-10" />
+                          <span className="min-w-0">
+                            <span className="block font-semibold">{p.product}</span>
+                            <span className="block text-sm text-muted">{p.tagline}</span>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </>

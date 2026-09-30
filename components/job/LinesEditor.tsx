@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Copy, FileText, Link2, MessageCircle, Plus, Send } from 'lucide-react';
 import { ConfirmButton, DictateButton, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
 import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Select, Textarea, buttonClass } from '@/components/ui';
+import { invoiceTotals, lineAmount } from '@/components/invoice/InvoiceDocument';
 import type { LineKind } from '@/config/tenant.config';
 import { addLine, applyTemplate, createApproval, deleteLine, setLineApproval, setLinePrice, updateLine } from '@/lib/actions/jobs';
 import { copyText } from '@/lib/clipboard';
@@ -37,8 +38,7 @@ const APPROVAL_LABELS: Record<LineApproval, string> = {
   deferred: 'Odgođeno',
 };
 
-const net = (qty: number, p?: Price) => (p ? qty * p.unit_price * (1 - p.discount_pct / 100) : 0);
-const gross = (qty: number, p?: Price) => (p ? net(qty, p) * (1 + p.vat_rate / 100) : 0);
+const net = (qty: number, p?: Price) => (p ? lineAmount({ description: '', qty, unit: '', ...p }) : 0);
 const num = (value: string) => Number(value.replace(/\s/g, '').replace(',', '.'));
 
 export function LinesEditor({
@@ -51,6 +51,7 @@ export function LinesEditor({
   approval,
   appUrl,
   clientPhone,
+  vatRegistered,
 }: {
   jobId: string;
   lines: JobLine[];
@@ -61,6 +62,7 @@ export function LinesEditor({
   approval: Approval | null;
   appUrl: string;
   clientPhone: string | null;
+  vatRegistered: boolean;
 }) {
   const { pending, run } = useAction();
   const [editing, setEditing] = useState<JobLine | null>(null);
@@ -75,8 +77,11 @@ export function LinesEditor({
   ];
 
   const approved = lines.filter((l) => l.approval === 'approved');
-  const netTotal = approved.reduce((s, l) => s + net(Number(l.qty), prices[l.id]), 0);
-  const grossTotal = approved.reduce((s, l) => s + gross(Number(l.qty), prices[l.id]), 0);
+  // The same sums as on the invoice, cent for cent.
+  const totals = invoiceTotals(
+    approved.filter((l) => prices[l.id]).map((l) => ({ description: l.description, qty: Number(l.qty), unit: l.unit, ...prices[l.id] })),
+    vatRegistered
+  );
   const proposedCount = lines.filter((l) => l.approval === 'proposed').length;
   const origin = appUrl || (typeof window !== 'undefined' ? window.location.origin : '');
 
@@ -161,17 +166,21 @@ export function LinesEditor({
 
       {isOwner && lines.length > 0 ? (
         <Card className="space-y-1.5 p-4 text-sm">
-          <div className="flex justify-between text-muted">
-            <span>Osnovica (odobreno)</span>
-            <span className="tabular">{formatEuro(netTotal)}</span>
-          </div>
-          <div className="flex justify-between text-muted">
-            <span>PDV</span>
-            <span className="tabular">{formatEuro(grossTotal - netTotal)}</span>
-          </div>
-          <div className="flex justify-between border-t border-line pt-2 text-base font-semibold">
-            <span>Ukupno</span>
-            <span className="tabular">{formatEuro(grossTotal)}</span>
+          {vatRegistered ? (
+            <>
+              <div className="flex justify-between text-muted">
+                <span>Osnovica (odobreno)</span>
+                <span className="tabular">{formatEuro(totals.net)}</span>
+              </div>
+              <div className="flex justify-between text-muted">
+                <span>PDV</span>
+                <span className="tabular">{formatEuro(totals.vat)}</span>
+              </div>
+            </>
+          ) : null}
+          <div className={cn('flex justify-between text-base font-semibold', vatRegistered && 'border-t border-line pt-2')}>
+            <span>{vatRegistered ? 'Ukupno' : 'Ukupno (odobreno)'}</span>
+            <span className="tabular">{formatEuro(totals.gross)}</span>
           </div>
           <Link href={`/app/jobs/${jobId}/racun`} prefetch={false} className={cn(buttonClass('primary', 'lg'), 'mt-3 w-full')}>
             <FileText className="size-5" /> Račun
@@ -260,12 +269,29 @@ export function LinesEditor({
         line={editing}
         price={editing ? prices[editing.id] : undefined}
         isOwner={isOwner}
+        vatRegistered={vatRegistered}
       />
     </div>
   );
 }
 
-function LineSheet({ open, onClose, jobId, line, price, isOwner }: { open: boolean; onClose: () => void; jobId: string; line: JobLine | null; price?: Price; isOwner: boolean }) {
+function LineSheet({
+  open,
+  onClose,
+  jobId,
+  line,
+  price,
+  isOwner,
+  vatRegistered,
+}: {
+  open: boolean;
+  onClose: () => void;
+  jobId: string;
+  line: JobLine | null;
+  price?: Price;
+  isOwner: boolean;
+  vatRegistered: boolean;
+}) {
   const { pending, run } = useAction();
   const [kind, setKind] = useState<LineKind>(line?.kind ?? 'labor');
   const [description, setDescription] = useState(line?.description ?? '');
@@ -327,7 +353,7 @@ function LineSheet({ open, onClose, jobId, line, price, isOwner }: { open: boole
         </div>
         {more ? (
         <>
-        <div className="grid grid-cols-3 gap-3">
+        <div className={cn('grid gap-3', isOwner && vatRegistered ? 'grid-cols-3' : 'grid-cols-2')}>
           <Field label="Jedinica">
             <Select value={unit} onChange={(e) => setUnit(e.target.value)}>
               {['h', 'kom', 'l', 'kg', 'g', 'm', 'paušal', 'set'].map((u) => (
@@ -342,9 +368,12 @@ function LineSheet({ open, onClose, jobId, line, price, isOwner }: { open: boole
               <Field label="Popust %">
                 <Input inputMode="decimal" value={discount} onChange={(e) => setDiscount(e.target.value)} />
               </Field>
-              <Field label="PDV %">
-                <Input inputMode="decimal" value={vat} onChange={(e) => setVat(e.target.value)} />
-              </Field>
+              {/* Outside the VAT system there is no rate to choose. */}
+              {vatRegistered ? (
+                <Field label="PDV %">
+                  <Input inputMode="decimal" value={vat} onChange={(e) => setVat(e.target.value)} />
+                </Field>
+              ) : null}
             </>
           ) : null}
         </div>

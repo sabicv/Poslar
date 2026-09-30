@@ -1,3 +1,4 @@
+import { billingFrom } from '@/components/invoice/InvoiceDocument';
 import type { WorkshopContext } from '@/lib/session';
 import { getJobTemplates } from '@/lib/templates';
 import type { Approval, JobLine, JobLinePrice, JobWithRefs } from '@/types/db';
@@ -28,6 +29,7 @@ export async function LinesTab({ ctx, job, locked }: { ctx: WorkshopContext; job
       approval={(approvals.data?.[0] as Approval | undefined) ?? null}
       appUrl={process.env.NEXT_PUBLIC_APP_URL ?? ''}
       clientPhone={job.client.phone}
+      vatRegistered={billingFrom(ctx.tenant.settings).vatRegistered}
     />
   );
 }

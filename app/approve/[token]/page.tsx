@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { billingFrom } from '@/components/invoice/InvoiceDocument';
 import { accentStyle, getPackage } from '@/config/tenant.config';
 import { assetTitle, formatDateTime, formatEuro } from '@/lib/format';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -19,7 +20,7 @@ export default async function ApprovePage({ params }: { params: Promise<{ token:
   if (!approval) notFound();
 
   const [{ data: tenant }, { data: lockState }] = await Promise.all([
-    admin.from('tenants').select('name, phone, email, address, city, logo_url, package').eq('id', approval.tenant_id).single(),
+    admin.from('tenants').select('name, phone, email, address, city, logo_url, package, settings').eq('id', approval.tenant_id).single(),
     admin.from('jobs').select('locked_at').eq('id', approval.job_id).single(),
   ]);
   if (!tenant || !lockState) notFound();
@@ -54,8 +55,10 @@ export default async function ApprovePage({ params }: { params: Promise<{ token:
 
   const ids = (lines ?? []).map((l) => l.id as string);
   const { data: prices } = ids.length ? await admin.from('job_line_prices').select('job_line_id, unit_price, discount_pct, vat_rate').in('job_line_id', ids) : { data: [] };
+  // A workshop outside the VAT system charges no VAT, so none is added here either.
+  const { vatRegistered } = billingFrom(tenant.settings);
   const priceOf = new Map(
-    (prices ?? []).map((p) => [p.job_line_id as string, Number(p.unit_price) * (1 - Number(p.discount_pct) / 100) * (1 + Number(p.vat_rate) / 100)])
+    (prices ?? []).map((p) => [p.job_line_id as string, Number(p.unit_price) * (1 - Number(p.discount_pct) / 100) * (vatRegistered ? 1 + Number(p.vat_rate) / 100 : 1)])
   );
   const signed = files?.length ? (await admin.storage.from('job-files').createSignedUrls(files.map((f) => f.path as string), 3600)).data ?? [] : [];
 
@@ -123,7 +126,7 @@ export default async function ApprovePage({ params }: { params: Promise<{ token:
       ) : (
         <section className="mt-5 rounded-2xl border border-line bg-surface p-5 text-sm text-muted">Trenutno nema novih prijedloga za odobrenje.</section>
       )}
-      <p className="mt-8 text-center text-xs text-faint">Cijene su s PDV-om. Poveznica vrijedi do {formatDateTime(approval.expires_at as string)}.</p>
+      <p className="mt-8 text-center text-xs text-faint">{vatRegistered ? 'Cijene su s PDV-om. ' : ''}Poveznica vrijedi do {formatDateTime(approval.expires_at as string)}.</p>
     </main>
   );
 }

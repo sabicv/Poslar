@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Copy, FileCheck2, MessageCircle, Printer } from 'lucide-react';
+import { Copy, FileCheck2, FileCode2, MessageCircle, Printer } from 'lucide-react';
 import { useAction } from '@/components/client-ui';
 import { Button, Field, Input, buttonClass } from '@/components/ui';
 import { issueInvoice, setInvoiceFiscalRef } from '@/lib/actions/invoice';
@@ -63,6 +63,9 @@ export function InvoiceActions({
         <Button onClick={() => copyText(link).then((ok) => (ok ? toast.success('Poveznica kopirana') : toast.error('Kopiranje nije uspjelo')))}>
           <Copy className="size-4" /> Kopiraj poveznicu
         </Button>
+        <a href={`/app/jobs/${jobId}/racun/xml`} download className={buttonClass('secondary')}>
+          <FileCode2 className="size-4" /> e-Račun (XML)
+        </a>
       </div>
       <Field label="Broj fiskalnog računa iz blagajne (nije obavezno)">
         <Input
