@@ -54,6 +54,7 @@ export default async function NewJobPage({ searchParams }: { searchParams: Promi
         templates={templates.map((t) => ({ code: t.code, name: t.name }))}
         isFleet={ctx.pkg.id === 'fleet'}
         preset={preset}
+        scan={Boolean(process.env.ANTHROPIC_API_KEY)}
         field={{
           enabled: field,
           defaultMode: ctx.pkg.sector === 'field' ? 'field' : 'workshop',

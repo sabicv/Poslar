@@ -65,6 +65,12 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
               fixed={{ asset_id: job.asset.id }}
               initial={device ?? { refrigerant: 'R32' }}
               label={device ? 'Uredi' : 'Upiši'}
+              // The F-gas data is on the outdoor unit's plate, so its serial goes there.
+              scan={
+                process.env.ANTHROPIC_API_KEY
+                  ? { kind: 'plocica', label: 'Slikaj natpisnu pločicu', map: { refrigerant: 'refrigerant', charge_kg: 'charge_kg', cooling_kw: 'cooling_kw', heating_kw: 'heating_kw', serial: 'outdoor_serial' } }
+                  : undefined
+              }
               fields={[
                 { name: 'refrigerant', label: 'Radna tvar', type: 'select', options: gasOptions, half: true, required: true },
                 { name: 'charge_kg', label: 'Tvorničko punjenje', type: 'number', suffix: 'kg', half: true, required: true },

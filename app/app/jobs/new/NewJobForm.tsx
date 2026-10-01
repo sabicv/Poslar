@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Building2, Check, ChevronDown, MapPin, Search, User, X } from 'lucide-react';
 import { DictateButton, DictateInput, Segmented } from '@/components/client-ui';
+import { ScanButton } from '@/components/ScanButton';
 import { Button, Card, Field, Input, Select, Textarea } from '@/components/ui';
-import type { AssetType, MeterUnit, Vocabulary } from '@/config/tenant.config';
+import { CLIMATE_TYPES, type AssetType, type MeterUnit, type Vocabulary } from '@/config/tenant.config';
 import { createJob } from '@/lib/actions/jobs';
 import { searchClients, type ClientHit } from '@/lib/actions/clients';
 import { clearDraft, readDraft, writeDraft } from '@/lib/drafts';
@@ -52,7 +53,9 @@ export function NewJobForm({
   isFleet,
   preset,
   field,
+  scan = false,
 }: {
+  scan?: boolean;
   vocabulary: Vocabulary;
   assetTypes: { value: AssetType; label: string; unit: MeterUnit }[];
   defaultAssetType: AssetType;
@@ -88,6 +91,8 @@ export function NewJobForm({
   const [tech, setTech] = useState(field.isOwner ? '' : field.me);
   const restored = useRef(false);
   const isField = mode === 'field';
+  // Road vehicles have a registration certificate to photograph; devices have a nameplate.
+  const vehicles = !CLIMATE_TYPES.includes(defaultAssetType);
 
   // Unsaved intake survives a closed tab or a dead battery.
   useEffect(() => {
@@ -145,6 +150,41 @@ export function NewJobForm({
     setSiteId(id);
     const candidates = client && id ? client.assets.filter((a) => a.site_id === id || a.site_id === null) : [];
     setAssetId(candidates.length === 1 ? candidates[0].id : null);
+  }
+
+  // A photo of the registration certificate: a known vehicle is picked
+  // with its owner, a new one fills the client and vehicle fields.
+  async function fromRegistration(d: Record<string, unknown>) {
+    const s = (k: string) => (typeof d[k] === 'string' && (d[k] as string).trim() ? (d[k] as string).trim() : '');
+    const plate = s('identifier');
+    if (plate) {
+      const compact = plate.replace(/[\s-]/g, '').toUpperCase();
+      const known = (await searchClients(plate).catch(() => [])).find((h) => h.assets.some((a) => (a.identifier ?? '').replace(/[\s-]/g, '').toUpperCase() === compact));
+      if (known) {
+        pickClient(known);
+        setAssetId(known.assets.find((a) => (a.identifier ?? '').replace(/[\s-]/g, '').toUpperCase() === compact)!.id);
+        toast.success(`${plate} već postoji: ${clientName(known)}`);
+        return;
+      }
+    }
+    const company = s('company_name');
+    setNewClient((c) => ({
+      ...c,
+      kind: company ? 'company' : 'person',
+      companyName: company || c.companyName,
+      name: [s('first_name'), company ? '' : s('last_name')].filter(Boolean).join(' ') || c.name,
+      oib: /^\d{11}$/.test(s('oib')) ? s('oib') : c.oib,
+    }));
+    setNewAsset((a) => ({
+      ...a,
+      identifier: plate || a.identifier,
+      make: s('make') || a.make,
+      model: s('model') || a.model,
+      year: d.year ? String(d.year) : a.year,
+      vin: s('vin') || a.vin,
+    }));
+    // OIB, VIN and year live behind "Više podataka": open it so they show.
+    if (s('vin') || d.year || s('oib')) setMore(true);
   }
 
   function useQueryAsNew() {
@@ -240,6 +280,7 @@ export function NewJobForm({
           </div>
         ) : (
           <div className="space-y-3">
+            {scan && !isField && vehicles ? <ScanButton kind="prometna" label="Slikaj prometnu dozvolu" onResult={fromRegistration} /> : null}
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
               <Input
@@ -358,6 +399,21 @@ export function NewJobForm({
           <div className="border-t border-line pt-4">
             <h3 className="mb-2 text-sm font-semibold">{vocabulary.asset.one}</h3>
             {client && !usingNewSite ? <AssetChoice assets={visibleAssets} assetId={assetId} onPick={setAssetId} newLabel={vocabulary.asset.new} /> : null}
+            {!assetId && scan ? (
+              <ScanButton
+                kind="plocica"
+                label="Slikaj natpisnu pločicu"
+                className="mb-3"
+                onResult={(d) =>
+                  setNewAsset((a) => ({
+                    ...a,
+                    make: typeof d.make === 'string' && d.make ? d.make : a.make,
+                    model: typeof d.model === 'string' && d.model ? d.model : a.model,
+                    year: d.year ? String(d.year) : a.year,
+                  }))
+                }
+              />
+            ) : null}
             {!assetId ? <NewAssetFields vocabulary={vocabulary} assetTypes={assetTypes} value={newAsset} onChange={setNewAsset} field more={more} /> : null}
           </div>
 

@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { ChevronDown, Plus } from 'lucide-react';
 import { ConfirmButton, DictateButton, Sheet, useAction } from '@/components/client-ui';
+import { ScanButton, type ScanKind } from '@/components/ScanButton';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import type { ActionResult } from '@/lib/action-result';
 import { deleteRecord, savePrivateAmount, saveRecord } from '@/lib/actions/records';
@@ -51,6 +52,13 @@ function fromInput(def: FieldDef, raw: string | boolean): unknown {
 
 type FormState = Record<string, string | boolean>;
 
+// "Slikaj gumu / pločicu": what the photo says (its keys) → the form's fields.
+export interface FormScan {
+  kind: ScanKind;
+  label: string;
+  map: Record<string, string>;
+}
+
 // What was typed into a sheet survives closing it by accident (a swipe, a
 // tap beside it, a phone call): it comes back when the sheet is opened
 // again, until it is saved. Kept per form for this browser tab only.
@@ -81,6 +89,7 @@ export function QuickForm({
   onDone,
   onDelete,
   draftKey,
+  scan,
 }: {
   fields: FieldDef[];
   initial?: Values;
@@ -89,6 +98,7 @@ export function QuickForm({
   onDone?: () => void;
   onDelete?: () => Promise<ActionResult<unknown>>;
   draftKey?: string;
+  scan?: FormScan;
 }) {
   const { pending, run } = useAction();
   const [restored, setRestored] = useState(() => readDraft(draftKey));
@@ -132,6 +142,30 @@ export function QuickForm({
         );
       }}
     >
+      {scan ? (
+        <div className="col-span-2">
+          <ScanButton
+            kind={scan.kind}
+            label={scan.label}
+            onResult={(data) => {
+              // Only what was read and fits the field; a select takes only its own options.
+              setState((s) => {
+                const next = { ...s };
+                for (const [from, to] of Object.entries(scan.map)) {
+                  const v = data[from];
+                  const f = fields.find((x) => x.name === to);
+                  if (v === null || v === undefined || v === '' || !f) continue;
+                  if (f.type === 'select' && !f.options?.some((o) => o.value === String(v))) continue;
+                  next[to] = String(v);
+                }
+                return next;
+              });
+              // Something read into a folded field: unfold so it can be checked.
+              if (Object.entries(scan.map).some(([from, to]) => data[from] != null && data[from] !== '' && fields.find((x) => x.name === to)?.extra)) setMore(true);
+            }}
+          />
+        </div>
+      ) : null}
       {restored ? (
         <p className="col-span-2 flex items-center justify-between gap-2 rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-xs text-fg">
           Vraćeno je ono što ste upisali prije zatvaranja.
@@ -230,6 +264,7 @@ export function RecordSheet({
   trigger,
   label = 'Dodaj',
   deletable,
+  scan,
 }: {
   table: string;
   title: string;
@@ -242,6 +277,7 @@ export function RecordSheet({
   trigger?: ReactNode;
   label?: string;
   deletable?: boolean;
+  scan?: FormScan;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -262,6 +298,7 @@ export function RecordSheet({
           fields={fields}
           initial={initial}
           draftKey={`${table}:${id ?? JSON.stringify(fixed)}`}
+          scan={scan}
           onSubmit={(values) => saveRecord(table, { ...values, ...fixed }, { id, upsertOn, revalidate })}
           onDelete={deletable && id ? () => deleteRecord(table, id, revalidate) : undefined}
           onDone={() => setOpen(false)}

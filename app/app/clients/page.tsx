@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Building2, Search, User } from 'lucide-react';
+import { Building2, Search, Upload, User } from 'lucide-react';
 import { ClientSheet } from '@/components/ClientForms';
-import { EmptyState, Input, PageHeader } from '@/components/ui';
+import { EmptyState, Input, PageHeader, buttonClass } from '@/components/ui';
 import { assetTitle, clientName } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
 import { toIlike } from '@/lib/utils';
@@ -45,12 +45,33 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader title={ctx.pkg.vocabulary.client.many} action={<ClientSheet title={ctx.pkg.vocabulary.client.new} />} />
+      <PageHeader
+        title={ctx.pkg.vocabulary.client.many}
+        action={
+          <div className="flex gap-2">
+            {ctx.isOwner ? (
+              <Link href="/app/clients/uvoz" className={buttonClass('secondary')} aria-label="Uvoz iz Excela ili imenika">
+                <Upload className="size-4" /> <span className="hidden sm:inline">Uvoz</span>
+              </Link>
+            ) : null}
+            <ClientSheet title={ctx.pkg.vocabulary.client.new} />
+          </div>
+        }
+      />
       <form className="relative mb-4" action="/app/clients">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
         <Input name="q" defaultValue={search} placeholder={`Ime, telefon, OIB ili ${ctx.pkg.vocabulary.identifier.toLowerCase()}`} className="pl-9" />
       </form>
-      {clients.length === 0 ? (
+      {clients.length === 0 && !search && ctx.isOwner ? (
+        // A new workshop starts with its existing customers, not from zero.
+        <Link href="/app/clients/uvoz" className="flex items-center gap-4 rounded-2xl border border-accent/40 bg-accent/10 p-5 hover:border-accent">
+          <Upload className="size-8 shrink-0 text-accent" />
+          <span>
+            <span className="block font-semibold">Imate mušterije u Excelu ili u imeniku mobitela?</span>
+            <span className="block text-sm text-muted">Uvezite ih odjednom, s vozilima i telefonima. Ne morate ništa prepisivati.</span>
+          </span>
+        </Link>
+      ) : clients.length === 0 ? (
         <EmptyState title={search ? 'Ništa nije pronađeno' : `Još nema unosa`}>Nova stranka se dodaje i sama pri otvaranju naloga.</EmptyState>
       ) : (
         <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">

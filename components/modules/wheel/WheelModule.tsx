@@ -5,7 +5,7 @@ import { SEASON_LABELS, TIRE_POSITIONS, TREAD_LIMITS, hotelPlace } from '@/confi
 import { formatDate, formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
 import { MoreSections, foldable } from '../more';
-import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet, type FieldDef } from '../kit';
+import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet, type FieldDef, type FormScan } from '../kit';
 import { opts } from '../options';
 import { StorageActions } from './StorageActions';
 
@@ -67,6 +67,14 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
   const showBalancing = show('balansiranje', (balancing ?? []).length > 0);
   const showAlignment = show('geometrija', (alignments ?? []).length > 0);
 
+  const tyreScan: FormScan | undefined = process.env.ANTHROPIC_API_KEY
+    ? {
+        kind: 'guma',
+        label: 'Slikaj bok gume',
+        map: { season: 'season', width: 'width', aspect: 'aspect', rim_diameter: 'rim_diameter', load_index: 'load_index', speed_index: 'speed_index', brand: 'brand', model: 'model' },
+      }
+    : undefined;
+  const dotScan: FormScan | undefined = process.env.ANTHROPIC_API_KEY ? { kind: 'guma', label: 'Slikaj DOT oznaku', map: { dot_week: 'dot_week', dot_year: 'dot_year' } } : undefined;
   const setFields: FieldDef[] = [
     { name: 'season', label: 'Sezona', type: 'select', options: opts(SEASON_LABELS), required: true, half: true },
     { name: 'status', label: 'Gdje je', type: 'select', options: [{ value: 'on_vehicle', label: 'Na vozilu' }, { value: 'stored', label: 'Kod nas' }], half: true, required: true },
@@ -103,6 +111,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
               label="Set"
               initial={{ season: 'winter', status: 'on_vehicle' }}
               fields={setFields}
+              scan={tyreScan}
             />
           }
         />
@@ -133,6 +142,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                         initial={set}
                         deletable
                         fields={setFields}
+                        scan={tyreScan}
                         trigger={
                           <button type="button" className="inline-flex size-9 items-center justify-center rounded-lg text-muted hover:bg-surface2 hover:text-fg" aria-label="Uredi ili obriši set">
                             <Pencil className="size-4" />
@@ -159,6 +169,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                           revalidate={path}
                           fixed={{ set_id: set.id, position: pos.code, measured_at: '__now__' }}
                           initial={tire ?? { damage: 'none' }}
+                          scan={dotScan}
                           trigger={
                             <button
                               type="button"
