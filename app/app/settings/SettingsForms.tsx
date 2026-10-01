@@ -252,7 +252,7 @@ export function TeamManager({ me, staff }: { me: string; staff: { id: string; na
           <Field label="E-mail za prijavu">
             <Input type="email" value={v.email} onChange={(e) => setV((s) => ({ ...s, email: e.target.value }))} />
           </Field>
-          <Field label="Početna lozinka" hint="Barem 8 znakova. Djelatnik je kasnije može promijeniti preko vas.">
+          <Field label="Početna lozinka" hint="Barem 8 znakova. Djelatnik je kasnije može promijeniti preko Vas.">
             <Input value={v.password} onChange={(e) => setV((s) => ({ ...s, password: e.target.value }))} />
           </Field>
           <Segmented

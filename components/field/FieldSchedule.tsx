@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { AlertTriangle, CalendarPlus, KeyRound, MapPin, Route } from 'lucide-react';
-import { Badge, Card, EmptyState, buttonClass } from '@/components/ui';
+import { AlertTriangle, CalendarPlus, KeyRound, MapPin } from 'lucide-react';
+import { Badge, Card, EmptyState } from '@/components/ui';
 import { PHASE_TONE, hasModule, phaseLabel, type JobPhase } from '@/config/tenant.config';
 import { dayRouteLink } from '@/lib/contact';
 import { assetTitle, clientName, plural } from '@/lib/format';
@@ -8,6 +8,7 @@ import type { WorkshopContext } from '@/lib/session';
 import { addDays, dayOf, formatDayLabel, formatTime, todayInZagreb, weekStart, zagrebMidnight } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { FieldActions, ScheduleSheet } from './FieldActions';
+import { ScheduleShell } from './ScheduleShell';
 
 const VISIT_FIELDS =
   'id, number, phase, complaint, is_urgent, scheduled_start, scheduled_end, departed_at, arrived_at, arrived_lat, arrived_lng, left_at, customer_notified_at, report_token, report_shared_at, assigned_to, client:clients(kind, first_name, last_name, company_name, phone), asset:assets(asset_type, make, model, identifier), site:sites(label, address, city, lat, lng, access_notes, contact_phone), assignee:profiles(full_name)';
@@ -87,10 +88,6 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
   const open = list.filter((v) => !v.left_at && v.site);
   const route = dayRouteLink(open.map((v) => v.site!));
   const staffList = (staff ?? []).map((s) => ({ id: s.id as string, name: (s.full_name as string | null) ?? 'Bez imena' }));
-  const href = (params: { d?: string; t?: string }) => {
-    const q = new URLSearchParams({ view: 'dan', d: params.d ?? day, t: params.t ?? tech });
-    return `/app?${q.toString()}`;
-  };
   const fieldCtx = (v: Visit) => ({
     workshopName: ctx.tenant.name,
     techName: v.assignee?.full_name ?? ctx.profile.full_name ?? 'Tehničar',
@@ -100,54 +97,32 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
     isOwner: ctx.isOwner,
   });
 
-  return (
-    <div className="space-y-5">
-      {/* Week strip */}
-      <div className="flex items-center gap-2">
-        <Link href={href({ d: addDays(monday, -7) })} className={buttonClass('ghost', 'sm', 'px-2')} aria-label="Prethodni tjedan">
-          ←
-        </Link>
-        <div className="grid flex-1 grid-cols-7 gap-1">
-          {Array.from({ length: 7 }, (_, i) => addDays(monday, i)).map((d) => {
-            const label = formatDayLabel(d);
-            const n = counts.get(d) ?? 0;
-            return (
-              <Link
-                key={d}
-                href={href({ d })}
-                className={cn(
-                  'flex flex-col items-center rounded-xl border py-1.5 text-xs transition-colors',
-                  d === day ? 'border-accent bg-accent/15 text-fg' : 'border-line text-muted hover:text-fg',
-                  d === today && d !== day && 'border-faint/60'
-                )}
-              >
-                <span className="uppercase">{label.weekday}</span>
-                <span className="font-semibold tabular">{label.date}</span>
-                <span className={cn('mt-0.5 h-4 text-[10px] tabular', n ? 'text-accent' : 'text-transparent')}>{n || 0}</span>
-              </Link>
-            );
-          })}
-        </div>
-        <Link href={href({ d: addDays(monday, 7) })} className={buttonClass('ghost', 'sm', 'px-2')} aria-label="Sljedeći tjedan">
-          →
-        </Link>
-      </div>
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const monthName = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('hr-HR', { month: 'long', timeZone: 'UTC' });
+  const [firstMonth, lastMonth] = [monthName(weekDays[0]), monthName(weekDays[6])];
+  const monthLabel = `${firstMonth === lastMonth ? firstMonth : `${firstMonth} – ${lastMonth}`} ${weekDays[6].slice(0, 4)}.`;
+  const dayTitle = new Date(`${day}T12:00:00Z`).toLocaleDateString('hr-HR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
 
-      {/* Technician filter + day actions */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="no-scrollbar -mx-4 flex flex-1 gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-          {[{ id: 'all', name: 'Svi' }, { id: 'me', name: 'Moji' }, ...(ctx.isOwner ? staffList.filter((s) => s.id !== ctx.user.id) : [])].map((s) => (
-            <Link key={s.id} href={href({ t: s.id })} className={cn(buttonClass(tech === s.id ? 'primary' : 'secondary', 'sm'), 'shrink-0 rounded-full')}>
-              {s.name.split(' ')[0]}
-            </Link>
-          ))}
-        </div>
-        {route ? (
-          <a href={route} target="_blank" rel="noopener noreferrer" className={buttonClass('secondary', 'sm')}>
-            <Route className="size-4" /> Ruta dana ({open.length})
-          </a>
-        ) : null}
-      </div>
+  return (
+    <ScheduleShell
+      days={weekDays.map((d) => ({ d, weekday: formatDayLabel(d).weekday, num: Number(d.slice(8, 10)), count: counts.get(d) ?? 0 }))}
+      day={day}
+      today={today}
+      monthLabel={monthLabel}
+      prevWeek={addDays(monday, -7)}
+      nextWeek={addDays(monday, 7)}
+      techs={[{ id: 'all', name: 'Svi' }, { id: 'me', name: 'Moji' }, ...(ctx.isOwner ? staffList.filter((s) => s.id !== ctx.user.id) : [])].map((s) => ({ id: s.id, name: s.name.split(' ')[0] }))}
+      tech={tech}
+      routeLink={route}
+      routeCount={open.length}
+    >
+    <div className="space-y-5">
+      <h2 className="flex items-baseline justify-between gap-2">
+        <span className="text-lg font-semibold first-letter:uppercase">{day === today ? `Danas, ${dayTitle.split(', ')[1] ?? dayTitle}` : dayTitle}</span>
+        <span className="text-sm text-muted">
+          {list.length} {plural(list.length, 'posjet', 'posjeta', 'posjeta')}
+        </span>
+      </h2>
 
       {showPlans && (plans as { count: number | null }).count ? (
         <Link href="/app/module" className="flex items-center gap-2 rounded-xl border border-warn/40 bg-warn/10 px-4 py-3 text-sm">
@@ -225,5 +200,6 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
         </section>
       ) : null}
     </div>
+    </ScheduleShell>
   );
 }

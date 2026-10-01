@@ -7,6 +7,7 @@ import { MoreSections, foldable } from '../more';
 import { RecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { ProtocolSheet } from './ProtocolSheet';
+import { StoreSheet } from './StoreSheet';
 
 const HULL = { grp: 'Stakloplastika', aluminium: 'Aluminij', wood: 'Drvo', inflatable: 'Gumenjak', steel: 'Čelik', other: 'Ostalo' };
 const STROKE = { '2T': 'Dvotaktni', '4T': 'Četverotaktni' };
@@ -26,7 +27,8 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
     s.from('moto_storage_locations').select('id, area, slot, kind').order('area').order('slot'),
     s.from('inspections').select('id, template_code, completed_at').eq('job_id', job.id),
   ]);
-  const locationLabel = new Map((locations ?? []).map((l) => [l.id as string, `${l.area} · ${l.slot}`]));
+  // A place typed in words has "—" as its slot and is shown by its words alone.
+  const locationLabel = new Map((locations ?? []).map((l) => [l.id as string, l.slot === '—' ? (l.area as string) : `${l.area} · ${l.slot}`]));
   const isOutboard = type === 'outboard' || type === 'inboard';
   const protocolTemplate = (kind: string) => (kind === 'dewinterize' ? 'moto.dewinterize' : isOutboard || BOATS.includes(type) ? 'moto.winterize_outboard' : 'moto.winterize_moto');
 
@@ -208,20 +210,8 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
           }
           subtitle={stay ? `${locationLabel.get(stay.location_id as string) ?? ''} · od ${formatDate(stay.from_date as string)}` : 'Zimski smještaj u hali ili na otvorenom'}
           action={
-            !stay && locations?.length ? (
-              <RecordSheet
-                table="moto_storage_stays"
-                title="Smještaj"
-                revalidate={path}
-                fixed={{ asset_id: job.asset.id }}
-                label="Smjesti"
-                initial={{ from_date: new Date().toISOString().slice(0, 10) }}
-                fields={[
-                  { name: 'location_id', label: 'Mjesto', type: 'select', options: (locations ?? []).map((l) => ({ value: l.id as string, label: locationLabel.get(l.id as string)! })), required: true },
-                  { name: 'from_date', label: 'Od', type: 'date', half: true, required: true },
-                  { name: 'until_date', label: 'Do (planirano)', type: 'date', half: true },
-                ]}
-              />
+            !stay && !locked ? (
+              <StoreSheet assetId={job.asset.id} revalidate={path} locations={(locations ?? []).map((l) => ({ value: l.id as string, label: locationLabel.get(l.id as string)! }))} />
             ) : null
           }
         />
@@ -234,16 +224,8 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
                 Izdaj sa skladišta
               </RecordButton>
             </div>
-          ) : locations?.length ? (
-            <p className="text-muted">Nije na skladištu.</p>
           ) : (
-            <p className="text-muted">
-              Dodajte mjesta u izborniku{' '}
-              <Link href="/app/module" className="text-accent">
-                {ctx.pkg.modulePage}
-              </Link>
-              .
-            </p>
+            <p className="text-muted">Nije na skladištu.</p>
           )}
           {stay && ((stay.battery_checks as unknown[]) ?? []).length ? (
             <p className="mt-2 text-xs text-faint">Provjere akumulatora: {((stay.battery_checks as { at: string; v: number }[]) ?? []).map((b) => `${formatDateTime(b.at)} ${b.v} V`).join(' · ')}</p>

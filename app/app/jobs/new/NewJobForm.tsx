@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Building2, Check, ChevronDown, MapPin, Search, User, X } from 'lucide-react';
-import { DictateButton, Segmented } from '@/components/client-ui';
+import { DictateButton, DictateInput, Segmented } from '@/components/client-ui';
 import { Button, Card, Field, Input, Select, Textarea } from '@/components/ui';
 import type { AssetType, MeterUnit, Vocabulary } from '@/config/tenant.config';
 import { createJob } from '@/lib/actions/jobs';
@@ -274,18 +274,19 @@ export function NewJobForm({
                 { value: 'company', label: 'Tvrtka / suradnik' },
               ]}
             />
-            <div className="grid grid-cols-2 gap-3">
+            {/* One field per row on a phone, so there is room for the microphone. */}
+            <div className="grid gap-3 sm:grid-cols-2">
               {newClient.kind === 'company' ? (
                 <Field label="Naziv tvrtke">
-                  <Input value={newClient.companyName} onChange={(e) => setNewClient((c) => ({ ...c, companyName: e.target.value }))} />
+                  <DictateInput value={newClient.companyName} onValue={(companyName) => setNewClient((c) => ({ ...c, companyName }))} />
                 </Field>
               ) : (
                 <Field label="Ime i prezime">
-                  <Input value={newClient.name} autoComplete="off" onChange={(e) => setNewClient((c) => ({ ...c, name: e.target.value }))} />
+                  <DictateInput mode="name" value={newClient.name} autoComplete="off" onValue={(name) => setNewClient((c) => ({ ...c, name }))} />
                 </Field>
               )}
               <Field label="Telefon">
-                <Input type="tel" value={newClient.phone} onChange={(e) => setNewClient((c) => ({ ...c, phone: e.target.value }))} />
+                <DictateInput mode="phone" type="tel" value={newClient.phone} onValue={(phone) => setNewClient((c) => ({ ...c, phone }))} />
               </Field>
             </div>
             {more ? (
@@ -334,10 +335,10 @@ export function NewJobForm({
             <div className="space-y-3">
               <div className="grid grid-cols-[2fr_1fr] gap-3">
                 <Field label="Adresa">
-                  <Input value={newSite.address} onChange={(e) => setNewSite((s) => ({ ...s, address: e.target.value }))} placeholder="Ulica i broj" autoComplete="street-address" />
+                  <DictateInput value={newSite.address} onValue={(address) => setNewSite((s) => ({ ...s, address }))} placeholder="Ulica i broj" autoComplete="street-address" />
                 </Field>
                 <Field label="Grad">
-                  <Input value={newSite.city} onChange={(e) => setNewSite((s) => ({ ...s, city: e.target.value }))} />
+                  <DictateInput mode="name" value={newSite.city} onValue={(city) => setNewSite((s) => ({ ...s, city }))} />
                 </Field>
               </div>
               {more ? (
@@ -535,13 +536,18 @@ function NewAssetFields({
     <div className={cn('space-y-3', !field && 'mt-4 border-t border-line pt-4')}>
       <div className="grid grid-cols-2 gap-3">
         <Field label={field ? 'Gdje je (npr. Dnevni boravak)' : vocabulary.identifier} className="col-span-2">
-          <Input value={value.identifier} className={cn(!field && 'font-mono uppercase')} onChange={(e) => onChange((a) => ({ ...a, identifier: e.target.value }))} />
+          <DictateInput
+            mode={field ? 'text' : 'plate'}
+            value={value.identifier}
+            className={cn(!field && 'font-mono uppercase')}
+            onValue={(identifier) => onChange((a) => ({ ...a, identifier }))}
+          />
         </Field>
         <Field label="Marka">
-          <Input value={value.make} onChange={(e) => onChange((a) => ({ ...a, make: e.target.value }))} placeholder={field ? 'npr. Daikin' : undefined} />
+          <DictateInput mode="name" value={value.make} onValue={(make) => onChange((a) => ({ ...a, make }))} placeholder={field ? 'npr. Daikin' : undefined} />
         </Field>
         <Field label="Model">
-          <Input value={value.model} onChange={(e) => onChange((a) => ({ ...a, model: e.target.value }))} placeholder={field ? 'npr. FTXP35M' : undefined} />
+          <DictateInput mode="name" value={value.model} onValue={(model) => onChange((a) => ({ ...a, model }))} placeholder={field ? 'npr. FTXP35M' : undefined} />
         </Field>
       </div>
       {more ? (

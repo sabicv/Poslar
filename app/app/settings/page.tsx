@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
-import { Badge, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
+import { LogOut } from 'lucide-react';
+import { Badge, Button, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
+import { signOut } from '@/lib/actions/auth';
 import { hasModule } from '@/config/tenant.config';
 import { formatDate } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
@@ -30,7 +32,17 @@ export default async function SettingsPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-4">
           <Card>
-            <CardHeader title="Moj račun" subtitle={ctx.user.email} />
+            <CardHeader
+              title="Moj račun"
+              subtitle={ctx.user.email}
+              action={
+                <form action={signOut}>
+                  <Button type="submit" size="sm" variant="secondary">
+                    <LogOut className="size-4" /> Odjava
+                  </Button>
+                </form>
+              }
+            />
             <div className="p-4">
               <ProfileForm
                 fullName={ctx.profile.full_name ?? ''}

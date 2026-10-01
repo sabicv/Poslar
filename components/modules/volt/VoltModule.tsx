@@ -44,7 +44,7 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
     s.from('volt_drain_sessions').select('*, readings:volt_drain_readings(t_offset_min, current_ma, event)').eq('job_id', job.id).order('started_at'),
     s.from('volt_module_interventions').select('*').eq('job_id', job.id).order('performed_at'),
     s.from('volt_keys').select('*').eq('asset_id', job.asset.id).order('created_at', { ascending: false }),
-    s.from('attachments').select('id, caption, path, created_at').eq('job_id', job.id).order('created_at', { ascending: false }),
+    s.from('attachments').select('id, caption, path, mime, created_at').eq('job_id', job.id).order('created_at', { ascending: false }),
     s.from('volt_dtc_custom').select('code, description_hr, causes, tests'),
   ]);
 
@@ -62,7 +62,11 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
       ).data ?? []
     : [];
   const customByCode = new Map((custom.data ?? []).map((c) => [c.code as string, c]));
-  const fileOptions = (files.data ?? []).map((f) => ({ value: f.id as string, label: (f.caption as string | null) ?? (f.path as string).split('/').pop()! }));
+  // "Datoteka · 30. 09. 2026. 14:20" instead of a stored file name nobody recognises.
+  const fileOptions = (files.data ?? []).map((f) => ({
+    value: f.id as string,
+    label: (f.caption as string | null) || `${String(f.mime ?? '').startsWith('image/') ? 'Fotografija' : 'Datoteka'} · ${formatDateTime(f.created_at as string)}`,
+  }));
   const readOnly = locked;
   // Core: fault codes and the battery. The rest shows with "Više" or once it has data.
   const { show, hidden } = foldable(extras);
@@ -165,7 +169,7 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
                             ) : null}
                             {cases.length ? (
                               <p className="mt-2 text-xs text-muted">
-                                Iz vaše arhive: {cases.slice(0, 3).map((c) => c.confirmed_cause as string).join(' · ')}
+                                Iz Vaše arhive: {cases.slice(0, 3).map((c) => c.confirmed_cause as string).join(' · ')}
                               </p>
                             ) : null}
                           </li>

@@ -147,7 +147,7 @@ export function AppShell({
         <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8 print:max-w-none print:p-0">{children}</main>
 
         {/* Phone bottom navigation */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 pb-safe backdrop-blur-md print:hidden lg:hidden">
+        <nav className="hide-on-type fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 pb-safe backdrop-blur-md print:hidden lg:hidden">
           <div className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
             {items.map((item) => (
               <Link

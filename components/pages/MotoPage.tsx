@@ -18,7 +18,7 @@ export async function MotoPage({ ctx }: { ctx: WorkshopContext }) {
   ]);
   type Stay = { id: string; location_id: string; from_date: string; until_date: string | null; asset: { id: string; identifier: string | null; make: string | null; model: string | null; asset_type: keyof typeof ASSET_TYPE_LABELS; client: never } | null };
   const rows = (stays ?? []) as unknown as Stay[];
-  const where = new Map((locations ?? []).map((l) => [l.id as string, `${l.area} · ${l.slot}`]));
+  const where = new Map((locations ?? []).map((l) => [l.id as string, l.slot === '—' ? (l.area as string) : `${l.area} · ${l.slot}`]));
   const occupied = new Set(rows.map((r) => r.location_id));
 
   return (
@@ -77,7 +77,7 @@ export async function MotoPage({ ctx }: { ctx: WorkshopContext }) {
           <div className="flex flex-wrap gap-1.5 p-4">
             {locations.map((l) => (
               <span key={l.id as string} className={`rounded-md border px-2 py-1 text-xs ${occupied.has(l.id as string) ? 'border-accent/40 bg-accent/10' : 'border-line text-faint'}`}>
-                {l.area} · {l.slot}
+                {where.get(l.id as string)}
               </span>
             ))}
           </div>

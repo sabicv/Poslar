@@ -109,7 +109,7 @@ export async function AirPage({ ctx, year: requestedYear }: { ctx: WorkshopConte
                         <PlanReminderButton
                           planId={plan.id}
                           phone={phone}
-                          message={`Poštovani, bliži se ${plan.title.toLowerCase()}${place ? ` na adresi ${place}` : ''} (rok ${formatDate(plan.next_due_date)}). Odgovorite s danom i vremenom koje vam odgovara. — ${ctx.tenant.name}${ctx.tenant.phone ? `, ${ctx.tenant.phone}` : ''}`}
+                          message={`Poštovani, bliži se ${plan.title.toLowerCase()}${place ? ` na adresi ${place}` : ''} (rok ${formatDate(plan.next_due_date)}). Odgovorite s danom i vremenom koje Vam odgovara. — ${ctx.tenant.name}${ctx.tenant.phone ? `, ${ctx.tenant.phone}` : ''}`}
                         />
                         <Link href={`/app/jobs/new?plan=${plan.id}`} className={buttonClass('primary', 'sm')}>
                           <CalendarPlus className="size-4" /> Zakaži
@@ -147,7 +147,7 @@ export async function AirPage({ ctx, year: requestedYear }: { ctx: WorkshopConte
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-faint">
+                  <tr className="whitespace-nowrap text-left text-xs text-faint">
                     <th className="px-4 py-2 font-normal">Tvar</th>
                     <th className="px-4 py-2 text-right font-normal">Napunjeno kg</th>
                     <th className="px-4 py-2 text-right font-normal">Povrat kg</th>

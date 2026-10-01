@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { Disc3, Gauge, QrCode, Ruler, Wrench } from 'lucide-react';
+import { Disc3, Gauge, Pencil, QrCode, Ruler, Wrench } from 'lucide-react';
 import { Badge, Card, CardHeader } from '@/components/ui';
-import { SEASON_LABELS, TIRE_POSITIONS, TREAD_LIMITS } from '@/config/packages/wheel';
+import { SEASON_LABELS, TIRE_POSITIONS, TREAD_LIMITS, hotelPlace } from '@/config/packages/wheel';
 import { formatDate, formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
 import { MoreSections, foldable } from '../more';
-import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet } from '../kit';
+import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet, type FieldDef } from '../kit';
 import { opts } from '../options';
 import { StorageActions } from './StorageActions';
 
@@ -44,7 +44,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
     s.from('wheel_alignments').select('*, values:wheel_alignment_values(*)').eq('job_id', job.id).order('performed_at'),
   ]);
 
-  const locationLabel = new Map((locations ?? []).map((l) => [l.id as string, `${l.sector}-${l.rack}-${l.shelf}-${l.slot}`]));
+  const locationLabel = new Map((locations ?? []).map((l) => [l.id as string, hotelPlace(l)]));
   const occupied = new Set(
     (sets ?? []).flatMap((set) => ((set.stays as { location_id: string; checked_out_at: string | null }[]) ?? []).filter((st) => !st.checked_out_at).map((st) => st.location_id))
   );
@@ -67,6 +67,23 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
   const showBalancing = show('balansiranje', (balancing ?? []).length > 0);
   const showAlignment = show('geometrija', (alignments ?? []).length > 0);
 
+  const setFields: FieldDef[] = [
+    { name: 'season', label: 'Sezona', type: 'select', options: opts(SEASON_LABELS), required: true, half: true },
+    { name: 'status', label: 'Gdje je', type: 'select', options: [{ value: 'on_vehicle', label: 'Na vozilu' }, { value: 'stored', label: 'Kod nas' }], half: true, required: true },
+    { name: 'width', label: 'Širina', type: 'number', placeholder: '205', half: true },
+    { name: 'aspect', label: 'Visina', type: 'number', placeholder: '55', half: true },
+    { name: 'rim_diameter', label: 'Promjer', type: 'number', placeholder: '16', half: true },
+    { name: 'load_index', label: 'Indeks nosivosti', placeholder: '91', half: true, extra: true },
+    { name: 'speed_index', label: 'Indeks brzine', placeholder: 'V', half: true, extra: true },
+    { name: 'brand', label: 'Marka', half: true },
+    { name: 'model', label: 'Model', extra: true },
+    { name: 'on_rims', label: 'Na naplatcima', type: 'checkbox', half: true },
+    { name: 'bolts_included', label: 'S vijcima', type: 'checkbox', half: true, extra: true },
+    { name: 'rim_material', label: 'Naplatci', type: 'select', options: [{ value: 'alloy', label: 'Alu' }, { value: 'steel', label: 'Čelični' }], half: true, extra: true },
+    { name: 'lock_key_location', label: 'Ključ sig. vijaka', placeholder: 'npr. u pretincu', half: true, extra: true },
+    { name: 'notes', label: 'Napomena', type: 'textarea' },
+  ];
+
   return (
     <div className="space-y-4">
       {/* Tyre sets and hotel */}
@@ -85,27 +102,12 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
               fixed={{ client_id: job.client.id, asset_id: job.asset.id }}
               label="Set"
               initial={{ season: 'winter', status: 'on_vehicle' }}
-              fields={[
-                { name: 'season', label: 'Sezona', type: 'select', options: opts(SEASON_LABELS), required: true, half: true },
-                { name: 'status', label: 'Gdje je', type: 'select', options: [{ value: 'on_vehicle', label: 'Na vozilu' }, { value: 'stored', label: 'Kod nas' }], half: true, required: true },
-                { name: 'width', label: 'Širina', type: 'number', placeholder: '205', half: true },
-                { name: 'aspect', label: 'Visina', type: 'number', placeholder: '55', half: true },
-                { name: 'rim_diameter', label: 'Promjer', type: 'number', placeholder: '16', half: true },
-                { name: 'load_index', label: 'Indeks nosivosti', placeholder: '91', half: true, extra: true },
-                { name: 'speed_index', label: 'Indeks brzine', placeholder: 'V', half: true, extra: true },
-                { name: 'brand', label: 'Marka', half: true },
-                { name: 'model', label: 'Model', extra: true },
-                { name: 'on_rims', label: 'Na naplatcima', type: 'checkbox', half: true },
-                { name: 'bolts_included', label: 'S vijcima', type: 'checkbox', half: true, extra: true },
-                { name: 'rim_material', label: 'Naplatci', type: 'select', options: [{ value: 'alloy', label: 'Alu' }, { value: 'steel', label: 'Čelični' }], half: true, extra: true },
-                { name: 'lock_key_location', label: 'Ključ sig. vijaka', placeholder: 'npr. u pretincu', half: true, extra: true },
-                { name: 'notes', label: 'Napomena', type: 'textarea' },
-              ]}
+              fields={setFields}
             />
           }
         />
         {!sets?.length ? (
-          <p className="px-4 py-4 text-sm text-muted">Nema setova. Dodajte set koji je na vozilu i onaj koji ostaje kod vas na čuvanju. Šara se mjeri u tri točke, a boja se sama odredi prema sezoni.</p>
+          <p className="px-4 py-4 text-sm text-muted">Nema setova. Dodajte set koji je na vozilu i onaj koji ostaje kod Vas na čuvanju. Šara se mjeri u tri točke, a boja se sama odredi prema sezoni.</p>
         ) : (
           <div className="divide-y divide-line">
             {sets.map((set) => {
@@ -121,6 +123,23 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                     <Link href={`/app/module/label/${set.id}`} className="ml-auto inline-flex items-center gap-1 text-xs text-accent" target="_blank">
                       <QrCode className="size-3.5" /> {set.qr_code as string}
                     </Link>
+                    {/* Fix or remove a set entered by mistake (its tyres and hotel stays go with it). */}
+                    {!locked ? (
+                      <RecordSheet
+                        table="wheel_tire_sets"
+                        title="Set guma"
+                        id={set.id as string}
+                        revalidate={path}
+                        initial={set}
+                        deletable
+                        fields={setFields}
+                        trigger={
+                          <button type="button" className="inline-flex size-9 items-center justify-center rounded-lg text-muted hover:bg-surface2 hover:text-fg" aria-label="Uredi ili obriši set">
+                            <Pencil className="size-4" />
+                          </button>
+                        }
+                      />
+                    ) : null}
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">

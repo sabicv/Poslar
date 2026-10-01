@@ -27,6 +27,9 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  // Android: the keyboard shrinks the page instead of covering it, so a
+  // sheet's fields and its Spremi button stay above the keyboard.
+  interactiveWidget: 'resizes-content',
 };
 
 // Applied before first paint so a light-theme user never sees a dark flash.

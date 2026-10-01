@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pencil, Plus } from 'lucide-react';
-import { ConfirmButton, DictateButton, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
+import { ConfirmButton, DictateButton, DictateInput, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import type { AssetType, MeterUnit } from '@/config/tenant.config';
 import { deleteAsset, deleteClient, saveAsset, saveClient } from '@/lib/actions/clients';
@@ -68,20 +68,20 @@ export function ClientSheet({ client, title, isOwner }: { client?: Client; title
         <div className="grid grid-cols-2 gap-3">
           {company ? (
             <Field label="Naziv tvrtke" className="col-span-2">
-              <Input value={v.company_name ?? ''} onChange={set('company_name')} />
+              <DictateInput value={v.company_name ?? ''} onValue={(company_name) => setV((s) => ({ ...s, company_name }))} />
             </Field>
           ) : (
             <>
-              <Field label="Ime">
-                <Input value={v.first_name ?? ''} onChange={set('first_name')} />
+              <Field label="Ime" className="col-span-2 sm:col-span-1">
+                <DictateInput mode="name" value={v.first_name ?? ''} onValue={(first_name) => setV((s) => ({ ...s, first_name }))} />
               </Field>
-              <Field label="Prezime">
-                <Input value={v.last_name ?? ''} onChange={set('last_name')} />
+              <Field label="Prezime" className="col-span-2 sm:col-span-1">
+                <DictateInput mode="name" value={v.last_name ?? ''} onValue={(last_name) => setV((s) => ({ ...s, last_name }))} />
               </Field>
             </>
           )}
           <Field label="Telefon" className="col-span-2">
-            <Input type="tel" value={v.phone ?? ''} onChange={set('phone')} />
+            <DictateInput mode="phone" type="tel" value={v.phone ?? ''} onValue={(phone) => setV((s) => ({ ...s, phone }))} />
           </Field>
           {more ? (
             <>

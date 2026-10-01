@@ -67,6 +67,7 @@ export function LinesEditor({
   const { pending, run } = useAction();
   const [editing, setEditing] = useState<JobLine | null>(null);
   const [adding, setAdding] = useState(false);
+  const [saves, setSaves] = useState(0);
   const [template, setTemplate] = useState('');
   const [link, setLink] = useState<string | null>(null);
 
@@ -258,13 +259,16 @@ export function LinesEditor({
         </Card>
       ) : null}
 
+      {/* The key changes only after a save, so a sheet closed by accident
+          keeps what was typed into it. */}
       <LineSheet
-        key={editing?.id ?? (adding ? 'new' : 'none')}
+        key={`${editing?.id ?? 'new'}-${saves}`}
         open={adding || editing !== null}
         onClose={() => {
           setAdding(false);
           setEditing(null);
         }}
+        onSaved={() => setSaves((n) => n + 1)}
         jobId={jobId}
         line={editing}
         price={editing ? prices[editing.id] : undefined}
@@ -278,6 +282,7 @@ export function LinesEditor({
 function LineSheet({
   open,
   onClose,
+  onSaved,
   jobId,
   line,
   price,
@@ -286,6 +291,7 @@ function LineSheet({
 }: {
   open: boolean;
   onClose: () => void;
+  onSaved: () => void;
   jobId: string;
   line: JobLine | null;
   price?: Price;
@@ -305,7 +311,12 @@ function LineSheet({
   // Core: kind, what, how many, price. Unit, discount, VAT and the customer
   // approval flow: "Više polja" (open when a line already uses them).
   const defaultUnit = (k: LineKind) => (k === 'labor' ? 'h' : k === 'material' ? 'l' : 'kom');
-  const [more, setMore] = useState(() => Boolean(line && (line.approval !== 'approved' || line.unit !== defaultUnit(line.kind))) || Boolean(price && (Number(price.discount_pct) !== 0 || Number(price.vat_rate) !== 25)));
+  const [more, setMore] = useState(() => Boolean(line && line.unit !== defaultUnit(line.kind)) || Boolean(price && (Number(price.discount_pct) !== 0 || Number(price.vat_rate) !== 25)));
+
+  function saved() {
+    onSaved();
+    onClose();
+  }
 
   function save() {
     const values = { kind, description, qty: num(qty) || 0, unit: unit || 'kom', approval, priority: priority || null };
@@ -317,10 +328,10 @@ function LineSheet({
           if (!result.ok || !isOwner || !priceValues) return result;
           return setLinePrice(jobId, line.id, priceValues);
         },
-        { success: 'Spremljeno', onDone: onClose }
+        { success: 'Spremljeno', onDone: saved }
       );
     } else {
-      run(() => addLine(jobId, values, isOwner ? priceValues : undefined), { success: 'Stavka dodana', onDone: onClose });
+      run(() => addLine(jobId, values, isOwner ? priceValues : undefined), { success: 'Stavka dodana', onDone: saved });
     }
   }
 
@@ -377,6 +388,9 @@ function LineSheet({
             </>
           ) : null}
         </div>
+        </>
+        ) : null}
+        {/* Always in view: whether it is being done or first offered to the customer. */}
         <Field label="Status">
           <Segmented
             value={approval}
@@ -389,6 +403,8 @@ function LineSheet({
           />
         </Field>
         {approval === 'proposed' ? (
+          <>
+          <p className="-mt-2 text-xs text-muted">Mušterija dobije poveznicu i sama odobri ili odbije stavku jednim dodirom; odluka se ovdje upiše sama.</p>
           <Field label="Važnost">
             <Segmented
               value={priority || null}
@@ -400,8 +416,7 @@ function LineSheet({
               ]}
             />
           </Field>
-        ) : null}
-        </>
+          </>
         ) : null}
         <MoreToggle open={more} onToggle={() => setMore((m) => !m)} />
         <div className="flex gap-2 pt-2">

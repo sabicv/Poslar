@@ -4,7 +4,7 @@ import { RecordSheet } from '@/components/modules/kit';
 import { StorageActions } from '@/components/modules/wheel/StorageActions';
 import { tireSize, treadTone } from '@/components/modules/wheel/WheelModule';
 import { Badge, Card, CardHeader, EmptyState, Input } from '@/components/ui';
-import { SEASON_LABELS } from '@/config/packages/wheel';
+import { SEASON_LABELS, hotelPlace } from '@/config/packages/wheel';
 import { clientName, formatDate } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import { toIlike } from '@/lib/utils';
@@ -55,7 +55,7 @@ export async function WheelPage({ ctx, q }: { ctx: WorkshopContext; q: string })
 
   const label = (id: string) => {
     const l = (locations ?? []).find((x) => x.id === id);
-    return l ? `${l.sector}-${l.rack}-${l.shelf}-${l.slot}` : '—';
+    return l ? hotelPlace(l) : '—';
   };
   const occupied = new Set(((stays ?? []) as unknown as Stay[]).map((s) => s.location_id));
   const capacity = (locations ?? []).length;

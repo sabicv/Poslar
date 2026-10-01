@@ -112,3 +112,11 @@ export const wheel: PackageConfig = {
   moduleTab: 'Gume i hotel',
   modulePage: 'Hotel za gume',
 };
+
+// "A-2-3-1" for a regular rack place; a place typed by hand in words
+// ("Hala 2, kod vrata") is stored with 1-1-1 and shown by its words alone.
+export function hotelPlace(l: { sector: unknown; rack: unknown; shelf: unknown; slot: unknown }): string {
+  const sector = String(l.sector);
+  const typed = Number(l.rack) === 1 && Number(l.shelf) === 1 && Number(l.slot) === 1 && !/^[A-Z0-9]{1,3}$/i.test(sector);
+  return typed ? sector : `${sector}-${l.rack}-${l.shelf}-${l.slot}`;
+}

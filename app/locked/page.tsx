@@ -20,7 +20,7 @@ const TEXT = {
   },
   no_workshop: {
     title: 'Račun nije povezan s radionicom',
-    body: 'Ovaj račun nema radionicu. Ako ste radnik, zamolite voditelja servisa da vas doda u Postavke → Tim.',
+    body: 'Ovaj račun nema radionicu. Ako ste radnik, zamolite voditelja servisa da Vas doda u Postavke → Tim.',
   },
 };
 

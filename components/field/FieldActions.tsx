@@ -71,7 +71,7 @@ export function FieldActions({ job, site, ctx, variant = 'card' }: { job: FieldJ
 
   function shareReport(channel: 'whatsapp' | 'copy') {
     const greeting = ctx.clientFirstName ? `Poštovani ${vocativeHR(ctx.clientFirstName)}, ` : 'Poštovani, ';
-    const message = `${greeting}posao na vašoj adresi je završen. Izvještaj s fotografijama: ${reportUrl} — ${ctx.workshopName}`;
+    const message = `${greeting}posao na Vašoj adresi je završen. Izvještaj s fotografijama: ${reportUrl} — ${ctx.workshopName}`;
     if (channel === 'whatsapp') window.open(whatsappLink(phone, message), '_blank', 'noopener');
     else void copyText(reportUrl).then((ok) => (ok ? toast.success('Poveznica kopirana') : toast.error('Kopiranje nije uspjelo — označite poveznicu i kopirajte')));
     run(() => markReportShared(job.id));

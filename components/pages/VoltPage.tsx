@@ -36,7 +36,7 @@ export async function VoltPage({ ctx, q }: { ctx: WorkshopContext; q: string }) 
 
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted">
-          {DTC_CODES.length} kodova u knjižnici · {(custom ?? []).length} vaših · {(solved ?? []).length} riješenih slučajeva
+          {DTC_CODES.length} kodova u knjižnici · {(custom ?? []).length} Vaših · {(solved ?? []).length} riješenih slučajeva
         </p>
         <RecordSheet
           table="volt_dtc_custom"
@@ -78,7 +78,7 @@ export async function VoltPage({ ctx, q }: { ctx: WorkshopContext; q: string }) 
                 <div className="space-y-3 p-4 text-sm">
                   {list.length ? (
                     <div>
-                      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-ok">Na vašim nalozima bilo je</p>
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-ok">Na Vašim nalozima bilo je</p>
                       <ul className="space-y-1">
                         {list.slice(0, 5).map((c, i) => (
                           <li key={i}>

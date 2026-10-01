@@ -2,9 +2,17 @@
 
 import { useState } from 'react';
 import { Archive, PackageOpen } from 'lucide-react';
-import { ConfirmButton, Sheet, useAction } from '@/components/client-ui';
+import { ConfirmButton, DictateInput, Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select } from '@/components/ui';
 import { saveRecord } from '@/lib/actions/records';
+
+// "A-2-3-1" (sector-rack-shelf-place) is stored as such; anything else
+// ("Hala 2, kod vrata") is kept word for word as the place's name.
+function placeFromText(text: string): { sector: string; rack: number; shelf: number; slot: number } {
+  const m = /^\s*([\p{L}\d]+)[\s\-/.]+(\d+)[\s\-/.]+(\d+)[\s\-/.]+(\d+)\s*$/u.exec(text);
+  if (m) return { sector: m[1].toUpperCase(), rack: Number(m[2]), shelf: Number(m[3]), slot: Number(m[4]) };
+  return { sector: text.trim(), rack: 1, shelf: 1, slot: 1 };
+}
 
 // Check a tyre set into the hotel (stay + set status) or hand it back.
 export function StorageActions({
@@ -23,6 +31,9 @@ export function StorageActions({
   const { pending, run } = useAction();
   const [open, setOpen] = useState(false);
   const [location, setLocation] = useState(locations[0]?.value ?? '');
+  // Typed by hand when the place is not on the list (or there is no list yet).
+  const [manual, setManual] = useState(locations.length === 0);
+  const [place, setPlace] = useState('');
   const [label, setLabel] = useState(seasonLabel);
   const [contract, setContract] = useState(true);
   const revalidate = jobId ? `/app/jobs/${jobId}` : '/app/module';
@@ -54,21 +65,32 @@ export function StorageActions({
       onOpenChange={setOpen}
       title="Zaprimi na čuvanje"
       trigger={
-        <Button size="sm" variant="primary" disabled={!locations.length}>
+        <Button size="sm" variant="primary">
           <Archive className="size-4" /> Uskladišti
         </Button>
       }
     >
       <div className="space-y-4">
-        <Field label="Mjesto (sektor-regal-polica-mjesto)">
-          <Select value={location} onChange={(e) => setLocation(e.target.value)}>
-            {locations.map((l) => (
-              <option key={l.value} value={l.value}>
-                {l.label}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        {manual ? (
+          <Field label="Mjesto" hint="Npr. A-2-3-1 ili „Hala 2, kod vrata”.">
+            <DictateInput value={place} onValue={setPlace} placeholder="Gdje će stajati" />
+          </Field>
+        ) : (
+          <Field label="Mjesto (sektor-regal-polica-mjesto)">
+            <Select value={location} onChange={(e) => setLocation(e.target.value)}>
+              {locations.map((l) => (
+                <option key={l.value} value={l.value}>
+                  {l.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
+        {locations.length ? (
+          <button type="button" className="-mt-2 text-sm font-medium text-accent" onClick={() => setManual((m) => !m)}>
+            {manual ? 'Odaberi s popisa' : 'Upiši mjesto ručno'}
+          </button>
+        ) : null}
         <Field label="Sezona">
           <Input value={label} onChange={(e) => setLabel(e.target.value)} />
         </Field>
@@ -80,11 +102,17 @@ export function StorageActions({
           variant="primary"
           size="lg"
           className="w-full"
-          disabled={pending || !location}
+          disabled={pending || (manual ? !place.trim() : !location)}
           onClick={() =>
             run(
               async () => {
-                const stay = await saveRecord('wheel_storage_stays', { set_id: setId, location_id: location, season_label: label, contract_signed: contract }, { revalidate });
+                let locationId = location;
+                if (manual) {
+                  const spot = await saveRecord('wheel_storage_locations', placeFromText(place), { upsertOn: 'tenant_id,sector,rack,shelf,slot' });
+                  if (!spot.ok) return spot;
+                  locationId = spot.data!.id;
+                }
+                const stay = await saveRecord('wheel_storage_stays', { set_id: setId, location_id: locationId, season_label: label, contract_signed: contract }, { revalidate });
                 if (!stay.ok) return stay;
                 return saveRecord('wheel_tire_sets', { status: 'stored' }, { id: setId, revalidate });
               },

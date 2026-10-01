@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Camera, Check, ClipboardCheck, EyeOff, History, Mic, MessageCircle, Receipt, ShieldCheck, Smartphone } from 'lucide-react';
+import { Camera, Check, ClipboardCheck, EyeOff, FileSpreadsheet, History, Mic, MessageCircle, Receipt, Smartphone } from 'lucide-react';
 import { BrandMark, ProductMark } from '@/components/ProductMark';
 import { ButtonLink } from '@/components/ui';
 import { BRAND, PACKAGES, TRADE_GROUPS, accentStyle, matchPackageFromHost, type PackageConfig, type PackageId } from '@/config/tenant.config';
@@ -11,36 +11,44 @@ import { getAuth } from '@/lib/session';
 // work, in plain words, for a craftsman on a phone. On a product domain
 // (airfiles.hr) it speaks about that trade; anywhere else about X-Files.
 
+// Written the way a craftsman talks, addressing the reader with a capital
+// "Vi". No translated marketing phrases.
 const HEADLINES: Record<PackageId, string> = {
-  volt: 'Autoelektrika bez papira — od prijema do računa u mobitelu.',
-  gear: 'Mehaničarska radionica u mobitelu: prijem, dijelovi, račun.',
-  body: 'Limarija i lakirnica bez papira: šteta, fotografije, račun.',
-  wheel: 'Vulkanizer i hotel za gume, sve u mobitelu.',
-  fleet: 'Servis kamiona i strojeva, s rokovima pod kontrolom.',
-  moto: 'Servis motora i plovila, sezona i zimovanje na jednom mjestu.',
-  air: 'Klima servis na terenu: raspored, izvještaj i F-plin u mobitelu.',
+  volt: 'Autoelektrika bez papira, od prijema do računa.',
+  gear: 'Mehaničarska radionica u Vašem džepu.',
+  body: 'Limarija i lakirnica: šteta, slike i račun na jednom mjestu.',
+  wheel: 'Gume, geometrija i hotel za gume, sve u mobitelu.',
+  fleet: 'Servis kamiona i strojeva, bez propuštenih rokova.',
+  moto: 'Servis motora i plovila, i zimovanje pod kontrolom.',
+  air: 'Klima servis na terenu: raspored, izvještaj i F-plinovi.',
 };
 
 const STEPS = [
-  { title: 'Prijem u pola minute', body: 'Upišite telefon i registraciju — ili samo izgovorite kvar. Stalnu mušteriju aplikacija prepozna sama.', icon: ClipboardCheck },
-  { title: 'Rad, slike i stavke', body: 'Fotografije prije i poslije, rad i dijelovi s cijenom. Radnik vidi što treba napraviti, ali ne i cijene.', icon: Camera },
-  { title: 'Račun i poruka mušteriji', body: 'Jednim dodirom uredan račun sa stavkama, a mušterija ga dobije na WhatsApp. Označite plaćeno i gotovo.', icon: Receipt },
+  { title: 'Primite posao', body: 'Upišite ime, telefon i registraciju ili sve izgovorite. Stalnu mušteriju aplikacija sama prepozna.', icon: ClipboardCheck },
+  { title: 'Odradite ga', body: 'Slikajte stanje prije i poslije, upišite radove i dijelove. Radnik vidi što treba napraviti, a cijene vidite samo Vi.', icon: Camera },
+  { title: 'Naplatite', body: 'Jednim dodirom napravite račun i pošaljete ga mušteriji na WhatsApp. Kad plati, označite plaćeno.', icon: Receipt },
 ];
 
 const BENEFITS = [
-  { title: 'Samo mobitel', body: 'Ne treba računalo ni instalacija. Otvorite u pregledniku i dodajte na početni zaslon.', icon: Smartphone },
-  { title: 'Govorite umjesto tipkanja', body: 'Opis kvara, napomene i poruke možete izgovoriti — i s prljavim rukama.', icon: Mic },
-  { title: 'Odobrenje preko WhatsAppa', body: 'Mušterija vidi predložene radove s cijenom i odobri jednim dodirom. Nema „nisam to tražio”.', icon: MessageCircle },
-  { title: 'Povijest svakog vozila', body: 'Što je rađeno, kada i za koliko — na jednom mjestu, i za dvije godine.', icon: History },
-  { title: 'Radnici bez uvida u novac', body: 'Radnik vidi posao i fotografije. Cijene, naplatu i promet vidi samo šef.', icon: EyeOff },
-  { title: 'Podaci na sigurnom', body: 'Serveri u Europskoj uniji. Svaka radionica vidi samo svoje podatke.', icon: ShieldCheck },
+  { title: 'Dovoljan je mobitel', body: 'Ništa se ne instalira i ne treba računalo. Otvorite stranicu i dodajte je na početni zaslon.', icon: Smartphone },
+  { title: 'Govorite, ne tipkajte', body: 'Kvar, napomene i poruke možete izgovoriti. Dobro dođe kad su ruke masne.', icon: Mic },
+  { title: 'Mušterija odobri na WhatsAppu', body: 'Pošaljete prijedlog radova s cijenama, a mušterija odobri jednim dodirom. Poslije nema „to nisam tražio”.', icon: MessageCircle },
+  { title: 'Povijest svakog vozila i uređaja', body: 'Što je rađeno, kada i za koliko. Nađete u sekundi, i nakon dvije godine.', icon: History },
+  { title: 'Radnici ne vide novac', body: 'Radnik vidi svoje naloge i slike. Cijene, naplatu i promet vidite samo Vi.', icon: EyeOff },
+  { title: 'Knjigovođi u jednom paketu', body: 'Na kraju mjeseca preuzmete sve račune odjednom i pošaljete ih knjigovođi.', icon: FileSpreadsheet },
 ];
 
 const FAQ = [
-  { q: 'Treba li mi računalo?', a: 'Ne. Sve radi na mobitelu koji već imate, Android ili iPhone. Na računalu radi isto tako, ako vam je draže.' },
-  { q: 'Koliko košta?', a: 'Prvih 30 dana je besplatno i bez kartice. Nakon toga sami odlučujete hoćete li nastaviti. Ništa se ne naplaćuje samo od sebe.' },
-  { q: 'A fiskalizacija?', a: 'Fiskalni račun i dalje izdajete u svojoj blagajni. Aplikacija uz njega daje uredan račun sa stavkama za mušteriju i upisuje broj fiskalnog računa.' },
-  { q: 'Što ako zapnem?', a: 'Aplikacija je napravljena da se snađete bez uputa: tri koraka za prijem, jedan gumb za račun. Ako ipak zapnete, javite nam se.' },
+  { q: 'Treba li mi računalo?', a: 'Ne. Dovoljan je mobitel koji već imate, Android ili iPhone. Ako Vam je lakše, sve radi i na računalu.' },
+  { q: 'Koliko košta?', a: 'Prvih 30 dana je besplatno i ne tražimo karticu. Nakon toga sami odlučite hoćete li nastaviti. Ništa se ne naplaćuje samo od sebe.' },
+  { q: 'Mogu li dodati radnike?', a: 'Možete. Svaki radnik dobije svoju prijavu i vidi naloge na kojima radi, ali ne vidi cijene ni promet.' },
+  { q: 'Kako mušterija dobije prijedlog ili račun?', a: 'Pošaljete joj poveznicu na WhatsApp. Otvori je na svom mobitelu, bez prijave i bez instaliranja.' },
+  { q: 'Što je s fiskalizacijom?', a: 'Fiskalni račun i dalje izdajete na svojoj blagajni. Aplikacija uz njega napravi uredan račun sa stavkama za mušteriju, a na njega možete upisati broj fiskalnog računa.' },
+  { q: 'Nisam u sustavu PDV-a. Je li to problem?', a: 'Nije. U postavkama to jednom označite i aplikacija nigdje ne dodaje PDV, a na računu piše propisana napomena.' },
+  { q: 'Što dobije knjigovođa?', a: 'Na kraju mjeseca preuzmete paket sa svim računima: tablicu za Excel i svaki račun kao e-Račun.' },
+  { q: 'Gdje su moji podaci?', a: 'Na serverima u Europskoj uniji. Vaše podatke vidite samo Vi i Vaši radnici.' },
+  { q: 'Mogu li prestati kad hoću?', a: 'Možete. Nema ugovora ni otkaznog roka.' },
+  { q: 'Što ako zapnem?', a: 'Aplikacija je složena tako da se snađete bez uputa. Ako ipak zapnete, javite nam se i pomoći ćemo.' },
 ];
 
 export default async function Home() {
@@ -76,24 +84,26 @@ export default async function Home() {
           <div>
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-muted">
               <span className="size-1.5 rounded-full bg-accent" />
-              {product ? product.tagline : 'Za obrtnike i servise · radi na svakom mobitelu'}
+              {product ? product.tagline : 'Radionica · Teren · Cesta'}
             </p>
             <h1 className="max-w-2xl text-balance text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
               {product ? HEADLINES[product.id] : (
                 <>
-                  Cijela radionica <span className="text-accent">u vašem mobitelu.</span>
+                  Nalozi, slike i računi. <span className="text-accent">U Vašem mobitelu.</span>
                 </>
               )}
             </h1>
             <p className="mt-5 max-w-xl text-base text-muted sm:text-lg">
-              Prijem u pola minute, fotografije, stavke i račun — a mušterija dobije poruku na WhatsApp. Bez papira, bez računala i bez učenja.
+              {product
+                ? 'Upišete mušteriju, slikate, dodate radove i cijene, a račun pošaljete na WhatsApp. Bez papira, bez računala i bez tečaja.'
+                : 'Za majstore kojima mušterija dovozi vozilo, za one koji idu na teren i za servise kamiona i strojeva. Upišete posao, slikate, dodate radove i cijene, a račun pošaljete na WhatsApp.'}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <ButtonLink href={register} variant="primary" size="lg">
                 Isprobajte {trialDays} dana besplatno
               </ButtonLink>
-              <ButtonLink href="#kako" size="lg">
-                Kako radi
+              <ButtonLink href={product ? '#kako' : '#zanati'} size="lg">
+                {product ? 'Pogledajte kako radi' : 'Za koje zanate'}
               </ButtonLink>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
@@ -109,7 +119,7 @@ export default async function Home() {
 
         {/* How it works */}
         <section id="kako" className="scroll-mt-6 border-t border-line py-14">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Jedan posao, tri koraka</h2>
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Kako izgleda jedan posao</h2>
           <ol className="mt-8 grid gap-4 md:grid-cols-3">
             {STEPS.map((s, i) => (
               <li key={s.title} className="rounded-2xl border border-line bg-surface p-5">
@@ -126,7 +136,7 @@ export default async function Home() {
 
         {/* Benefits */}
         <section className="border-t border-line py-14">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Napravljeno za majstore, ne za urede</h2>
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Rađeno za majstore, ne za urede</h2>
           <div className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
             {BENEFITS.map((b) => (
               <div key={b.title} className="flex gap-4">
@@ -156,8 +166,10 @@ export default async function Home() {
             </>
           ) : (
             <>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Izaberite svoj zanat</h2>
-              <p className="mt-2 text-muted">Svaki paket govori jezikom vašeg posla. Isti temelj, drugačiji detalji.</p>
+              <h2 id="zanati" className="scroll-mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">
+                Odaberite svoj posao
+              </h2>
+              <p className="mt-2 text-muted">Svaki paket koristi riječi Vašeg zanata: vozilo ili uređaj, mušterija ili tvrtka, radionica ili teren.</p>
               <div className="mt-8 space-y-8">
                 {TRADE_GROUPS.map((g) => (
                   <div key={g.id}>
@@ -200,7 +212,7 @@ export default async function Home() {
         {/* Final call */}
         <section className="my-10 rounded-3xl border border-line bg-surface px-6 py-12 text-center">
           <h2 className="text-balance text-3xl font-semibold tracking-tight">Probajte na sljedećem poslu.</h2>
-          <p className="mx-auto mt-3 max-w-md text-muted">{trialDays} dana besplatno. Ako vam ne olakša posao, jednostavno prestanete — ništa ne plaćate.</p>
+          <p className="mx-auto mt-3 max-w-md text-muted">{trialDays} dana besplatno. Ako Vam ne olakša posao, jednostavno prestanete i ništa ne plaćate.</p>
           <div className="mt-7 flex justify-center">
             <ButtonLink href={register} variant="primary" size="lg">
               Isprobajte besplatno

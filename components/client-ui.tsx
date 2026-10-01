@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { Drawer } from 'vaul';
 import { toast } from 'sonner';
 import { ChevronDown, ChevronLeft, ChevronRight, MapPin, Mic, MicOff, X } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Button, Input } from '@/components/ui';
 import type { ActionResult } from '@/lib/action-result';
 import { useSpeechToText } from '@/lib/useSpeechToText';
 import { cn } from '@/lib/utils';
@@ -65,15 +65,29 @@ export function Sheet({
   trigger?: ReactNode;
 }) {
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange}>
+    // handleOnly: only the grip at the top drags the sheet down, so
+    // scrolling a long form never pulls it shut by accident.
+    <Drawer.Root open={open} onOpenChange={onOpenChange} handleOnly>
       {trigger ? <Drawer.Trigger asChild>{trigger}</Drawer.Trigger> : null}
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]" />
         <Drawer.Content className="accent-scope fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] max-w-xl flex-col rounded-t-2xl border border-line bg-surface outline-none">
-          <div className="mx-auto mt-2.5 h-1.5 w-10 shrink-0 rounded-full bg-line" />
-          <Drawer.Title className="px-5 pb-2 pt-3 text-base font-semibold">{title}</Drawer.Title>
+          <Drawer.Handle className="!mt-2.5 !h-1.5 !w-12 shrink-0 !bg-line" />
+          <div className="flex items-center justify-between gap-3 pl-5 pr-2">
+            <Drawer.Title className="pb-2 pt-3 text-base font-semibold">{title}</Drawer.Title>
+            <Drawer.Close className="flex size-11 items-center justify-center rounded-full text-muted hover:bg-surface2 hover:text-fg" aria-label="Zatvori">
+              <X className="size-5" />
+            </Drawer.Close>
+          </div>
           <Drawer.Description className="sr-only">{title}</Drawer.Description>
-          <div className="overflow-y-auto px-5 pb-safe">
+          <div
+            className="overflow-y-auto overscroll-contain px-5 pb-safe"
+            // Once the keyboard is up, bring the field being typed into the middle.
+            onFocusCapture={(event) => {
+              const el = event.target as HTMLElement;
+              if (el.matches('input, textarea, select')) window.setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350);
+            }}
+          >
             <div className="pb-5">{children}</div>
           </div>
         </Drawer.Content>
@@ -200,6 +214,48 @@ export function DictateButton({ onText, compact = false }: { onText: (text: stri
         {isRecording ? 'Stop' : 'Diktiraj'}
       </Button>
       {interimText ? <span className="truncate text-xs text-faint">{interimText}</span> : null}
+    </div>
+  );
+}
+
+// A one-line field with a microphone inside it. What is said replaces the
+// field, tidied for its kind: names get capitals, a phone keeps only its
+// digits, a plate becomes "ZG-1234-AB".
+type DictateMode = 'text' | 'name' | 'phone' | 'plate';
+function tidySpoken(text: string, mode: DictateMode): string {
+  const t = text.trim().replace(/[.,!?]+$/, '');
+  if (mode === 'name') return t.replace(/(^|\s|-)(\p{L})/gu, (_, sep: string, c: string) => sep + c.toUpperCase());
+  if (mode === 'phone') return t.replace(/[^\d+ ]/g, '').replace(/\s+/g, ' ').trim();
+  if (mode === 'plate')
+    return t
+      .toUpperCase()
+      .replace(/[^A-Z0-9ČĆŽŠĐ ]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+export function DictateInput({
+  value,
+  onValue,
+  mode = 'text',
+  className,
+  ...props
+}: Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> & { value: string; onValue: (value: string) => void; mode?: DictateMode }) {
+  const { isSupported, isRecording, toggleRecording } = useSpeechToText({ onFinalText: (text) => onValue(tidySpoken(text, mode)) });
+  return (
+    <div className="relative">
+      <Input {...props} value={value} onChange={(e) => onValue(e.target.value)} className={cn(isSupported && 'pr-12', className)} />
+      {isSupported ? (
+        <button
+          type="button"
+          onClick={toggleRecording}
+          aria-label={isRecording ? 'Zaustavi diktiranje' : 'Diktiraj'}
+          className={cn('absolute right-1 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-lg', isRecording ? 'bg-crit/15 text-crit' : 'text-faint hover:text-fg')}
+        >
+          {isRecording ? <MicOff className="size-4" /> : <Mic className="size-4" />}
+        </button>
+      ) : null}
     </div>
   );
 }

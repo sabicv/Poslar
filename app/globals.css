@@ -5,14 +5,16 @@
 /* Dark is the default: workshops are dim, screens are greasy, and a dark
    UI in the style of Linear/Vercel keeps status colours readable.
    Values are RGB triplets for Tailwind's alpha modifiers. */
+/* The steps between page, card, raised part and border are wide enough to
+   tell apart on a phone in a bright workshop (they used to blend into one). */
 :root {
   --bg: 9 9 11;
-  --surface: 17 17 20;
-  --surface2: 26 26 30;
-  --line: 40 40 46;
-  --fg: 237 237 240;
-  --muted: 161 161 170;
-  --faint: 113 113 122;
+  --surface: 25 25 29;
+  --surface2: 38 38 44;
+  --line: 60 60 68;
+  --fg: 240 240 243;
+  --muted: 172 172 182;
+  --faint: 132 132 142;
   --ok: 52 211 153;
   --warn: 251 191 36;
   --crit: 248 113 113;
@@ -96,5 +98,13 @@ body {
   }
   .no-scrollbar {
     scrollbar-width: none;
+  }
+}
+
+/* While typing on a phone the page shrinks above the keyboard; the bottom
+   menu and the job's action bar step aside so the field stays in view. */
+@media (pointer: coarse) {
+  body:has(:is(input:not([type='checkbox']):not([type='radio']):not([type='file']), textarea, select):focus) .hide-on-type {
+    display: none;
   }
 }

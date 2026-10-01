@@ -49,6 +49,30 @@ function fromInput(def: FieldDef, raw: string | boolean): unknown {
   return text;
 }
 
+type FormState = Record<string, string | boolean>;
+
+// What was typed into a sheet survives closing it by accident (a swipe, a
+// tap beside it, a phone call): it comes back when the sheet is opened
+// again, until it is saved. Kept per form for this browser tab only.
+function readDraft(key: string | undefined): FormState | null {
+  if (!key) return null;
+  try {
+    const raw = sessionStorage.getItem(`draft:${key}`);
+    return raw ? (JSON.parse(raw) as FormState) : null;
+  } catch {
+    return null;
+  }
+}
+function writeDraft(key: string | undefined, state: FormState | null) {
+  if (!key) return;
+  try {
+    if (state) sessionStorage.setItem(`draft:${key}`, JSON.stringify(state));
+    else sessionStorage.removeItem(`draft:${key}`);
+  } catch {
+    // Private mode or storage full: the form still works, just without a draft.
+  }
+}
+
 export function QuickForm({
   fields,
   initial = {},
@@ -56,6 +80,7 @@ export function QuickForm({
   onSubmit,
   onDone,
   onDelete,
+  draftKey,
 }: {
   fields: FieldDef[];
   initial?: Values;
@@ -63,13 +88,26 @@ export function QuickForm({
   onSubmit: (values: Values) => Promise<ActionResult<unknown>>;
   onDone?: () => void;
   onDelete?: () => Promise<ActionResult<unknown>>;
+  draftKey?: string;
 }) {
   const { pending, run } = useAction();
-  const [state, setState] = useState<Record<string, string | boolean>>(() => Object.fromEntries(fields.map((f) => [f.name, toInput(f, initial[f.name])])));
+  const [restored, setRestored] = useState(() => readDraft(draftKey));
+  const [state, setStateRaw] = useState<FormState>(() => restored ?? Object.fromEntries(fields.map((f) => [f.name, toInput(f, initial[f.name])])));
+  const setState = (update: (s: FormState) => FormState) =>
+    setStateRaw((s) => {
+      const next = update(s);
+      writeDraft(draftKey, next);
+      return next;
+    });
+  // Shown next to the button too: a toast alone is easy to miss on a phone.
+  const [error, setError] = useState<string | null>(null);
   const missing = fields.some((f) => f.required && (state[f.name] === '' || state[f.name] === undefined));
   const hasExtra = fields.some((f) => f.extra);
   // Open from the start when an extra field already holds something.
-  const [more, setMore] = useState(() => fields.some((f) => f.extra && initial[f.name] !== null && initial[f.name] !== undefined && initial[f.name] !== '' && initial[f.name] !== false));
+  const [more, setMore] = useState(() => {
+    const filled = (v: unknown) => v !== null && v !== undefined && v !== '' && v !== false;
+    return fields.some((f) => f.extra && (filled(initial[f.name]) || filled(restored?.[f.name])));
+  });
   const visible = fields.filter((f) => !f.extra || more);
 
   return (
@@ -77,6 +115,7 @@ export function QuickForm({
       className="grid grid-cols-2 gap-3"
       onSubmit={(event) => {
         event.preventDefault();
+        setError(null);
         const values = Object.fromEntries(fields.map((f) => [f.name, fromInput(f, state[f.name])]));
         run(
           async () => {
@@ -84,12 +123,31 @@ export function QuickForm({
             // The database names the column; the form knows its label.
             const column = !result.ok ? /\(([a-z0-9_]+)\)\.$/.exec(result.error)?.[1] : null;
             const field = column ? fields.find((f) => f.name === column) : null;
-            return field ? { ok: false as const, error: `Provjerite polje „${field.label}”.` } : result;
+            const final = field ? { ok: false as const, error: `Provjerite polje „${field.label}”.` } : result;
+            if (final.ok) writeDraft(draftKey, null);
+            else setError(final.error);
+            return final;
           },
           { success: 'Spremljeno', onDone }
         );
       }}
     >
+      {restored ? (
+        <p className="col-span-2 flex items-center justify-between gap-2 rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-xs text-fg">
+          Vraćeno je ono što ste upisali prije zatvaranja.
+          <button
+            type="button"
+            className="shrink-0 font-medium text-accent"
+            onClick={() => {
+              writeDraft(draftKey, null);
+              setRestored(null);
+              setStateRaw(Object.fromEntries(fields.map((f) => [f.name, toInput(f, initial[f.name])])));
+            }}
+          >
+            Očisti
+          </button>
+        </p>
+      ) : null}
       {visible.map((f) => {
         const set = (value: string | boolean) => setState((s) => ({ ...s, [f.name]: value }));
         const span = f.half ? 'col-span-1' : 'col-span-2';
@@ -140,6 +198,11 @@ export function QuickForm({
         </button>
       ) : null}
       {missing ? <p className="col-span-2 text-xs text-muted">Polja sa zvjezdicom su obavezna.</p> : null}
+      {error ? (
+        <p role="alert" className="col-span-2 rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-sm text-crit">
+          {error}
+        </p>
+      ) : null}
       <div className="col-span-2 flex gap-2 pt-1">
         <Button type="submit" variant="primary" size="lg" className="flex-1" disabled={pending || missing}>
           {pending ? 'Spremam…' : submitLabel}
@@ -198,6 +261,7 @@ export function RecordSheet({
         <QuickForm
           fields={fields}
           initial={initial}
+          draftKey={`${table}:${id ?? JSON.stringify(fixed)}`}
           onSubmit={(values) => saveRecord(table, { ...values, ...fixed }, { id, upsertOn, revalidate })}
           onDelete={deletable && id ? () => deleteRecord(table, id, revalidate) : undefined}
           onDone={() => setOpen(false)}

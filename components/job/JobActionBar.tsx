@@ -32,7 +32,7 @@ export function JobActionBar({
   const next = phases.slice(index + 1).find((p) => p.id !== 'awaiting_approval' && p.id !== 'awaiting_parts');
 
   return (
-    <div className="fixed inset-x-0 bottom-16 z-20 border-t border-line bg-bg/90 backdrop-blur-md lg:bottom-0 lg:left-60">
+    <div className="hide-on-type fixed inset-x-0 bottom-16 z-20 border-t border-line bg-bg/90 backdrop-blur-md lg:bottom-0 lg:left-60">
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-6 lg:px-8">
         <Sheet
           open={open}
