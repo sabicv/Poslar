@@ -141,8 +141,8 @@ export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 // vehicles that live on the road. New trades join one of these.
 export type TradeGroupId = 'radionica' | 'teren' | 'cesta';
 export const TRADE_GROUPS: { id: TradeGroupId; name: string; hint: string; packages: PackageId[] }[] = [
-  { id: 'radionica', name: 'Radionica', hint: 'Mušterija dovozi vozilo k vama', packages: ['volt', 'gear', 'body', 'wheel', 'moto'] },
-  { id: 'teren', name: 'Teren', hint: 'Vi idete k mušteriji', packages: ['air'] },
+  { id: 'radionica', name: 'Radionica', hint: 'Mušterija dovozi vozilo u radionicu', packages: ['volt', 'gear', 'body', 'wheel', 'moto'] },
+  { id: 'teren', name: 'Teren', hint: 'Majstor ide k mušteriji', packages: ['air'] },
   { id: 'cesta', name: 'Cesta', hint: 'Kamioni, strojevi i vozni parkovi', packages: ['fleet'] },
 ];
 export function tradeGroupOf(id: PackageId): TradeGroupId {

@@ -8,7 +8,7 @@ export const volt: PackageConfig = {
   domain: 'voltfiles.hr',
   tagline: 'Autoelektrika, dijagnostika i elektronika',
   pitch: [
-    'DTC kodovi s uzrocima i riješenim slučajevima iz Vaše arhive',
+    'DTC kodovi s uzrocima i riješenim slučajevima iz tvoje arhive',
     'Parazitska potrošnja s grafom pada struje',
     'Trajni dnevnik zahvata na modulima s backupom',
   ],
