@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { InvoiceDocument } from '@/components/invoice/InvoiceDocument';
+import { InvoiceDocument, invoiceNumberLabel } from '@/components/invoice/InvoiceDocument';
 import { BackLink } from '@/components/ui';
 import { loadInvoice } from '@/lib/invoice';
 import { requireOwner } from '@/lib/session';
@@ -19,7 +19,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   if (!invoice) notFound();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-  const title = invoice.number ? `Račun br. ${invoice.number}/${invoice.year}` : 'Račun';
+  const title = invoice.number ? `Račun br. ${invoiceNumberLabel(invoice)}` : 'Račun';
   const missingPrices = invoice.lines.some((l) => !l.unit_price);
 
   return (
@@ -36,6 +36,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           clientFirstName={invoice.clientFirstName}
           fiscalRef={invoice.fiscalRef}
           empty={invoice.lines.length === 0}
+          // A company usually pays to the account, a person in cash or by card.
+          defaultMethod={invoice.client.kind === 'company' ? 'transfer' : 'cash'}
         />
         {missingPrices ? <p className="rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">Neke stavke nemaju cijenu. Upišite je u kartici Stavke.</p> : null}
         {!invoice.billing.iban || !invoice.workshop.oib ? (

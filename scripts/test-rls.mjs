@@ -298,6 +298,24 @@ console.log('\nInvoices');
   check("another workshop cannot issue A's invoice", await fails(() => issue(U.bOwner, other.id)));
   const [issued] = await q(`select invoice_token from public.jobs where id = $1`, [ids.job]);
   check('every job has a private invoice link token', /^[0-9a-f-]{36}$/.test(String(issued.invoice_token)), String(issued.invoice_token));
+
+  // Fiscal fields: payment method, premises and device, operator.
+  const [m] = await q(`select invoice_payment_method, invoice_premises, invoice_device, invoice_operator from public.jobs where id = $1`, [ids.job]);
+  check('without premises and device: bank transfer by default, numbering as before', m.invoice_payment_method === 'transfer' && m.invoice_premises === null && m.invoice_operator === 'Ana', JSON.stringify(m));
+  await q(`update public.tenants set settings = settings || '{"fiscal": {"premises": "PP1", "device": "1"}}' where id = $1`, [tA]);
+  const issueWith = (jobId, method) => as(U.aOwner, () => q(`select * from public.issue_invoice($1, $2)`, [jobId, method]));
+  const newJob = async () => (await as(U.aOwner, () => q(`insert into public.jobs (tenant_id, client_id, asset_id) values ($1,$2,$3) returning id`, [tA, ids.client, ids.asset])))[0].id;
+  const j3 = await newJob();
+  const [third] = await issueWith(j3, 'cash');
+  const [f3] = await q(`select invoice_payment_method, invoice_premises, invoice_device from public.jobs where id = $1`, [j3]);
+  check('premises PP1, device 1: own sequence starts at 1, cash kept', third.o_number === 1 && f3.invoice_premises === 'PP1' && f3.invoice_device === '1' && f3.invoice_payment_method === 'cash', JSON.stringify({ third, f3 }));
+  const [fourth] = await issueWith(await newJob(), 'card');
+  check('next on PP1/1 is 2', fourth.o_number === 2, JSON.stringify(fourth));
+  check('unknown payment method refused', await fails(() => issueWith(newJob(), 'bitcoin')));
+  await as(U.aWorker, async () => {
+    check('worker cannot change the payment method', await fails(() => q(`update public.jobs set invoice_payment_method = 'card' where id = $1`, [j3])));
+  });
+  await q(`update public.tenants set settings = settings - 'fiscal' where id = $1`, [tA]);
 }
 
 // Aqua, Tow and Deal: the new trades' records follow the same rules.

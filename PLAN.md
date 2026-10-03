@@ -67,5 +67,26 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [x] Servisni planovi terenskih zanata i rokovi flote (tehnički, tahograf…) na istom popisu
 - [x] WhatsApp jednim dodirom s gotovom porukom i potpisom; „Ne treba” miče s popisa; poslano se pamti (gume do kraja sezone, servis 60 dana)
 
+## Stadij 9: Spremno za prodaju i online rast
+Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
+
+1. Fiskalizacija i e-račun
+   - [x] Račun nosi način plaćanja (gotovina, kartica, na račun), vrijeme, tko ga je izdao i oznaku poslovnog prostora i naplatnog uređaja (broj 12/PP1/1, redom po prostoru i uređaju)
+   - [x] Postavke → Račun: oznaka poslovnog prostora i naplatnog uređaja; e-račun XML i knjiga računa nose način plaćanja; Arhiva traži 12/PP1/1
+   - [ ] (V) S knjigovođom potvrditi pravila za 2026. i odabrati posrednika za fiskalizaciju i e-račune (koji ima API za softver)
+   - [ ] (V) FINA demo certifikat za testiranje
+   - [ ] Spajanje na odabranog posrednika, test u njihovom testnom okruženju
+2. Naplata pretplate
+   - [ ] Postavke → Pretplata: cijena, plaćeno do, kako platiti (IBAN TaktiXa, poziv na broj radionice)
+   - [ ] Podsjetnik 7 dana prije isteka, 7 dana počeka, zatim zaključavanje dok uplata ne stigne
+   - [ ] (V) Stripe račun za plaćanje karticom; zatim plaćanje karticom u aplikaciji
+3. Prvi koraci nakon registracije: popis od 4 stavke (logo i OIB, radnik, prvi nalog, prvi račun) i primjer podataka
+4. Lijevak u Tornju: registracija → prvi nalog → 10 naloga → plaća, i gdje ljudi odustaju
+5. Preporuka: radionica koja dovede drugu dobije mjesec gratis
+6. WhatsApp broj za pomoć na stranici i u aplikaciji ((V) broj)
+7. Video upute: mjesta u Pomoći i uz ekrane ((V) snima kratke video upute)
+8. Pravni dio: uvjeti korištenja, politika privatnosti, ugovor o obradi podataka ((V) pravnik pregleda prije prodaje)
+9. Google Play: paket aplikacije i povezivanje domene ((V) račun za razvojne programere, testeri)
+
 ## Kasnije
-Fiskalizacija (s knjigovođom i posrednikom), sef za ključeve, Google Play, engleski jezik.
+Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).

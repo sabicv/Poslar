@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Copy, FileCheck2, FileCode2, MessageCircle, Printer } from 'lucide-react';
-import { useAction } from '@/components/client-ui';
+import { Segmented, useAction } from '@/components/client-ui';
+import { PAYMENT_METHODS, type PaymentMethod } from '@/components/invoice/InvoiceDocument';
 import { Button, Field, Input, buttonClass } from '@/components/ui';
 import { issueInvoice, setInvoiceFiscalRef } from '@/lib/actions/invoice';
 import { copyText } from '@/lib/clipboard';
@@ -21,6 +22,7 @@ export function InvoiceActions({
   clientFirstName,
   fiscalRef,
   empty,
+  defaultMethod = 'cash',
 }: {
   jobId: string;
   issued: boolean;
@@ -31,20 +33,30 @@ export function InvoiceActions({
   clientFirstName: string | null;
   fiscalRef: string | null;
   empty: boolean;
+  defaultMethod?: PaymentMethod;
 }) {
   const router = useRouter();
   const { pending, run } = useAction();
   const [ref, setRef] = useState(fiscalRef ?? '');
+  const [method, setMethod] = useState<PaymentMethod>(defaultMethod);
   const greeting = clientFirstName ? `Poštovani ${vocativeHR(clientFirstName)}, ` : 'Poštovani, ';
   const message = `${greeting}šaljemo ${title.toLowerCase()}: ${link}\n\n${workshopName}`;
 
   if (!issued) {
     return (
-      <div className="space-y-2">
-        <Button variant="primary" size="lg" className="w-full sm:w-auto" disabled={pending || empty} onClick={() => run(() => issueInvoice(jobId), { success: 'Račun izdan', onDone: () => router.refresh() })}>
+      <div className="space-y-3">
+        <div>
+          <p className="mb-1.5 text-sm font-medium">Kako mušterija plaća?</p>
+          <Segmented
+            value={method}
+            onChange={setMethod}
+            options={(['cash', 'card', 'transfer'] as PaymentMethod[]).map((m) => ({ value: m, label: m === 'transfer' ? 'Na račun' : PAYMENT_METHODS[m] }))}
+          />
+        </div>
+        <Button variant="primary" size="lg" className="w-full sm:w-auto" disabled={pending || empty} onClick={() => run(() => issueInvoice(jobId, method), { success: 'Račun izdan', onDone: () => router.refresh() })}>
           <FileCheck2 className="size-5" /> Izdaj račun
         </Button>
-        <p className="text-xs text-muted">{empty ? 'Na nalogu nema stavki za naplatu.' : 'Račun dobiva sljedeći broj za ovu godinu. Stavke se mogu mijenjati i nakon izdavanja.'}</p>
+        <p className="text-xs text-muted">{empty ? 'Na nalogu nema stavki za naplatu.' : 'Račun dobiva sljedeći broj. Stavke se mogu mijenjati i nakon izdavanja.'}</p>
       </div>
     );
   }

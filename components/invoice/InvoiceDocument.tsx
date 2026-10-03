@@ -23,12 +23,26 @@ export interface InvoiceData {
   year: number | null;
   issuedAt: string | null;
   fiscalRef: string | null;
+  // Fiscal marks, set when the invoice is issued.
+  paymentMethod: PaymentMethod | null;
+  premises: string | null;
+  device: string | null;
+  operator: string | null;
   jobNumber: number;
   client: Pick<Client, 'kind' | 'first_name' | 'last_name' | 'company_name' | 'oib' | 'address' | 'city'>;
   asset: Pick<Asset, 'make' | 'model' | 'asset_type' | 'identifier'>;
   assetLabel: string;
   workSummary: string | null;
   lines: InvoiceLine[];
+}
+
+export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'other';
+export const PAYMENT_METHODS: Record<PaymentMethod, string> = { cash: 'Gotovina', card: 'Kartica', transfer: 'Transakcijski račun', other: 'Ostalo' };
+
+// "12/PP1/1" once the workshop has its premises and device marks, else "12/2026".
+export function invoiceNumberLabel(d: { number: number | null; year: number | null; premises: string | null; device: string | null }): string | null {
+  if (!d.number) return null;
+  return d.premises && d.device ? `${d.number}/${d.premises}/${d.device}` : `${d.number}/${d.year}`;
 }
 
 // "HR12 1001 0051 8630 0016 0" — easier to copy into a banking app.
@@ -65,7 +79,8 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
   const { workshop: w, billing } = data;
   const totals = invoiceTotals(data.lines, billing.vatRegistered);
   // Before issuing the page is a preview; the number comes with "Izdaj račun".
-  const title = data.number ? `Račun br. ${data.number}/${data.year}` : 'Račun (još nije izdan)';
+  const label = invoiceNumberLabel(data);
+  const title = label ? `Račun br. ${label}` : 'Račun (još nije izdan)';
   const reference = data.number ? `${data.number}-${data.year}` : null;
   const client = data.client;
 
@@ -84,7 +99,12 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
         </div>
         <div className="sm:text-right">
           <h1 className="text-lg font-semibold">{title}</h1>
-          <p className="text-neutral-600">Datum: {formatDate(data.issuedAt ?? new Date().toISOString())}</p>
+          <p className="text-neutral-600">
+            Datum: {formatDate(data.issuedAt ?? new Date().toISOString())}
+            {data.issuedAt ? `, ${new Date(data.issuedAt).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zagreb' })}` : ''}
+          </p>
+          {data.paymentMethod ? <p className="text-neutral-600">Način plaćanja: {PAYMENT_METHODS[data.paymentMethod]}</p> : null}
+          {data.operator ? <p className="text-neutral-600">Izdao: {data.operator}</p> : null}
           <p className="text-neutral-600">Radni nalog #{data.jobNumber}</p>
         </div>
       </header>
@@ -157,14 +177,18 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
       ) : null}
 
       <footer className="mt-8 space-y-1 border-t border-neutral-200 pt-4 text-[11px] text-neutral-500">
-        {billing.iban && reference ? (
+        {billing.iban && reference && (data.paymentMethod ?? 'transfer') === 'transfer' ? (
           <p>
             Plaćanje na IBAN <span className="whitespace-nowrap">{groupIban(billing.iban)}</span>, poziv na broj <span className="whitespace-nowrap">{reference}</span>.
           </p>
         ) : null}
         {!billing.vatRegistered ? <p>PDV nije obračunat temeljem čl. 90. Zakona o PDV-u (obveznik nije u sustavu PDV-a).</p> : null}
         {billing.note ? <p>{billing.note}</p> : null}
-        <p>{data.fiscalRef ? `Fiskalizirani račun iz blagajne br. ${data.fiscalRef}.` : 'Fiskalizirani račun izdaje se u blagajni obrta.'}</p>
+        {data.fiscalRef ? (
+          <p>Fiskalizirani račun iz blagajne br. {data.fiscalRef}.</p>
+        ) : data.paymentMethod === 'cash' || data.paymentMethod === 'card' || !data.paymentMethod ? (
+          <p>Fiskalizirani račun izdaje se u blagajni obrta.</p>
+        ) : null}
       </footer>
     </article>
   );

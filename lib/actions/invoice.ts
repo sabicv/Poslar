@@ -4,11 +4,13 @@ import { revalidatePath } from 'next/cache';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop } from '@/lib/session';
 
-// Gives the job its invoice number (once; the next one for this year).
-export async function issueInvoice(jobId: string): Promise<ActionResult<{ number: number; year: number }>> {
+// Gives the job its invoice number (once; the next one for this year,
+// premises and device) with how the customer pays.
+export async function issueInvoice(jobId: string, method: 'cash' | 'card' | 'transfer' | 'other' = 'transfer'): Promise<ActionResult<{ number: number; year: number }>> {
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Račun izdaje voditelj servisa.');
-  const { data, error } = await ctx.supabase.rpc('issue_invoice', { p_job_id: jobId });
+  if (!['cash', 'card', 'transfer', 'other'].includes(method)) return fail('Odaberite način plaćanja.');
+  const { data, error } = await ctx.supabase.rpc('issue_invoice', { p_job_id: jobId, p_method: method });
   if (error) return fail(error);
   const row = (data as { o_number: number; o_year: number }[] | null)?.[0];
   if (!row) return fail('Broj računa nije dodijeljen.');

@@ -1,7 +1,7 @@
 import 'server-only';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { billingFrom, type InvoiceData } from '@/components/invoice/InvoiceDocument';
+import { billingFrom, type InvoiceData, type PaymentMethod } from '@/components/invoice/InvoiceDocument';
 import { getPackage } from '@/config/tenant.config';
 
 export type LoadedInvoice = InvoiceData & {
@@ -14,7 +14,7 @@ export type LoadedInvoice = InvoiceData & {
 };
 
 const JOB_FIELDS =
-  'id, tenant_id, number, work_summary, payment_status, invoice_number, invoice_year, invoice_issued_at, invoice_fiscal_ref, invoice_token, client:clients(kind, first_name, last_name, company_name, oib, address, city, phone), asset:assets(make, model, asset_type, identifier)';
+  'id, tenant_id, number, work_summary, payment_status, invoice_number, invoice_year, invoice_issued_at, invoice_fiscal_ref, invoice_token, invoice_payment_method, invoice_premises, invoice_device, invoice_operator, client:clients(kind, first_name, last_name, company_name, oib, address, city, phone), asset:assets(make, model, asset_type, identifier)';
 
 // Everything the invoice page shows, from one job. The owner's page passes
 // the owner's own client (prices under RLS); the customer's link passes the
@@ -99,6 +99,10 @@ async function assemble(db: SupabaseClient, jobs: JobRow[]): Promise<LoadedInvoi
       year: job.invoice_year as number | null,
       issuedAt: job.invoice_issued_at as string | null,
       fiscalRef: job.invoice_fiscal_ref as string | null,
+      paymentMethod: (job.invoice_payment_method as PaymentMethod | null) ?? null,
+      premises: (job.invoice_premises as string | null) ?? null,
+      device: (job.invoice_device as string | null) ?? null,
+      operator: (job.invoice_operator as string | null) ?? null,
       jobNumber: job.number as number,
       client,
       asset: job.asset as InvoiceData['asset'],

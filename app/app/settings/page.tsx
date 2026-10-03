@@ -138,7 +138,13 @@ export default async function SettingsPage() {
             <Card>
               <CardHeader title="Račun" subtitle="Pojavljuje se na računu za stranku" />
               <div className="p-4">
-                <BillingForm billing={(() => { const b = billingFrom(t.settings); return { iban: b.iban ?? '', vatRegistered: b.vatRegistered, note: b.note ?? '' }; })()} />
+                <BillingForm
+                  billing={(() => {
+                    const b = billingFrom(t.settings);
+                    const fiscal = (t.settings as { fiscal?: { premises?: string; device?: string } | null } | null)?.fiscal;
+                    return { iban: b.iban ?? '', vatRegistered: b.vatRegistered, note: b.note ?? '', premises: fiscal?.premises ?? '', device: fiscal?.device ?? '' };
+                  })()}
+                />
               </div>
             </Card>
             <Card>

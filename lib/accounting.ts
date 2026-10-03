@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { invoiceTotals, lineAmount } from '@/components/invoice/InvoiceDocument';
+import { PAYMENT_METHODS, invoiceNumberLabel, invoiceTotals, lineAmount } from '@/components/invoice/InvoiceDocument';
 import { clientName } from '@/lib/format';
 import { zagrebDate, type LoadedInvoice } from '@/lib/invoice';
 
@@ -9,7 +9,9 @@ import { zagrebDate, type LoadedInvoice } from '@/lib/invoice';
 // an e-Račun in UBL 2.1 following EN 16931. The XML is a draft of the legal
 // format: the accountant should check it before it goes to a tax system.
 
-const invoiceId = (inv: LoadedInvoice) => `${inv.number}/${inv.year}`;
+const invoiceId = (inv: LoadedInvoice) => invoiceNumberLabel(inv) ?? `${inv.number}/${inv.year}`;
+// UNCL 4461: cash, bank card, credit transfer, not defined.
+const PAYMENT_CODES: Record<string, string> = { cash: '10', card: '48', transfer: '30', other: '1' };
 const money = (n: number) => n.toFixed(2);
 const csvMoney = (n: number) => n.toFixed(2).replace('.', ',');
 
@@ -19,7 +21,7 @@ function csvCell(value: string | number | null | undefined): string {
 }
 
 export function invoiceBookCsv(invoices: LoadedInvoice[]): string {
-  const header = ['Broj računa', 'Datum', 'Kupac', 'OIB kupca', 'Mjesto kupca', 'Osnovica', 'PDV', 'Ukupno', 'Plaćeno', 'Fiskalni račun', 'Radni nalog'];
+  const header = ['Broj računa', 'Datum', 'Kupac', 'OIB kupca', 'Mjesto kupca', 'Osnovica', 'PDV', 'Ukupno', 'Način plaćanja', 'Plaćeno', 'Fiskalni račun', 'Radni nalog'];
   const rows = [header.map(csvCell).join(';')];
   const sum = { net: 0, vat: 0, gross: 0 };
   for (const inv of invoices) {
@@ -38,6 +40,7 @@ export function invoiceBookCsv(invoices: LoadedInvoice[]): string {
         csvMoney(t.net),
         csvMoney(t.vat),
         csvMoney(t.gross),
+        inv.paymentMethod ? PAYMENT_METHODS[inv.paymentMethod] : '',
         inv.paid ? 'da' : 'ne',
         inv.fiscalRef,
         inv.jobNumber,
@@ -46,7 +49,7 @@ export function invoiceBookCsv(invoices: LoadedInvoice[]): string {
         .join(';')
     );
   }
-  rows.push(['', '', '', '', 'Ukupno', csvMoney(sum.net), csvMoney(sum.vat), csvMoney(sum.gross), '', '', ''].map(csvCell).join(';'));
+  rows.push(['', '', '', '', 'Ukupno', csvMoney(sum.net), csvMoney(sum.vat), csvMoney(sum.gross), '', '', '', ''].map(csvCell).join(';'));
   return `﻿${rows.join('\r\n')}\r\n`;
 }
 
@@ -108,9 +111,11 @@ export function invoiceUbl(inv: LoadedInvoice): string {
     tag('BuyerReference', `Nalog ${inv.jobNumber}`),
     `<cac:AccountingSupplierParty>${party({ name: w.name, oib: w.oib, address: w.address, city: w.city, vatId: vat && w.oib ? `HR${w.oib}` : null, phone: w.phone, email: w.email })}</cac:AccountingSupplierParty>`,
     `<cac:AccountingCustomerParty>${party({ name: clientName(inv.client as never), oib: inv.client.oib, address: inv.client.address, city: inv.client.city })}</cac:AccountingCustomerParty>`,
-    inv.billing.iban
-      ? `<cac:PaymentMeans>${tag('PaymentMeansCode', '30')}${tag('PaymentID', `HR00 ${inv.number}-${inv.year}`)}<cac:PayeeFinancialAccount>${tag('ID', inv.billing.iban.replace(/\s/g, ''))}</cac:PayeeFinancialAccount></cac:PaymentMeans>`
-      : '',
+    (inv.paymentMethod ?? 'transfer') !== 'transfer'
+      ? `<cac:PaymentMeans>${tag('PaymentMeansCode', PAYMENT_CODES[inv.paymentMethod ?? 'other'] ?? '1')}</cac:PaymentMeans>`
+      : inv.billing.iban
+        ? `<cac:PaymentMeans>${tag('PaymentMeansCode', '30')}${tag('PaymentID', `HR00 ${inv.number}-${inv.year}`)}<cac:PayeeFinancialAccount>${tag('ID', inv.billing.iban.replace(/\s/g, ''))}</cac:PayeeFinancialAccount></cac:PaymentMeans>`
+        : '',
     `<cac:TaxTotal>${eur('TaxAmount', t.vat)}${t.allRates
       .map(([rate, r]) => `<cac:TaxSubtotal>${eur('TaxableAmount', r.base)}${eur('TaxAmount', r.vat)}${taxCategory(rate, vat, 'TaxCategory')}</cac:TaxSubtotal>`)
       .join('')}</cac:TaxTotal>`,

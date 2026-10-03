@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Archive, Download, Lock, Search } from 'lucide-react';
+import { invoiceNumberLabel } from '@/components/invoice/InvoiceDocument';
 import { Badge, Button, Card, EmptyState, Input, PageHeader, Stat, buttonClass } from '@/components/ui';
 import { phaseLabel } from '@/config/tenant.config';
 import { PERIODS, PERIOD_ORDER, filterQuery, loadArchive, readFilters, type Paid } from '@/lib/archive';
@@ -106,7 +107,7 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
                       </span>
                       <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-faint">
                         Nalog #{j.number}
-                        {j.invoice_number ? <Badge tone="neutral">Račun {j.invoice_number}/{j.invoice_year}</Badge> : null}
+                        {j.invoice_number ? <Badge tone="neutral">Račun {invoiceNumberLabel({ number: j.invoice_number, year: j.invoice_year, premises: j.invoice_premises, device: j.invoice_device })}</Badge> : null}
                       </span>
                     </span>
                     <span className="flex shrink-0 flex-col items-end gap-1">

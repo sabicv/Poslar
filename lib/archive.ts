@@ -95,6 +95,8 @@ export interface ArchiveRow {
   locked_at: string | null;
   invoice_number: number | null;
   invoice_year: number | null;
+  invoice_premises: string | null;
+  invoice_device: string | null;
   complaint: string | null;
   client: { kind: 'person' | 'company'; first_name: string | null; last_name: string | null; company_name: string | null; phone: string | null } | null;
   asset: { asset_type: never; identifier: string | null; make: string | null; model: string | null } | null;
@@ -130,9 +132,12 @@ export async function loadArchive(ctx: WorkshopContext, f: ArchiveFilters): Prom
       ...(assets.data?.length ? [`asset_id.in.(${assets.data.map((a) => a.id).join(',')})`] : []),
       ...(clients.data?.length ? [`client_id.in.(${clients.data.map((c) => c.id).join(',')})`] : []),
     ];
-    // "12" is job 12 or invoice 12; "12/2026" is invoice 12 of 2026.
+    // "12" is job 12 or invoice 12; "12/2026" is invoice 12 of 2026;
+    // "12/PP1/1" is invoice 12 of premises PP1, device 1.
     const invoice = /^(\d{1,7})\s*\/\s*(\d{4})$/.exec(f.q);
-    if (invoice) parts.push(`and(invoice_number.eq.${invoice[1]},invoice_year.eq.${invoice[2]})`);
+    const fiscal = /^(\d{1,7})\s*\/\s*([A-Za-z0-9]{1,20})\s*\/\s*(\d{1,6})$/.exec(f.q);
+    if (fiscal) parts.push(`and(invoice_number.eq.${fiscal[1]},invoice_premises.eq.${fiscal[2]},invoice_device.eq.${fiscal[3]})`);
+    else if (invoice) parts.push(`and(invoice_number.eq.${invoice[1]},invoice_year.eq.${invoice[2]})`);
     else if (/^\d{1,7}$/.test(f.q)) parts.push(`number.eq.${f.q}`, `invoice_number.eq.${f.q}`);
     match = parts.length ? parts.join(',') : 'id.eq.00000000-0000-0000-0000-000000000000';
   }
@@ -148,7 +153,7 @@ export async function loadArchive(ctx: WorkshopContext, f: ArchiveFilters): Prom
   };
 
   const [{ data: page }, { data: all }] = await Promise.all([
-    base('id, number, collected_at, payment_status, paid_at, locked_at, invoice_number, invoice_year, complaint, client:clients(kind, first_name, last_name, company_name, phone), asset:assets(asset_type, identifier, make, model)').limit(f.limit),
+    base('id, number, collected_at, payment_status, paid_at, locked_at, invoice_number, invoice_year, invoice_premises, invoice_device, complaint, client:clients(kind, first_name, last_name, company_name, phone), asset:assets(asset_type, identifier, make, model)').limit(f.limit),
     base('id, payment_status').limit(MAX_SUMMARY),
   ]);
   const ids = (all ?? []).map((j) => (j as unknown as { id: string }).id);

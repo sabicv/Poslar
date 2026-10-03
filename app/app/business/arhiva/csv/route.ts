@@ -1,3 +1,4 @@
+import { invoiceNumberLabel } from '@/components/invoice/InvoiceDocument';
 import { loadArchive, readFilters } from '@/lib/archive';
 import { clientName, formatDate } from '@/lib/format';
 import { requireOwner } from '@/lib/session';
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
       [
         formatDate(j.collected_at),
         j.number,
-        j.invoice_number ? `${j.invoice_number}/${j.invoice_year}` : '',
+        invoiceNumberLabel({ number: j.invoice_number, year: j.invoice_year, premises: j.invoice_premises, device: j.invoice_device }) ?? '',
         clientName(j.client),
         j.client?.phone ?? '',
         j.asset?.identifier ?? '',
