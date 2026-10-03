@@ -3,15 +3,19 @@ import { headers } from 'next/headers';
 import Link from 'next/link';
 import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { BRAND, PACKAGE_IDS, matchPackageFromHost, resolvePackageFromHost, type PackageId } from '@/config/tenant.config';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { RegisterForm } from './RegisterForm';
 
 export const metadata: Metadata = { title: 'Registracija' };
 
-export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ paket?: string }> }) {
+export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ paket?: string; ref?: string }> }) {
   const host = (await headers()).get('host');
   const matched = matchPackageFromHost(host);
   const pkg = resolvePackageFromHost(host);
-  const { paket } = await searchParams;
+  const { paket, ref } = await searchParams;
+  // A link from another workshop ("Preporučite TaktiX"): say who sent it.
+  const referral = ref && /^\d{1,9}$/.test(ref) ? ref : '';
+  const { data: referrer } = referral ? await createAdminClient().from('tenants').select('name').eq('billing_ref', Number(referral)).maybeSingle() : { data: null };
   // On a product domain the package is fixed; elsewhere (localhost,
   // previews) the visitor picks one.
   const initial = matched?.id ?? (PACKAGE_IDS.includes(paket as PackageId) ? (paket as PackageId) : pkg.id);
@@ -33,7 +37,8 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
       <p className="mb-6 mt-1 text-sm text-muted">
         {trialDays} dana besplatno, bez kartice. Radnike dodaješ poslije, u Postavkama.
       </p>
-      <RegisterForm initialPackage={initial} packageLocked={matched !== null} />
+      {referrer ? <p className="mb-5 rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm">Preporučila te je radionica {referrer.name as string}.</p> : null}
+      <RegisterForm initialPackage={initial} packageLocked={matched !== null} referral={referrer ? referral : ''} />
       <p className="mb-10 mt-6 text-sm text-muted">
         Već imaš račun?{' '}
         <Link href="/login" className="font-medium text-accent hover:underline">

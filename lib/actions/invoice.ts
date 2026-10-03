@@ -10,6 +10,11 @@ export async function issueInvoice(jobId: string, method: 'cash' | 'card' | 'tra
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Račun izdaje voditelj servisa.');
   if (!['cash', 'card', 'transfer', 'other'].includes(method)) return fail('Odaberite način plaćanja.');
+  // The sample job of a real workshop must not use up a real invoice number.
+  if ((ctx.tenant.settings as { demo?: unknown } | null)?.demo !== true) {
+    const { data: job } = await ctx.supabase.from('jobs').select('is_demo').eq('id', jobId).maybeSingle();
+    if (job?.is_demo) return fail('Ovo je primjer naloga. Račun izdajte na pravom nalogu.');
+  }
   const { data, error } = await ctx.supabase.rpc('issue_invoice', { p_job_id: jobId, p_method: method });
   if (error) return fail(error);
   const row = (data as { o_number: number; o_year: number }[] | null)?.[0];

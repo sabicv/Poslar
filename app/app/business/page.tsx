@@ -7,6 +7,7 @@ import { AccountingExport } from './AccountingExport';
 import { BusinessTabs } from './BusinessTabs';
 import { phaseLabel } from '@/config/tenant.config';
 import { assetTitle, clientName, countJobs, formatDecimal, formatEuro, formatRelative } from '@/lib/format';
+import { allRows, inChunks } from '@/lib/paged';
 import { requireOwner } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
@@ -42,21 +43,26 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   const sixMonthsAgo = new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1);
 
   const yearAgo = new Date(new Date().getFullYear(), new Date().getMonth() - 12, 1);
-  const [{ data: done }, { data: unpaid }, { data: staff }, { data: history }, { data: issued }] = await Promise.all([
-    ctx.supabase
-      .from('jobs')
-      .select('id, created_at, finished_at, collected_at, payment_status, assigned_to')
-      .gte('collected_at', from.toISOString())
-      .lt('collected_at', to.toISOString()),
-    ctx.supabase
-      .from('jobs')
-      .select('id, number, finished_at, client:clients(kind, first_name, last_name, company_name, phone), asset:assets(identifier, make, model, asset_type)')
-      .in('phase', ['ready', 'collected'])
-      .eq('payment_status', 'unpaid')
-      .order('finished_at'),
-    ctx.supabase.from('profiles').select('id, full_name'),
-    ctx.supabase.from('jobs').select('id, collected_at').gte('collected_at', sixMonthsAgo.toISOString()),
-    ctx.supabase.from('jobs').select('invoice_issued_at').not('invoice_number', 'is', null).gte('invoice_issued_at', yearAgo.toISOString()),
+  type Row = Record<string, unknown>;
+  const db = ctx.supabase;
+  // Read a page at a time: a busy workshop passes the API's 1000 rows.
+  const [done, unpaid, { data: staff }, history, issued] = await Promise.all([
+    allRows<Row>((a, b) =>
+      db.from('jobs').select('id, created_at, finished_at, collected_at, payment_status, assigned_to').gte('collected_at', from.toISOString()).lt('collected_at', to.toISOString()).order('id').range(a, b)
+    ),
+    allRows<Row>((a, b) =>
+      db
+        .from('jobs')
+        .select('id, number, finished_at, client:clients(kind, first_name, last_name, company_name, phone), asset:assets(identifier, make, model, asset_type)')
+        .in('phase', ['ready', 'collected'])
+        .eq('payment_status', 'unpaid')
+        .order('finished_at')
+        .order('id')
+        .range(a, b)
+    ),
+    db.from('profiles').select('id, full_name'),
+    allRows<Row>((a, b) => db.from('jobs').select('id, collected_at').gte('collected_at', sixMonthsAgo.toISOString()).order('id').range(a, b)),
+    allRows<Row>((a, b) => db.from('jobs').select('invoice_issued_at').not('invoice_number', 'is', null).gte('invoice_issued_at', yearAgo.toISOString()).order('id').range(a, b)),
   ]);
   // Issued invoices per month, for the accountant's export.
   const invoicesPerMonth: Record<string, number> = {};
@@ -69,11 +75,9 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   const unpaidIds = (unpaid ?? []).map((j) => j.id as string);
   const historyIds = (history ?? []).map((j) => j.id as string);
   const allIds = [...new Set([...doneIds, ...unpaidIds, ...historyIds])];
-  const [{ data: totals }, { data: lines }] = await Promise.all([
-    allIds.length ? ctx.supabase.from('job_totals').select('job_id, net_total, gross_total').in('job_id', allIds) : Promise.resolve({ data: [] }),
-    doneIds.length
-      ? ctx.supabase.from('job_lines').select('id, kind, qty, job_id, time_spent_h, technician_id').in('job_id', doneIds).eq('approval', 'approved')
-      : Promise.resolve({ data: [] }),
+  const [totals, lines] = await Promise.all([
+    inChunks<Row>(allIds, (chunk) => db.from('job_totals').select('job_id, net_total, gross_total').in('job_id', chunk).order('job_id')),
+    inChunks<Row>(doneIds, (chunk) => db.from('job_lines').select('id, kind, qty, job_id, time_spent_h, technician_id').in('job_id', chunk).eq('approval', 'approved').order('id')),
   ]);
   const gross = new Map((totals ?? []).map((t) => [t.job_id as string, Number(t.gross_total)]));
   const net = new Map((totals ?? []).map((t) => [t.job_id as string, Number(t.net_total)]));
@@ -86,7 +90,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
 
   // Split by line kind (net, from line prices).
   const lineIds = (lines ?? []).map((l) => l.id as string);
-  const { data: prices } = lineIds.length ? await ctx.supabase.from('job_line_prices').select('job_line_id, unit_price, discount_pct').in('job_line_id', lineIds) : { data: [] };
+  const prices = await inChunks<Row>(lineIds, (chunk) => db.from('job_line_prices').select('job_line_id, unit_price, discount_pct').in('job_line_id', chunk).order('job_line_id'));
   const priceOf = new Map((prices ?? []).map((p) => [p.job_line_id as string, Number(p.unit_price) * (1 - Number(p.discount_pct) / 100)]));
   const byKind = new Map<string, number>();
   for (const l of lines ?? []) byKind.set(l.kind as string, (byKind.get(l.kind as string) ?? 0) + Number(l.qty) * (priceOf.get(l.id as string) ?? 0));

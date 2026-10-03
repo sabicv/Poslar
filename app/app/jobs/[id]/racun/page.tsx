@@ -36,6 +36,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           clientFirstName={invoice.clientFirstName}
           fiscalRef={invoice.fiscalRef}
           empty={invoice.lines.length === 0}
+          sample={invoice.sample}
           // A company usually pays to the account, a person in cash or by card.
           defaultMethod={invoice.client.kind === 'company' ? 'transfer' : 'cash'}
         />

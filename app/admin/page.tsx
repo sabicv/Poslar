@@ -5,6 +5,7 @@ import { Badge, Card, CardHeader, Stat } from '@/components/ui';
 import { PLANS, aiCost } from '@/config/plans';
 import { PACKAGES, TRADE_GROUPS, accentStyle } from '@/config/tenant.config';
 import { formatEuro, formatNumber, formatRelative } from '@/lib/format';
+import { allRows } from '@/lib/paged';
 import { todayInZagreb, zagrebMidnight } from '@/lib/time';
 import { loadWorkshops, requireTower } from '@/lib/tower';
 
@@ -17,15 +18,33 @@ const DAY = 86400000;
 export default async function TowerOverview() {
   const admin = await requireTower();
   const monthStart = zagrebMidnight(`${todayInZagreb().slice(0, 7)}-01`).toISOString();
-  const [all, { data: tokens }, { count: openTickets }, { count: openErrors }, { count: newErrors }] = await Promise.all([
+  const [all, tokens, { count: openTickets }, { count: openErrors }, { count: newErrors }, realJobs] = await Promise.all([
     loadWorkshops(),
-    admin.from('ai_usage').select('kind, input_tokens, output_tokens').gte('created_at', monthStart).limit(50000),
+    allRows<{ kind: string; input_tokens: number; output_tokens: number }>((a, b) =>
+      admin.from('ai_usage').select('kind, input_tokens, output_tokens').gte('created_at', monthStart).order('id').range(a, b)
+    ),
     admin.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     admin.from('app_errors').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     admin.from('app_errors').select('id', { count: 'exact', head: true }).eq('status', 'open').gte('last_seen', new Date(Date.now() - DAY).toISOString()),
+    // Real jobs (sample jobs left out) of the last 90 days, for the funnel:
+    // its workshops signed up within them, so none of their jobs is older.
+    allRows<{ tenant_id: string }>((a, b) =>
+      admin.from('jobs').select('tenant_id').eq('is_demo', false).gte('created_at', new Date(Date.now() - 90 * DAY).toISOString()).order('id').range(a, b)
+    ),
   ]);
   // Demo workshops never count as business.
   const real = all.filter((w) => !w.demo);
+  // Funnel over the last 90 days of sign-ups: signed up → first job → 10 jobs → pays.
+  const jobCount = new Map<string, number>();
+  for (const j of realJobs ?? []) jobCount.set(j.tenant_id as string, (jobCount.get(j.tenant_id as string) ?? 0) + 1);
+  const cohort = real.filter((w) => Date.now() - new Date(w.tenant.created_at).getTime() < 90 * DAY);
+  const funnel = [
+    { label: 'Registrirali se', n: cohort.length },
+    { label: 'Otvorili prvi nalog', n: cohort.filter((w) => (jobCount.get(w.tenant.id) ?? 0) >= 1).length },
+    { label: '10 naloga i više', n: cohort.filter((w) => (jobCount.get(w.tenant.id) ?? 0) >= 10).length },
+    { label: 'Plaćaju', n: cohort.filter((w) => w.tenant.status === 'active').length },
+  ];
+  const funnelTop = Math.max(1, funnel[0].n);
   const paying = real.filter((w) => w.tenant.status === 'active');
   const trial = real.filter((w) => w.tenant.status === 'trial');
   const mrr = paying.reduce((s, w) => s + w.monthly, 0);
@@ -93,6 +112,29 @@ export default async function TowerOverview() {
           </ul>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader title="Lijevak" subtitle="Radionice registrirane u zadnjih 90 dana: gdje odustaju" />
+        <ul className="space-y-3 p-4">
+          {funnel.map((step, i) => {
+            const prev = i ? funnel[i - 1].n : step.n;
+            return (
+              <li key={step.label}>
+                <div className="mb-1 flex justify-between text-sm">
+                  <span>{step.label}</span>
+                  <span className="tabular text-muted">
+                    {step.n}
+                    {i && prev ? <span className="ml-2 text-xs text-faint">{Math.round((step.n / prev) * 100)} % od prethodnog</span> : null}
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-surface2">
+                  <div className="h-full bg-accent" style={{ width: `${(step.n / funnelTop) * 100}%` }} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
 
       <Card>
         <CardHeader title="Po zanatu" />

@@ -98,6 +98,12 @@ export default async function TowerWorkshops({ searchParams }: { searchParams: P
                       </p>
                       <p className="truncate text-xs text-muted">{[w.owner?.name, w.owner?.phone, w.owner?.email].filter(Boolean).join(' · ')}</p>
                       <p className="truncate text-xs text-faint">{[t.city, t.oib && `OIB ${t.oib}`, `poziv na broj ${t.billing_ref}`, `od ${formatDate(t.created_at)}`].filter(Boolean).join(' · ')}</p>
+                      {w.referredBy ? (
+                        <p className="truncate text-xs text-accent">
+                          Preporuka: {w.referredBy}
+                          {t.referral_rewarded_at ? ', mjesec gratis dodijeljen' : ''}
+                        </p>
+                      ) : null}
                     </div>
                     <WorkshopSheet
                       w={{

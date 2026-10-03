@@ -37,6 +37,8 @@ const registerSchema = z.object({
   website: z.string(),
   elapsedMs: z.number().int().min(0),
   acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Potvrdite uvjete korištenja.' }) }),
+  // The referral code from another workshop's link (its payment reference).
+  referral: z.string().trim().regex(/^\d{1,9}$/).optional().or(z.literal('')),
 });
 
 const GENERIC_FAILURE = 'Registracija nije uspjela. Ako već imate račun, prijavite se; inače pokušajte ponovno za nekoliko minuta.';
@@ -87,7 +89,7 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
   }
 
   const trialDays = Math.max(1, Number(process.env.TRIAL_DAYS ?? 30) || 30);
-  const { error: rpcError } = await admin.rpc('register_workshop', {
+  const { data: tenantId, error: rpcError } = await admin.rpc('register_workshop', {
     p_user_id: userId,
     p_full_name: v.fullName,
     p_workshop_name: v.workshopName || v.fullName,
@@ -101,6 +103,11 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
   if (rpcError) {
     await admin.auth.admin.deleteUser(userId);
     return fail('Radionica nije stvorena. Pokušajte ponovno.');
+  }
+  // Sent by another workshop: remember who, for its free month later.
+  if (v.referral && tenantId) {
+    const { data: referrer } = await admin.from('tenants').select('id').eq('billing_ref', Number(v.referral)).maybeSingle();
+    if (referrer && referrer.id !== tenantId) await admin.from('tenants').update({ referred_by: referrer.id }).eq('id', tenantId as string);
   }
   return { ok: true, data: { confirmEmail } };
 }

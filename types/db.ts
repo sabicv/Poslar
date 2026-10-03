@@ -40,6 +40,9 @@ export interface Tenant {
   intake_enabled: boolean;
   // Poziv na broj (model HR00) for the subscription payment.
   billing_ref: number;
+  // Who sent this workshop (referral), and when that one got its free month.
+  referred_by: string | null;
+  referral_rewarded_at: string | null;
 }
 
 export interface Profile {

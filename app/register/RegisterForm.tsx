@@ -9,7 +9,7 @@ import { registerWorkshop } from '@/lib/actions/public';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 
-export function RegisterForm({ initialPackage, packageLocked }: { initialPackage: PackageId; packageLocked: boolean }) {
+export function RegisterForm({ initialPackage, packageLocked, referral = '' }: { initialPackage: PackageId; packageLocked: boolean; referral?: string }) {
   const router = useRouter();
   const [pkg, setPkg] = useState<PackageId>(initialPackage);
   const group = TRADE_GROUPS.find((g) => g.id === tradeGroupOf(pkg))!;
@@ -26,7 +26,7 @@ export function RegisterForm({ initialPackage, packageLocked }: { initialPackage
     event.preventDefault();
     setPending(true);
     setError(null);
-    const result = await registerWorkshop({ ...form, package: pkg, acceptTerms: accept as true, elapsedMs: Date.now() - openedAt.current });
+    const result = await registerWorkshop({ ...form, package: pkg, acceptTerms: accept as true, elapsedMs: Date.now() - openedAt.current, referral });
     if (!result.ok) {
       setPending(false);
       setError(result.error);

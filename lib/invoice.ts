@@ -3,6 +3,7 @@ import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { billingFrom, type InvoiceData, type PaymentMethod } from '@/components/invoice/InvoiceDocument';
 import { getPackage } from '@/config/tenant.config';
+import { allRows, inChunks } from '@/lib/paged';
 
 export type LoadedInvoice = InvoiceData & {
   jobId: string;
@@ -11,10 +12,12 @@ export type LoadedInvoice = InvoiceData & {
   clientFirstName: string | null;
   token: string;
   paid: boolean;
+  // The "Pogledaj primjer naloga" job of a real workshop: shown, never numbered.
+  sample: boolean;
 };
 
 const JOB_FIELDS =
-  'id, tenant_id, number, work_summary, payment_status, invoice_number, invoice_year, invoice_issued_at, invoice_fiscal_ref, invoice_token, invoice_payment_method, invoice_premises, invoice_device, invoice_operator, client:clients(kind, first_name, last_name, company_name, oib, address, city, phone), asset:assets(make, model, asset_type, identifier)';
+  'id, tenant_id, number, is_demo, work_summary, payment_status, invoice_number, invoice_year, invoice_issued_at, invoice_fiscal_ref, invoice_token, invoice_payment_method, invoice_premises, invoice_device, invoice_operator, client:clients(kind, first_name, last_name, company_name, oib, address, city, phone), asset:assets(make, model, asset_type, identifier)';
 
 // Everything the invoice page shows, from one job. The owner's page passes
 // the owner's own client (prices under RLS); the customer's link passes the
@@ -35,15 +38,19 @@ export async function loadIssuedInvoices(db: SupabaseClient, month: string): Pro
   // A day either side, then exact by the Zagreb calendar date.
   const from = new Date(Date.UTC(y, m - 1, 1) - 86400_000).toISOString();
   const to = new Date(Date.UTC(y, m, 1) + 86400_000).toISOString();
-  const { data: jobs } = await db
-    .from('jobs')
-    .select(JOB_FIELDS)
-    .not('invoice_number', 'is', null)
-    .gte('invoice_issued_at', from)
-    .lt('invoice_issued_at', to)
-    .order('invoice_year')
-    .order('invoice_number');
-  const inMonth = (jobs ?? []).filter((j) => zagrebDate(j.invoice_issued_at as string).startsWith(month));
+  const jobs = await allRows<JobRow>((a, b) =>
+    db
+      .from('jobs')
+      .select(JOB_FIELDS)
+      .not('invoice_number', 'is', null)
+      .gte('invoice_issued_at', from)
+      .lt('invoice_issued_at', to)
+      .order('invoice_year')
+      .order('invoice_number')
+      .order('id')
+      .range(a, b)
+  );
+  const inMonth = jobs.filter((j) => zagrebDate(j.invoice_issued_at as string).startsWith(month));
   return assemble(db, inMonth);
 }
 
@@ -54,27 +61,22 @@ export function zagrebDate(iso: string): string {
 
 type JobRow = Record<string, unknown>;
 
-async function inChunks<T>(ids: string[], fetch: (chunk: string[]) => PromiseLike<{ data: T[] | null }>): Promise<T[]> {
-  const out: T[] = [];
-  for (let i = 0; i < ids.length; i += 100) out.push(...((await fetch(ids.slice(i, i + 100))).data ?? []));
-  return out;
-}
-
 async function assemble(db: SupabaseClient, jobs: JobRow[]): Promise<LoadedInvoice[]> {
   if (!jobs.length) return [];
   const { data: tenant } = await db.from('tenants').select('name, address, city, oib, phone, email, logo_url, settings, package').eq('id', jobs[0].tenant_id as string).single();
   if (!tenant) return [];
-  const lines = await inChunks(
+  const lines = await inChunks<JobRow>(
     jobs.map((j) => j.id as string),
-    (chunk) => db.from('job_lines').select('id, job_id, description, qty, unit, sort').in('job_id', chunk).eq('approval', 'approved').order('sort')
+    (chunk) => db.from('job_lines').select('id, job_id, description, qty, unit, sort').in('job_id', chunk).eq('approval', 'approved').order('sort').order('id')
   );
-  const prices = await inChunks(
+  const prices = await inChunks<JobRow>(
     lines.map((l) => l.id as string),
-    (chunk) => db.from('job_line_prices').select('job_line_id, unit_price, discount_pct, vat_rate').in('job_line_id', chunk)
+    (chunk) => db.from('job_line_prices').select('job_line_id, unit_price, discount_pct, vat_rate').in('job_line_id', chunk).order('job_line_id')
   );
   const priceOf = new Map(prices.map((p) => [p.job_line_id as string, p]));
   const billing = billingFrom(tenant.settings);
   const assetLabel = getPackage(tenant.package as string).vocabulary.asset.one;
+  const demoWorkshop = (tenant.settings as { demo?: unknown } | null)?.demo === true;
 
   return jobs.map((job) => {
     const client = job.client as InvoiceData['client'] & { phone: string | null };
@@ -83,6 +85,7 @@ async function assemble(db: SupabaseClient, jobs: JobRow[]): Promise<LoadedInvoi
       tenantId: job.tenant_id as string,
       token: job.invoice_token as string,
       paid: job.payment_status === 'paid',
+      sample: job.is_demo === true && !demoWorkshop,
       clientPhone: client.phone,
       clientFirstName: client.kind === 'person' ? client.first_name : null,
       workshop: {

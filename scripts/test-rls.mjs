@@ -409,5 +409,30 @@ console.log('\nQR samoprijem');
   check('tokens are unique', n === 1);
 }
 
+// Subscription reference and referrals: written by TaktiX only.
+console.log('\nPretplata i preporuke');
+{
+  const refs = await q(`select billing_ref from public.tenants order by created_at`);
+  check('every workshop has its own payment reference from 1001', refs.every((r) => r.billing_ref >= 1001) && new Set(refs.map((r) => r.billing_ref)).size === refs.length, JSON.stringify(refs));
+  await as(U.aOwner, async () => {
+    check('owner cannot change the payment reference', await fails(() => q(`update public.tenants set billing_ref = 5 where id = $1`, [tA])));
+    check('owner cannot pick who referred the workshop', await fails(() => q(`update public.tenants set referred_by = $2 where id = $1`, [tA, tB])));
+    check('owner cannot mark the referral as rewarded', await fails(() => q(`update public.tenants set referral_rewarded_at = now() where id = $1`, [tA])));
+    await q(`update public.tenants set settings = settings || '{"demo": true}' where id = $1`, [tA]);
+  });
+  const [own] = await q(`select settings ? 'demo' as demo from public.tenants where id = $1`, [tA]);
+  check('owner cannot mark the workshop as a demo (no billing)', own.demo === false, JSON.stringify(own));
+  // A demo workshop set up by TaktiX keeps the flag when its owner saves settings.
+  await q(`update public.tenants set settings = settings || '{"demo": true}' where id = $1`, [tB]);
+  await as(U.bOwner, async () => {
+    await q(`update public.tenants set settings = '{"onboarding_hidden": true}' where id = $1`, [tB]);
+  });
+  const [demo] = await q(`select settings from public.tenants where id = $1`, [tB]);
+  check('a demo workshop keeps its flag, the rest of the save goes through', demo.settings.demo === true && demo.settings.onboarding_hidden === true, JSON.stringify(demo.settings));
+  await q(`update public.tenants set settings = settings - 'demo' - 'onboarding_hidden' where id = $1`, [tB]);
+  await q(`update public.tenants set referred_by = $2 where id = $1`, [tA, tB]);
+  check('the server records who referred a workshop', (await q(`select 1 from public.tenants where id = $1 and referred_by = $2`, [tA, tB])).length === 1);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

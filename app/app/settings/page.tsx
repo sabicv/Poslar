@@ -2,13 +2,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight, LogOut } from 'lucide-react';
 import { SupportButton } from '@/components/SupportButton';
+import { ReferralShare } from '@/components/billing/ReferralShare';
 import { Badge, Button, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
 import { AI_LABELS, TERM_LABELS, aiQuota, getPlan, monthlyPrice } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { signOut } from '@/lib/actions/auth';
 import { hasModule } from '@/config/tenant.config';
 import { formatDate } from '@/lib/format';
+import { appOrigin } from '@/lib/qr';
 import { isPlatformAdmin, requireWorkshop } from '@/lib/session';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { Profile } from '@/types/db';
 import { billingFrom } from '@/components/invoice/InvoiceDocument';
 import { BillingForm, LogoUpload, ModuleToggles, ProfileForm, TeamManager, ThemeToggle, WorkshopForm } from './SettingsForms';
@@ -25,6 +28,17 @@ const MODULE_LABELS: Record<string, string> = {
   wheel_hotel: 'Hotel za gume',
 };
 
+// Workshops that signed up through this one's link, read past RLS: the
+// owner only ever sees the two counts, never the other workshops' names.
+async function loadReferral(tenantId: string, billingRef: number) {
+  const { data } = await createAdminClient().from('tenants').select('referral_rewarded_at').eq('referred_by', tenantId);
+  return {
+    link: `${await appOrigin()}/register?ref=${billingRef}`,
+    joined: (data ?? []).length,
+    paid: (data ?? []).filter((r) => r.referral_rewarded_at).length,
+  };
+}
+
 export default async function SettingsPage() {
   const ctx = await requireWorkshop();
   const t = ctx.tenant;
@@ -37,6 +51,9 @@ export default async function SettingsPage() {
   ]);
   const plan = getPlan(t.plan);
   const unread = (tickets ?? []).filter((x) => x.tenant_unread).length;
+  // The owner's own link for colleagues (not in the shared demo workshops).
+  const isDemo = (t.settings as { demo?: unknown } | null)?.demo === true;
+  const referral = ctx.isOwner && !isDemo ? await loadReferral(t.id, t.billing_ref) : null;
 
   return (
     <>
@@ -112,6 +129,20 @@ export default async function SettingsPage() {
               <ChevronRight className="size-4" />
             </Link>
           </Card>
+          ) : null}
+          {referral ? (
+            <Card>
+              <CardHeader title="Preporučite TaktiX" subtitle="Kolega se registrira preko Vaše poveznice. Kad plati prvu pretplatu, Vi dobivate mjesec dana gratis." />
+              <div className="space-y-3 p-4">
+                <ReferralShare link={referral.link} workshop={t.name} />
+              </div>
+              {referral.joined ? (
+                <div className="divide-y divide-line border-t border-line px-4">
+                  <KeyValue label="Registrirano preko poveznice">{referral.joined}</KeyValue>
+                  <KeyValue label="Od toga plaća">{referral.paid}</KeyValue>
+                </div>
+              ) : null}
+            </Card>
           ) : null}
         </div>
 

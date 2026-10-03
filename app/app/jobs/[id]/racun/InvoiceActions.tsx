@@ -22,6 +22,7 @@ export function InvoiceActions({
   clientFirstName,
   fiscalRef,
   empty,
+  sample = false,
   defaultMethod = 'cash',
 }: {
   jobId: string;
@@ -33,6 +34,7 @@ export function InvoiceActions({
   clientFirstName: string | null;
   fiscalRef: string | null;
   empty: boolean;
+  sample?: boolean;
   defaultMethod?: PaymentMethod;
 }) {
   const router = useRouter();
@@ -41,6 +43,15 @@ export function InvoiceActions({
   const [method, setMethod] = useState<PaymentMethod>(defaultMethod);
   const greeting = clientFirstName ? `Poštovani ${vocativeHR(clientFirstName)}, ` : 'Poštovani, ';
   const message = `${greeting}šaljemo ${title.toLowerCase()}: ${link}\n\n${workshopName}`;
+
+  // The sample job must not use up a real invoice number.
+  if (!issued && sample) {
+    return (
+      <p className="rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm">
+        Ovo je primjer naloga. Ovako izgleda račun. Broj računa dobiva tek pravi nalog.
+      </p>
+    );
+  }
 
   if (!issued) {
     return (

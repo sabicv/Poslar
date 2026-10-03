@@ -1,6 +1,7 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { aiCost, aiQuota, getPlan, monthlyPrice } from '@/config/plans';
+import { allRows } from '@/lib/paged';
 import { isPlatformAdmin } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { todayInZagreb, zagrebMidnight } from '@/lib/time';
@@ -25,33 +26,38 @@ export interface TowerWorkshop {
   overdue: boolean;
   quiet: boolean;
   payments: { id: string; amount: number; months: number; paid_on: string; note: string | null }[];
+  // The workshop whose link it signed up through.
+  referredBy: string | null;
 }
 
 const DAY = 86400000;
 
-// Everything the tower shows about the workshops, in one pass. Small
-// numbers for now (dozens of workshops); paged queries when that changes.
+type Row = Record<string, unknown>;
+
+// Everything the tower shows about the workshops, in one pass, read a
+// page at a time (the API gives at most 1000 rows per request).
 export async function loadWorkshops(): Promise<TowerWorkshop[]> {
   const admin = createAdminClient();
   const monthStart = zagrebMidnight(`${todayInZagreb().slice(0, 7)}-01`).toISOString();
   const since = new Date(Date.now() - 60 * DAY).toISOString();
-  const [{ data: tenants }, { data: profiles }, { data: jobs }, { data: ai }, { data: payments }, users] = await Promise.all([
-    admin.from('tenants').select('*').order('created_at', { ascending: false }),
-    admin.from('profiles').select('id, tenant_id, role, full_name, phone, created_at'),
-    admin.from('jobs').select('tenant_id, created_at, updated_at').gte('updated_at', since).limit(20000),
-    admin.from('ai_usage').select('tenant_id, kind, input_tokens, output_tokens').gte('created_at', monthStart).limit(50000),
-    admin.from('subscription_payments').select('id, tenant_id, amount, months, paid_on, note').order('paid_on', { ascending: false }),
+  const [tenants, profiles, jobs, ai, payments, users] = await Promise.all([
+    allRows<Tenant>((a, b) => admin.from('tenants').select('*').order('created_at', { ascending: false }).order('id').range(a, b)),
+    allRows<Row>((a, b) => admin.from('profiles').select('id, tenant_id, role, full_name, phone, created_at').order('id').range(a, b)),
+    allRows<Row>((a, b) => admin.from('jobs').select('tenant_id, created_at, updated_at').gte('updated_at', since).order('id').range(a, b)),
+    allRows<Row>((a, b) => admin.from('ai_usage').select('tenant_id, kind, input_tokens, output_tokens').gte('created_at', monthStart).order('id').range(a, b)),
+    allRows<Row>((a, b) => admin.from('subscription_payments').select('id, tenant_id, amount, months, paid_on, note').order('paid_on', { ascending: false }).order('id').range(a, b)),
     listEmails(admin),
   ]);
 
   const now = Date.now();
   const today = todayInZagreb();
-  return ((tenants ?? []) as Tenant[]).map((t) => {
-    const staff = (profiles ?? []).filter((p) => p.tenant_id === t.id);
+  const names = new Map(tenants.map((t) => [t.id, t.name]));
+  return tenants.map((t) => {
+    const staff = profiles.filter((p) => p.tenant_id === t.id);
     const ownerRow = staff.filter((p) => p.role === 'owner').sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))[0];
-    const mine = (jobs ?? []).filter((j) => j.tenant_id === t.id);
+    const mine = jobs.filter((j) => j.tenant_id === t.id);
     const last = mine.reduce<string | null>((m, j) => (!m || (j.updated_at as string) > m ? (j.updated_at as string) : m), null);
-    const usage = (ai ?? []).filter((a) => a.tenant_id === t.id);
+    const usage = ai.filter((a) => a.tenant_id === t.id);
     const plan = getPlan(t.plan);
     const trialLeft = t.status === 'trial' && t.trial_ends_at ? Math.ceil((new Date(t.trial_ends_at).getTime() - now) / DAY) : null;
     const signedUpDaysAgo = (now - new Date(t.created_at).getTime()) / DAY;
@@ -76,7 +82,8 @@ export async function loadWorkshops(): Promise<TowerWorkshop[]> {
       overdue: t.status === 'active' && Boolean(t.paid_until && t.paid_until < today),
       // Signed up and gone silent: two weeks without a job (three days for a brand-new one).
       quiet: t.status !== 'suspended' && (last ? quietSince > 14 : signedUpDaysAgo > 3),
-      payments: (payments ?? []).filter((p) => p.tenant_id === t.id).map((p) => ({ id: p.id as string, amount: Number(p.amount), months: p.months as number, paid_on: p.paid_on as string, note: (p.note as string | null) ?? null })),
+      payments: payments.filter((p) => p.tenant_id === t.id).map((p) => ({ id: p.id as string, amount: Number(p.amount), months: p.months as number, paid_on: p.paid_on as string, note: (p.note as string | null) ?? null })),
+      referredBy: t.referred_by ? (names.get(t.referred_by) ?? null) : null,
     };
   });
 }

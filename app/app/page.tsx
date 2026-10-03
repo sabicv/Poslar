@@ -5,6 +5,9 @@ import { JobCard, type BoardJob } from '@/components/JobCard';
 import { EmptyState, Input, PageHeader, buttonClass } from '@/components/ui';
 import { PHASE_ORDER, hasFieldWork, phaseLabel, type JobPhase } from '@/config/tenant.config';
 import { formatEuro } from '@/lib/format';
+import { FirstSteps } from '@/components/onboarding/FirstSteps';
+import { loadFirstSteps } from '@/lib/onboarding';
+import { allRows, inChunks } from '@/lib/paged';
 import { loadReminders } from '@/lib/reminders';
 import { requireWorkshop } from '@/lib/session';
 import { cn, plateIlike, toIlike } from '@/lib/utils';
@@ -19,6 +22,8 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   const { q = '', f, view, d, t } = await searchParams;
   // The owner sees who is waiting for a reminder (tyres, service, deadlines).
   const waiting = ctx.isOwner ? (await loadReminders(ctx)).items.length : 0;
+  const first = await loadFirstSteps(ctx);
+  const firstSteps = first ? <FirstSteps steps={first.steps} sample={first.sample} /> : null;
   const reminderBanner = waiting ? (
     <Link href="/app/business/podsjetnici" className="mb-4 flex items-center gap-3 rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm">
       <BellRing className="size-5 shrink-0 text-accent" />
@@ -49,6 +54,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
     return (
       <>
         <PageHeader title="Raspored" action={viewSwitch} />
+        {firstSteps}
         {reminderBanner}
         <FieldSchedule ctx={ctx} day={d} tech={t} />
       </>
@@ -91,15 +97,24 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   let unpaidSum = 0;
   let unpaidCount = 0;
   if (ctx.isOwner) {
-    const [{ data: rows }, { data: unpaidJobs }] = await Promise.all([
-      jobs.length ? ctx.supabase.from('job_totals').select('job_id, gross_total').in('job_id', jobs.map((j) => j.id)) : Promise.resolve({ data: [] }),
-      billing ? ctx.supabase.from('jobs').select('id').in('phase', ['ready', 'collected']).eq('payment_status', 'unpaid') : Promise.resolve({ data: [] as { id: string }[] }),
+    // In pages and chunks: unpaid jobs pile up when nobody marks them paid.
+    const [rows, unpaidJobs] = await Promise.all([
+      inChunks<{ job_id: string; gross_total: number }>(
+        jobs.map((j) => j.id),
+        (chunk) => ctx.supabase.from('job_totals').select('job_id, gross_total').in('job_id', chunk).order('job_id')
+      ),
+      billing
+        ? allRows<{ id: string }>((a, b) => ctx.supabase.from('jobs').select('id').in('phase', ['ready', 'collected']).eq('payment_status', 'unpaid').order('id').range(a, b))
+        : Promise.resolve([] as { id: string }[]),
     ]);
-    for (const row of rows ?? []) totals.set(row.job_id as string, Number(row.gross_total));
-    unpaidCount = unpaidJobs?.length ?? 0;
+    for (const row of rows) totals.set(row.job_id, Number(row.gross_total));
+    unpaidCount = unpaidJobs.length;
     if (unpaidCount) {
-      const { data: unpaidTotals } = await ctx.supabase.from('job_totals').select('gross_total').in('job_id', unpaidJobs!.map((j) => j.id));
-      unpaidSum = (unpaidTotals ?? []).reduce((sum, r) => sum + Number(r.gross_total), 0);
+      const unpaidTotals = await inChunks<{ job_id: string; gross_total: number }>(
+        unpaidJobs.map((j) => j.id),
+        (chunk) => ctx.supabase.from('job_totals').select('job_id, gross_total').in('job_id', chunk).order('job_id')
+      );
+      unpaidSum = unpaidTotals.reduce((sum, r) => sum + Number(r.gross_total), 0);
     }
   }
 
@@ -119,6 +134,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader title="Nalozi" action={viewSwitch} />
+      {firstSteps}
       {reminderBanner}
 
       <form className="relative mb-4" action="/app">

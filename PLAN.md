@@ -82,9 +82,15 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [ ] (V) U Vercel upisati TAKTIX_IBAN, TAKTIX_PAYEE_NAME, TAKTIX_PAYEE_STREET, TAKTIX_PAYEE_CITY, SUPPORT_PHONE, SUPPORT_EMAIL
    - [ ] (V) Račune za pretplatu TaktiX izdaje u svom programu dok se ne spoji posrednik; barkod provjeriti skeniranjem u svojoj banci
    - [ ] (V) Stripe račun za plaćanje karticom; zatim plaćanje karticom u aplikaciji
-3. Prvi koraci nakon registracije: popis od 4 stavke (logo i OIB, radnik, prvi nalog, prvi račun) i primjer podataka
-4. Lijevak u Tornju: registracija → prvi nalog → 10 naloga → plaća, i gdje ljudi odustaju
-5. Preporuka: radionica koja dovede drugu dobije mjesec gratis
+3. Prvi koraci nakon registracije
+   - [x] Kartica „Prvi koraci” na Nalozima (samo vlasnik nove radionice): podaci radionice, radnik („Radim sam”), prvi nalog, prvi račun (Deal: prvi otkup); nestaje kad je sve gotovo ili kad je vlasnik zatvori
+   - [x] „Pogledaj primjer naloga”: izmišljena mušterija i nalog s prvim predloškom; ne troši broj računa; „Obriši primjer” ga miče i kad je zatvoren
+4. Lijevak u Tornju
+   - [x] Pregled → Lijevak: radionice registrirane u zadnjih 90 dana, koliko ih je otvorilo prvi nalog, 10 naloga i više, plaća; postotak od prethodnog koraka
+5. Preporuka
+   - [x] Postavke → „Preporučite TaktiX”: vlastita poveznica, slanje na WhatsApp, koliko se registriralo i koliko plaća
+   - [x] Registracija preko poveznice pamti tko je preporučio; prva uplata nove radionice (upis u Tornju) daje preporučitelju mjesec gratis, jednom, s bilješkom; Toranj pokazuje „Preporuka: …”
+   - [x] Vlasnik ne može sam sebi upisati preporuku ni označiti radionicu kao demo (demo se ne naplaćuje)
 6. WhatsApp broj za pomoć na stranici i u aplikaciji ((V) broj)
 7. Video upute: mjesta u Pomoći i uz ekrane ((V) snima kratke video upute)
 8. Pravni dio: uvjeti korištenja, politika privatnosti, ugovor o obradi podataka ((V) pravnik pregleda prije prodaje)
