@@ -320,5 +320,38 @@ console.log('\nAqua, Tow, Deal');
   });
 }
 
+// Toranj: subscription fields, support tickets, errors and AI usage.
+console.log('\nToranj');
+{
+  await as(U.aOwner, async () => {
+    check('owner cannot change own plan', await fails(() => q(`update public.tenants set plan = 'premium' where id = $1`, [tA])));
+    check('owner cannot move "paid until"', await fails(() => q(`update public.tenants set paid_until = '2099-01-01' where id = $1`, [tA])));
+    check('owner cannot raise own AI quota', await fails(() => q(`update public.tenants set ai_quota = '{"scan": 99999}' where id = $1`, [tA])));
+    check('owner cannot write a ticket past the server', await fails(() => q(`insert into public.support_tickets (tenant_id, user_id) values ($1,$2)`, [tA, U.aOwner])));
+    check('owner cannot read errors, payments or AI usage', await fails(() => q(`select 1 from public.app_errors`)) && (await fails(() => q(`select 1 from public.subscription_payments`))) && (await fails(() => q(`select 1 from public.ai_usage`))));
+    check('owner cannot log errors directly', await fails(() => q(`select public.log_app_error('x','client','m',null,null,null,null,null,null)`)));
+  });
+  // Written by the server (service role here: no role switch).
+  const [mine] = await q(`insert into public.support_tickets (tenant_id, user_id) values ($1,$2) returning id`, [tA, U.aWorker]);
+  const [owners] = await q(`insert into public.support_tickets (tenant_id, user_id) values ($1,$2) returning id`, [tA, U.aOwner]);
+  await q(`insert into public.support_messages (ticket_id, tenant_id, author_id, body) values ($1,$2,$3,'Ne radi slikanje'),($4,$2,$5,'Kako dodati radnika?')`, [mine.id, tA, U.aWorker, owners.id, U.aOwner]);
+  await as(U.aWorker, async () => {
+    const seen = await q(`select id from public.support_tickets`);
+    check('worker sees only own ticket', seen.length === 1 && seen[0].id === mine.id);
+    check("worker sees no messages of the owner's ticket", (await q(`select 1 from public.support_messages where ticket_id = $1`, [owners.id])).length === 0);
+  });
+  await as(U.aOwner, async () => {
+    check('owner sees every ticket of the workshop', (await q(`select id from public.support_tickets`)).length === 2);
+  });
+  await as(U.bOwner, async () => {
+    check("another workshop sees none of A's tickets", (await q(`select id from public.support_tickets union all select id from public.support_messages`)).length === 0);
+  });
+  await q(`select public.log_app_error('fp1','client','TypeError: x is undefined','at a.js:1','/app',null,'test',$1,$2)`, [tA, U.aWorker]);
+  await q(`update public.app_errors set status = 'resolved', resolved_at = now() where fingerprint = 'fp1'`);
+  await q(`select public.log_app_error('fp1','client','TypeError: x is undefined','at a.js:1','/app/jobs',null,'test',$1,null)`, [tA]);
+  const [err] = await q(`select count, status, url, last_user_id from public.app_errors where fingerprint = 'fp1'`);
+  check('the same error counts up and reopens', err.count === 2 && err.status === 'open' && err.url === '/app/jobs' && err.last_user_id === U.aWorker, JSON.stringify(err));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { getPlan } from '@/config/plans';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -105,6 +106,12 @@ export async function createStaff(values: z.input<typeof staffSchema>): Promise<
   const parsed = staffSchema.safeParse(values);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite podatke.');
   const v = parsed.data;
+  // The plan sets how many people work in the app besides the owner.
+  const plan = getPlan(ctx.tenant.plan);
+  const { count } = await ctx.supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('tenant_id', ctx.tenant.id);
+  if ((count ?? 1) - 1 >= plan.workers) {
+    return fail(`Paket ${plan.name} ima mjesta za ${plan.workers} radnika uz voditelja. Za više ljudi javite se kroz „Javi problem”.`);
+  }
   const admin = createAdminClient();
   const { data: created, error } = await admin.auth.admin.createUser({
     email: v.email,

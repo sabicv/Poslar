@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { PLANS, PLAN_IDS, type PlanId } from '@/config/plans';
 import { PACKAGE_IDS, type PackageId } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { isPlatformAdmin } from '@/lib/session';
@@ -49,7 +50,7 @@ export async function adminCreateWorkshop(values: z.input<typeof createSchema>):
     await admin.auth.admin.deleteUser(created.user.id);
     return fail(rpcError.message);
   }
-  revalidatePath('/admin');
+  revalidatePath('/admin', 'layout');
   return { ok: true };
 }
 
@@ -58,7 +59,7 @@ export async function adminSetStatus(tenantId: string, status: 'trial' | 'active
   if (denied) return denied;
   const { error } = await createAdminClient().from('tenants').update({ status, status_note: note?.trim() || null }).eq('id', tenantId);
   if (error) return fail(error);
-  revalidatePath('/admin');
+  revalidatePath('/admin', 'layout');
   return { ok: true };
 }
 
@@ -71,7 +72,7 @@ export async function adminExtendTrial(tenantId: string, days: number): Promise<
   base.setDate(base.getDate() + days);
   const { error } = await admin.from('tenants').update({ status: 'trial', trial_ends_at: base.toISOString() }).eq('id', tenantId);
   if (error) return fail(error);
-  revalidatePath('/admin');
+  revalidatePath('/admin', 'layout');
   return { ok: true };
 }
 
@@ -81,6 +82,72 @@ export async function adminSetPackage(tenantId: string, pkg: PackageId): Promise
   if (!PACKAGE_IDS.includes(pkg)) return fail('Nepoznat paket.');
   const { error } = await createAdminClient().from('tenants').update({ package: pkg, enabled_modules: [] }).eq('id', tenantId);
   if (error) return fail(error);
-  revalidatePath('/admin');
+  revalidatePath('/admin', 'layout');
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------
+// Subscription: plan, term, paid until, notes, AI quota override
+// ---------------------------------------------------------------------
+const subscriptionSchema = z.object({
+  plan: z.enum(PLAN_IDS as [PlanId, ...PlanId[]]),
+  term: z.enum(['monthly', '24m']),
+  paidUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+  notes: z.string().trim().max(4000).nullable(),
+  aiScan: z.number().int().min(0).max(100000).nullable(),
+  aiCopilot: z.number().int().min(0).max(100000).nullable(),
+});
+
+export async function adminUpdateSubscription(tenantId: string, values: z.input<typeof subscriptionSchema>): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return denied;
+  const parsed = subscriptionSchema.safeParse(values);
+  if (!parsed.success) return fail('Provjerite podatke pretplate.');
+  const v = parsed.data;
+  // Only what differs from the plan is kept as an override.
+  const quota: Record<string, number> = {};
+  if (v.aiScan !== null && v.aiScan !== PLANS[v.plan].ai.scan) quota.scan = v.aiScan;
+  if (v.aiCopilot !== null && v.aiCopilot !== PLANS[v.plan].ai.copilot) quota.copilot = v.aiCopilot;
+  const { error } = await createAdminClient()
+    .from('tenants')
+    .update({ plan: v.plan, billing_term: v.term, paid_until: v.paidUntil, admin_notes: v.notes || null, ai_quota: Object.keys(quota).length ? quota : null })
+    .eq('id', tenantId);
+  if (error) return fail(error);
+  revalidatePath('/admin', 'layout');
+  return { ok: true };
+}
+
+// A payment moves "paid until" forward by the months paid, counted from
+// today when the workshop was behind, and switches it on.
+export async function adminRecordPayment(tenantId: string, amount: number, months: number, note: string | null): Promise<ActionResult<{ paidUntil: string }>> {
+  const denied = await guard();
+  if (denied) return denied;
+  if (!(amount >= 0) || !Number.isInteger(months) || months < 1 || months > 36) return fail('Upišite iznos i broj mjeseci (1 do 36).');
+  const admin = createAdminClient();
+  const { data: tenant } = await admin.from('tenants').select('paid_until').eq('id', tenantId).single();
+  const today = new Date().toISOString().slice(0, 10);
+  const from = tenant?.paid_until && tenant.paid_until > today ? new Date(`${tenant.paid_until}T12:00:00Z`) : new Date(`${today}T12:00:00Z`);
+  from.setUTCMonth(from.getUTCMonth() + months);
+  const { error } = await admin.from('subscription_payments').insert({ tenant_id: tenantId, amount, months, note: note?.trim() || null });
+  if (error) return fail(error);
+  const paidUntil = from.toISOString().slice(0, 10);
+  const { error: tenantError } = await admin.from('tenants').update({ paid_until: paidUntil, status: 'active', status_note: null }).eq('id', tenantId);
+  if (tenantError) return fail(tenantError);
+  revalidatePath('/admin', 'layout');
+  return { ok: true, data: { paidUntil } };
+}
+
+// ---------------------------------------------------------------------
+// Errors
+// ---------------------------------------------------------------------
+export async function adminSetErrorStatus(id: string, status: 'open' | 'resolved'): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return denied;
+  const { error } = await createAdminClient()
+    .from('app_errors')
+    .update({ status, resolved_at: status === 'resolved' ? new Date().toISOString() : null })
+    .eq('id', id);
+  if (error) return fail(error);
+  revalidatePath('/admin', 'layout');
   return { ok: true };
 }

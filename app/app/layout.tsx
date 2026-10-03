@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // Open tasks for a worker, open help requests for the owner.
   let inbox = ctx.supabase.from('job_messages').select('id', { count: 'exact', head: true }).eq('status', 'open').neq('sender_id', ctx.user.id);
   inbox = ctx.isOwner ? inbox.or(`receiver_id.eq.${ctx.user.id},kind.eq.help`) : inbox.eq('receiver_id', ctx.user.id);
-  const { count } = await inbox;
+  const [{ count }, { count: supportUnread }] = await Promise.all([inbox, ctx.supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('tenant_unread', true)]);
 
   const trialDaysLeft = ctx.tenant.status === 'trial' ? daysUntil(ctx.tenant.trial_ends_at) : null;
 
@@ -21,6 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         workshop={{ name: ctx.tenant.name, logoUrl: ctx.tenant.logo_url }}
         user={{ name: ctx.profile.full_name ?? ctx.user.email ?? '', isOwner: ctx.isOwner }}
         inboxCount={count ?? 0}
+        supportUnread={supportUnread ?? 0}
         trialDaysLeft={trialDaysLeft}
         demo={isDemoUser(ctx.user)}
       >

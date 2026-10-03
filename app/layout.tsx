@@ -3,6 +3,7 @@ import { GeistMono } from 'geist/font/mono';
 import { GeistSans } from 'geist/font/sans';
 import { Saira_Condensed } from 'next/font/google';
 import { Toaster } from 'sonner';
+import { ErrorReporter } from '@/components/ErrorReporter';
 import { ServiceWorker } from '@/components/ServiceWorker';
 import { BRAND, accentStyle, brandAccentStyle } from '@/config/tenant.config';
 import { packageForRequest } from '@/lib/package-for-request';
@@ -50,6 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {children}
         <Toaster theme="dark" position="top-center" richColors closeButton />
         <ServiceWorker />
+        <ErrorReporter />
       </body>
     </html>
   );

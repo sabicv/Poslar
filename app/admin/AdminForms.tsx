@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Settings2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Segmented, Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select } from '@/components/ui';
 import { PACKAGES, type PackageId } from '@/config/tenant.config';
-import { adminCreateWorkshop, adminExtendTrial, adminSetPackage, adminSetStatus } from '@/lib/actions/admin';
+import { adminCreateWorkshop } from '@/lib/actions/admin';
 
 export function CreateWorkshop() {
   const { pending, run } = useAction();
@@ -87,58 +87,6 @@ export function CreateWorkshop() {
           Otvori radionicu
         </Button>
       </form>
-    </Sheet>
-  );
-}
-
-export function TenantActions({ id, status, pkg, note }: { id: string; status: 'trial' | 'active' | 'suspended'; pkg: PackageId; note: string | null }) {
-  const { pending, run } = useAction();
-  const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState(note ?? '');
-  const [pack, setPack] = useState(pkg);
-
-  return (
-    <Sheet
-      open={open}
-      onOpenChange={setOpen}
-      title="Upravljanje radionicom"
-      trigger={
-        <Button size="sm" variant="ghost" aria-label="Upravljanje">
-          <Settings2 className="size-4" />
-        </Button>
-      }
-    >
-      <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-2">
-          <Button variant={status === 'active' ? 'ok' : 'secondary'} disabled={pending} onClick={() => run(() => adminSetStatus(id, 'active', null), { success: 'Aktivirano' })}>
-            Aktiviraj
-          </Button>
-          <Button disabled={pending} onClick={() => run(() => adminExtendTrial(id, 14), { success: 'Proba produljena 14 dana' })}>
-            +14 d probe
-          </Button>
-          <Button variant="danger" disabled={pending || status === 'suspended'} onClick={() => run(() => adminSetStatus(id, 'suspended', reason), { success: 'Radionica isključena' })}>
-            Isključi
-          </Button>
-        </div>
-        <Field label="Razlog isključenja (interno)">
-          <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="npr. neplaćena pretplata za rujan" />
-        </Field>
-        <Field label="Paket" hint="Promjena paketa mijenja izbornike i obrasce. Podaci ostaju.">
-          <div className="flex gap-2">
-            <Select value={pack} onChange={(e) => setPack(e.target.value as PackageId)}>
-              {Object.values(PACKAGES).map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.product}
-                </option>
-              ))}
-            </Select>
-            <Button disabled={pending || pack === pkg} onClick={() => run(() => adminSetPackage(id, pack), { success: 'Paket promijenjen' })}>
-              Promijeni
-            </Button>
-          </div>
-        </Field>
-        <p className="text-xs text-faint">Isključena radionica ne vidi ništa, ali se podaci ne brišu. Aktivacijom se sve vraća.</p>
-      </div>
     </Sheet>
   );
 }

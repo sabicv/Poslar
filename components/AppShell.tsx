@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 interface NavItem {
   href: string;
   label: string;
+  dot?: boolean;
   icon: LucideIcon;
   exact?: boolean;
 }
@@ -24,6 +25,7 @@ export function AppShell({
   workshop,
   user,
   inboxCount,
+  supportUnread = 0,
   trialDaysLeft,
   demo,
   children,
@@ -32,6 +34,8 @@ export function AppShell({
   workshop: { name: string; logoUrl: string | null };
   user: { name: string; isOwner: boolean };
   inboxCount: number;
+  // Answers from TaktiX support not yet read: a dot on Postavke.
+  supportUnread?: number;
   trialDaysLeft: number | null;
   demo: boolean;
   children: React.ReactNode;
@@ -42,7 +46,7 @@ export function AppShell({
     { href: '/app/clients', label: product.clients, icon: Users },
     { href: '/app/module', label: product.modulePage, icon: PRODUCT_ICONS[product.id] },
     ...(user.isOwner ? [{ href: '/app/business', label: 'Poslovanje', icon: BarChart3 }] : []),
-    { href: '/app/settings', label: 'Postavke', icon: Settings },
+    { href: '/app/settings', label: 'Postavke', icon: Settings, dot: supportUnread > 0 },
   ];
   const isActive = (item: NavItem) =>
     item.exact ? pathname === item.href || pathname.startsWith('/app/jobs') : pathname === item.href || pathname.startsWith(`${item.href}/`) || (item.href === '/app/clients' && pathname.startsWith('/app/assets'));
@@ -83,6 +87,7 @@ export function AppShell({
             >
               <item.icon className={cn('size-4', isActive(item) && 'text-accent')} />
               {item.label}
+              {item.dot ? <span className="ml-auto size-2 rounded-full bg-accent" aria-label="Novi odgovor podrške" /> : null}
             </Link>
           ))}
           <Link
@@ -157,9 +162,10 @@ export function AppShell({
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn('flex h-16 flex-col items-center justify-center gap-1 text-[11px]', isActive(item) ? 'text-fg' : 'text-faint')}
+                className={cn('relative flex h-16 flex-col items-center justify-center gap-1 text-[11px]', isActive(item) ? 'text-fg' : 'text-faint')}
               >
                 <item.icon className={cn('size-5 shrink-0', isActive(item) && 'text-accent')} />
+                {item.dot ? <span className="absolute right-[calc(50%-14px)] top-2.5 size-2 rounded-full bg-accent" aria-label="Novi odgovor podrške" /> : null}
                 {/* Two short lines ("Servisni / planovi") rather than a cut-off word. */}
                 <span className="line-clamp-2 max-w-full break-words px-0.5 text-center leading-[1.1]">{item.label}</span>
               </Link>

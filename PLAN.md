@@ -34,11 +34,12 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [ ] Kasnije za Deal: kupoprodajni ugovor i račun po posebnom postupku (marža), uz knjigovođu
 
 ## Stadij 4: Toranj (Vedranova upravljačka ploča)
-- [ ] Radionice: paket, status, proba, plaćeno do, napomene
-- [ ] Podrška: „Javi problem” iz aplikacije, odgovori iz tornja
-- [ ] Greške: automatsko hvatanje grešaka iz aplikacije i servera
-- [ ] Analiza: prihod, radionice po paketu i zanatu, aktivnost, AI potrošnja, tko se gasi
-- [ ] Kvote za slikanje i Kopilot po paketu
+- [x] Radionice: paket, status, proba, plaćeno do, napomene, upis uplate, filtri, traženje
+- [x] Podrška: „Javi problem” iz aplikacije, odgovori iz tornja, točka na Postavkama za novi odgovor
+- [x] Greške: automatsko hvatanje grešaka iz preglednika, servera i spremanja
+- [x] Analiza: prihod, radionice po paketu i zanatu, aktivnost, AI potrošnja, tko se gasi
+- [x] Kvote za slikanje i Kopilot po paketu (Basic 150/100, Standard 300/200, Premium 600/400), broj radnika po paketu
+- [ ] Vedran: `npm run toranj -- e-mail lozinka` u svom terminalu otvara Toranj za njegov račun
 
 ## Stadij 5: Cjenik i predlošci
 - [ ] Postavke → Cjenik: satnica, vlastiti predlošci s cijenama

@@ -29,6 +29,12 @@ export interface Tenant {
   vocabulary: Record<string, unknown>;
   settings: Record<string, unknown>;
   created_at: string;
+  // Set only from the tower (not in the owner's column grant).
+  plan: 'basic' | 'standard' | 'premium';
+  billing_term: 'monthly' | '24m';
+  paid_until: string | null;
+  admin_notes: string | null;
+  ai_quota: Record<string, number> | null;
 }
 
 export interface Profile {

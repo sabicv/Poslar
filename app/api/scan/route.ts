@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { aiQuotaBlock, recordAiUsage } from '@/lib/ai-usage';
 import { getWorkshop } from '@/lib/session';
 
 // POST { kind: 'prometna' | 'plocica' | 'guma', image: 'data:image/jpeg;base64,…' }
@@ -65,6 +66,8 @@ export async function POST(request: Request) {
   const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(body.image ?? '');
   if (!prompt || !match) return json({ error: 'Neispravna slika.' }, 400);
   if (match[2].length > 7_000_000) return json({ error: 'Slika je prevelika.' }, 413);
+  const blocked = await aiQuotaBlock(state, 'scan');
+  if (blocked) return json({ error: blocked }, 429);
 
   try {
     const client = new Anthropic();
@@ -81,6 +84,8 @@ export async function POST(request: Request) {
         },
       ],
     });
+    // Counted as soon as the model has answered: the photo was read and paid for.
+    await recordAiUsage(state, 'scan', { model: message.model, input: message.usage.input_tokens, output: message.usage.output_tokens });
     const text = message.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
     const found = /\{[\s\S]*\}/.exec(text);
     if (!found) return json({ error: 'Na slici nije pronađen tekst. Slikajte bliže i oštrije.' }, 422);

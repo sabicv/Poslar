@@ -23,7 +23,9 @@ export function fail(error: unknown): { ok: false; error: string } {
     return { ok: false, error: column ? `Neki podatak nije ispravan (${column}).` : 'Neki podatak nije ispravan.' };
   }
   if (/foreign key/i.test(message)) return { ok: false, error: 'Zapis je povezan s drugim podacima.' };
-  // Anything else stays in the server log; the user gets a plain sentence.
+  // Anything else is a bug: it goes to the tower's error list, and the
+  // user gets a plain sentence.
   console.error('[action]', message);
+  void import('./errors').then((m) => m.logError({ source: 'action', message, stack: (error as { stack?: string } | null)?.stack ?? null })).catch(() => {});
   return { ok: false, error: 'Nešto nije uspjelo. Pokušajte ponovno, a ako se ponovi, javite voditelju.' };
 }

@@ -10,7 +10,8 @@
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed": "node scripts/seed.mjs",
     "db:test": "node scripts/test-rls.mjs",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "toranj": "node scripts/toranj-admin.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",

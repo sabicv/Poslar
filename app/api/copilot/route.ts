@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { aiQuotaBlock, recordAiUsage } from '@/lib/ai-usage';
 import { buildCopilotContext } from '@/lib/copilot/context';
 import { BRIEFING_REQUEST, copilotSystemPrompt } from '@/lib/copilot/prompt';
 import { getWorkshop, type WorkshopContext } from '@/lib/session';
@@ -103,6 +104,8 @@ export async function POST(request: Request) {
     .eq('role', 'assistant')
     .gte('created_at', startOfDay.toISOString());
   if ((count ?? 0) >= DAILY_LIMIT) return json({ error: `Dosegnut je dnevni limit Kopilota za radionicu (${DAILY_LIMIT}). Sutra se obnavlja.` }, 429);
+  const blocked = await aiQuotaBlock(ctx, 'copilot');
+  if (blocked) return json({ error: blocked }, 429);
 
   // Conversation: the briefing first, then earlier question/answer pairs.
   const messages: Anthropic.MessageParam[] = [{ role: 'user', content: BRIEFING_REQUEST }];
@@ -151,6 +154,8 @@ export async function POST(request: Request) {
           }
         }
         const final = await stream.finalMessage();
+        const input = (final.usage.input_tokens ?? 0) + (final.usage.cache_read_input_tokens ?? 0) + (final.usage.cache_creation_input_tokens ?? 0);
+        await recordAiUsage(ctx, 'copilot', { model: final.model, input, output: final.usage.output_tokens });
         if (text.trim()) {
           await ctx.supabase.from('copilot_messages').insert({
             tenant_id: ctx.tenant.id,
@@ -161,7 +166,7 @@ export async function POST(request: Request) {
             content: text.slice(0, 20000),
             model: final.model,
             context_hash: built.hash,
-            input_tokens: (final.usage.input_tokens ?? 0) + (final.usage.cache_read_input_tokens ?? 0) + (final.usage.cache_creation_input_tokens ?? 0),
+            input_tokens: input,
             output_tokens: final.usage.output_tokens,
           });
         }

@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Camera, Check, ClipboardCheck, EyeOff, FileSpreadsheet, History, Mic, MessageCircle, Receipt, Smartphone, Upload, X } from 'lucide-react';
 import { TryIt } from '@/components/landing/TryIt';
+import { PLANS as PLAN_CONFIG, TERM_DISCOUNT } from '@/config/plans';
 import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { ButtonLink } from '@/components/ui';
 import { BRAND, PACKAGES, TRADE_GROUPS, accentStyle, matchPackageFromHost, type PackageId } from '@/config/tenant.config';
@@ -55,10 +56,11 @@ const OLD_WAY = ['Nalog na papiru, pa ga tražiš.', 'Mušterija zove i pita za 
 const NEW_WAY = ['Izgovoriš kvar i nalog je otvoren.', 'Cijenu pošalješ na WhatsApp.', 'Mušterija odobri jednim dodirom.', 'Račun napraviš odmah.', 'Knjigovođi pošalješ jedan paket.'];
 
 // Prices with VAT; 10 % less with a 24-month contract.
+// Prices and team sizes come from config/plans.ts, the same numbers the tower enforces.
 const PLANS = [
-  { name: 'Basic', price: 30, people: 'Voditelj i 2 radnika', extras: ['Nalozi, slike i računi', 'Odobrenje preko WhatsAppa', 'Paket za knjigovođu'] },
-  { name: 'Standard', price: 50, people: 'Voditelj i 5 radnika', extras: ['Sve iz paketa Basic', 'QR samoprijem na vratima (uskoro)'], best: true },
-  { name: 'Premium', price: 90, people: 'Voditelj i 10 radnika', extras: ['Sve iz paketa Standard', 'QR samoprijem na vratima (uskoro)'] },
+  { ...PLAN_CONFIG.basic, extras: ['Nalozi, slike i računi', 'Odobrenje preko WhatsAppa', 'Paket za knjigovođu'], best: false },
+  { ...PLAN_CONFIG.standard, extras: ['Sve iz paketa Basic', 'QR samoprijem na vratima (uskoro)'], best: true },
+  { ...PLAN_CONFIG.premium, extras: ['Sve iz paketa Standard', 'QR samoprijem na vratima (uskoro)'], best: false },
 ];
 
 const BENEFITS = [
@@ -322,7 +324,7 @@ export default async function Home() {
                   <span className="font-display text-5xl font-bold">{p.price} €</span>
                   <span className="text-muted"> / mjesečno</span>
                 </p>
-                <p className="text-sm text-muted">s PDV-om · uz 24 mjeseca {Math.round(p.price * 0.9)} €</p>
+                <p className="text-sm text-muted">s PDV-om · uz 24 mjeseca {Math.round(p.price * (1 - TERM_DISCOUNT))} €</p>
                 <p className="mt-4 font-medium">{p.people}</p>
                 <ul className="mt-2 flex-1 space-y-1.5 text-sm text-muted">
                   {p.extras.map((e) => (
