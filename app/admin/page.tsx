@@ -50,7 +50,7 @@ export default async function AdminPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 pb-16 pt-safe sm:px-6">
       <div className="flex items-center justify-between py-4">
-        <p className="text-sm text-muted">TaktIX · Toranj · {user?.email}</p>
+        <p className="text-sm text-muted">TaktiX · Toranj · {user?.email}</p>
         <form action={signOut}>
           <Button type="submit" size="sm" variant="ghost">
             Odjava

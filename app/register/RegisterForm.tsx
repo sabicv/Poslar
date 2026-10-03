@@ -61,7 +61,7 @@ export function RegisterForm({ initialPackage, packageLocked }: { initialPackage
       {!packageLocked ? (
         <div className="space-y-2">
           <span className="block text-xs font-medium text-muted">Kako radite?</span>
-          <div className="grid grid-cols-3 gap-1 rounded-xl border border-line bg-surface p-1">
+          <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-surface p-1">
             {TRADE_GROUPS.map((g) => (
               <button
                 key={g.id}
@@ -96,25 +96,11 @@ export function RegisterForm({ initialPackage, packageLocked }: { initialPackage
         </div>
       ) : null}
 
-      <Field label="Naziv radionice">
-        <Input required value={form.workshopName} onChange={set('workshopName')} placeholder="npr. Autoservis Horvat" />
+      {/* Only what is needed to start; the workshop's name, OIB, address and
+          phone go into Postavke later. */}
+      <Field label="Ime i prezime">
+        <Input required autoComplete="name" value={form.fullName} onChange={set('fullName')} />
       </Field>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Grad">
-          <Input value={form.city} onChange={set('city')} />
-        </Field>
-        <Field label="OIB (nije obavezno)">
-          <Input inputMode="numeric" maxLength={11} value={form.oib} onChange={set('oib')} />
-        </Field>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Vaše ime i prezime">
-          <Input required autoComplete="name" value={form.fullName} onChange={set('fullName')} />
-        </Field>
-        <Field label="Telefon">
-          <Input type="tel" autoComplete="tel" value={form.phone} onChange={set('phone')} />
-        </Field>
-      </div>
       <Field label="E-mail (za prijavu)">
         <Input type="email" required autoComplete="email" value={form.email} onChange={set('email')} />
       </Field>
@@ -130,6 +116,7 @@ export function RegisterForm({ initialPackage, packageLocked }: { initialPackage
       <Button type="submit" variant="primary" size="lg" className="w-full" disabled={pending}>
         {pending ? 'Stvaram radionicu…' : `Otvori ${PACKAGES[pkg].product}`}
       </Button>
+      <p className="text-center text-xs text-faint">Naziv radionice, OIB i adresu upišeš kasnije, u Postavkama.</p>
     </form>
   );
 }

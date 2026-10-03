@@ -8,7 +8,7 @@ import { LoginForm } from './LoginForm';
 export const metadata: Metadata = { title: 'Prijava' };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  // A product domain shows its product; any other address the TaktIX brand.
+  // A product domain shows its product; any other address the TaktiX brand.
   const pkg = matchPackageFromHost((await headers()).get('host'));
   const { next } = await searchParams;
   const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '/app';

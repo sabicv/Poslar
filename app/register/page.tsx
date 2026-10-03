@@ -31,11 +31,11 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
       </Link>
       <h1 className="text-2xl font-semibold tracking-tight">Registracija radionice</h1>
       <p className="mb-6 mt-1 text-sm text-muted">
-        {trialDays} dana besplatno, bez kartice. Vi ste voditelj servisa; radnike dodajete u Postavkama.
+        {trialDays} dana besplatno, bez kartice. Radnike dodaješ poslije, u Postavkama.
       </p>
       <RegisterForm initialPackage={initial} packageLocked={matched !== null} />
       <p className="mb-10 mt-6 text-sm text-muted">
-        Već imate račun?{' '}
+        Već imaš račun?{' '}
         <Link href="/login" className="font-medium text-accent hover:underline">
           Prijava
         </Link>

@@ -1,15 +1,19 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Camera, Check, ClipboardCheck, EyeOff, FileSpreadsheet, History, Mic, MessageCircle, Receipt, Smartphone, Upload } from 'lucide-react';
+import { Camera, Check, ClipboardCheck, EyeOff, FileSpreadsheet, History, Mic, MessageCircle, Receipt, Smartphone, Upload, X } from 'lucide-react';
+import { TryIt } from '@/components/landing/TryIt';
 import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { ButtonLink } from '@/components/ui';
-import { BRAND, PACKAGES, TRADE_GROUPS, accentStyle, matchPackageFromHost, type PackageConfig, type PackageId } from '@/config/tenant.config';
+import { BRAND, PACKAGES, TRADE_GROUPS, accentStyle, matchPackageFromHost, type PackageId } from '@/config/tenant.config';
 import { getAuth } from '@/lib/session';
+import { cn } from '@/lib/utils';
 
 // The landing page sells the product by itself: what it does in a day's
 // work, in plain words, for a craftsman on a phone. On a product domain
-// (airfiles.hr) it speaks about that trade; anywhere else about TaktIX.
+// (airfiles.hr) it speaks about that trade; anywhere else about TaktiX.
 
 // The way it is said in a workshop: "ti", short sentences (ten words at
 // most), and only the real troubles — oily hands, lost papers, arguments
@@ -36,10 +40,22 @@ const PROBLEMS = [
 // Photo reading is promised only while it is switched on (an AI key is set).
 const SCAN = Boolean(process.env.ANTHROPIC_API_KEY);
 
+// Each step with a real screenshot of that screen (public/landing, made
+// from the demo workshops).
 const STEPS = [
-  { title: 'Primiš posao', body: `Upišeš ime i registraciju.${SCAN ? ' Ili slikaš prometnu.' : ' Ili sve izgovoriš.'} Stalnu mušteriju aplikacija sama prepozna.`, icon: ClipboardCheck },
-  { title: 'Odradiš ga', body: 'Slikaš prije i poslije. Upišeš rad i dijelove. Radnik vidi posao, ali ne i cijene.', icon: Camera },
-  { title: 'Naplatiš', body: 'Račun pošalješ na WhatsApp. Kad plati, označiš plaćeno.', icon: Receipt },
+  { title: 'Primiš posao', body: `Upišeš ime i registraciju.${SCAN ? ' Ili slikaš prometnu.' : ' Ili sve izgovoriš.'} Stalnu mušteriju aplikacija sama prepozna.`, icon: ClipboardCheck, shot: 'prijem' },
+  { title: 'Odradiš ga', body: 'Slikaš prije i poslije. Upišeš rad i dijelove. Radnik vidi posao, ali ne i cijene.', icon: Camera, shot: 'rad' },
+  { title: 'Naplatiš', body: 'Račun pošalješ na WhatsApp. Kad plati, označiš plaćeno.', icon: Receipt, shot: 'racun' },
+];
+
+const OLD_WAY = ['Nalog na papiru, pa ga tražiš.', 'Mušterija zove i pita za cijenu.', 'Svađa: „to nisam tražio”.', 'Račune pišeš navečer.', 'Knjigovođi nosiš fasciklu.'];
+const NEW_WAY = ['Izgovoriš kvar i nalog je otvoren.', 'Cijenu pošalješ na WhatsApp.', 'Mušterija odobri jednim dodirom.', 'Račun napraviš odmah.', 'Knjigovođi pošalješ jedan paket.'];
+
+// Prices with VAT; 10 % less with a 24-month contract.
+const PLANS = [
+  { name: 'Basic', price: 30, people: 'Voditelj i 2 radnika', extras: ['Nalozi, slike i računi', 'Odobrenje preko WhatsAppa', 'Paket za knjigovođu'] },
+  { name: 'Standard', price: 50, people: 'Voditelj i 5 radnika', extras: ['Sve iz paketa Basic', 'QR samoprijem na vratima (uskoro)'], best: true },
+  { name: 'Premium', price: 90, people: 'Voditelj i 10 radnika', extras: ['Sve iz paketa Standard', 'QR samoprijem na vratima (uskoro)'] },
 ];
 
 const BENEFITS = [
@@ -55,7 +71,7 @@ const BENEFITS = [
 
 const FAQ = [
   { q: 'Treba li mi računalo?', a: 'Ne treba. Dovoljan je tvoj mobitel. Android ili iPhone, svejedno je.' },
-  { q: 'Koliko košta?', a: 'Prvih 30 dana ne plaćaš ništa. Karticu ne tražimo. Poslije sam odlučiš ideš li dalje.' },
+  { q: 'Koliko košta?', a: 'Od 30 € mjesečno, s PDV-om. Prvih 30 dana ne plaćaš ništa. Karticu ne tražimo.' },
   { q: 'Mogu li dodati radnike?', a: 'Možeš. Svaki radnik ima svoju prijavu. Naloge vidi, cijene i promet ne vidi.' },
   { q: 'Kako mušterija dobije račun?', a: 'Pošalješ joj poveznicu na WhatsApp. Otvori je na mobitelu. Ništa ne mora instalirati.' },
   { q: 'A fiskalizacija?', a: 'Fiskalni račun i dalje izdaješ na blagajni. Mi ti napravimo uredan račun sa stavkama. Na njega upišeš broj fiskalnog računa.' },
@@ -63,7 +79,7 @@ const FAQ = [
   { q: 'Što dobije knjigovođa?', a: 'Jedan paket za cijeli mjesec. Tablicu za Excel i sve račune.' },
   { q: 'Moram li prepisivati stare mušterije?', a: 'Ne moraš. Uvezeš Excel ili imenik s mobitela. Što već postoji, preskočimo.' },
   { q: 'Gdje su moji podaci?', a: 'Na serverima u Europskoj uniji. Tvoje podatke vidiš samo ti i tvoji radnici.' },
-  { q: 'Mogu li odustati kad hoću?', a: 'Možeš. Nema ugovora ni otkaznog roka.' },
+  { q: 'Mogu li odustati kad hoću?', a: 'Možeš. Bez ugovora nema otkaznog roka. Uz ugovor na 24 mjeseca plaćaš 10 % manje.' },
   { q: 'Što ako zapnem?', a: 'Javi nam se. Pomoći ćemo ti.' },
 ];
 
@@ -75,6 +91,12 @@ export default async function Home() {
   if (user) redirect('/app');
   const trialDays = Number(process.env.TRIAL_DAYS ?? 30) || 30;
   const register = '/register';
+  // Screenshots of this trade, or of the general workshop on the TaktiX address.
+  const shots = product?.id ?? 'gear';
+  const examples = (product ?? PACKAGES.gear).symptoms.slice(0, 4);
+  // Photos from real work (public/landing/foto-1.jpg …), shown once added.
+  const dir = path.join(process.cwd(), 'public', 'landing');
+  const photos = Array.from({ length: 10 }, (_, i) => ['jpg', 'webp'].map((ext) => `foto-${i + 1}.${ext}`).find((f) => existsSync(path.join(dir, f)))).filter(Boolean) as string[];
 
   return (
     <div className="min-h-dvh" style={product ? accentStyle(product) : undefined}>
@@ -91,7 +113,10 @@ export default async function Home() {
               <BrandLogo />
             )}
           </Link>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-1">
+            <ButtonLink href="#cijene" size="sm" variant="ghost">
+              Cijene
+            </ButtonLink>
             <ButtonLink href="/login" size="sm" variant="ghost">
               Prijava
             </ButtonLink>
@@ -106,7 +131,7 @@ export default async function Home() {
           <div>
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-muted">
               <span className="size-1.5 rounded-full bg-accent" />
-              {product ? product.tagline : 'Radionica · Teren · Cesta'}
+              {product ? product.tagline : BRAND.tagline}
             </p>
             <h1 className="max-w-2xl text-balance font-display text-5xl font-bold leading-[1.0] tracking-tight sm:text-7xl">
               {product ? HEADLINES[product.id] : (
@@ -124,8 +149,8 @@ export default async function Home() {
               <ButtonLink href={register} variant="primary" size="lg">
                 Probaj {trialDays} dana besplatno
               </ButtonLink>
-              <ButtonLink href={product ? '#kako' : '#zanati'} size="lg">
-                {product ? 'Pogledaj kako radi' : 'Za koje zanate'}
+              <ButtonLink href="#probaj" size="lg">
+                Probaj odmah, bez prijave
               </ButtonLink>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
@@ -136,7 +161,7 @@ export default async function Home() {
               ))}
             </ul>
           </div>
-          <PhoneMockup product={product} />
+          <PhoneShot src={`/landing/${shots}-hero.webp`} alt="Radni nalog u aplikaciji" />
         </section>
 
         {/* The troubles, each with its fix */}
@@ -155,21 +180,69 @@ export default async function Home() {
           </ul>
         </section>
 
-        {/* How it works */}
+        {/* Real work, once Vedran adds the photos */}
+        {photos.length ? (
+          <section className="border-t border-line py-14">
+            <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">U radionici i na terenu</h2>
+            <div className="no-scrollbar -mx-5 mt-8 flex snap-x gap-3 overflow-x-auto px-5 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0">
+              {photos.map((f) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={f} src={`/landing/${f}`} alt="" loading="lazy" className="aspect-[3/2] w-[80%] shrink-0 snap-center rounded-2xl border border-line object-cover sm:w-full" />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {/* Try it without an account */}
+        <section id="probaj" className="scroll-mt-6 border-t border-line py-14">
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Probaj odmah</h2>
+          <p className="mb-6 mt-2 text-muted">Izgovori ili upiši kvar. Vidi nalog, poruku i račun.</p>
+          <TryIt examples={examples} register={register} />
+        </section>
+
+        {/* How it works, with the real screens */}
         <section id="kako" className="scroll-mt-6 border-t border-line py-14">
           <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Kako ide jedan posao</h2>
-          <ol className="mt-8 grid gap-4 md:grid-cols-3">
+          <ol className="mt-8 grid gap-6 md:grid-cols-3">
             {STEPS.map((s, i) => (
               <li key={s.title} className="rounded-2xl border border-line bg-surface p-5">
                 <div className="flex items-center gap-3">
                   <span className="flex size-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-accent-fg">{i + 1}</span>
                   <s.icon className="size-5 text-muted" />
                 </div>
-                <h3 className="mt-4 font-semibold">{s.title}</h3>
+                <h3 className="mt-4 font-display text-xl font-bold">{s.title}</h3>
                 <p className="mt-1.5 text-sm text-muted">{s.body}</p>
+                <PhoneShot src={`/landing/${shots}-${s.shot}.webp`} alt={s.title} crop className="mt-5 max-w-[240px]" />
               </li>
             ))}
           </ol>
+        </section>
+
+        {/* The old way and the new one */}
+        <section className="border-t border-line py-14">
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Stari način. Tvoj način.</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-line bg-surface p-5">
+              <p className="mb-3 font-display text-lg font-bold text-faint">Stari način</p>
+              <ul className="space-y-2.5">
+                {OLD_WAY.map((t) => (
+                  <li key={t} className="flex gap-3 text-muted">
+                    <X className="mt-0.5 size-5 shrink-0 text-crit" /> {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-accent/50 bg-accent/10 p-5">
+              <p className="mb-3 font-display text-lg font-bold text-accent">Tvoj način</p>
+              <ul className="space-y-2.5">
+                {NEW_WAY.map((t) => (
+                  <li key={t} className="flex gap-3">
+                    <Check className="mt-0.5 size-5 shrink-0 text-ok" /> {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </section>
 
         {/* Benefits */}
@@ -211,7 +284,7 @@ export default async function Home() {
               <div className="mt-8 space-y-8">
                 {TRADE_GROUPS.map((g) => (
                   <div key={g.id}>
-                    <h3 className="text-lg font-semibold">{g.name}</h3>
+                    <h3 className="font-display text-xl font-bold">{g.name}</h3>
                     <p className="text-sm text-muted">{g.hint}</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {g.packages.map((id) => PACKAGES[id]).map((p) => (
@@ -229,6 +302,39 @@ export default async function Home() {
               </div>
             </>
           )}
+        </section>
+
+        {/* Prices */}
+        <section id="cijene" className="scroll-mt-6 border-t border-line py-14">
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Cijene</h2>
+          <p className="mt-2 text-muted">Prvih {trialDays} dana besplatno. Bez kartice.</p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {PLANS.map((p) => (
+              <div key={p.name} className={cn('flex flex-col rounded-2xl border p-5', p.best ? 'border-accent bg-accent/10' : 'border-line bg-surface')}>
+                <p className="flex items-center justify-between font-display text-2xl font-bold">
+                  {p.name}
+                  {p.best ? <span className="rounded-full bg-accent px-2.5 py-0.5 font-sans text-xs font-semibold text-accent-fg">Preporuka</span> : null}
+                </p>
+                <p className="mt-3">
+                  <span className="font-display text-5xl font-bold">{p.price} €</span>
+                  <span className="text-muted"> / mjesečno</span>
+                </p>
+                <p className="text-sm text-muted">s PDV-om · uz 24 mjeseca {Math.round(p.price * 0.9)} €</p>
+                <p className="mt-4 font-medium">{p.people}</p>
+                <ul className="mt-2 flex-1 space-y-1.5 text-sm text-muted">
+                  {p.extras.map((e) => (
+                    <li key={e} className="flex gap-2">
+                      <Check className="mt-0.5 size-4 shrink-0 text-accent" /> {e}
+                    </li>
+                  ))}
+                </ul>
+                <ButtonLink href={register} variant={p.best ? 'primary' : 'secondary'} size="lg" className="mt-5 w-full">
+                  Probaj besplatno
+                </ButtonLink>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-sm text-faint">Mjesečno bez ugovora. Uz ugovor na 24 mjeseca plaćaš 10 % manje.</p>
         </section>
 
         {/* FAQ */}
@@ -271,63 +377,15 @@ export default async function Home() {
   );
 }
 
-// One typical job per trade for the phone on the landing page. Prices are
-// net; the total includes 25 % VAT.
-type Mock = { when: string; title: string; tag: string; complaint: string; lines: [string, number][] };
-const MOCKS: Record<PackageId, Mock> = {
-  volt: { when: 'Za naplatu', title: 'VW Golf 7 2.0 TDI', tag: 'ZG-1234-AB', complaint: 'Akumulator se prazni preko noći', lines: [['Dijagnostika', 55], ['Akumulator AGM 70 Ah', 165]] },
-  gear: { when: 'Za naplatu', title: 'Škoda Octavia 1.6 TDI', tag: 'ZG-4521-KL', complaint: 'Mali servis i kočnice', lines: [['Mali servis (ulje, filteri)', 100], ['Pločice naprijed', 60]] },
-  body: { when: 'Za naplatu', title: 'VW Golf 7 2.0 TDI', tag: 'ZG-1234-AB', complaint: 'Udaren stražnji branik', lines: [['Popravak i lakiranje branika', 180], ['Poliranje', 40]] },
-  wheel: { when: 'Za naplatu', title: 'Renault Clio 1.2', tag: 'ST-882-EF', complaint: 'Zamjena na zimske gume', lines: [['Montaža i balansiranje', 40], ['Hotel za gume · sezona', 40]] },
-  fleet: { when: 'Za naplatu', title: 'MAN TGX 18.440', tag: 'ZG-7788-TK', complaint: 'Redovni servis i tahograf', lines: [['Servis motora', 320], ['Pregled tahografa', 80]] },
-  moto: { when: 'Za naplatu', title: 'Yamaha MT-07', tag: 'ZG-456-M', complaint: 'Priprema za sezonu', lines: [['Servis (ulje, filteri)', 90], ['Lanac i zupčanici', 150]] },
-  air: { when: 'danas 09:00', title: 'Daikin FTXP35M', tag: 'Dnevni boravak', complaint: 'Godišnji servis klime', lines: [['Servis klime', 60], ['Dezinfekcija isparivača', 8]] },
-};
-const euro = (n: number) => `${n.toFixed(2).replace('.', ',')} €`;
-
-// A still of the app itself: one real job on a phone, as the craftsman sees it.
-function PhoneMockup({ product }: { product: PackageConfig | null }) {
-  const mock = MOCKS[product?.id ?? 'volt'];
-  const total = mock.lines.reduce((sum, [, price]) => sum + price, 0) * 1.25;
+// A real screenshot of the app in a phone frame. "crop" shows the top of the
+// screen in a shorter frame, for the steps.
+function PhoneShot({ src, alt, crop = false, className }: { src: string; alt: string; crop?: boolean; className?: string }) {
   return (
-    <div className="mx-auto w-full max-w-[300px]" aria-hidden>
-      <div className="rounded-[2.4rem] border border-line bg-zinc-900 p-2.5 shadow-2xl shadow-black/50">
-        <div className="overflow-hidden rounded-[1.9rem] bg-bg">
-          <div className="flex h-7 items-center justify-center">
-            <span className="h-1.5 w-16 rounded-full bg-zinc-800" />
-          </div>
-          <div className="space-y-3 px-4 pb-5 pt-2 text-[13px]">
-            <p className="text-xs text-faint">Nalog #12 · {mock.when}</p>
-            <p className="text-lg font-semibold leading-tight">{mock.title}</p>
-            <p className="flex items-center gap-2 text-muted">
-              <span className="rounded border border-line px-1 font-mono text-[11px] font-semibold text-fg">{mock.tag}</span>
-              Ivan Kovač
-            </p>
-            <div className="rounded-xl border border-line bg-surface p-3">
-              <p className="text-[11px] text-muted">Opis kvara</p>
-              <p className="mt-0.5">{mock.complaint}</p>
-            </div>
-            <div className="space-y-1.5 rounded-xl border border-line bg-surface p-3">
-              {mock.lines.map(([name, price]) => (
-                <p key={name} className="flex justify-between gap-2">
-                  <span>{name}</span>
-                  <span className="tabular shrink-0 text-muted">{euro(price)}</span>
-                </p>
-              ))}
-              <p className="flex justify-between border-t border-line pt-1.5 font-semibold">
-                <span>Ukupno s PDV-om</span>
-                <span className="tabular">{euro(total)}</span>
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <span className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-accent font-medium text-accent-fg">
-                <Receipt className="size-4" /> Račun
-              </span>
-              <span className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-line font-medium">
-                <MessageCircle className="size-4" /> WhatsApp
-              </span>
-            </div>
-          </div>
+    <div className={cn('mx-auto w-full max-w-[300px]', className)}>
+      <div className="rounded-[2.2rem] border border-line bg-[#05080F] p-2 shadow-2xl shadow-black/50">
+        <div className="overflow-hidden rounded-[1.7rem]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt={alt} loading="lazy" className={cn('block w-full', crop && 'aspect-[393/560] object-cover object-top')} />
         </div>
       </div>
     </div>

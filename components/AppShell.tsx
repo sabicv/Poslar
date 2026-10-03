@@ -3,6 +3,7 @@
 import { plural } from '@/lib/format';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { BarChart3, Bell, CalendarDays, ClipboardList, FlaskConical, LogOut, Plus, Repeat, Settings, Users, type LucideIcon } from 'lucide-react';
 import { PRODUCT_ICONS, ProductMark } from '@/components/ProductMark';
 import { buttonClass } from '@/components/ui';
@@ -144,7 +145,10 @@ export function AppShell({
           ) : null}
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8 print:max-w-none print:p-0">{children}</main>
+        <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8 print:max-w-none print:p-0">
+          {pathname === '/app' ? <InstallPrompt /> : null}
+          {children}
+        </main>
 
         {/* Phone bottom navigation */}
         <nav className="hide-on-type fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 pb-safe backdrop-blur-md print:hidden lg:hidden">

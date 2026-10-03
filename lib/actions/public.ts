@@ -26,7 +26,8 @@ async function clientIp(): Promise<{ ip: string | null; userAgent: string | null
 // ---------------------------------------------------------------------
 const registerSchema = z.object({
   package: z.enum(PACKAGE_IDS as [PackageId, ...PackageId[]]),
-  workshopName: z.string().trim().min(2, 'Upišite naziv radionice.').max(120),
+  // Optional: a new workshop starts under the owner's name and renames itself in Postavke.
+  workshopName: z.string().trim().max(120).optional().or(z.literal('')),
   fullName: z.string().trim().min(2, 'Upišite ime i prezime.').max(120),
   email: z.string().trim().toLowerCase().email('Neispravan e-mail.'),
   password: z.string().min(8, 'Lozinka mora imati barem 8 znakova.').max(72),
@@ -78,6 +79,9 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
     userId = data.user.id;
   } else {
     const { data, error } = await admin.auth.admin.createUser({ email: v.email, password: v.password, email_confirm: true, user_metadata: { full_name: v.fullName } });
+    // Said plainly: a craftsman who already has an account should log in,
+    // not wonder why the form "doesn't work".
+    if (error && /already been registered|already exists/i.test(error.message)) return fail('Ovaj e-mail već ima račun. Prijavi se s njim.');
     if (error || !data.user) return fail(GENERIC_FAILURE);
     userId = data.user.id;
   }
@@ -86,7 +90,7 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
   const { error: rpcError } = await admin.rpc('register_workshop', {
     p_user_id: userId,
     p_full_name: v.fullName,
-    p_workshop_name: v.workshopName,
+    p_workshop_name: v.workshopName || v.fullName,
     p_package: v.package,
     p_oib: v.oib || null,
     p_phone: v.phone || null,

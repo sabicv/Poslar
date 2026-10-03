@@ -1,4 +1,4 @@
-# TaktIX: plan rada po stadijima
+# TaktiX: plan rada po stadijima
 
 Svaki stadij završava testovima, spremanjem (commit) i porukom Vedranu.
 Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
@@ -11,18 +11,20 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [ ] Večeras: provjera pravog čitanja slika s ključem
 
 ## Stadij 2: TaktIX identitet
-- [x] Ime TaktIX, slogan „Manje administracije. Više odrađenog posla.”
-- [x] Logo: narančast s crnim obrubom; nova ikona aplikacije (PWA)
+- [x] Ime TaktiX, slogan „Manje administracije. Više odrađenog posla.”
+- [x] Logo po Vedranovom nacrtu: metronom s narančastom strelicom, natpis TaktiX; nova ikona aplikacije (PWA)
 - [x] Glavna boja svijetlo plava, grafitna pozadina, jasni rubovi kartica
 - [x] Boje zanata: Volt žuta, Gear F1 crvena, Body petrolej, Wheel brončana, Fleet narančasta, Moto Kawasaki zelena, Air ledeno tirkizna
 - [x] Ikone zanata: tamna pločica, svijetleći znak; naslovi u užem sportskom fontu
 
 ## Stadij 3: Prodajna početna stranica
-- [ ] Prave snimke aplikacije (naslov i 3 koraka), automatski iz dema
-- [ ] „Stari način / Tvoj način”
-- [ ] Probni prikaz bez registracije (izgovori kvar, vidi nalog, poruku i račun)
-- [ ] Cijene: Basic 30 €, Standard 50 €, Premium 90 € s PDV-om; 10 % popusta uz 24 mjeseca
-- [ ] Kraća registracija; gumb za instalaciju na mobitel
+- [x] Dvije grupe: Radionica (i Fleet) i Teren
+- [ ] Fotografije iz rada: Vedran dodaje foto-1.jpg … foto-10.jpg u public/landing
+- [x] Prave snimke aplikacije (naslov i 3 koraka), automatski iz dema
+- [x] „Stari način / Tvoj način”
+- [x] Probni prikaz bez registracije (izgovori kvar, vidi nalog, poruku i račun)
+- [x] Cijene: Basic 30 €, Standard 50 €, Premium 90 € s PDV-om; 10 % popusta uz 24 mjeseca
+- [x] Kraća registracija; gumb za instalaciju na mobitel
 
 ## Stadij 4: Toranj (Vedranova upravljačka ploča)
 - [ ] Radionice: paket, status, proba, plaćeno do, napomene

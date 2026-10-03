@@ -1,13 +1,22 @@
 // Generates app icons into public/icons:
 //   <id>-192.png, <id>-512.png, <id>-maskable-512.png, <id>-180.png (Apple)
-// TaktIX: the orange X with a black outline on light blue. Each trade: a
-// dark tile with its glyph glowing in the trade colour (same shapes as the
-// lucide icons in the app). Run: npm run icons
+// TaktiX: the metronome with the orange arrow pendulum on dark blue-grey
+// (components/ProductMark.tsx draws the same). Each trade: a dark tile with
+// its glyph glowing in the trade colour (same shapes as the lucide icons in
+// the app). Run: npm run icons
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
 
-const BRAND_X = 'M27 15H43L52.6 37L71 15H87L59 50L73 85H57L47.4 63L29 85H13L41 50Z';
+const BRAND_TILE = '#0B1120';
+const BRAND_ORANGE = '#FF5722';
+const BRAND_SYMBOL = `<g transform="translate(4 0)">
+  <path d="M18 86H46V14H37Z" fill="#3B5078"/>
+  <path d="M46 86H74L55 14H46Z" fill="#2A3B5C"/>
+  <rect x="12" y="84" width="68" height="8" rx="1.5" fill="#4A6190"/>
+  <line x1="42" y1="78" x2="68.7" y2="51.3" stroke="${BRAND_ORANGE}" stroke-width="7" stroke-linecap="round"/>
+  <path d="M80 40L75.05 57.67L62.33 44.95Z" fill="${BRAND_ORANGE}"/>
+</g>`;
 const TILE = '#0B1220';
 
 const PRODUCTS = {
@@ -55,17 +64,14 @@ function productSvg({ accent, glyph }, size, { maskable = false } = {}) {
 </svg>`;
 }
 
-// TaktIX: the X scaled into the light blue tile (smaller for maskable).
+// TaktiX: the metronome on its dark tile (smaller for maskable).
 function brandSvg(size, { maskable = false } = {}) {
   const radius = maskable ? 0 : size * 0.22;
   const scale = ((maskable ? 0.72 : 1) * size) / 100;
   const shift = (size - 100 * scale) / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" rx="${radius}" fill="#6CC5EA"/>
-  <g transform="translate(${shift} ${shift}) scale(${scale})">
-    <path d="${BRAND_X}" fill="#0B0F14" stroke="#0B0F14" stroke-width="9" stroke-linejoin="round"/>
-    <path d="${BRAND_X}" fill="#FF6A13"/>
-  </g>
+  <rect width="${size}" height="${size}" rx="${radius}" fill="${BRAND_TILE}"/>
+  <g transform="translate(${shift} ${shift}) scale(${scale})">${BRAND_SYMBOL}</g>
 </svg>`;
 }
 

@@ -4,7 +4,7 @@ import { packageForRequest } from '@/lib/package-for-request';
 // One manifest per product: Volt Files installs as "Volt Files" with the
 // blue icon, Air Files as "Air Files". On a product domain the domain
 // decides; elsewhere the signed-in workshop does (so it is private), and a
-// visitor who is neither gets the TaktIX brand.
+// visitor who is neither gets the TaktiX brand.
 export async function GET() {
   const { pkg, byDomain, generic } = await packageForRequest();
   const id = generic ? BRAND.id : pkg.id;

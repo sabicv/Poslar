@@ -1,5 +1,5 @@
 // =====================================================================
-// TaktIX · central tenant configuration
+// TaktiX · central tenant configuration
 //
 // One workshop = one package. Everything that differs between Volt,
 // Gear, Body, Wheel, Fleet and Moto lives here as typed data: brand and
@@ -136,14 +136,14 @@ export interface PackageConfig {
 export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto, air };
 export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 
-// Three groups so a visitor first says how he works, then picks the trade:
-// the customer comes to him, he goes to the customer, or he looks after
-// vehicles that live on the road. New trades join one of these.
-export type TradeGroupId = 'radionica' | 'teren' | 'cesta';
+// Two groups so a visitor first says how he works, then picks the trade:
+// the work is run from the workshop (trucks and machines too, with notes
+// from the field), or the craftsman goes to the customer. A road-service
+// group can come back with a package of its own.
+export type TradeGroupId = 'radionica' | 'teren';
 export const TRADE_GROUPS: { id: TradeGroupId; name: string; hint: string; packages: PackageId[] }[] = [
-  { id: 'radionica', name: 'Radionica', hint: 'Mušterija dovozi vozilo u radionicu', packages: ['volt', 'gear', 'body', 'wheel', 'moto'] },
+  { id: 'radionica', name: 'Radionica', hint: 'Posao se vodi iz radionice', packages: ['volt', 'gear', 'body', 'wheel', 'moto', 'fleet'] },
   { id: 'teren', name: 'Teren', hint: 'Majstor ide k mušteriji', packages: ['air'] },
-  { id: 'cesta', name: 'Cesta', hint: 'Kamioni, strojevi i vozni parkovi', packages: ['fleet'] },
 ];
 export function tradeGroupOf(id: PackageId): TradeGroupId {
   return TRADE_GROUPS.find((g) => g.packages.includes(id))?.id ?? 'radionica';
@@ -302,9 +302,9 @@ function luminance([r, g, b]: [number, number, number]): number {
 // black and white by contrast.
 // The umbrella brand, for an address that is no product's domain (the
 // Vercel URL) and a visitor who is not signed in.
-// TaktIX: light "Gulf" blue with an orange mark, the racing livery the
-// audience knows from Le Mans. Products keep their own colours inside the app.
-export const BRAND = { id: 'taktix', name: 'TaktIX', tagline: 'Manje administracije. Više odrađenog posla.', accent: '#6CC5EA', mark: '#FF6A13' } as const;
+// TaktiX: light blue for actions, the logo orange for the mark;
+// products keep their own colours inside the app.
+export const BRAND = { id: 'taktix', name: 'TaktiX', tagline: 'Manje administracije. Više odrađenog posla.', accent: '#6CC5EA', mark: '#FF5722' } as const;
 
 export function brandAccentStyle(): CSSProperties {
   return accentStyle({ accent: BRAND.accent } as PackageConfig);
