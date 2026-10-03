@@ -166,3 +166,24 @@ export async function removeStaff(userId: string): Promise<ActionResult> {
   revalidatePath('/app/settings');
   return { ok: true };
 }
+
+// ---------------------------------------------------------------------
+// QR self-intake: on and off, and a new code (old posters stop working)
+// ---------------------------------------------------------------------
+export async function setIntakeEnabled(enabled: boolean): Promise<ActionResult> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Samoprijem uključuje voditelj servisa.');
+  const { error } = await ctx.supabase.from('tenants').update({ intake_enabled: enabled }).eq('id', ctx.tenant.id);
+  if (error) return fail(error);
+  revalidatePath('/app/settings/qr');
+  return { ok: true };
+}
+
+export async function rotateIntakeToken(): Promise<ActionResult> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Novi kod radi voditelj servisa.');
+  const { error } = await createAdminClient().from('tenants').update({ intake_token: crypto.randomUUID() }).eq('id', ctx.tenant.id);
+  if (error) return fail(error);
+  revalidatePath('/app/settings/qr');
+  return { ok: true };
+}

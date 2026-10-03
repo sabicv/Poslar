@@ -6,6 +6,8 @@ import { assetTitle, clientName, daysUntil, formatDate, formatEuro, formatRelati
 import type { Asset, Client, Job } from '@/types/db';
 
 export type BoardJob = Pick<Job, 'id' | 'number' | 'phase' | 'complaint' | 'is_urgent' | 'promised_at' | 'payment_status' | 'locked_at' | 'updated_at' | 'assigned_to'> & {
+  // 'qr': sent by the customer from the door code.
+  source?: string | null;
   client: Pick<Client, 'kind' | 'first_name' | 'last_name' | 'company_name'> | null;
   asset: Pick<Asset, 'asset_type' | 'identifier' | 'make' | 'model'> | null;
   assignee: { full_name: string | null } | null;
@@ -43,6 +45,7 @@ export function JobCard({ job, pkg, total, showMoney, showPhase = true }: { job:
           </Badge>
         ) : null}
         {job.is_urgent ? <Badge tone="crit">Hitno</Badge> : null}
+        {job.source === 'qr' && job.phase === 'intake' ? <Badge tone="accent">S vrata</Badge> : null}
         {unpaid ? <Badge tone="warn">Za naplatu</Badge> : null}
         {promised !== null && job.phase !== 'collected' ? (
           <Badge tone={promised < 0 ? 'crit' : promised === 0 ? 'warn' : 'muted'}>

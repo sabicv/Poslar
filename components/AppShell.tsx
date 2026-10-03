@@ -15,7 +15,8 @@ import { cn } from '@/lib/utils';
 interface NavItem {
   href: string;
   label: string;
-  dot?: boolean;
+  // A small dot with what it means (read by screen readers).
+  dot?: string;
   icon: LucideIcon;
   exact?: boolean;
 }
@@ -26,6 +27,7 @@ export function AppShell({
   user,
   inboxCount,
   supportUnread = 0,
+  doorCount = 0,
   trialDaysLeft,
   demo,
   children,
@@ -36,17 +38,19 @@ export function AppShell({
   inboxCount: number;
   // Answers from TaktiX support not yet read: a dot on Postavke.
   supportUnread?: number;
+  // New requests from the door QR code: a dot on Nalozi / Raspored.
+  doorCount?: number;
   trialDaysLeft: number | null;
   demo: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const items: NavItem[] = [
-    { href: '/app', label: product.field ? 'Raspored' : 'Nalozi', icon: product.field ? CalendarDays : ClipboardList, exact: true },
+    { href: '/app', label: product.field ? 'Raspored' : 'Nalozi', icon: product.field ? CalendarDays : ClipboardList, exact: true, dot: doorCount > 0 ? `Prijave s vrata: ${doorCount}` : undefined },
     { href: '/app/clients', label: product.clients, icon: Users },
     { href: '/app/module', label: product.modulePage, icon: PRODUCT_ICONS[product.id] },
     ...(user.isOwner ? [{ href: '/app/business', label: 'Poslovanje', icon: BarChart3 }] : []),
-    { href: '/app/settings', label: 'Postavke', icon: Settings, dot: supportUnread > 0 },
+    { href: '/app/settings', label: 'Postavke', icon: Settings, dot: supportUnread > 0 ? 'Novi odgovor podrške' : undefined },
   ];
   const isActive = (item: NavItem) =>
     item.exact ? pathname === item.href || pathname.startsWith('/app/jobs') : pathname === item.href || pathname.startsWith(`${item.href}/`) || (item.href === '/app/clients' && pathname.startsWith('/app/assets'));
@@ -87,7 +91,7 @@ export function AppShell({
             >
               <item.icon className={cn('size-4', isActive(item) && 'text-accent')} />
               {item.label}
-              {item.dot ? <span className="ml-auto size-2 rounded-full bg-accent" aria-label="Novi odgovor podrške" /> : null}
+              {item.dot ? <span className="ml-auto size-2 rounded-full bg-accent" aria-label={item.dot} /> : null}
             </Link>
           ))}
           <Link
@@ -165,7 +169,7 @@ export function AppShell({
                 className={cn('relative flex h-16 flex-col items-center justify-center gap-1 text-[11px]', isActive(item) ? 'text-fg' : 'text-faint')}
               >
                 <item.icon className={cn('size-5 shrink-0', isActive(item) && 'text-accent')} />
-                {item.dot ? <span className="absolute right-[calc(50%-14px)] top-2.5 size-2 rounded-full bg-accent" aria-label="Novi odgovor podrške" /> : null}
+                {item.dot ? <span className="absolute right-[calc(50%-14px)] top-2.5 size-2 rounded-full bg-accent" aria-label={item.dot} /> : null}
                 {/* Two short lines ("Servisni / planovi") rather than a cut-off word. */}
                 <span className="line-clamp-2 max-w-full break-words px-0.5 text-center leading-[1.1]">{item.label}</span>
               </Link>

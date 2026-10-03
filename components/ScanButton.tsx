@@ -49,12 +49,20 @@ export function ScanButton({
   onResult,
   variant = 'icon',
   className,
+  endpoint = '/api/scan',
+  extra,
+  hideWhenOff = false,
 }: {
   kind: ScanKind;
   label: string;
   onResult: (data: Record<string, unknown>) => void;
   variant?: 'icon' | 'full';
   className?: string;
+  // The door QR page reads through its own endpoint, with its token.
+  endpoint?: string;
+  extra?: Record<string, unknown>;
+  // A customer never sees a camera that can't read yet.
+  hideWhenOff?: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -65,7 +73,7 @@ export function ScanButton({
     setBusy(true);
     try {
       const image = await toJpeg(file);
-      const res = await fetch('/api/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind, image }) });
+      const res = await fetch('/api/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...extra, kind, image }) });
       const body = (await res.json().catch(() => ({}))) as { data?: Record<string, unknown>; error?: string };
       if (!res.ok || !body.data) throw new Error(body.error ?? 'Čitanje slike nije uspjelo.');
       onResult(body.data);
@@ -86,6 +94,7 @@ export function ScanButton({
     input.current?.click();
   }
 
+  if (hideWhenOff && !enabled) return null;
   return (
     <>
       {variant === 'icon' ? (

@@ -54,8 +54,11 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [x] Gumb Arhiva na Nalozima vodi vlasnika u Poslovanje; radnici zadržavaju svoju arhivu bez iznosa
 
 ## Stadij 7: QR samoprijem (Standard i Premium)
-- [ ] Mušterija skenira QR, slika prometnu, izgovori kvar; nalog stiže majstoru
-- [ ] Zaštita od lažnih prijava; QR plakat za ispis
+- [x] Mušterija skenira QR, slika prometnu (ili upiše), dodirne čest kvar ili ga izgovori; nalog stiže u Prijem s oznakom „S vrata” i točkicom na Nalozima
+- [x] Terenski zanati: umjesto registracije adresa, nalog na terenu s tom lokacijom
+- [x] Zaštita od lažnih prijava: skriveno polje, najmanje vrijeme, ograničenje po uređaju i po radionici, isti telefon u 30 min je ista prijava, novi kod gasi stare plakate
+- [x] Postavke → QR samoprijem: kod, uključivanje, novi kod, plakat A4 za ispis
+- [x] Standard i Premium; na probi i u demu svi
 
 ## Stadij 8: Podsjetnici
 - [ ] Zimske/ljetne gume, dospio servis: popis i WhatsApp jednim dodirom

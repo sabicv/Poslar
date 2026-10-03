@@ -374,5 +374,22 @@ console.log('\nCjenik');
   check('every workshop has a default price list', pl.n === 1);
 }
 
+// QR self-intake: the owner switches it, nobody else touches the token.
+console.log('\nQR samoprijem');
+{
+  const [{ intake_token: tok }] = await q(`select intake_token from public.tenants where id = $1`, [tA]);
+  check('every workshop has an intake token', /^[0-9a-f-]{36}$/.test(String(tok)));
+  await as(U.aOwner, async () => {
+    check('owner switches self-intake off', (await q(`update public.tenants set intake_enabled = false where id = $1 returning id`, [tA])).length === 1);
+    check('owner cannot pick the token', await fails(() => q(`update public.tenants set intake_token = gen_random_uuid() where id = $1`, [tA])));
+    check('owner cannot read the attempts', await fails(() => q(`select * from public.intake_attempts`)));
+  });
+  await as(U.aWorker, async () => {
+    check('worker cannot switch self-intake', (await q(`update public.tenants set intake_enabled = true where id = $1 returning id`, [tA])).length === 0);
+  });
+  const [{ n }] = await q(`select count(*)::int as n from public.tenants where intake_token = $1`, [tok]);
+  check('tokens are unique', n === 1);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

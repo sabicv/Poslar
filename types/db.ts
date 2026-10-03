@@ -35,6 +35,9 @@ export interface Tenant {
   paid_until: string | null;
   admin_notes: string | null;
   ai_quota: Record<string, number> | null;
+  // Door QR self-intake (/q/<intake_token>).
+  intake_token: string;
+  intake_enabled: boolean;
 }
 
 export interface Profile {
