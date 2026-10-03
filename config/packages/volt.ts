@@ -107,6 +107,79 @@ export const volt: PackageConfig = {
       lines: [{ kind: 'labor', description: 'Kodiranje i adaptacija modula', qty: 0.5, unit: 'h', price: 65 }],
       inspection: 'volt.pre_write',
     },
+    {
+      code: 'volt.battery_swap',
+      name: 'Zamjena akumulatora',
+      lines: [
+        { kind: 'labor', description: 'Zamjena akumulatora i registracija u vozilu', qty: 0.5, unit: 'h', price: 55 },
+        { kind: 'part', description: 'Akumulator', qty: 1, unit: 'kom', price: 110 },
+      ],
+    },
+    {
+      code: 'volt.alternator',
+      name: 'Zamjena alternatora',
+      lines: [
+        { kind: 'labor', description: 'Demontaža i montaža alternatora', qty: 1.5, unit: 'h', price: 55 },
+        { kind: 'part', description: 'Alternator', qty: 1, unit: 'kom', price: 220 },
+      ],
+    },
+    {
+      code: 'volt.starter',
+      name: 'Zamjena anlasera',
+      lines: [
+        { kind: 'labor', description: 'Demontaža i montaža anlasera', qty: 1.5, unit: 'h', price: 55 },
+        { kind: 'part', description: 'Anlaser', qty: 1, unit: 'kom', price: 180 },
+      ],
+    },
+    {
+      code: 'volt.glow_plugs',
+      name: 'Zamjena grijača',
+      lines: [
+        { kind: 'labor', description: 'Zamjena grijača motora', qty: 1.2, unit: 'h', price: 55 },
+        { kind: 'part', description: 'Grijač', qty: 4, unit: 'kom', price: 18 },
+      ],
+    },
+    {
+      code: 'volt.bulbs',
+      name: 'Žarulje i svjetla',
+      lines: [
+        { kind: 'labor', description: 'Zamjena žarulja', qty: 0.3, unit: 'h', price: 55 },
+        { kind: 'part', description: 'Žarulja', qty: 2, unit: 'kom', price: 8 },
+      ],
+    },
+    { code: 'volt.headlight_aim', name: 'Podešavanje svjetala', lines: [{ kind: 'labor', description: 'Podešavanje snopa prednjih svjetala', qty: 0.3, unit: 'h', price: 55 }] },
+    {
+      code: 'volt.wiring',
+      name: 'Popravak instalacije',
+      lines: [
+        { kind: 'labor', description: 'Popravak kabela i konektora', qty: 1, unit: 'h', price: 55 },
+        { kind: 'material', description: 'Konektori, kabel, termo bužir', qty: 1, unit: 'paušal', price: 10 },
+      ],
+    },
+    {
+      code: 'volt.window',
+      name: 'Podizač stakla',
+      lines: [
+        { kind: 'labor', description: 'Zamjena podizača stakla', qty: 1, unit: 'h', price: 55 },
+        { kind: 'part', description: 'Podizač stakla', qty: 1, unit: 'kom', price: 70 },
+      ],
+    },
+    {
+      code: 'volt.central_lock',
+      name: 'Centralno zaključavanje',
+      lines: [
+        { kind: 'labor', description: 'Dijagnostika i popravak centralnog zaključavanja', qty: 1, unit: 'h', price: 55 },
+        { kind: 'part', description: 'Motor brave', qty: 1, unit: 'kom', price: 60 },
+      ],
+    },
+    {
+      code: 'volt.parking_sensors',
+      name: 'Parking senzori',
+      lines: [
+        { kind: 'labor', description: 'Zamjena parking senzora', qty: 0.8, unit: 'h', price: 55 },
+        { kind: 'part', description: 'Parking senzor', qty: 1, unit: 'kom', price: 35 },
+      ],
+    },
   ],
   modules: ['condition_report', 'approvals', 'volt_diagnostics', 'dvi'],
   optionalModules: ['service_plan', 'parts', 'field_visits'],

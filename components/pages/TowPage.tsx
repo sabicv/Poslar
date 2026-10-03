@@ -4,6 +4,7 @@ import { Badge, Card, CardHeader, EmptyState, Stat, buttonClass } from '@/compon
 import { TOW_PAYERS, TOW_SERVICES, TOW_STEPS, storageDays } from '@/config/packages/tow';
 import { assetTitle, clientName, formatDateTime, formatEuro, formatNumber, formatRelative } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
+import { templateLinePrice } from '@/lib/templates';
 import { todayInZagreb, zagrebMidnight } from '@/lib/time';
 
 type JobRef = {
@@ -24,7 +25,8 @@ export async function TowPage({ ctx }: { ctx: WorkshopContext }) {
   ]);
   const calls = (open ?? []) as unknown as (Record<string, unknown> & { job: JobRef | null })[];
   const parked = (yard ?? []) as unknown as { id: string; in_at: string; spot: string | null; job: JobRef | null }[];
-  const storagePrice = ctx.pkg.templates.find((t) => t.code === 'tow.storage')?.lines[0]?.price ?? 10;
+  // The owner's own storage price (Cjenik), never shown to a worker.
+  const storagePrice = ctx.isOwner ? await templateLinePrice(ctx, 'tow.storage', 0, 10) : 0;
   const km = (month ?? []).reduce((s, c) => s + Number(c.distance_km ?? 0), 0);
   const viaPartners = (month ?? []).filter((c) => c.payer === 'insurance' || c.payer === 'assistance').length;
 

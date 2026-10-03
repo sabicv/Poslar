@@ -2,6 +2,7 @@ import { MapPin, Navigation, ParkingSquare, PhoneCall } from 'lucide-react';
 import { Badge, Button, Card, CardHeader, KeyValue } from '@/components/ui';
 import { TOW_PAYERS, TOW_SERVICES, TOW_STEPS, storageDays } from '@/config/packages/tow';
 import { formatDateTime, formatNumber } from '@/lib/format';
+import { templateLinePrice } from '@/lib/templates';
 import type { ModuleProps } from '../ModuleTab';
 import { MoreSections, foldable } from '../more';
 import { RecordButton, RecordSheet } from '../kit';
@@ -23,7 +24,8 @@ export async function TowModule({ ctx, job, locked, extras }: ModuleProps) {
   ]);
   const stay = (stays ?? [])[0] ?? null;
   const days = stay ? storageDays(stay.in_at as string, (stay.out_at as string | null) ?? null) : 0;
-  const storagePrice = ctx.pkg.templates.find((t) => t.code === 'tow.storage')?.lines[0]?.price ?? 10;
+  // The owner's own storage price (Cjenik), never shown to a worker.
+  const storagePrice = ctx.isOwner ? await templateLinePrice(ctx, 'tow.storage', 0, 10) : 0;
 
   const { show, hidden } = foldable(extras);
   const showYard = show('plac i ležarina', Boolean(stay) || job.phase === 'awaiting_parts');

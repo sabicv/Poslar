@@ -353,5 +353,26 @@ console.log('\nToranj');
   check('the same error counts up and reopens', err.count === 2 && err.status === 'open' && err.url === '/app/jobs' && err.last_user_id === U.aWorker, JSON.stringify(err));
 }
 
+// Price list: the owner's own template prices stay with the owner.
+console.log('\nCjenik');
+{
+  await as(U.aOwner, async () => {
+    await q(`insert into public.templates (tenant_id, package, code, name, lines) values ($1,'volt','own.test','Moj posao','[{"kind":"labor","description":"Rad","qty":1,"unit":"h"}]')`, [tA]);
+    await q(`insert into public.template_prices (tenant_id, template_code, line_no, price) values ($1,'own.test',0,62)`, [tA]);
+    check('owner saves a template and its price', (await q(`select price from public.template_prices`)).length === 1);
+  });
+  await as(U.aWorker, async () => {
+    check('worker sees the template', (await q(`select code from public.templates where code = 'own.test'`)).length === 1);
+    check('worker sees no template prices', (await q(`select * from public.template_prices`)).length === 0);
+    check('worker cannot set a template price', await fails(() => q(`insert into public.template_prices (tenant_id, template_code, line_no, price) values ($1,'own.test',1,1)`, [tA])));
+    check('worker cannot change a template', (await q(`update public.templates set name = 'x' where code = 'own.test' returning id`)).length === 0);
+  });
+  await as(U.bOwner, async () => {
+    check("another workshop sees none of A's prices", (await q(`select * from public.template_prices`)).length === 0);
+  });
+  const [pl] = await q(`select count(*)::int as n from public.price_lists where tenant_id = $1 and is_default`, [tA]);
+  check('every workshop has a default price list', pl.n === 1);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

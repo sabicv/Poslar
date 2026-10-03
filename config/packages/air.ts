@@ -272,6 +272,67 @@ export const air: PackageConfig = {
       lines: [{ kind: 'labor', description: 'Periodična provjera propuštanja s upisom u evidenciju', qty: 1, unit: 'paušal', price: 40 }],
       inspection: 'air.leak_check',
     },
+    {
+      code: 'air.service_multi',
+      name: 'Servis multi-split (do 3 unutarnje)',
+      lines: [
+        { kind: 'package', description: 'Godišnji servis multi-split sustava, do 3 unutarnje jedinice', qty: 1, unit: 'paušal', price: 140 },
+        { kind: 'material', description: 'Sredstvo za čišćenje i dezinfekciju', qty: 2, unit: 'kom', price: 8 },
+      ],
+      inspection: 'air.service_split',
+    },
+    {
+      code: 'air.deep_clean',
+      name: 'Dubinsko čišćenje unutarnje jedinice',
+      lines: [
+        { kind: 'labor', description: 'Rastavljanje i dubinsko čišćenje unutarnje jedinice', qty: 1.5, unit: 'h', price: 45 },
+        { kind: 'material', description: 'Sredstvo za čišćenje i dezinfekciju', qty: 1, unit: 'kom', price: 10 },
+      ],
+    },
+    { code: 'air.drain', name: 'Odčepljenje odvoda kondenzata', lines: [{ kind: 'labor', description: 'Odčepljenje i ispiranje odvoda kondenzata', qty: 0.5, unit: 'h', price: 45 }] },
+    { code: 'air.dismantle', name: 'Demontaža s povratom plina', lines: [{ kind: 'package', description: 'Demontaža klime s povratom radne tvari', qty: 1, unit: 'paušal', price: 90 }] },
+    { code: 'air.relocate', name: 'Premještanje klime', lines: [{ kind: 'package', description: 'Premještanje klime s novom instalacijom do 3 m', qty: 1, unit: 'paušal', price: 250 }], inspection: 'air.install' },
+    {
+      code: 'air.install_70',
+      name: 'Montaža klime od 5 do 7 kW',
+      lines: [
+        { kind: 'package', description: 'Montaža split klime od 5 do 7 kW (do 3 m instalacije)', qty: 1, unit: 'paušal', price: 350 },
+        { kind: 'material', description: 'Dodatni metar instalacije (Cu, izolacija, kabel)', qty: 0, unit: 'm', price: 28 },
+      ],
+      inspection: 'air.install',
+    },
+    {
+      code: 'air.condensate_pump',
+      name: 'Pumpa kondenzata',
+      lines: [
+        { kind: 'labor', description: 'Ugradnja pumpe kondenzata', qty: 1, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Pumpa kondenzata', qty: 1, unit: 'kom', price: 70 },
+      ],
+    },
+    {
+      code: 'air.pcb',
+      name: 'Elektronika unutarnje jedinice',
+      lines: [
+        { kind: 'labor', description: 'Zamjena elektroničke pločice', qty: 1, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Elektronička pločica', qty: 1, unit: 'kom', price: 120 },
+      ],
+    },
+    {
+      code: 'air.fan_motor',
+      name: 'Motor ventilatora',
+      lines: [
+        { kind: 'labor', description: 'Zamjena motora ventilatora', qty: 1.5, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Motor ventilatora', qty: 1, unit: 'kom', price: 90 },
+      ],
+    },
+    {
+      code: 'air.ventilation',
+      name: 'Servis rekuperatora',
+      lines: [
+        { kind: 'labor', description: 'Servis rekuperatora i čišćenje izmjenjivača', qty: 1, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Filteri rekuperatora (set)', qty: 1, unit: 'kom', price: 40 },
+      ],
+    },
   ],
   modules: ['dvi', 'approvals', 'field_visits', 'maintenance_plans', 'fgas'],
   optionalModules: [],

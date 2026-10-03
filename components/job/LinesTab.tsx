@@ -1,14 +1,15 @@
 import { billingFrom } from '@/components/invoice/InvoiceDocument';
 import type { WorkshopContext } from '@/lib/session';
-import { getJobTemplates } from '@/lib/templates';
+import { getJobTemplates, loadPriceBook } from '@/lib/templates';
 import type { Approval, JobLine, JobLinePrice, JobWithRefs } from '@/types/db';
 import { LinesEditor } from './LinesEditor';
 
 export async function LinesTab({ ctx, job, locked }: { ctx: WorkshopContext; job: JobWithRefs; locked: boolean }) {
-  const [{ data: lines }, templates, approvals] = await Promise.all([
+  const [{ data: lines }, templates, approvals, book] = await Promise.all([
     ctx.supabase.from('job_lines').select('*').eq('job_id', job.id).order('sort'),
     getJobTemplates(ctx),
     ctx.supabase.from('approvals').select('*').eq('job_id', job.id).order('sent_at', { ascending: false }).limit(1),
+    ctx.isOwner ? loadPriceBook(ctx.tenant.id) : Promise.resolve(null),
   ]);
 
   // Prices are fetched only for the owner (and the database would return none to a worker).
@@ -31,6 +32,8 @@ export async function LinesTab({ ctx, job, locked }: { ctx: WorkshopContext; job
       clientPhone={job.client.phone}
       vatRegistered={billingFrom(ctx.tenant.settings).vatRegistered}
       invoice={!ctx.pkg.internalJobs}
+      hourlyRate={book?.hourly ?? null}
+      templateName={(job.complaint ?? '').split(/[,.]/)[0].trim().slice(0, 60)}
     />
   );
 }

@@ -7,7 +7,7 @@ import { DEVICE_TYPES, PACKAGES, PHASE_ORDER, defaultMeterUnit, phaseLabel, type
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop, type WorkshopContext } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getInspectionTemplates, getJobTemplates } from '@/lib/templates';
+import { getInspectionTemplates, linePrice, listTemplates, loadPriceBook } from '@/lib/templates';
 import type { InspectionStatus, LineApproval, LinePriority } from '@/types/db';
 
 const jobPath = (id: string) => `/app/jobs/${id}`;
@@ -180,11 +180,14 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
   return { ok: true, data: { id: job.id as string, warning } };
 }
 
-// Template lines go in with the user's rights; their default prices come
-// from the workshop's own configuration, so they are written with the
-// service role even when a worker opens the job (workers can't write prices).
+// Template lines go in with the user's rights; their prices come from the
+// owner's price list (own line price, hourly rate, package default), so
+// they are written with the service role even when a worker opens the job
+// (workers can't read or write prices). A hidden template still works for
+// a plan that names it.
 async function insertTemplate(ctx: WorkshopContext, jobId: string, code: string): Promise<ActionResult> {
-  const template = (await getJobTemplates(ctx)).find((t) => t.code === code);
+  const [templates, book] = await Promise.all([listTemplates(ctx, { includeHidden: true }), loadPriceBook(ctx.tenant.id)]);
+  const template = templates.find((t) => t.code === code);
   if (!template) return fail('Predložak nije pronađen.');
   const { data: last } = await ctx.supabase.from('job_lines').select('sort').eq('job_id', jobId).order('sort', { ascending: false }).limit(1);
   const start = ((last?.[0]?.sort as number | undefined) ?? 0) + 1;
@@ -209,9 +212,9 @@ async function insertTemplate(ctx: WorkshopContext, jobId: string, code: string)
   if (error) return fail(error);
 
   const prices = (lines ?? [])
-    .map((row) => ({ row, line: template.lines[(row.sort as number) - start] }))
-    .filter(({ line }) => line?.price !== undefined)
-    .map(({ row, line }) => ({ job_line_id: row.id, tenant_id: ctx.tenant.id, unit_price: line.price }));
+    .map((row) => ({ row, price: linePrice(template, (row.sort as number) - start, book) }))
+    .filter(({ price }) => price !== undefined)
+    .map(({ row, price }) => ({ job_line_id: row.id, tenant_id: ctx.tenant.id, unit_price: price }));
   if (prices.length > 0) {
     const writer = ctx.isOwner ? ctx.supabase : createAdminClient();
     const { error: priceError } = await writer.from('job_line_prices').insert(prices);

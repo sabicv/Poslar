@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { Copy, FileText, Link2, MessageCircle, Plus, Send } from 'lucide-react';
 import { ConfirmButton, DictateButton, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
+import { SaveAsTemplate } from '@/components/pricing/TemplateEditor';
 import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Select, Textarea, buttonClass } from '@/components/ui';
 import { invoiceTotals, lineAmount } from '@/components/invoice/InvoiceDocument';
 import type { LineKind } from '@/config/tenant.config';
@@ -53,6 +54,8 @@ export function LinesEditor({
   clientPhone,
   vatRegistered,
   invoice = true,
+  hourlyRate = null,
+  templateName = '',
 }: {
   jobId: string;
   lines: JobLine[];
@@ -65,6 +68,9 @@ export function LinesEditor({
   clientPhone: string | null;
   vatRegistered: boolean;
   invoice?: boolean;
+  // The owner's hourly rate (Cjenik): the starting price of a new line of work.
+  hourlyRate?: number | null;
+  templateName?: string;
 }) {
   const { pending, run } = useAction();
   const [editing, setEditing] = useState<JobLine | null>(null);
@@ -213,6 +219,7 @@ export function LinesEditor({
               </Button>
             </div>
           ) : null}
+          {isOwner && approved.length ? <SaveAsTemplate jobId={jobId} suggestion={templateName} /> : null}
         </div>
       ) : (
         <p className="text-sm text-muted">Nalog je zaključan. Stavke se više ne mogu mijenjati.</p>
@@ -278,6 +285,7 @@ export function LinesEditor({
         price={editing ? prices[editing.id] : undefined}
         isOwner={isOwner}
         vatRegistered={vatRegistered}
+        hourlyRate={hourlyRate}
       />
     </div>
   );
@@ -292,6 +300,7 @@ function LineSheet({
   price,
   isOwner,
   vatRegistered,
+  hourlyRate,
 }: {
   open: boolean;
   onClose: () => void;
@@ -301,6 +310,7 @@ function LineSheet({
   price?: Price;
   isOwner: boolean;
   vatRegistered: boolean;
+  hourlyRate: number | null;
 }) {
   const { pending, run } = useAction();
   const [kind, setKind] = useState<LineKind>(line?.kind ?? 'labor');
@@ -309,7 +319,9 @@ function LineSheet({
   const [unit, setUnit] = useState(line?.unit ?? 'h');
   const [approval, setApproval] = useState<LineApproval>(line?.approval ?? 'approved');
   const [priority, setPriority] = useState<LinePriority | ''>(line?.priority ?? '');
-  const [unitPrice, setUnitPrice] = useState(price ? String(price.unit_price) : '');
+  const hourlyText = hourlyRate !== null ? String(hourlyRate).replace('.', ',') : '';
+  // A new line of work starts at the owner's hourly rate.
+  const [unitPrice, setUnitPrice] = useState(price ? String(price.unit_price) : !line && isOwner ? hourlyText : '');
   const [discount, setDiscount] = useState(price ? String(price.discount_pct) : '0');
   const [vat, setVat] = useState(price ? String(price.vat_rate) : '25');
   // Core: kind, what, how many, price. Unit, discount, VAT and the customer
@@ -347,6 +359,7 @@ function LineSheet({
           onChange={(k) => {
             setKind(k);
             if (!line) setUnit(defaultUnit(k));
+            if (!line && isOwner && (unitPrice === '' || unitPrice === hourlyText)) setUnitPrice(k === 'labor' ? hourlyText : '');
           }}
           options={(['labor', 'part', 'material', 'fee'] as LineKind[]).map((k) => ({ value: k, label: KIND_LABELS[k] }))}
         />

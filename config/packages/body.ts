@@ -135,6 +135,92 @@ export const body: PackageConfig = {
       ],
       inspection: 'body.pre_paint',
     },
+    {
+      code: 'body.bumper_repair',
+      name: 'Popravak branika',
+      lines: [
+        { kind: 'labor', description: 'Popravak plastike branika', qty: 2, unit: 'h', price: 42 },
+        { kind: 'material', description: 'Materijal za plastiku', qty: 1, unit: 'paušal', price: 25 },
+      ],
+    },
+    {
+      code: 'body.bumper_paint',
+      name: 'Lakiranje branika',
+      lines: [
+        { kind: 'labor', description: 'Priprema i lakiranje branika', qty: 3, unit: 'h', price: 42 },
+        { kind: 'material', description: 'Boja i lak', qty: 1, unit: 'paušal', price: 90 },
+      ],
+      inspection: 'body.pre_paint',
+    },
+    {
+      code: 'body.door',
+      name: 'Popravak i lakiranje vrata',
+      lines: [
+        { kind: 'labor', description: 'Ravnanje vrata', qty: 3, unit: 'h', price: 42 },
+        { kind: 'labor', description: 'Priprema i lakiranje vrata', qty: 3, unit: 'h', price: 42 },
+        { kind: 'material', description: 'Kit, boja i lak', qty: 1, unit: 'paušal', price: 130 },
+      ],
+      inspection: 'body.pre_paint',
+    },
+    {
+      code: 'body.fender',
+      name: 'Zamjena blatobrana',
+      lines: [
+        { kind: 'labor', description: 'Zamjena i lakiranje blatobrana', qty: 3, unit: 'h', price: 42 },
+        { kind: 'part', description: 'Blatobran', qty: 1, unit: 'kom', price: 90 },
+        { kind: 'material', description: 'Boja i lak', qty: 1, unit: 'paušal', price: 80 },
+      ],
+      inspection: 'body.pre_paint',
+    },
+    {
+      code: 'body.spot',
+      name: 'Ogrebotina (spot repair)',
+      lines: [
+        { kind: 'labor', description: 'Lokalni popravak ogrebotine', qty: 1.5, unit: 'h', price: 42 },
+        { kind: 'material', description: 'Boja i lak', qty: 1, unit: 'paušal', price: 30 },
+      ],
+    },
+    {
+      code: 'body.windscreen',
+      name: 'Vjetrobransko staklo',
+      lines: [
+        { kind: 'labor', description: 'Zamjena vjetrobranskog stakla', qty: 1.5, unit: 'h', price: 42 },
+        { kind: 'part', description: 'Vjetrobransko staklo', qty: 1, unit: 'kom', price: 250 },
+        { kind: 'material', description: 'Ljepilo i brtva', qty: 1, unit: 'paušal', price: 25 },
+      ],
+    },
+    {
+      code: 'body.headlights',
+      name: 'Poliranje farova',
+      lines: [
+        { kind: 'labor', description: 'Poliranje i zaštita farova', qty: 0.8, unit: 'h', price: 40 },
+        { kind: 'material', description: 'Paste i lak za farove', qty: 1, unit: 'paušal', price: 10 },
+      ],
+    },
+    {
+      code: 'body.rust',
+      name: 'Sanacija hrđe',
+      lines: [
+        { kind: 'labor', description: 'Izrezivanje i varenje hrđavog dijela', qty: 4, unit: 'h', price: 42 },
+        { kind: 'material', description: 'Lim, antikor, boja', qty: 1, unit: 'paušal', price: 60 },
+      ],
+    },
+    {
+      code: 'body.ceramic',
+      name: 'Keramička zaštita',
+      lines: [
+        { kind: 'labor', description: 'Priprema laka i nanošenje keramike', qty: 4, unit: 'h', price: 40 },
+        { kind: 'material', description: 'Keramički premaz', qty: 1, unit: 'kom', price: 80 },
+      ],
+    },
+    {
+      code: 'body.mirror',
+      name: 'Retrovizor',
+      lines: [
+        { kind: 'labor', description: 'Zamjena stakla ili kućišta retrovizora', qty: 0.5, unit: 'h', price: 42 },
+        { kind: 'part', description: 'Staklo ili kućište retrovizora', qty: 1, unit: 'kom', price: 50 },
+      ],
+    },
   ],
   modules: ['condition_report', 'approvals', 'body_damage', 'body_paint', 'body_insurance'],
   optionalModules: ['dvi'],

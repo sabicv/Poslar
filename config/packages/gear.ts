@@ -220,6 +220,90 @@ export const gear: PackageConfig = {
       lines: [{ kind: 'labor', description: 'Pregled i priprema vozila za tehnički pregled', qty: 1, unit: 'h', price: 45 }],
       inspection: 'gear.dvi50',
     },
+    {
+      code: 'gear.shocks_front',
+      name: 'Amortizeri naprijed',
+      lines: [
+        { kind: 'labor', description: 'Zamjena prednjih amortizera', qty: 2, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Amortizer naprijed', qty: 2, unit: 'kom', price: 70 },
+        { kind: 'part', description: 'Ležaj i gumica amortizera', qty: 2, unit: 'kom', price: 25 },
+      ],
+    },
+    {
+      code: 'gear.control_arm',
+      name: 'Rame ovjesa',
+      lines: [
+        { kind: 'labor', description: 'Zamjena ramena ovjesa', qty: 1, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Rame ovjesa', qty: 1, unit: 'kom', price: 60 },
+      ],
+    },
+    {
+      code: 'gear.tie_rod',
+      name: 'Kraj spone',
+      lines: [
+        { kind: 'labor', description: 'Zamjena kraja spone', qty: 0.8, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Kraj spone', qty: 1, unit: 'kom', price: 25 },
+      ],
+    },
+    {
+      code: 'gear.aux_belt',
+      name: 'Pomoćni remen',
+      lines: [
+        { kind: 'labor', description: 'Zamjena pomoćnog remena i zatezača', qty: 0.8, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Pomoćni remen', qty: 1, unit: 'kom', price: 30 },
+        { kind: 'part', description: 'Zatezač remena', qty: 1, unit: 'kom', price: 45 },
+      ],
+    },
+    {
+      code: 'gear.water_pump',
+      name: 'Vodena pumpa',
+      lines: [
+        { kind: 'labor', description: 'Zamjena vodene pumpe', qty: 2, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Vodena pumpa', qty: 1, unit: 'kom', price: 60 },
+        { kind: 'material', description: 'Rashladna tekućina', qty: 5, unit: 'l', price: 4 },
+      ],
+    },
+    {
+      code: 'gear.exhaust',
+      name: 'Ispušni lonac',
+      lines: [
+        { kind: 'labor', description: 'Zamjena ispušnog lonca', qty: 0.8, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Ispušni lonac', qty: 1, unit: 'kom', price: 90 },
+        { kind: 'material', description: 'Obujmice i gumice', qty: 1, unit: 'paušal', price: 10 },
+      ],
+    },
+    {
+      code: 'gear.brake_fluid',
+      name: 'Kočiona tekućina',
+      lines: [
+        { kind: 'labor', description: 'Zamjena kočione tekućine', qty: 0.5, unit: 'h', price: 45 },
+        { kind: 'material', description: 'Kočiona tekućina DOT 4', qty: 1, unit: 'l', price: 10 },
+      ],
+    },
+    {
+      code: 'gear.coolant',
+      name: 'Rashladna tekućina',
+      lines: [
+        { kind: 'labor', description: 'Zamjena rashladne tekućine', qty: 0.6, unit: 'h', price: 45 },
+        { kind: 'material', description: 'Rashladna tekućina', qty: 6, unit: 'l', price: 4 },
+      ],
+    },
+    {
+      code: 'gear.spark_plugs',
+      name: 'Svjećice',
+      lines: [
+        { kind: 'labor', description: 'Zamjena svjećica', qty: 0.6, unit: 'h', price: 45 },
+        { kind: 'part', description: 'Svjećica', qty: 4, unit: 'kom', price: 12 },
+      ],
+    },
+    {
+      code: 'gear.gearbox_oil',
+      name: 'Ulje mjenjača',
+      lines: [
+        { kind: 'labor', description: 'Zamjena ulja u mjenjaču', qty: 0.6, unit: 'h', price: 45 },
+        { kind: 'material', description: 'Ulje mjenjača', qty: 2, unit: 'l', price: 15 },
+      ],
+    },
   ],
   modules: ['dvi', 'condition_report', 'approvals', 'service_plan', 'parts'],
   optionalModules: ['wheel_hotel', 'field_visits'],

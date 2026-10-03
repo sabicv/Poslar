@@ -121,6 +121,13 @@ export default async function SettingsPage() {
                 <WorkshopForm tenant={{ name: t.name, oib: t.oib ?? '', phone: t.phone ?? '', email: t.email ?? '', address: t.address ?? '', city: t.city ?? '' }} />
               </div>
             </Card>
+            <Link href="/app/settings/cjenik" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
+              <span>
+                <span className="block font-semibold">Cjenik i predlošci</span>
+                <span className="block text-sm text-muted">Satnica, Vaše cijene i Vaši poslovi</span>
+              </span>
+              <ChevronRight className="size-5 text-faint" />
+            </Link>
             <Card>
               <CardHeader title="Račun" subtitle="Pojavljuje se na računu za stranku" />
               <div className="p-4">

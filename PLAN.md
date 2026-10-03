@@ -42,9 +42,10 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [x] Toranj otvoren za Vedranov račun (ulaz: /admin ili Postavke → Toranj)
 
 ## Stadij 5: Cjenik i predlošci
-- [ ] Postavke → Cjenik: satnica, vlastiti predlošci s cijenama
-- [ ] „Spremi kao predložak” iz naloga; ručni novi predložak
-- [ ] +10 najčešćih poslova po zanatu
+- [x] Postavke → Cjenik i predlošci: satnica, vlastita cijena na svakoj stavci predloška (samo vlasnik), skrivanje predložaka koje radionica ne radi, vraćanje izvornog
+- [x] „Spremi kao predložak” iz naloga; ručni novi predložak
+- [x] +10 najčešćih poslova za Volt, Gear, Body, Wheel, Fleet, Moto i Air (Aqua, Tow i Deal već imaju 11 do 12)
+- [x] Cijene se primjenjuju i kad predložak doda radnik; nova stavka rada kreće od satnice
 
 ## Stadij 6: Arhiva u Poslovanju
 - [ ] Zatvoreni nalozi, razdoblje, plaćeno/neplaćeno, traženje, iznos i broj računa

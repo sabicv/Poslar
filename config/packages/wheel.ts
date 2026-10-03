@@ -106,6 +106,38 @@ export const wheel: PackageConfig = {
       lines: [{ kind: 'fee', description: 'Čuvanje seta guma jednu sezonu', qty: 1, unit: 'paušal', price: 25 }],
       inspection: 'wheel.storage_intake',
     },
+    {
+      code: 'wheel.new_tyres',
+      name: 'Nove gume (4)',
+      lines: [
+        { kind: 'labor', description: 'Montaža i balansiranje 4 nove gume', qty: 1, unit: 'paušal', price: 40 },
+        { kind: 'part', description: 'Guma', qty: 4, unit: 'kom', price: 80 },
+        { kind: 'part', description: 'Ventil', qty: 4, unit: 'kom', price: 2 },
+      ],
+    },
+    { code: 'wheel.suv', name: 'Sezonska zamjena SUV / kombi', lines: [{ kind: 'labor', description: 'Skidanje, montaža i balansiranje 4 kotača SUV / kombi', qty: 1, unit: 'paušal', price: 45 }], inspection: 'wheel.season_change' },
+    {
+      code: 'wheel.tpms',
+      name: 'TPMS senzor',
+      lines: [
+        { kind: 'part', description: 'TPMS senzor tlaka', qty: 1, unit: 'kom', price: 45 },
+        { kind: 'labor', description: 'Ugradnja i učenje senzora', qty: 0.3, unit: 'h', price: 40 },
+      ],
+    },
+    {
+      code: 'wheel.valves',
+      name: 'Ventili',
+      lines: [
+        { kind: 'part', description: 'Ventil', qty: 4, unit: 'kom', price: 2 },
+        { kind: 'labor', description: 'Zamjena ventila', qty: 1, unit: 'paušal', price: 8 },
+      ],
+    },
+    { code: 'wheel.rim_straighten', name: 'Ravnanje felge', lines: [{ kind: 'labor', description: 'Ravnanje čelične felge', qty: 1, unit: 'kom', price: 30 }] },
+    { code: 'wheel.rim_alu', name: 'Popravak alu felge', lines: [{ kind: 'labor', description: 'Ravnanje i poliranje alu felge', qty: 1, unit: 'kom', price: 60 }] },
+    { code: 'wheel.low_profile', name: 'Niskoprofilne / run-flat gume', lines: [{ kind: 'fee', description: 'Dodatak za niskoprofilne i run-flat gume', qty: 1, unit: 'paušal', price: 20 }] },
+    { code: 'wheel.moto', name: 'Guma motocikla', lines: [{ kind: 'labor', description: 'Skidanje kotača, montaža i balansiranje gume motocikla', qty: 1, unit: 'kom', price: 25 }] },
+    { code: 'wheel.nitrogen', name: 'Punjenje dušikom', lines: [{ kind: 'labor', description: 'Punjenje 4 gume dušikom', qty: 1, unit: 'paušal', price: 8 }] },
+    { code: 'wheel.disposal', name: 'Zbrinjavanje starih guma', lines: [{ kind: 'fee', description: 'Zbrinjavanje stare gume', qty: 4, unit: 'kom', price: 2.5 }] },
   ],
   modules: ['dvi', 'approvals', 'wheel_hotel', 'wheel_torque', 'wheel_alignment'],
   optionalModules: ['condition_report', 'field_visits'],
