@@ -668,6 +668,10 @@ async function seedGear() {
   await job(T, { client: c1, asset: a1, phase: 'collected', paid: true, d: 35, meter: 165000, complaint: 'Veliki servis', lines: [{ d: 'Veliki servis prema planu proizvođača', qty: 2, price: 45 }, { kind: 'part', d: 'Filteri (ulje, zrak, kabina, gorivo)', price: 70 }, { kind: 'material', d: 'Motorno ulje', qty: 5, unit: 'l', price: 11 }] });
   await job(T, { client: c4, asset: a4, phase: 'collected', paid: true, d: 62, meter: 229800, complaint: 'Kočnice naprijed', lines: [{ d: 'Zamjena pločica i diskova naprijed', qty: 1.2, price: 45 }, { kind: 'part', d: 'Pločice i diskovi naprijed', price: 155 }] });
   await job(T, { client: c3, asset: a3, phase: 'collected', paid: true, d: 110, meter: 112300, complaint: 'Kvačilo proklizava', lines: [{ d: 'Zamjena kompleta kvačila', qty: 5, price: 45 }, { kind: 'part', d: 'Komplet kvačila s dvomasenim zamašnjakom', price: 610 }] });
+  // A service a year and a month old: shows up in Poslovanje → Podsjetnici.
+  const c5 = await client(T, { first: 'Ante', last: 'Perić', phone: '+385 91 300 9900', city: 'Split' });
+  const a5 = await asset(T, c5, { id: 'ST-330-AP', make: 'Peugeot', model: '308 1.6 HDi', year: 2015, fuel: 'diesel' });
+  await job(T, { client: c5, asset: a5, phase: 'collected', paid: true, d: 395, meter: 187400, complaint: 'Redovni servis', lines: [{ d: 'Zamjena ulja i filtera', qty: 0.6, price: 45 }, { kind: 'part', d: 'Filter ulja', price: 12 }, { kind: 'material', d: 'Motorno ulje', qty: 5, unit: 'l', price: 11 }] });
 
   await q(
     sb.from('gear_asset_schedule').insert([

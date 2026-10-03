@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { CalendarDays, ClipboardList, Search } from 'lucide-react';
+import { BellRing, CalendarDays, ChevronRight, ClipboardList, Search } from 'lucide-react';
 import { FieldSchedule } from '@/components/field/FieldSchedule';
 import { JobCard, type BoardJob } from '@/components/JobCard';
 import { EmptyState, Input, PageHeader, buttonClass } from '@/components/ui';
 import { PHASE_ORDER, hasFieldWork, phaseLabel, type JobPhase } from '@/config/tenant.config';
 import { formatEuro } from '@/lib/format';
+import { loadReminders } from '@/lib/reminders';
 import { requireWorkshop } from '@/lib/session';
 import { cn, plateIlike, toIlike } from '@/lib/utils';
 
@@ -16,6 +17,17 @@ type Filter = 'active' | 'mine' | 'urgent' | 'unpaid' | 'archive';
 export default async function JobsBoard({ searchParams }: { searchParams: Promise<{ q?: string; f?: string; view?: string; d?: string; t?: string }> }) {
   const ctx = await requireWorkshop();
   const { q = '', f, view, d, t } = await searchParams;
+  // The owner sees who is waiting for a reminder (tyres, service, deadlines).
+  const waiting = ctx.isOwner ? (await loadReminders(ctx)).items.length : 0;
+  const reminderBanner = waiting ? (
+    <Link href="/app/business/podsjetnici" className="mb-4 flex items-center gap-3 rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm">
+      <BellRing className="size-5 shrink-0 text-accent" />
+      <span className="flex-1">
+        Podsjetnici za poslati: <span className="font-semibold">{waiting}</span>
+      </span>
+      <ChevronRight className="size-4 text-faint" />
+    </Link>
+  ) : null;
 
   // Field work: the day schedule is the start page of a field package,
   // and one tap away for a workshop that also goes out.
@@ -37,6 +49,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
     return (
       <>
         <PageHeader title="Raspored" action={viewSwitch} />
+        {reminderBanner}
         <FieldSchedule ctx={ctx} day={d} tech={t} />
       </>
     );
@@ -106,6 +119,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader title="Nalozi" action={viewSwitch} />
+      {reminderBanner}
 
       <form className="relative mb-4" action="/app">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />

@@ -61,7 +61,11 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [x] Standard i Premium; na probi i u demu svi
 
 ## Stadij 8: Podsjetnici
-- [ ] Zimske/ljetne gume, dospio servis: popis i WhatsApp jednim dodirom
+- [x] Poslovanje → Podsjetnici (samo vlasnik), s brojem na kartici i obavijesti na Nalozima
+- [x] Gume: 1. 10. do 15. 12. zimske, 1. 3. do 15. 5. ljetne; gume koje čuvamo i tko je lani mijenjao kod nas
+- [x] Dospio servis: godinu dana od zadnjeg servisa (predložak ili tekst stavke), i po servisnom planu vozila
+- [x] Servisni planovi terenskih zanata i rokovi flote (tehnički, tahograf…) na istom popisu
+- [x] WhatsApp jednim dodirom s gotovom porukom i potpisom; „Ne treba” miče s popisa; poslano se pamti (gume do kraja sezone, servis 60 dana)
 
 ## Kasnije
 Fiskalizacija (s knjigovođom i posrednikom), sef za ključeve, Google Play, engleski jezik.
