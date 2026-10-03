@@ -8,7 +8,7 @@ import { formatEuro, plural } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 const PRIORITY = {
-  urgent: { label: 'Hitno — sigurnost', className: 'bg-crit/12 text-crit border-crit/30' },
+  urgent: { label: 'Hitno, sigurnost', className: 'bg-crit/12 text-crit border-crit/30' },
   recommended: { label: 'Preporučeno', className: 'bg-warn/12 text-warn border-warn/30' },
   optional: { label: 'Po želji', className: 'bg-surface2 text-muted border-line' },
 };
@@ -38,7 +38,7 @@ export function ApprovalForm({
   return (
     <section className="mt-5 space-y-4">
       <div className="rounded-2xl border border-line bg-surface">
-        <h2 className="border-b border-line px-5 py-3 text-sm font-semibold">Servis predlaže — odaberite</h2>
+        <h2 className="border-b border-line px-5 py-3 text-sm font-semibold">Servis predlaže, odaberite</h2>
         <ul className="divide-y divide-line">
           {lines.map((l) => {
             const d = decisions[l.id];

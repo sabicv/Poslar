@@ -65,7 +65,7 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
   const { workshop: w, billing } = data;
   const totals = invoiceTotals(data.lines, billing.vatRegistered);
   // Before issuing the page is a preview; the number comes with "Izdaj račun".
-  const title = data.number ? `Račun br. ${data.number}/${data.year}` : 'Račun br. —';
+  const title = data.number ? `Račun br. ${data.number}/${data.year}` : 'Račun (još nije izdan)';
   const reference = data.number ? `${data.number}-${data.year}` : null;
   const client = data.client;
 

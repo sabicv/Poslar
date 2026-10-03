@@ -198,7 +198,7 @@ export function CopilotDrawer({ jobId, enabled }: { jobId: string; enabled: bool
               )
             )}
             {error ? <p className="rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-sm text-crit">{error}</p> : null}
-            <p className="text-[11px] text-faint">AI može pogriješiti. Vrijednosti označene „tipično — provjeriti” potvrdite u servisnoj dokumentaciji ili na pločici uređaja.</p>
+            <p className="text-[11px] text-faint">AI može pogriješiti. Vrijednosti označene „tipično, provjeriti” potvrdite u servisnoj dokumentaciji ili na pločici uređaja.</p>
             <div ref={endRef} />
           </div>
 

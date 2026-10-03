@@ -28,7 +28,7 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
     s.from('inspections').select('id, template_code, completed_at').eq('job_id', job.id),
   ]);
   // A place typed in words has "—" as its slot and is shown by its words alone.
-  const locationLabel = new Map((locations ?? []).map((l) => [l.id as string, l.slot === '—' ? (l.area as string) : `${l.area} · ${l.slot}`]));
+  const locationLabel = new Map((locations ?? []).map((l) => [l.id as string, l.slot === '-' || l.slot === '—' ? (l.area as string) : `${l.area} · ${l.slot}`]));
   const isOutboard = type === 'outboard' || type === 'inboard';
   const protocolTemplate = (kind: string) => (kind === 'dewinterize' ? 'moto.dewinterize' : isOutboard || BOATS.includes(type) ? 'moto.winterize_outboard' : 'moto.winterize_moto');
 
@@ -148,11 +148,11 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
           />
           {vessel ? (
             <div className="grid gap-x-8 px-4 py-1 sm:grid-cols-2">
-              <KeyValue label="Ime">{(vessel.vessel_name as string | null) ?? '—'}</KeyValue>
-              <KeyValue label="Oznaka">{(vessel.registration_mark as string | null) ?? '—'}</KeyValue>
-              <KeyValue label="Dimenzije">{vessel.length_m ? `${formatNumber(vessel.length_m as number)} × ${formatNumber(vessel.beam_m as number)} m` : '—'}</KeyValue>
-              <KeyValue label="Trup">{vessel.hull_material ? HULL[vessel.hull_material as keyof typeof HULL] : '—'}</KeyValue>
-              <KeyValue label="Luka / vez">{[vessel.home_port, vessel.berth].filter(Boolean).join(' · ') || '—'}</KeyValue>
+              <KeyValue label="Ime">{(vessel.vessel_name as string | null) ?? '-'}</KeyValue>
+              <KeyValue label="Oznaka">{(vessel.registration_mark as string | null) ?? '-'}</KeyValue>
+              <KeyValue label="Dimenzije">{vessel.length_m ? `${formatNumber(vessel.length_m as number)} × ${formatNumber(vessel.beam_m as number)} m` : '-'}</KeyValue>
+              <KeyValue label="Trup">{vessel.hull_material ? HULL[vessel.hull_material as keyof typeof HULL] : '-'}</KeyValue>
+              <KeyValue label="Luka / vez">{[vessel.home_port, vessel.berth].filter(Boolean).join(' · ') || '-'}</KeyValue>
             </div>
           ) : (
             <p className="px-4 py-4 text-sm text-muted">HIN/CIN je u podacima objekta; ovdje ime, dimenzije i vez.</p>
@@ -187,11 +187,11 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
           />
           {engine ? (
             <div className="grid gap-x-8 px-4 py-1 sm:grid-cols-2">
-              <KeyValue label="Serijski broj">{<span className="font-mono text-xs">{(engine.engine_serial as string | null) ?? '—'}</span>}</KeyValue>
-              <KeyValue label="Snaga">{engine.power_hp ? `${engine.power_hp} KS` : '—'}</KeyValue>
-              <KeyValue label="Takt">{engine.stroke ? STROKE[engine.stroke as keyof typeof STROKE] : '—'}</KeyValue>
+              <KeyValue label="Serijski broj">{<span className="font-mono text-xs">{(engine.engine_serial as string | null) ?? '-'}</span>}</KeyValue>
+              <KeyValue label="Snaga">{engine.power_hp ? `${engine.power_hp} KS` : '-'}</KeyValue>
+              <KeyValue label="Takt">{engine.stroke ? STROKE[engine.stroke as keyof typeof STROKE] : '-'}</KeyValue>
               <KeyValue label="Impeler">
-                {engine.impeller_replaced_date ? `${formatDate(engine.impeller_replaced_date as string)}${engine.impeller_replaced_mth ? ` · ${engine.impeller_replaced_mth} mth` : ''}` : '—'}
+                {engine.impeller_replaced_date ? `${formatDate(engine.impeller_replaced_date as string)}${engine.impeller_replaced_mth ? ` · ${engine.impeller_replaced_mth} mth` : ''}` : '-'}
               </KeyValue>
             </div>
           ) : (

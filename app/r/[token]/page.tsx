@@ -101,14 +101,14 @@ export default async function WorkReport({ params }: { params: Promise<{ token: 
           <p className="flex items-center gap-1.5 text-xs text-muted">
             <Clock className="size-3.5" /> Dolazak
           </p>
-          <p className="text-lg font-semibold tabular">{job.arrived_at ? formatTime(job.arrived_at as string) : '—'}</p>
+          <p className="text-lg font-semibold tabular">{job.arrived_at ? formatTime(job.arrived_at as string) : '-'}</p>
           <p className="text-xs text-faint">{formatDate((job.arrived_at ?? job.finished_at) as string | null)}</p>
         </div>
         <div className="rounded-2xl border border-line bg-surface p-4">
           <p className="flex items-center gap-1.5 text-xs text-muted">
             <Clock className="size-3.5" /> Odlazak
           </p>
-          <p className="text-lg font-semibold tabular">{job.left_at ? formatTime(job.left_at as string) : '—'}</p>
+          <p className="text-lg font-semibold tabular">{job.left_at ? formatTime(job.left_at as string) : '-'}</p>
           <p className="text-xs text-faint">{minutes !== null ? `${minutes} min na lokaciji` : ''}</p>
         </div>
         <div className="rounded-2xl border border-line bg-surface p-4">
@@ -120,7 +120,7 @@ export default async function WorkReport({ params }: { params: Promise<{ token: 
               GPS pri dolasku
             </a>
           ) : (
-            <p className="text-sm text-muted">—</p>
+            <p className="text-sm text-muted">-</p>
           )}
           {tech ? <p className="text-xs text-faint">Serviser: {tech}</p> : null}
         </div>
@@ -190,7 +190,7 @@ export default async function WorkReport({ params }: { params: Promise<{ token: 
                 </span>
                 <span className="text-xs text-muted">
                   {g.action === 'leak_check' ? (g.leak_found ? `propuštanje: ${g.leak_location ?? 'da'}` : 'bez propuštanja · ') : ''}
-                  cert. {(g.technician_cert as string | null) ?? '—'}
+                  cert. {(g.technician_cert as string | null) ?? '-'}
                 </span>
               </li>
             ))}

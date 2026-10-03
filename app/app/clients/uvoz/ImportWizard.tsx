@@ -154,7 +154,7 @@ export function ImportWizard({ vocabulary, isClimate }: { vocabulary: { clients:
             <li key={i} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
               <span className="min-w-[8rem] flex-1">
                 <span className="block text-sm font-medium">{header[i] || `Stupac ${i + 1}`}</span>
-                <span className="block truncate text-xs text-faint">{example(i) || '—'}</span>
+                <span className="block truncate text-xs text-faint">{example(i) || '-'}</span>
               </span>
               <Select
                 value={detected.targets[i]}

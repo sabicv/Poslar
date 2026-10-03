@@ -16,7 +16,7 @@ const TEXT = {
   },
   trial_ended: {
     title: 'Probno razdoblje je završilo',
-    body: 'Hvala što ste isprobali aplikaciju. Svi nalozi, fotografije i mušterije su sačuvani — nakon aktivacije pretplate nastavljate točno gdje ste stali.',
+    body: 'Hvala što ste isprobali aplikaciju. Svi nalozi, fotografije i mušterije su sačuvani. Nakon aktivacije pretplate nastavljate točno gdje ste stali.',
   },
   no_workshop: {
     title: 'Račun nije povezan s radionicom',

@@ -42,7 +42,7 @@ const ERROR_MESSAGES_HR: Record<string, string> = {
   'service-not-allowed': 'Mikrofon nije dozvoljen. Dodirnite ikonu lokota pored adrese stranice i dozvolite mikrofon.',
   'audio-capture': 'Mikrofon nije pronađen ili ga koristi druga aplikacija.',
   network: 'Prepoznavanje govora treba internetsku vezu.',
-  'no-speech': 'Nisam čuo govor — dodirnite Diktiraj i pričajte odmah.',
+  'no-speech': 'Nisam čuo govor. Dodirnite mikrofon i pričajte odmah.',
 };
 
 export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
@@ -165,7 +165,7 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
     } catch {
       // start() throws if the previous session hasn't fully ended yet.
       keepGoingRef.current = false;
-      toast.error('Mikrofon se još gasi — pokušajte ponovno za sekundu.');
+      toast.error('Mikrofon se još gasi. Pokušajte ponovno za sekundu.');
     }
   }
 

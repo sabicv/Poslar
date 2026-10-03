@@ -34,7 +34,7 @@ export default async function ApprovePage({ params }: { params: Promise<{ token:
         tenant={tenant}
         message={
           approval.status === 'decided'
-            ? `Odluka je zaprimljena ${formatDateTime(approval.decided_at as string)}. Hvala — servis je obaviješten.`
+            ? `Odluka je zaprimljena ${formatDateTime(approval.decided_at as string)}. Hvala, servis je obaviješten.`
             : `Poveznica više nije aktivna. Za pitanja nazovite servis${tenant.phone ? ` na ${tenant.phone}` : ''}.`
         }
       />

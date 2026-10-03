@@ -91,7 +91,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   for (const l of lines ?? []) byKind.set(l.kind as string, (byKind.get(l.kind as string) ?? 0) + Number(l.qty) * (priceOf.get(l.id as string) ?? 0));
   const kindTotal = [...byKind.values()].reduce((a, b) => a + b, 0);
 
-  const names = new Map((staff ?? []).map((p) => [p.id as string, (p.full_name as string | null) ?? '—']));
+  const names = new Map((staff ?? []).map((p) => [p.id as string, (p.full_name as string | null) ?? '-']));
   const perWorker = new Map<string, { jobs: number; revenue: number }>();
   for (const j of done ?? []) {
     const key = (j.assigned_to as string | null) ?? '_';
@@ -128,7 +128,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
         <Stat label={`Promet (${closed.toLowerCase()})`} value={formatEuro(revenue)} hint={countJobs(doneIds.length)} />
         <Stat label="Naplaćeno" value={formatEuro(paid)} tone="ok" />
         <div className="col-span-2 lg:col-span-1">
-          <Stat label="Prosječno trajanje" value={avgLead === null ? '—' : `${formatDecimal(avgLead, 1)} d`} hint="od prijema do gotovog" />
+          <Stat label="Prosječno trajanje" value={avgLead === null ? '-' : `${formatDecimal(avgLead, 1)} d`} hint="od prijema do gotovog" />
         </div>
       </div>
 

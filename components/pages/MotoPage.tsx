@@ -18,7 +18,7 @@ export async function MotoPage({ ctx }: { ctx: WorkshopContext }) {
   ]);
   type Stay = { id: string; location_id: string; from_date: string; until_date: string | null; asset: { id: string; identifier: string | null; make: string | null; model: string | null; asset_type: keyof typeof ASSET_TYPE_LABELS; client: never } | null };
   const rows = (stays ?? []) as unknown as Stay[];
-  const where = new Map((locations ?? []).map((l) => [l.id as string, l.slot === '—' ? (l.area as string) : `${l.area} · ${l.slot}`]));
+  const where = new Map((locations ?? []).map((l) => [l.id as string, l.slot === '-' || l.slot === '—' ? (l.area as string) : `${l.area} · ${l.slot}`]));
   const occupied = new Set(rows.map((r) => r.location_id));
 
   return (

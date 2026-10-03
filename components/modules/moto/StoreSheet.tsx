@@ -67,8 +67,8 @@ export function StoreSheet({ assetId, locations, revalidate }: { assetId: string
               async () => {
                 let locationId = location;
                 if (manual) {
-                  // The words are the place; "—" fills the slot the list uses for numbered places.
-                  const spot = await saveRecord('moto_storage_locations', { area: place.trim(), slot: '—' }, { upsertOn: 'tenant_id,area,slot' });
+                  // The words are the place; "-" fills the slot the list uses for numbered places.
+                  const spot = await saveRecord('moto_storage_locations', { area: place.trim(), slot: '-' }, { upsertOn: 'tenant_id,area,slot' });
                   if (!spot.ok) return spot;
                   locationId = spot.data!.id;
                 }

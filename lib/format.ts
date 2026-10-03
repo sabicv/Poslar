@@ -11,7 +11,7 @@ export function formatEuro(amount: number | null | undefined): string {
 // Up to maxDigits decimals, trailing zeros dropped: 1.8 → "1,8", 12 → "12".
 const numbers = new Map<number, Intl.NumberFormat>([[1, number]]);
 export function formatNumber(value: number | null | undefined, maxDigits = 1): string {
-  if (value === null || value === undefined) return '—';
+  if (value === null || value === undefined) return '-';
   if (!numbers.has(maxDigits)) numbers.set(maxDigits, new Intl.NumberFormat('hr-HR', { maximumFractionDigits: maxDigits }));
   return numbers.get(maxDigits)!.format(Number(value));
 }
@@ -32,23 +32,23 @@ export function countJobs(n: number): string {
 // Fixed decimals with a Croatian comma: 17.748 → "17,75", 1.3 → "1,3".
 const decimals = new Map<number, Intl.NumberFormat>();
 export function formatDecimal(value: number | null | undefined, digits: number): string {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '-';
   if (!decimals.has(digits)) decimals.set(digits, new Intl.NumberFormat('hr-HR', { minimumFractionDigits: digits, maximumFractionDigits: digits }));
   return decimals.get(digits)!.format(Number(value));
 }
 
 export function formatMeter(value: number | null | undefined, unit: MeterUnit | null | undefined): string {
-  if (value === null || value === undefined) return '—';
+  if (value === null || value === undefined) return '-';
   return `${number.format(Number(value))} ${METER_LABELS[unit ?? 'km'].short}`;
 }
 
 export function formatDate(value: string | null | undefined): string {
-  if (!value) return '—';
+  if (!value) return '-';
   return new Date(value).toLocaleDateString('hr-HR', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'Europe/Zagreb' });
 }
 
 export function formatDateTime(value: string | null | undefined): string {
-  if (!value) return '—';
+  if (!value) return '-';
   return new Date(value).toLocaleString('hr-HR', {
     day: 'numeric',
     month: 'numeric',
@@ -60,7 +60,7 @@ export function formatDateTime(value: string | null | undefined): string {
 
 // "prije 3 h", "jučer", "12. 9." — for lists.
 export function formatRelative(value: string | null | undefined): string {
-  if (!value) return '—';
+  if (!value) return '-';
   const diff = Date.now() - new Date(value).getTime();
   const minutes = Math.round(diff / 60000);
   if (minutes < 1) return 'upravo';
@@ -74,14 +74,14 @@ export function formatRelative(value: string | null | undefined): string {
 }
 
 export function clientName(client: Pick<Client, 'kind' | 'first_name' | 'last_name' | 'company_name'> | null | undefined): string {
-  if (!client) return '—';
+  if (!client) return '-';
   if (client.kind === 'company' && client.company_name) return client.company_name;
   const person = [client.first_name, client.last_name].filter(Boolean).join(' ');
-  return person || client.company_name || '—';
+  return person || client.company_name || '-';
 }
 
 export function assetTitle(asset: Pick<Asset, 'make' | 'model' | 'asset_type'> | null | undefined): string {
-  if (!asset) return '—';
+  if (!asset) return '-';
   const name = [asset.make, asset.model].filter(Boolean).join(' ');
   return name || ASSET_TYPE_LABELS[asset.asset_type];
 }

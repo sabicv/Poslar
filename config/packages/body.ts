@@ -122,7 +122,7 @@ export const body: PackageConfig = {
     },
     {
       code: 'body.pdr',
-      name: 'PDR — udubljenje bez lakiranja',
+      name: 'PDR: udubljenje bez lakiranja',
       lines: [{ kind: 'labor', description: 'Izvlačenje udubljenja bez lakiranja', qty: 1.5, unit: 'h', price: 50 }],
     },
     {

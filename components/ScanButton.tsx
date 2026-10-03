@@ -1,11 +1,31 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export type ScanKind = 'prometna' | 'plocica' | 'guma';
+
+// Whether photo reading is switched on, asked once per page load and
+// shared by every camera button (the answer is needed before the tap, so
+// the camera can open within it).
+let enabledOnce: Promise<boolean> | null = null;
+function useScanEnabled(): boolean | null {
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  useEffect(() => {
+    enabledOnce ??= fetch('/api/scan')
+      .then((r) => r.json())
+      .then((b: { enabled?: boolean }) => Boolean(b.enabled))
+      .catch(() => false);
+    let live = true;
+    enabledOnce.then((v) => live && setEnabled(v));
+    return () => {
+      live = false;
+    };
+  }, []);
+  return enabled;
+}
 
 // Shrinks a phone photo to a size that reads well and uploads fast.
 async function toJpeg(file: File, max = 1800): Promise<string> {
@@ -19,11 +39,26 @@ async function toJpeg(file: File, max = 1800): Promise<string> {
   return canvas.toDataURL('image/jpeg', 0.85);
 }
 
-// "Slikaj prometnu": opens the camera, sends the photo to be read and hands
-// the fields back to the form. Nothing is saved until the form is.
-export function ScanButton({ kind, label, onResult, className }: { kind: ScanKind; label: string; onResult: (data: Record<string, unknown>) => void; className?: string }) {
+// The camera: opens the phone's camera, sends the photo to be read and
+// hands the fields back to the form. Nothing is saved until the form is.
+// "icon" is a square button that fits beside a field or in a sheet's title
+// bar, where a phone has room for it.
+export function ScanButton({
+  kind,
+  label,
+  onResult,
+  variant = 'icon',
+  className,
+}: {
+  kind: ScanKind;
+  label: string;
+  onResult: (data: Record<string, unknown>) => void;
+  variant?: 'icon' | 'full';
+  className?: string;
+}) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const enabled = useScanEnabled();
 
   async function read(file: File | undefined) {
     if (!file) return;
@@ -43,20 +78,45 @@ export function ScanButton({ kind, label, onResult, className }: { kind: ScanKin
     }
   }
 
+  function open() {
+    if (enabled === false) {
+      toast.info('Slikanje se uključuje uskoro.', { description: 'Podaci će se sa slike upisati sami.' });
+      return;
+    }
+    input.current?.click();
+  }
+
   return (
     <>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => input.current?.click()}
-        className={cn(
-          'flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-accent/60 bg-accent/10 px-4 text-sm font-medium text-fg hover:bg-accent/15 disabled:opacity-70',
-          className
-        )}
-      >
-        {busy ? <Loader2 className="size-5 animate-spin text-accent" /> : <Camera className="size-5 text-accent" />}
-        {busy ? 'Čitam sa slike…' : label}
-      </button>
+      {variant === 'icon' ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={open}
+          aria-label={label}
+          title={label}
+          className={cn(
+            'flex size-11 shrink-0 items-center justify-center rounded-xl border border-accent/50 bg-accent/10 text-accent hover:bg-accent/20 disabled:opacity-70',
+            enabled === false && 'border-line bg-transparent text-muted',
+            className
+          )}
+        >
+          {busy ? <Loader2 className="size-5 animate-spin" /> : <Camera className="size-5" />}
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={open}
+          className={cn(
+            'flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-accent/60 bg-accent/10 px-4 text-sm font-medium text-fg hover:bg-accent/15 disabled:opacity-70',
+            className
+          )}
+        >
+          {busy ? <Loader2 className="size-5 animate-spin text-accent" /> : <Camera className="size-5 text-accent" />}
+          {busy ? 'Čitam sa slike…' : label}
+        </button>
+      )}
       <input ref={input} type="file" accept="image/*" capture="environment" className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => read(e.target.files?.[0])} />
     </>
   );

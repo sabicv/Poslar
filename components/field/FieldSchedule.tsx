@@ -127,7 +127,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
       {showPlans && (plans as { count: number | null }).count ? (
         <Link href="/app/module" className="flex items-center gap-2 rounded-xl border border-warn/40 bg-warn/10 px-4 py-3 text-sm">
           <CalendarPlus className="size-4 text-warn" />
-          <span className="flex-1">{(plans as { count: number }).count} {plural((plans as { count: number }).count, 'servis dospijeva', 'servisa dospijevaju', 'servisa dospijeva')} u sljedećih 30 dana — zakažite ih</span>
+          <span className="flex-1">{(plans as { count: number }).count} {plural((plans as { count: number }).count, 'servis dospijeva', 'servisa dospijevaju', 'servisa dospijeva')} u sljedećih 30 dana. Zakažite ih.</span>
           <span aria-hidden>→</span>
         </Link>
       ) : null}

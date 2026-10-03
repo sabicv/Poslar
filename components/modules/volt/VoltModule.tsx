@@ -137,7 +137,7 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
                                 <span className="ml-auto">
                                   <RecordSheet
                                     table="volt_dtc_findings"
-                                    title={`${f.code} — zaključak`}
+                                    title={`${f.code}: zaključak`}
                                     id={f.id as string}
                                     revalidate={path}
                                     deletable
@@ -222,11 +222,11 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
             <ul className="divide-y divide-line">
               {(battery.data ?? []).map((t) => (
                 <li key={t.id as string} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-sm">
-                  <span className="tabular">{t.rest_voltage_v ?? '—'} V</span>
+                  <span className="tabular">{t.rest_voltage_v ?? '-'} V</span>
                   <span className="tabular text-muted">
-                    CCA {t.measured_cca_a ?? '—'} / {t.rated_cca_a ?? '—'} A
+                    CCA {t.measured_cca_a ?? '-'} / {t.rated_cca_a ?? '-'} A
                   </span>
-                  <span className="tabular text-muted">SOH {t.soh_pct ?? '—'}%</span>
+                  <span className="tabular text-muted">SOH {t.soh_pct ?? '-'}%</span>
                   {t.result ? <Badge tone={t.result === 'good' ? 'ok' : t.result === 'recharge' ? 'warn' : 'crit'}>{BATTERY_RESULT[t.result as keyof typeof BATTERY_RESULT]}</Badge> : null}
                   {!readOnly ? <span className="ml-auto"><DeleteRecordButton table="volt_battery_tests" id={t.id as string} revalidate={path} /></span> : null}
                 </li>
@@ -270,9 +270,9 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
               {(charging.data ?? []).map((t) => (
                 <li key={t.id as string} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-sm">
                   <span className="tabular">
-                    {t.idle_voltage_v ?? '—'} / {t.loaded_voltage_v ?? '—'} V
+                    {t.idle_voltage_v ?? '-'} / {t.loaded_voltage_v ?? '-'} V
                   </span>
-                  <span className="tabular text-muted">{t.ripple_mv ?? '—'} mV</span>
+                  <span className="tabular text-muted">{t.ripple_mv ?? '-'} mV</span>
                   {t.result ? <Badge tone={t.result === 'ok' ? 'ok' : 'crit'}>{CHARGING_RESULT[t.result as keyof typeof CHARGING_RESULT]}</Badge> : null}
                   {!readOnly ? <span className="ml-auto"><DeleteRecordButton table="volt_charging_tests" id={t.id as string} revalidate={path} /></span> : null}
                 </li>
@@ -404,7 +404,7 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
           }
         />
         {(interventions.data ?? []).length === 0 ? (
-          <p className="px-4 py-4 text-sm text-muted">Za programiranje i remap sustav traži backup originala — upload datoteke u karticu Fotografije.</p>
+          <p className="px-4 py-4 text-sm text-muted">Za programiranje i remap sustav traži backup originala. Učitajte datoteku u karticu Fotografije.</p>
         ) : (
           <ul className="divide-y divide-line">
             {(interventions.data ?? []).map((i) => (
@@ -466,7 +466,7 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
                 <span className="font-medium">{KEY_TYPE[k.key_type as keyof typeof KEY_TYPE] ?? 'Ključ'}</span>
                 {k.transponder ? <Badge tone="muted">{k.transponder as string}</Badge> : null}
                 <span className="text-muted">
-                  +{(k.programmed_now as number | null) ?? 0} · ukupno {(k.total_after as number | null) ?? '—'}
+                  +{(k.programmed_now as number | null) ?? 0} · ukupno {(k.total_after as number | null) ?? '-'}
                 </span>
                 {k.lost_disabled ? <Badge tone="ok">Izgubljeni onemogućeni</Badge> : null}
               </li>

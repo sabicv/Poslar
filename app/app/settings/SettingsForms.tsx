@@ -238,7 +238,7 @@ export function TeamManager({ me, staff }: { me: string; staff: { id: string; na
           onSubmit={(e) => {
             e.preventDefault();
             run(() => createStaff(v), {
-              success: `Račun stvoren — pošaljite djelatniku e-mail i lozinku`,
+              success: `Račun stvoren. Pošaljite djelatniku e-mail i lozinku.`,
               onDone: () => {
                 setOpen(false);
                 setV({ fullName: '', email: '', password: '', role: 'worker' });
@@ -269,7 +269,7 @@ export function TeamManager({ me, staff }: { me: string; staff: { id: string; na
         </form>
       </Sheet>
 
-      <Sheet open={reset !== null} onOpenChange={(o) => !o && setReset(null)} title={`Nova lozinka — ${reset?.name ?? ''}`}>
+      <Sheet open={reset !== null} onOpenChange={(o) => !o && setReset(null)} title={`Nova lozinka: ${reset?.name ?? ''}`}>
         <div className="space-y-3">
           <Input value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Barem 8 znakova" />
           <Button

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { ChevronDown, Plus } from 'lucide-react';
-import { ConfirmButton, DictateButton, Sheet, useAction } from '@/components/client-ui';
+import { ConfirmButton, DictateButton, DictateInput, Sheet, useAction } from '@/components/client-ui';
 import { ScanButton, type ScanKind } from '@/components/ScanButton';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import type { ActionResult } from '@/lib/action-result';
@@ -90,6 +90,7 @@ export function QuickForm({
   onDelete,
   draftKey,
   scan,
+  scanTarget,
 }: {
   fields: FieldDef[];
   initial?: Values;
@@ -99,6 +100,7 @@ export function QuickForm({
   onDelete?: () => Promise<ActionResult<unknown>>;
   draftKey?: string;
   scan?: FormScan;
+  scanTarget?: { current: ((data: Record<string, unknown>) => void) | null };
 }) {
   const { pending, run } = useAction();
   const [restored, setRestored] = useState(() => readDraft(draftKey));
@@ -119,6 +121,27 @@ export function QuickForm({
     return fields.some((f) => f.extra && (filled(initial[f.name]) || filled(restored?.[f.name])));
   });
   const visible = fields.filter((f) => !f.extra || more);
+
+  // What the photo says goes into the matching fields: only what was read
+  // and fits (a select takes only its own options), and a folded field
+  // that received something unfolds so it can be checked.
+  function applyScan(data: Record<string, unknown>) {
+    if (!scan) return;
+    setState((s) => {
+      const next = { ...s };
+      for (const [from, to] of Object.entries(scan.map)) {
+        const v = data[from];
+        const f = fields.find((x) => x.name === to);
+        if (v === null || v === undefined || v === '' || !f) continue;
+        if (f.type === 'select' && !f.options?.some((o) => o.value === String(v))) continue;
+        next[to] = String(v);
+      }
+      return next;
+    });
+    if (Object.entries(scan.map).some(([from, to]) => data[from] != null && data[from] !== '' && fields.find((x) => x.name === to)?.extra)) setMore(true);
+  }
+  // In a sheet the camera sits in the title bar and hands its result here.
+  if (scanTarget) scanTarget.current = applyScan;
 
   return (
     <form
@@ -142,28 +165,9 @@ export function QuickForm({
         );
       }}
     >
-      {scan ? (
+      {scan && !scanTarget ? (
         <div className="col-span-2">
-          <ScanButton
-            kind={scan.kind}
-            label={scan.label}
-            onResult={(data) => {
-              // Only what was read and fits the field; a select takes only its own options.
-              setState((s) => {
-                const next = { ...s };
-                for (const [from, to] of Object.entries(scan.map)) {
-                  const v = data[from];
-                  const f = fields.find((x) => x.name === to);
-                  if (v === null || v === undefined || v === '' || !f) continue;
-                  if (f.type === 'select' && !f.options?.some((o) => o.value === String(v))) continue;
-                  next[to] = String(v);
-                }
-                return next;
-              });
-              // Something read into a folded field: unfold so it can be checked.
-              if (Object.entries(scan.map).some(([from, to]) => data[from] != null && data[from] !== '' && fields.find((x) => x.name === to)?.extra)) setMore(true);
-            }}
-          />
+          <ScanButton variant="full" kind={scan.kind} label={scan.label} onResult={applyScan} />
         </div>
       ) : null}
       {restored ? (
@@ -197,7 +201,7 @@ export function QuickForm({
           <Field key={f.name} label={f.required ? <>{f.label} <span className="text-crit">*</span></> : f.label} className={span}>
             {f.type === 'select' ? (
               <Select value={String(state[f.name])} onChange={(e) => set(e.target.value)}>
-                <option value="">—</option>
+                <option value="">-</option>
                 {f.options?.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
@@ -209,17 +213,20 @@ export function QuickForm({
                 <Textarea rows={2} value={String(state[f.name])} placeholder={f.placeholder} onChange={(e) => set(e.target.value)} />
                 <DictateButton compact onText={(text) => setState((s) => ({ ...s, [f.name]: s[f.name] ? `${String(s[f.name]).trimEnd()} ${text}` : text }))} />
               </div>
+            ) : f.type === 'date' || f.type === 'datetime' ? (
+              <Input type={f.type === 'date' ? 'date' : 'datetime-local'} value={String(state[f.name])} onChange={(e) => set(e.target.value)} />
             ) : (
+              // Text and numbers can be said instead of typed; the unit sits left of the microphone.
               <div className="relative">
-                <Input
-                  type={f.type === 'date' ? 'date' : f.type === 'datetime' ? 'datetime-local' : 'text'}
+                <DictateInput
+                  mode={f.type === 'number' ? 'number' : 'text'}
                   inputMode={f.type === 'number' ? 'decimal' : undefined}
                   value={String(state[f.name])}
                   placeholder={f.placeholder}
-                  onChange={(e) => set(e.target.value)}
-                  className={cn(f.suffix && 'pr-12', f.type === 'number' && 'tabular')}
+                  onValue={set}
+                  className={cn(f.suffix && '!pr-20', f.type === 'number' && 'tabular')}
                 />
-                {f.suffix ? <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-faint">{f.suffix}</span> : null}
+                {f.suffix ? <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 text-xs text-faint">{f.suffix}</span> : null}
               </div>
             )}
           </Field>
@@ -280,11 +287,13 @@ export function RecordSheet({
   scan?: FormScan;
 }) {
   const [open, setOpen] = useState(false);
+  const scanTarget = useRef<((data: Record<string, unknown>) => void) | null>(null);
   return (
     <Sheet
       open={open}
       onOpenChange={setOpen}
       title={title}
+      action={scan ? <ScanButton kind={scan.kind} label={scan.label} onResult={(data) => scanTarget.current?.(data)} /> : undefined}
       trigger={
         trigger ?? (
           <Button size="sm" variant="secondary">
@@ -299,6 +308,7 @@ export function RecordSheet({
           initial={initial}
           draftKey={`${table}:${id ?? JSON.stringify(fixed)}`}
           scan={scan}
+          scanTarget={scanTarget}
           onSubmit={(values) => saveRecord(table, { ...values, ...fixed }, { id, upsertOn, revalidate })}
           onDelete={deletable && id ? () => deleteRecord(table, id, revalidate) : undefined}
           onDone={() => setOpen(false)}

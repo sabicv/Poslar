@@ -60,7 +60,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
               asset={asset}
               assetTypes={ctx.pkg.assetTypes.map((t) => ({ value: t, label: ASSET_TYPE_LABELS[t], unit: defaultMeterUnit(t) }))}
               parents={(siblings ?? []).map((s) => ({ value: s.id as string, label: `${s.identifier ?? ''} ${assetTitle(s as never)}`.trim() }))}
-              title={`Uredi — ${ctx.pkg.vocabulary.asset.one.toLowerCase()}`}
+              title={`Uredi: ${ctx.pkg.vocabulary.asset.one.toLowerCase()}`}
               isOwner={ctx.isOwner}
             />
             <ButtonLink href={`/app/jobs/new?asset=${asset.id}`} variant="primary" size="sm">
@@ -86,7 +86,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                         {j.meter_in !== null ? <span>{formatMeter(j.meter_in as number, j.meter_unit as never)}</span> : null}
                         <Badge tone={PHASE_TONE[j.phase as keyof typeof PHASE_TONE]}>{phaseLabel(ctx.pkg, j.phase as never)}</Badge>
                       </div>
-                      <p className="mt-1 text-sm group-hover:underline">{(j.complaint as string | null) ?? '—'}</p>
+                      <p className="mt-1 text-sm group-hover:underline">{(j.complaint as string | null) ?? '-'}</p>
                       {j.work_summary ? <p className="mt-0.5 line-clamp-2 text-sm text-muted">{j.work_summary as string}</p> : null}
                     </Link>
                   </li>

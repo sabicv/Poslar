@@ -57,14 +57,14 @@ const CAR: Zone[] = [
 const TRUCK: Zone[] = [
   { code: 'front_bumper', label: 'Branik i maska', x: 40, y: 8, w: 120, h: 24, r: 8 },
   { code: 'windshield', label: 'Vjetrobran', x: 46, y: 36, w: 108, h: 26, r: 6 },
-  { code: 'cab_roof', label: 'Kabina — krov', x: 46, y: 66, w: 108, h: 62, r: 6 },
+  { code: 'cab_roof', label: 'Krov kabine', x: 46, y: 66, w: 108, h: 62, r: 6 },
   { code: 'door_l', label: 'Vrata lijeva', x: 14, y: 40, w: 28, h: 88, r: 6 },
   { code: 'door_r', label: 'Vrata desna', x: 158, y: 40, w: 28, h: 88, r: 6 },
   { code: 'mirror_l', label: 'Retrovizor lijevi', x: 0, y: 44, w: 12, h: 22, r: 4 },
   { code: 'mirror_r', label: 'Retrovizor desni', x: 188, y: 44, w: 12, h: 22, r: 4 },
   { code: 'side_l', label: 'Lijeva strana / nadogradnja', x: 14, y: 136, w: 28, h: 214, r: 6 },
   { code: 'side_r', label: 'Desna strana / nadogradnja', x: 158, y: 136, w: 28, h: 214, r: 6 },
-  { code: 'body_roof', label: 'Nadogradnja — krov / teret', x: 46, y: 136, w: 108, h: 214, r: 6 },
+  { code: 'body_roof', label: 'Krov nadogradnje / teret', x: 46, y: 136, w: 108, h: 214, r: 6 },
   { code: 'rear', label: 'Stražnja strana / vrata', x: 40, y: 356, w: 120, h: 30, r: 6 },
 ];
 

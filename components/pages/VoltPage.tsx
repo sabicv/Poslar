@@ -85,7 +85,7 @@ export async function VoltPage({ ctx, q }: { ctx: WorkshopContext; q: string }) 
                             <Link prefetch={false} href={`/app/jobs/${c.jobId}?tab=modul`} className="hover:underline">
                               {c.cause}
                             </Link>
-                            {c.note ? <span className="text-muted"> — {c.note}</span> : null}
+                            {c.note ? <span className="text-muted">: {c.note}</span> : null}
                           </li>
                         ))}
                       </ul>

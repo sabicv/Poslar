@@ -491,7 +491,7 @@ export async function linesFromInspection(jobId: string, inspectionId: string): 
           job_id: jobId,
           sort: start + i,
           kind: 'labor' as LineKind,
-          description: `${label}${measure}${r.note ? ` — ${r.note}` : ''}`,
+          description: `${label}${measure}${r.note ? `: ${r.note}` : ''}`,
           qty: 1,
           unit: 'kom',
           priority: (r.status === 'crit' ? 'urgent' : 'recommended') as LinePriority,

@@ -39,6 +39,11 @@ Vrati JSON (null ako nema ili nije čitljivo):
  "season": "winter" ako piše M+S sa simbolom planine/pahulje ili je zimska, "summer" ako je ljetna, "all_season" za cjelogodišnju, inače null}`,
 };
 
+// Whether the camera buttons can read yet (true once the AI key is set).
+export async function GET() {
+  return json({ enabled: Boolean(process.env.ANTHROPIC_API_KEY) });
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 }

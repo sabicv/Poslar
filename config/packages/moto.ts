@@ -43,7 +43,7 @@ export const moto: PackageConfig = {
   diagram: 'moto',
   equipment: ['Kaciga', 'Bočni kofer', 'Top case', 'Ključ', 'Daljinski alarma', 'Punjač / održavač', 'Cerada', 'Prsluk za spašavanje', 'Sidro', 'Prekidač za slučaj pada'],
   inspections: [
-    checklist('moto.winterize_moto', 'Konzervacija — motocikl', 'seasonal', 'Zimovanje', [
+    checklist('moto.winterize_moto', 'Konzervacija motocikla', 'seasonal', 'Zimovanje', [
       'Pranje i sušenje',
       'Zamjena ulja i filtera',
       'Pun spremnik i stabilizator goriva',
@@ -55,29 +55,29 @@ export const moto: PackageConfig = {
       'Cerada',
       'Brojilo zapisano',
     ]),
-    checklist('moto.winterize_outboard', 'Konzervacija — vanbrodski motor', 'seasonal', 'Zimovanje', [
+    checklist('moto.winterize_outboard', 'Konzervacija vanbrodskog motora', 'seasonal', 'Zimovanje', [
       'Ispiranje slatkom vodom',
       'Ulje za konzervaciju u cilindre',
       'Zamjena ulja motora i filtera (4T)',
-      'Zamjena ulja noge — provjera vode u ulju',
+      'Zamjena ulja noge, provjera vode u ulju',
       'Stabilizator goriva',
       'Separator vode i filter goriva',
       'Pregled impelera',
-      'Anode — % istrošenosti',
+      'Anode: % istrošenosti',
       'Podmazivanje mazalica i vratila propelera',
       'Propeler skinut i pregledan',
       'Akumulator odspojen i na održavanju',
       'Unutarnji motor: antifriz u rashladni krug',
     ]),
     checklist('moto.dewinterize', 'Dekonzervacija', 'seasonal', 'Priprema za sezonu', [
-      'Akumulator — napon i test',
+      'Akumulator: napon i test',
       'Impeler zamijenjen ili pregledan',
       'Anode zamijenjene po potrebi',
       'Filteri goriva',
       'Test rada u bačvi ili vodi, izlaz rashladne vode',
       'Trim i tilt',
       'Kontrolne lampice i instrumenti',
-      'Sigurnosna oprema — rokovi valjanosti',
+      'Sigurnosna oprema: rokovi valjanosti',
       'Motocikl: gume, kočnice, lanac, svjetla, probna vožnja',
     ]),
   ],

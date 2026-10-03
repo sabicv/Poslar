@@ -40,15 +40,15 @@ export function fgasObligations(refrigerant: string | null, chargeKg: number | n
   }
   const tco2e = Math.round(((chargeKg * gas.gwp) / 1000) * 100) / 100;
   const serviceCard = chargeKg >= 3;
-  if (!gas.fgas) return { tco2e, serviceCard: false, leakCheckMonths: null, note: 'Prirodna radna tvar — F-plinske provjere propuštanja ne primjenjuju se.' };
+  if (!gas.fgas) return { tco2e, serviceCard: false, leakCheckMonths: null, note: 'Prirodna radna tvar. F-plinske provjere propuštanja ne primjenjuju se.' };
   let months: number | null = tco2e >= 500 ? 3 : tco2e >= 50 ? 6 : tco2e >= 5 ? 12 : null;
   if (months !== null && opts.sealed && tco2e < 10) months = null;
   if (months !== null && opts.leakDetection) months *= 2;
   const shown = tco2e.toLocaleString('hr-HR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const note =
     months === null
-      ? `${shown} t CO₂e — ispod praga obveznih periodičnih provjera propuštanja.`
-      : `${shown} t CO₂e — provjera propuštanja najmanje svakih ${months} mjeseci.`;
+      ? `${shown} t CO₂e, ispod praga obveznih periodičnih provjera propuštanja.`
+      : `${shown} t CO₂e, provjera propuštanja najmanje svakih ${months} mjeseci.`;
   return { tco2e, serviceCard, leakCheckMonths: months, note };
 }
 
@@ -174,7 +174,7 @@ export const air: PackageConfig = {
   product: 'Air Files',
   short: 'Air',
   domain: 'airfiles.hr',
-  tagline: 'Klime, dizalice topline i ventilacija — rad na terenu',
+  tagline: 'Klime, dizalice topline i ventilacija na terenu',
   pitch: [
     'Raspored dana, navigacija i poruka „Na putu” jednim dodirom',
     'Izvještaj s fotografijama, vremenom i GPS-om za vlasnika koji nije kod kuće',
@@ -227,7 +227,7 @@ export const air: PackageConfig = {
       code: 'air.service_one',
       name: 'Godišnji servis klime (1 unutarnja)',
       lines: [
-        { kind: 'package', description: 'Godišnji servis klima uređaja — 1 unutarnja jedinica', qty: 1, unit: 'paušal', price: 60 },
+        { kind: 'package', description: 'Godišnji servis klima uređaja, 1 unutarnja jedinica', qty: 1, unit: 'paušal', price: 60 },
         { kind: 'material', description: 'Sredstvo za čišćenje i dezinfekciju isparivača', qty: 1, unit: 'kom', price: 8 },
       ],
       inspection: 'air.service_split',

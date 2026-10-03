@@ -36,7 +36,7 @@ export function InvoiceActions({
   const { pending, run } = useAction();
   const [ref, setRef] = useState(fiscalRef ?? '');
   const greeting = clientFirstName ? `Poštovani ${vocativeHR(clientFirstName)}, ` : 'Poštovani, ';
-  const message = `${greeting}šaljemo ${title.toLowerCase()}: ${link} — ${workshopName}`;
+  const message = `${greeting}šaljemo ${title.toLowerCase()}: ${link}\n\n${workshopName}`;
 
   if (!issued) {
     return (

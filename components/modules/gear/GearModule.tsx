@@ -212,7 +212,7 @@ export async function GearModule({ ctx, job, locked }: ModuleProps) {
                       <Badge tone={overdue ? 'crit' : soon ? 'warn' : 'ok'}>{overdue ? 'Prekoračeno' : soon ? 'Uskoro' : 'U redu'}</Badge>
                     </p>
                     <p className="text-xs text-muted">
-                      Sljedeće: {[row.next_due_meter !== null && `${formatNumber(row.next_due_meter as number)} km`, row.next_due_date && formatDate(row.next_due_date as string)].filter(Boolean).join(' ili ') || '—'}
+                      Sljedeće: {[row.next_due_meter !== null && `${formatNumber(row.next_due_meter as number)} km`, row.next_due_date && formatDate(row.next_due_date as string)].filter(Boolean).join(' ili ') || '-'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

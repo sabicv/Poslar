@@ -66,11 +66,7 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
               initial={device ?? { refrigerant: 'R32' }}
               label={device ? 'Uredi' : 'Upiši'}
               // The F-gas data is on the outdoor unit's plate, so its serial goes there.
-              scan={
-                process.env.ANTHROPIC_API_KEY
-                  ? { kind: 'plocica', label: 'Slikaj natpisnu pločicu', map: { refrigerant: 'refrigerant', charge_kg: 'charge_kg', cooling_kw: 'cooling_kw', heating_kw: 'heating_kw', serial: 'outdoor_serial' } }
-                  : undefined
-              }
+              scan={{ kind: 'plocica', label: 'Slikaj natpisnu pločicu', map: { refrigerant: 'refrigerant', charge_kg: 'charge_kg', cooling_kw: 'cooling_kw', heating_kw: 'heating_kw', serial: 'outdoor_serial' } }}
               fields={[
                 { name: 'refrigerant', label: 'Radna tvar', type: 'select', options: gasOptions, half: true, required: true },
                 { name: 'charge_kg', label: 'Tvorničko punjenje', type: 'number', suffix: 'kg', half: true, required: true },
@@ -78,8 +74,8 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
                 { name: 'heating_kw', label: 'Snaga grijanja', type: 'number', suffix: 'kW', half: true, extra: true },
                 { name: 'indoor_units', label: 'Broj unutarnjih jedinica', type: 'number', half: true, extra: true },
                 { name: 'install_date', label: 'Datum montaže', type: 'date', half: true, extra: true },
-                { name: 'indoor_serial', label: 'Serijski — unutarnja', half: true, extra: true },
-                { name: 'outdoor_serial', label: 'Serijski — vanjska', half: true, extra: true },
+                { name: 'indoor_serial', label: 'Serijski broj unutarnje', half: true, extra: true },
+                { name: 'outdoor_serial', label: 'Serijski broj vanjske', half: true, extra: true },
                 { name: 'warranty_until', label: 'Jamstvo do', type: 'date', half: true, extra: true },
                 { name: 'hermetically_sealed', label: 'Hermetički zatvoren sustav', type: 'checkbox', extra: true },
                 { name: 'leak_detection', label: 'Ugrađen sustav za otkrivanje propuštanja', type: 'checkbox', extra: true },
@@ -97,11 +93,11 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
             {/* The badges already say it; the sentence only helps when gas data is missing. */}
             {duty.tco2e === null ? <p className="mb-3 text-sm text-muted">{duty.note}</p> : null}
             <div className="grid gap-x-8 sm:grid-cols-2">
-              <KeyValue label="Radna tvar">{`${device.refrigerant ?? '—'} · ${device.charge_kg != null ? formatNumber(Number(device.charge_kg), 2) : '—'} kg`}</KeyValue>
+              <KeyValue label="Radna tvar">{`${device.refrigerant ?? '-'} · ${device.charge_kg != null ? formatNumber(Number(device.charge_kg), 2) : '-'} kg`}</KeyValue>
               <KeyValue label="Snaga">
-                {[device.cooling_kw && `${formatNumber(Number(device.cooling_kw), 2)} kW hlađenje`, device.heating_kw && `${formatNumber(Number(device.heating_kw), 2)} kW grijanje`].filter(Boolean).join(' · ') || '—'}
+                {[device.cooling_kw && `${formatNumber(Number(device.cooling_kw), 2)} kW hlađenje`, device.heating_kw && `${formatNumber(Number(device.heating_kw), 2)} kW grijanje`].filter(Boolean).join(' · ') || '-'}
               </KeyValue>
-              <KeyValue label="Serijski">{[device.indoor_serial, device.outdoor_serial].filter(Boolean).join(' / ') || '—'}</KeyValue>
+              <KeyValue label="Serijski">{[device.indoor_serial, device.outdoor_serial].filter(Boolean).join(' / ') || '-'}</KeyValue>
               <KeyValue label="Montaža / jamstvo">{`${formatDate(device.install_date as string | null)} / ${formatDate(device.warranty_until as string | null)}`}</KeyValue>
               {duty.leakCheckMonths ? (
                 <KeyValue label={leakCheck?.afterRepair ? 'Kontrola nakon popravka propuštanja' : 'Sljedeća provjera propuštanja'}>
@@ -159,7 +155,7 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
                 {Number(entry.quantity_kg) > 0 ? <Badge tone="neutral">{`${formatNumber(Number(entry.quantity_kg), 2)} kg ${entry.refrigerant}`}</Badge> : null}
                 {entry.leak_found === true ? <Badge tone="crit">Propuštanje: {(entry.leak_location as string | null) ?? 'da'}</Badge> : entry.action === 'leak_check' ? <Badge tone="ok">Bez propuštanja</Badge> : null}
                 <span className="text-xs text-muted">
-                  {(entry.technician as { full_name: string | null } | null)?.full_name ?? ''} · cert. {(entry.technician_cert as string | null) ?? '—'}
+                  {(entry.technician as { full_name: string | null } | null)?.full_name ?? ''} · cert. {(entry.technician_cert as string | null) ?? '-'}
                 </span>
                 {entry.job_id === job.id && !locked ? (
                   <span className="ml-auto">
@@ -196,7 +192,7 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
               fixed={{ client_id: job.client.id, site_id: job.site_id, asset_id: job.asset.id }}
               initial={
                 plan ?? {
-                  title: `Godišnji servis — ${assetTitle(job.asset)}`,
+                  title: `Godišnji servis: ${assetTitle(job.asset)}`,
                   interval_months: 12,
                   next_due_date: addMonths(today, 12),
                   template_code: 'air.service_one',

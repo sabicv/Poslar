@@ -57,12 +57,15 @@ export function Sheet({
   title,
   children,
   trigger,
+  action,
 }: {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   title: string;
   children: ReactNode;
   trigger?: ReactNode;
+  // A small button beside the title (e.g. the camera), where it takes no room.
+  action?: ReactNode;
 }) {
   return (
     // handleOnly: only the grip at the top drags the sheet down, so
@@ -74,7 +77,8 @@ export function Sheet({
         <Drawer.Content className="accent-scope fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] max-w-xl flex-col rounded-t-2xl border border-line bg-surface outline-none">
           <Drawer.Handle className="!mt-2.5 !h-1.5 !w-12 shrink-0 !bg-line" />
           <div className="flex items-center justify-between gap-3 pl-5 pr-2">
-            <Drawer.Title className="pb-2 pt-3 text-base font-semibold">{title}</Drawer.Title>
+            <Drawer.Title className="min-w-0 flex-1 pb-2 pt-3 text-base font-semibold">{title}</Drawer.Title>
+            {action}
             <Drawer.Close className="flex size-11 items-center justify-center rounded-full text-muted hover:bg-surface2 hover:text-fg" aria-label="Zatvori">
               <X className="size-5" />
             </Drawer.Close>
@@ -218,14 +222,21 @@ export function DictateButton({ onText, compact = false }: { onText: (text: stri
   );
 }
 
-// A one-line field with a microphone inside it. What is said replaces the
-// field, tidied for its kind: names get capitals, a phone keeps only its
-// digits, a plate becomes "ZG-1234-AB".
-type DictateMode = 'text' | 'name' | 'phone' | 'plate';
+// A one-line field with a microphone inside it. One dictation fills the
+// field: the phone hands over what was said piece by piece ("091", then
+// "234", then "5678"), and the pieces are joined, never written over each
+// other. Tidied for the field: names get capitals, a phone and an OIB keep
+// only digits, a plate becomes "ZG-1234-AB", a VIN loses its spaces.
+export type DictateMode = 'text' | 'name' | 'phone' | 'plate' | 'number' | 'digits' | 'vin' | 'email';
 function tidySpoken(text: string, mode: DictateMode): string {
-  const t = text.trim().replace(/[.,!?]+$/, '');
+  const t = text.trim().replace(/[.!?]+$/, '');
   if (mode === 'name') return t.replace(/(^|\s|-)(\p{L})/gu, (_, sep: string, c: string) => sep + c.toUpperCase());
   if (mode === 'phone') return t.replace(/[^\d+ ]/g, '').replace(/\s+/g, ' ').trim();
+  if (mode === 'digits') return t.replace(/\D/g, '');
+  // "120.000 km" is a thousand separator, "2,5" a decimal comma.
+  if (mode === 'number') return t.replace(/(\d)\.(?=\d{3}\b)/g, '$1').replace(/[^\d,]/g, '');
+  if (mode === 'vin') return t.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (mode === 'email') return t.toLowerCase().replace(/\s+/g, '');
   if (mode === 'plate')
     return t
       .toUpperCase()
@@ -242,14 +253,25 @@ export function DictateInput({
   className,
   ...props
 }: Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> & { value: string; onValue: (value: string) => void; mode?: DictateMode }) {
-  const { isSupported, isRecording, toggleRecording } = useSpeechToText({ onFinalText: (text) => onValue(tidySpoken(text, mode)) });
+  // Everything heard since the microphone was switched on.
+  const spoken = useRef('');
+  const { isSupported, isRecording, toggleRecording } = useSpeechToText({
+    onFinalText: (text) => {
+      spoken.current = `${spoken.current} ${text}`.trim();
+      onValue(tidySpoken(spoken.current, mode));
+    },
+  });
   return (
     <div className="relative">
       <Input {...props} value={value} onChange={(e) => onValue(e.target.value)} className={cn(isSupported && 'pr-12', className)} />
       {isSupported ? (
         <button
           type="button"
-          onClick={toggleRecording}
+          onClick={() => {
+            // A new dictation starts the field afresh.
+            if (!isRecording) spoken.current = '';
+            toggleRecording();
+          }}
           aria-label={isRecording ? 'Zaustavi diktiranje' : 'Diktiraj'}
           className={cn('absolute right-1 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-lg', isRecording ? 'bg-crit/15 text-crit' : 'text-faint hover:text-fg')}
         >

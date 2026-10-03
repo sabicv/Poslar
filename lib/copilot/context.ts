@@ -84,7 +84,7 @@ export async function buildCopilotContext(ctx: WorkshopContext, jobId: string): 
 
   const meterUnit = (job.meter_unit as MeterUnit | null) ?? 'km';
   const context: Json = {
-    sector: `${ctx.pkg.product} — ${ctx.pkg.tagline}`,
+    sector: `${ctx.pkg.product}: ${ctx.pkg.tagline}`,
     work_order_id: `NO-${new Date(job.created_at as string).getFullYear()}-${String(job.number).padStart(3, '0')}`,
     faza: phaseLabel(ctx.pkg, job.phase as never),
     hitno: job.is_urgent || null,

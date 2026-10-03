@@ -109,7 +109,9 @@ export async function AirPage({ ctx, year: requestedYear }: { ctx: WorkshopConte
                         <PlanReminderButton
                           planId={plan.id}
                           phone={phone}
-                          message={`Poštovani, bliži se ${plan.title.toLowerCase()}${place ? ` na adresi ${place}` : ''} (rok ${formatDate(plan.next_due_date)}). Odgovorite s danom i vremenom koje Vam odgovara. — ${ctx.tenant.name}${ctx.tenant.phone ? `, ${ctx.tenant.phone}` : ''}`}
+                          message={`Poštovani, bliži se ${plan.title.toLowerCase()}${place ? ` na adresi ${place}` : ''} (rok ${formatDate(plan.next_due_date)}). Odgovorite s danom i vremenom koje Vam odgovara.
+
+${ctx.tenant.name}${ctx.tenant.phone ? `, ${ctx.tenant.phone}` : ''}`}
                         />
                         <Link href={`/app/jobs/new?plan=${plan.id}`} className={buttonClass('primary', 'sm')}>
                           <CalendarPlus className="size-4" /> Zakaži
@@ -187,7 +189,7 @@ export async function AirPage({ ctx, year: requestedYear }: { ctx: WorkshopConte
                         <span className="block truncate text-xs text-muted">
                           {assetTitle(asset)} · {device.refrigerant as string} {formatNumber(Number(device.charge_kg), 2)} kg · {formatDecimal(duty.tco2e, 2)} t CO₂e · svakih {duty.leakCheckMonths} mj.
                         </span>
-                        {afterRepair && <span className="block text-xs text-warn">Kontrola nakon popravka propuštanja — najkasnije mjesec dana od popravka</span>}
+                        {afterRepair && <span className="block text-xs text-warn">Kontrola nakon popravka propuštanja, najkasnije mjesec dana od popravka</span>}
                       </span>
                       <Badge tone={due === null || (daysUntil(due) ?? 0) < 0 ? 'crit' : 'warn'}>{due ? formatDate(due) : 'bez zapisa'}</Badge>
                     </Link>

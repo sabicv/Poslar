@@ -132,7 +132,7 @@ export function LinesEditor({
                       </span>
                       {isOwner ? (
                         <span className="shrink-0 text-right">
-                          <span className="block text-sm font-medium tabular">{prices[line.id] ? formatEuro(net(Number(line.qty), prices[line.id])) : '—'}</span>
+                          <span className="block text-sm font-medium tabular">{prices[line.id] ? formatEuro(net(Number(line.qty), prices[line.id])) : '-'}</span>
                           {/* Unit price only when it differs from the line amount. */}
                           {!prices[line.id] ? (
                             <span className="block text-xs text-warn">bez cijene</span>
@@ -211,7 +211,7 @@ export function LinesEditor({
           ) : null}
         </div>
       ) : (
-        <p className="text-sm text-muted">Nalog je zaključan — stavke se više ne mogu mijenjati.</p>
+        <p className="text-sm text-muted">Nalog je zaključan. Stavke se više ne mogu mijenjati.</p>
       )}
 
       {isOwner ? (
@@ -242,7 +242,7 @@ export function LinesEditor({
                 <span className="truncate font-mono">{link}</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button size="sm" onClick={() => copyText(link).then((ok) => (ok ? toast.success('Poveznica kopirana') : toast.error('Kopiranje nije uspjelo — označite poveznicu i kopirajte')))}>
+                <Button size="sm" onClick={() => copyText(link).then((ok) => (ok ? toast.success('Poveznica kopirana') : toast.error('Kopiranje nije uspjelo. Označite poveznicu i kopirajte.')))}>
                   <Copy className="size-4" /> Kopiraj
                 </Button>
                 <a

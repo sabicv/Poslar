@@ -4,7 +4,7 @@ import { checklist, COMMON_PHOTO_TAGS } from './shared';
 export const COMPLIANCE_LABELS: Record<string, string> = {
   technical_inspection: 'Tehnički pregled',
   preventive_inspection: 'Preventivni pregled',
-  tachograph: 'Tahograf — periodični pregled',
+  tachograph: 'Tahograf, periodični pregled',
   cemt_permit: 'CEMT dozvola',
   adr: 'ADR',
   fire_extinguisher: 'Vatrogasni aparat',
@@ -21,7 +21,7 @@ export const fleet: PackageConfig = {
   tagline: 'Teretni program, građevina i flote',
   pitch: [
     'Motosati i kilometri, intervali "što prije nastupi"',
-    'Kamion + prikolica, traktor + priključak — svaki sa svojom poviješću',
+    'Kamion + prikolica, traktor + priključak, svaki sa svojom poviješću',
     'Zakonski rokovi i terenski nalog s lokacijom i potpisom',
   ],
   sector: 'workshop',
@@ -58,7 +58,7 @@ export const fleet: PackageConfig = {
       'Ulje motora i filter',
       'Filter goriva i separator vode',
       'Podmazivanje svih mazalica',
-      'Kočnice — obloge i cilindri',
+      'Kočnice: obloge i cilindri',
       'Remenje i crijeva',
       'Akumulatori i priključci',
       'Svjetla i elektrika',

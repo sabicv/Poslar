@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Pencil, Plus } from 'lucide-react';
 import { ConfirmButton, DictateButton, DictateInput, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
-import type { AssetType, MeterUnit } from '@/config/tenant.config';
+import { CLIMATE_TYPES, type AssetType, type MeterUnit } from '@/config/tenant.config';
+import { ScanButton } from '@/components/ScanButton';
 import { deleteAsset, deleteClient, saveAsset, saveClient } from '@/lib/actions/clients';
 import { deleteSite, saveSite } from '@/lib/actions/field';
 import type { Asset, Client, Site } from '@/types/db';
@@ -87,25 +88,25 @@ export function ClientSheet({ client, title, isOwner }: { client?: Client; title
             <>
               {company ? (
                 <>
-                  <Field label="Kontakt — ime">
-                    <Input value={v.first_name ?? ''} onChange={set('first_name')} />
+                  <Field label="Ime kontakta">
+                    <DictateInput mode="name" value={v.first_name ?? ''} onValue={(x) => setV((s) => ({ ...s, first_name: x }))} />
                   </Field>
-                  <Field label="Kontakt — prezime">
-                    <Input value={v.last_name ?? ''} onChange={set('last_name')} />
+                  <Field label="Prezime kontakta">
+                    <DictateInput mode="name" value={v.last_name ?? ''} onValue={(x) => setV((s) => ({ ...s, last_name: x }))} />
                   </Field>
                 </>
               ) : null}
               <Field label="OIB">
-                <Input inputMode="numeric" maxLength={11} value={v.oib ?? ''} onChange={set('oib')} />
+                <DictateInput mode="digits" inputMode="numeric" maxLength={11} value={v.oib ?? ''} onValue={(x) => setV((s) => ({ ...s, oib: x }))} />
               </Field>
               <Field label="E-mail">
-                <Input type="email" value={v.email ?? ''} onChange={set('email')} />
+                <DictateInput mode="email" type="email" value={v.email ?? ''} onValue={(x) => setV((s) => ({ ...s, email: x }))} />
               </Field>
               <Field label="Adresa">
-                <Input value={v.address ?? ''} onChange={set('address')} />
+                <DictateInput mode="text" value={v.address ?? ''} onValue={(x) => setV((s) => ({ ...s, address: x }))} />
               </Field>
               <Field label="Grad">
-                <Input value={v.city ?? ''} onChange={set('city')} />
+                <DictateInput mode="name" value={v.city ?? ''} onValue={(x) => setV((s) => ({ ...s, city: x }))} />
               </Field>
               <Field label="Napomena" className="col-span-2">
                 <DictatedTextarea value={v.notes ?? ''} onChange={(notes) => setV((s) => ({ ...s, notes }))} />
@@ -187,12 +188,27 @@ export function AssetSheet({
   );
   const set = (key: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [key]: e.target.value }));
   const unit = assetTypes.find((t) => t.value === v.asset_type)?.unit ?? 'km';
+  // A vehicle is read from its registration certificate, a device from its nameplate.
+  const device = assetTypes.some((t) => CLIMATE_TYPES.includes(t.value));
+  const fromPhoto = (d: Record<string, unknown>) => {
+    const s = (k: string) => (typeof d[k] === 'string' && (d[k] as string).trim() ? (d[k] as string).trim() : null);
+    setV((x) => ({
+      ...x,
+      identifier: (!device && s('identifier')) || x.identifier,
+      make: s('make') ?? x.make,
+      model: s('model') ?? x.model,
+      year: d.year ? String(d.year) : x.year,
+      vin: s('vin') ?? s('serial') ?? x.vin,
+    }));
+    if (d.year || s('vin') || s('serial')) setMore(true);
+  };
 
   return (
     <Sheet
       open={open}
       onOpenChange={setOpen}
       title={title}
+      action={<ScanButton kind={device ? 'plocica' : 'prometna'} label={device ? 'Slikaj natpisnu pločicu' : 'Slikaj prometnu dozvolu'} onResult={fromPhoto} />}
       trigger={
         asset ? (
           <Button size="sm">
@@ -209,7 +225,7 @@ export function AssetSheet({
         {sites.length ? (
           <Field label="Lokacija" className="col-span-2">
             <Select value={v.site_id} onChange={set('site_id')}>
-              <option value="">—</option>
+              <option value="">-</option>
               {sites.map((s) => (
                 <option key={s.value} value={s.value}>
                   {s.label}
@@ -219,13 +235,13 @@ export function AssetSheet({
           </Field>
         ) : null}
         <Field label="Registracija / oznaka" className="col-span-2">
-          <Input value={v.identifier} className="font-mono uppercase" onChange={set('identifier')} />
+          <DictateInput mode={sites.length ? 'text' : 'plate'} value={v.identifier} className="font-mono uppercase" onValue={(x) => setV((s) => ({ ...s, identifier: x }))} />
         </Field>
         <Field label="Marka">
-          <Input value={v.make} onChange={set('make')} />
+          <DictateInput mode="name" value={v.make} onValue={(x) => setV((s) => ({ ...s, make: x }))} />
         </Field>
         <Field label="Model">
-          <Input value={v.model} onChange={set('model')} />
+          <DictateInput mode="name" value={v.model} onValue={(x) => setV((s) => ({ ...s, model: x }))} />
         </Field>
         {more ? (
           <>
@@ -241,17 +257,17 @@ export function AssetSheet({
               </Field>
             ) : null}
             <Field label="Godište">
-              <Input inputMode="numeric" maxLength={4} value={v.year} onChange={set('year')} />
+              <DictateInput mode="digits" inputMode="numeric" maxLength={4} value={v.year} onValue={(x) => setV((s) => ({ ...s, year: x }))} />
             </Field>
             <Field label="VIN / HIN / serijski">
-              <Input value={v.vin} className="font-mono uppercase" onChange={set('vin')} />
+              <DictateInput mode="vin" value={v.vin} className="font-mono uppercase" onValue={(x) => setV((s) => ({ ...s, vin: x }))} />
             </Field>
             <Field label="Oznaka motora">
-              <Input value={v.engine_code} onChange={set('engine_code')} />
+              <DictateInput mode="vin" value={v.engine_code} onValue={(x) => setV((s) => ({ ...s, engine_code: x }))} />
             </Field>
             <Field label="Gorivo">
               <Select value={v.fuel} onChange={set('fuel')}>
-                <option value="">—</option>
+                <option value="">-</option>
                 <option value="petrol">Benzin</option>
                 <option value="diesel">Dizel</option>
                 <option value="hybrid">Hibrid</option>
@@ -262,15 +278,15 @@ export function AssetSheet({
               </Select>
             </Field>
             <Field label="Interni / garažni broj">
-              <Input value={v.internal_number} onChange={set('internal_number')} />
+              <DictateInput mode="text" value={v.internal_number} onValue={(x) => setV((s) => ({ ...s, internal_number: x }))} />
             </Field>
             <Field label="Šifra boje">
-              <Input value={v.paint_code} onChange={set('paint_code')} />
+              <DictateInput mode="vin" value={v.paint_code} onValue={(x) => setV((s) => ({ ...s, paint_code: x }))} />
             </Field>
             {parents.length ? (
               <Field label="Nadređeno vozilo (npr. tegljač za prikolicu)" className="col-span-2">
                 <Select value={v.parent_asset_id} onChange={set('parent_asset_id')}>
-                  <option value="">—</option>
+                  <option value="">-</option>
                   {parents.map((p) => (
                     <option key={p.value} value={p.value}>
                       {p.label}
@@ -370,10 +386,10 @@ export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?
       <div className="space-y-3">
         <div className="grid grid-cols-[2fr_1fr] gap-3">
           <Field label="Adresa">
-            <Input value={v.address} onChange={set('address')} placeholder="Ulica i broj" />
+            <DictateInput mode="text" value={v.address} onValue={(x) => setV((s) => ({ ...s, address: x }))} placeholder="Ulica i broj" />
           </Field>
           <Field label="Grad">
-            <Input value={v.city} onChange={set('city')} />
+            <DictateInput mode="name" value={v.city} onValue={(x) => setV((s) => ({ ...s, city: x }))} />
           </Field>
         </div>
         <Field label="Upute za ulaz">
@@ -388,16 +404,16 @@ export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?
             />
             <div className="grid grid-cols-2 gap-3">
               <Field label="Naziv">
-                <Input value={v.label} onChange={set('label')} placeholder="npr. Apartman 3" />
+                <DictateInput mode="text" value={v.label} onValue={(x) => setV((s) => ({ ...s, label: x }))} placeholder="npr. Apartman 3" />
               </Field>
               <Field label="Poštanski broj">
-                <Input value={v.postal_code} onChange={set('postal_code')} inputMode="numeric" />
+                <DictateInput mode="digits" value={v.postal_code} onValue={(x) => setV((s) => ({ ...s, postal_code: x }))} inputMode="numeric" />
               </Field>
               <Field label="Osoba na lokaciji">
-                <Input value={v.contact_name} onChange={set('contact_name')} />
+                <DictateInput mode="name" value={v.contact_name} onValue={(x) => setV((s) => ({ ...s, contact_name: x }))} />
               </Field>
               <Field label="Njezin telefon">
-                <Input type="tel" value={v.contact_phone} onChange={set('contact_phone')} />
+                <DictateInput mode="phone" type="tel" value={v.contact_phone} onValue={(x) => setV((s) => ({ ...s, contact_phone: x }))} />
               </Field>
             </div>
           </>

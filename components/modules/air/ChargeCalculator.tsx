@@ -53,7 +53,7 @@ export function ChargeCalculator({ jobId, assetId, refrigerant, certificate }: {
                   size="sm"
                   disabled={pending}
                   onClick={() =>
-                    run(() => addLine(jobId, { kind: 'material', description: `Radna tvar ${refrigerant} — dopuna za ${length} m instalacije`, qty: grams, unit: 'g', approval: 'approved' }), {
+                    run(() => addLine(jobId, { kind: 'material', description: `Radna tvar ${refrigerant}, dopuna za ${length} m instalacije`, qty: grams, unit: 'g', approval: 'approved' }), {
                       success: 'Dodano u stavke',
                     })
                   }

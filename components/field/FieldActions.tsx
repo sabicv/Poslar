@@ -71,9 +71,9 @@ export function FieldActions({ job, site, ctx, variant = 'card' }: { job: FieldJ
 
   function shareReport(channel: 'whatsapp' | 'copy') {
     const greeting = ctx.clientFirstName ? `Poštovani ${vocativeHR(ctx.clientFirstName)}, ` : 'Poštovani, ';
-    const message = `${greeting}posao na Vašoj adresi je završen. Izvještaj s fotografijama: ${reportUrl} — ${ctx.workshopName}`;
+    const message = `${greeting}posao na Vašoj adresi je završen. Izvještaj s fotografijama: ${reportUrl}\n\n${ctx.workshopName}`;
     if (channel === 'whatsapp') window.open(whatsappLink(phone, message), '_blank', 'noopener');
-    else void copyText(reportUrl).then((ok) => (ok ? toast.success('Poveznica kopirana') : toast.error('Kopiranje nije uspjelo — označite poveznicu i kopirajte')));
+    else void copyText(reportUrl).then((ok) => (ok ? toast.success('Poveznica kopirana') : toast.error('Kopiranje nije uspjelo. Označite poveznicu i kopirajte.')));
     run(() => markReportShared(job.id));
   }
 
@@ -130,7 +130,7 @@ export function FieldActions({ job, site, ctx, variant = 'card' }: { job: FieldJ
             ].map((s) => (
               <li key={s.label} className={cn('rounded-xl border p-2.5', s.at ? 'border-ok/40 bg-ok/5' : 'border-line')}>
                 <p className="text-xs text-muted">{s.label}</p>
-                <p className="text-sm font-semibold tabular">{s.at ? time(s.at) : '—'}</p>
+                <p className="text-sm font-semibold tabular">{s.at ? time(s.at) : '-'}</p>
                 {s.extra ? <p className="text-[11px] text-faint">{s.extra}</p> : null}
               </li>
             ))}

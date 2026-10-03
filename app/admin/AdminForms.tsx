@@ -30,7 +30,7 @@ export function CreateWorkshop() {
         onSubmit={(e) => {
           e.preventDefault();
           run(() => adminCreateWorkshop({ ...v, trialDays: Number(v.trialDays) || 30 }), {
-            success: 'Radionica otvorena — pošaljite vlasniku e-mail i lozinku',
+            success: 'Radionica otvorena. Pošaljite vlasniku e-mail i lozinku.',
             onDone: () => {
               setOpen(false);
               setV(empty);
@@ -42,7 +42,7 @@ export function CreateWorkshop() {
           <Select value={v.package} onChange={set('package')}>
             {Object.values(PACKAGES).map((p) => (
               <option key={p.id} value={p.id}>
-                {p.product} — {p.tagline}
+                {p.product}: {p.tagline}
               </option>
             ))}
           </Select>
@@ -56,7 +56,7 @@ export function CreateWorkshop() {
         <Field label="OIB">
           <Input value={v.oib} maxLength={11} onChange={set('oib')} />
         </Field>
-        <Field label="Vlasnik — ime i prezime" className="col-span-2">
+        <Field label="Ime i prezime vlasnika" className="col-span-2">
           <Input value={v.fullName} onChange={set('fullName')} />
         </Field>
         <Field label="E-mail vlasnika">

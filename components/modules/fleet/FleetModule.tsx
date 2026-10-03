@@ -97,7 +97,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
                       ) : !locked ? (
                         <FieldStep jobId={job.id} column={step.key} withGps={'gps' in step} disabled={!previousDone} />
                       ) : (
-                        <p className="mt-1 text-sm text-faint">—</p>
+                        <p className="mt-1 text-sm text-faint">-</p>
                       )}
                     </li>
                   );
@@ -151,7 +151,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
                 <li key={c.id as string} className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
                   <span className="flex-1">{COMPLIANCE_LABELS[c.kind as string]}</span>
                   <span className="tabular text-muted">{formatDate(c.valid_until as string)}</span>
-                  <Badge tone={complianceTone(days)}>{days === null ? '—' : days < 0 ? `Isteklo ${-days} d` : days === 0 ? 'Ističe danas' : `Još ${days} d`}</Badge>
+                  <Badge tone={complianceTone(days)}>{days === null ? '-' : days < 0 ? `Isteklo ${-days} d` : days === 0 ? 'Ističe danas' : `Još ${days} d`}</Badge>
                   <RecordSheet
                     table="fleet_compliance_items"
                     title={COMPLIANCE_LABELS[c.kind as string]}
@@ -171,7 +171,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
             })}
           </ul>
         ) : (
-          <p className="px-4 py-4 text-sm text-muted">Upišite rokove — pregled svih vozila koji ističu je u izborniku Rokovi.</p>
+          <p className="px-4 py-4 text-sm text-muted">Upišite rokove. Svi rokovi koji ističu vide se u izborniku Rokovi.</p>
         )}
       </Card>
 
@@ -232,7 +232,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
               {trailers.map((t) => (
                 <li key={t.id as string} className="px-4 py-3 text-sm">
                   <a href={`/app/assets/${t.id}`} className="hover:underline">
-                    <span className="font-mono font-semibold">{(t.identifier as string | null) ?? '—'}</span> <span className="text-muted">{[t.make, t.model].filter(Boolean).join(' ')}</span>
+                    <span className="font-mono font-semibold">{(t.identifier as string | null) ?? '-'}</span> <span className="text-muted">{[t.make, t.model].filter(Boolean).join(' ')}</span>
                   </a>
                 </li>
               ))}
@@ -251,7 +251,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
 
       {!compliance?.length ? (
         <p className="flex items-center gap-2 text-xs text-faint">
-          <CalendarX2 className="size-3.5" /> Rokovi se prate po vozilu, ne po nalogu — vide se na svakom sljedećem nalogu.
+          <CalendarX2 className="size-3.5" /> Rokovi se prate po vozilu, ne po nalogu. Vide se na svakom sljedećem nalogu.
         </p>
       ) : null}
       <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />

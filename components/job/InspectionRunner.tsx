@@ -48,7 +48,7 @@ export function StartInspection({ jobId, templates, hasCurrent }: { jobId: strin
       <Select value={code} onChange={(e) => setCode(e.target.value)} className="min-w-0 flex-1">
         {templates.map((t) => (
           <option key={t.code} value={t.code}>
-            {t.name} — {t.purpose}
+            {t.name}: {t.purpose}
           </option>
         ))}
       </Select>
@@ -120,7 +120,7 @@ export function InspectionRunner({
         }
       })
       .catch(() => {
-        toast.error('Nije spremljeno — provjerite vezu.');
+        toast.error('Nije spremljeno. Provjerite vezu.');
         setResults((r) => ({ ...r, [item.code]: previous }));
       });
   }

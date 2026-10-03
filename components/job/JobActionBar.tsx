@@ -74,7 +74,7 @@ export function JobActionBar({
                 onClick={() => run(() => setJobPaid(jobId, !paid), { success: paid ? 'Vraćeno na „Za naplatu”' : 'Označeno plaćeno' })}
                 className="justify-start"
               >
-                <Wallet className="size-5" /> {paid ? 'Plaćeno — vrati na „Za naplatu”' : 'Označi plaćeno'}
+                <Wallet className="size-5" /> {paid ? 'Plaćeno. Vrati na „Za naplatu”' : 'Označi plaćeno'}
               </Button>
               <Button
                 size="lg"

@@ -55,7 +55,7 @@ export async function WheelPage({ ctx, q }: { ctx: WorkshopContext; q: string })
 
   const label = (id: string) => {
     const l = (locations ?? []).find((x) => x.id === id);
-    return l ? hotelPlace(l) : '—';
+    return l ? hotelPlace(l) : '-';
   };
   const occupied = new Set(((stays ?? []) as unknown as Stay[]).map((s) => s.location_id));
   const capacity = (locations ?? []).length;

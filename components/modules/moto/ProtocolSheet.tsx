@@ -48,7 +48,7 @@ export function ProtocolSheet({
           fields={[
             { name: 'fuel_stabilized', label: 'Stabilizator goriva dodan', type: 'checkbox' },
             { name: 'battery_maintained', label: 'Akumulator na održavanju / skinut', type: 'checkbox' },
-            { name: 'anode_leg', label: 'Anoda noge — istrošenost', type: 'number', suffix: '%', half: true },
+            { name: 'anode_leg', label: 'Istrošenost anode noge', type: 'number', suffix: '%', half: true },
             { name: 'anode_trim', label: 'Anoda trima', type: 'number', suffix: '%', half: true },
             { name: 'anode_hull', label: 'Anoda trupa', type: 'number', suffix: '%', half: true },
           ]}

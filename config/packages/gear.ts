@@ -12,8 +12,8 @@ const dvi50: InspectionTemplate = {
       title: 'A · Ispod haube',
       items: [
         { code: 'g01', label: 'Razina i stanje motornog ulja' },
-        { code: 'g02', label: 'Rashladna tekućina — zaštita', unit: '°C', warnAbove: -25, critAbove: -15 },
-        { code: 'g03', label: 'Kočiona tekućina — razina' },
+        { code: 'g02', label: 'Rashladna tekućina: zaštita', unit: '°C', warnAbove: -25, critAbove: -15 },
+        { code: 'g03', label: 'Kočiona tekućina: razina' },
         { code: 'g04', label: 'Tekućina servo upravljača' },
         { code: 'g05', label: 'Tekućina za pranje stakla' },
         { code: 'g06', label: 'Remen pomoćnih uređaja i zatezač' },
@@ -26,7 +26,7 @@ const dvi50: InspectionTemplate = {
     {
       title: 'B · Akumulator i elektrika',
       items: [
-        { code: 'g11', label: 'Akumulator — napon mirovanja', unit: 'V', warnBelow: 12.4, critBelow: 12.1 },
+        { code: 'g11', label: 'Akumulator: napon mirovanja', unit: 'V', warnBelow: 12.4, critBelow: 12.1 },
         { code: 'g12', label: 'Polovi i priključci' },
         { code: 'g13', label: 'Prednja svjetla: kratka, duga, dnevna, poziciona' },
         { code: 'g14', label: 'Stražnja svjetla: kočiona, pokazivači, maglenka, hod unazad' },
@@ -37,13 +37,13 @@ const dvi50: InspectionTemplate = {
       title: 'C · Kočnice',
       items: [
         { code: 'g16', label: 'Prednje pločice', unit: 'mm', warnBelow: 4, critBelow: 2.5 },
-        { code: 'g17', label: 'Prednji diskovi — debljina, brazde, rub' },
+        { code: 'g17', label: 'Prednji diskovi: debljina, brazde, rub' },
         { code: 'g18', label: 'Stražnje pločice ili obloge', unit: 'mm', warnBelow: 4, critBelow: 2.5 },
         { code: 'g19', label: 'Stražnji diskovi ili bubnjevi' },
         { code: 'g20', label: 'Kočione cijevi i crijeva' },
-        { code: 'g21', label: 'Čeljusti — vodilice i klipovi' },
+        { code: 'g21', label: 'Čeljusti: vodilice i klipovi' },
         { code: 'g22', label: 'Parkirna kočnica' },
-        { code: 'g23', label: 'Kočiona tekućina — udio vode', unit: '%', warnAbove: 2, critAbove: 3 },
+        { code: 'g23', label: 'Kočiona tekućina: udio vode', unit: '%', warnAbove: 2, critAbove: 3 },
       ],
     },
     {
@@ -56,7 +56,7 @@ const dvi50: InspectionTemplate = {
         { code: 'g28', label: 'Kuglasti zglobovi' },
         { code: 'g29', label: 'Krajnici i aksijalni zglobovi' },
         { code: 'g30', label: 'Manžete poluosovina' },
-        { code: 'g31', label: 'Stabilizator — spone i gumice' },
+        { code: 'g31', label: 'Stabilizator: spone i gumice' },
       ],
     },
     {
@@ -64,7 +64,7 @@ const dvi50: InspectionTemplate = {
       items: [
         { code: 'g32', label: 'Dubina šare (najmanja)', unit: 'mm', warnBelow: 3, critBelow: 1.6 },
         { code: 'g33', label: 'Tlak u gumama', unit: 'bar', warnBelow: 2.0, critBelow: 1.6 },
-        { code: 'g34', label: 'DOT — starost guma', unit: 'god.', warnAbove: 6, critAbove: 10 },
+        { code: 'g34', label: 'DOT: starost guma', unit: 'god.', warnAbove: 6, critAbove: 10 },
         { code: 'g35', label: 'Neravnomjerno trošenje' },
         { code: 'g36', label: 'Rezervni kotač ili komplet za popravak' },
         { code: 'g37', label: 'Naplatci i vijci' },
@@ -74,10 +74,10 @@ const dvi50: InspectionTemplate = {
       title: 'F · Ispod vozila',
       items: [
         { code: 'g38', label: 'Ispušni sustav i nosači' },
-        { code: 'g39', label: 'Katalizator i DPF — vizualno' },
-        { code: 'g40', label: 'Mjenjač i diferencijal — curenje' },
+        { code: 'g39', label: 'Katalizator i DPF: vizualno' },
+        { code: 'g40', label: 'Mjenjač i diferencijal: curenje' },
         { code: 'g41', label: 'Nosači motora' },
-        { code: 'g42', label: 'Podvozje i pragovi — korozija' },
+        { code: 'g42', label: 'Podvozje i pragovi: korozija' },
         { code: 'g43', label: 'Spremnik i vodovi goriva' },
       ],
     },
@@ -87,15 +87,15 @@ const dvi50: InspectionTemplate = {
         { code: 'g44', label: 'Metlice brisača' },
         { code: 'g45', label: 'Vjetrobransko staklo' },
         { code: 'g46', label: 'Sigurnosni pojasevi' },
-        { code: 'g47', label: 'Klima — temperatura na izlazu', unit: '°C', warnAbove: 9, critAbove: 14 },
+        { code: 'g47', label: 'Klima: temperatura na izlazu', unit: '°C', warnAbove: 9, critAbove: 14 },
       ],
     },
     {
       title: 'H · Probna vožnja',
       items: [
-        { code: 'g48', label: 'Kočenje — vuče, vibrira' },
+        { code: 'g48', label: 'Kočenje: vuče, vibrira' },
         { code: 'g49', label: 'Upravljanje i ravnanje' },
-        { code: 'g50', label: 'Buka — ležajevi, ovjes, mjenjač' },
+        { code: 'g50', label: 'Buka: ležajevi, ovjes, mjenjač' },
       ],
     },
   ],
@@ -109,7 +109,7 @@ export const gear: PackageConfig = {
   tagline: 'Automehanika i opći servis',
   pitch: [
     'Inspekcija u 50 točaka na semaforu, s fotografijom po stavci',
-    'Servisni plan vozila: ulje, filteri, remen — po km i vremenu',
+    'Servisni plan vozila: ulje, filteri, remen, po km i vremenu',
     'Dijelovi s kataloškim brojem, dobavljačem i jamstvom',
   ],
   sector: 'workshop',

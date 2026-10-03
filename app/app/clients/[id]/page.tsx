@@ -68,7 +68,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       <PageHeader
         back={<BackLink href="/app/clients">{ctx.pkg.vocabulary.client.many}</BackLink>}
         title={clientName(c)}
-        action={<ClientSheet client={c} title={`Uredi — ${ctx.pkg.vocabulary.client.one.toLowerCase()}`} isOwner={ctx.isOwner} />}
+        action={<ClientSheet client={c} title={`Uredi: ${ctx.pkg.vocabulary.client.one.toLowerCase()}`} isOwner={ctx.isOwner} />}
       />
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="space-y-4">
@@ -123,7 +123,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                     <Link prefetch={false} href={`/app/jobs/${j.id}`} className="block px-4 py-3 hover:bg-surface2">
                       <span className="flex items-baseline justify-between gap-3">
                         <span className="min-w-0 truncate text-sm">
-                          <span className="text-faint">#{j.number}</span> {j.complaint ?? '—'}
+                          <span className="text-faint">#{j.number}</span> {j.complaint ?? '-'}
                         </span>
                         {ctx.isOwner && totals.has(j.id) ? <span className="shrink-0 text-sm tabular text-muted">{formatEuro(totals.get(j.id))}</span> : null}
                       </span>

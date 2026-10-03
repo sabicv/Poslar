@@ -17,7 +17,7 @@ const PARAM = { toe: 'Konvergencija', total_toe: 'Ukupna konvergencija', camber:
 
 export function tireSize(set: Record<string, unknown>) {
   if (!set.width) return 'Dimenzija nije upisana';
-  return `${set.width}/${set.aspect ?? '—'} R${set.rim_diameter ?? '—'}${set.load_index ? ` ${set.load_index}` : ''}${set.speed_index ?? ''}`;
+  return `${set.width}/${set.aspect ?? '-'} R${set.rim_diameter ?? '-'}${set.load_index ? ` ${set.load_index}` : ''}${set.speed_index ?? ''}`;
 }
 
 export function treadTone(season: string, mm: number | null): 'ok' | 'warn' | 'crit' | 'muted' {
@@ -67,14 +67,12 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
   const showBalancing = show('balansiranje', (balancing ?? []).length > 0);
   const showAlignment = show('geometrija', (alignments ?? []).length > 0);
 
-  const tyreScan: FormScan | undefined = process.env.ANTHROPIC_API_KEY
-    ? {
+  const tyreScan: FormScan = {
         kind: 'guma',
         label: 'Slikaj bok gume',
         map: { season: 'season', width: 'width', aspect: 'aspect', rim_diameter: 'rim_diameter', load_index: 'load_index', speed_index: 'speed_index', brand: 'brand', model: 'model' },
-      }
-    : undefined;
-  const dotScan: FormScan | undefined = process.env.ANTHROPIC_API_KEY ? { kind: 'guma', label: 'Slikaj DOT oznaku', map: { dot_week: 'dot_week', dot_year: 'dot_year' } } : undefined;
+      };
+  const dotScan: FormScan = { kind: 'guma', label: 'Slikaj DOT oznaku', map: { dot_week: 'dot_week', dot_year: 'dot_year' } };
   const setFields: FieldDef[] = [
     { name: 'season', label: 'Sezona', type: 'select', options: opts(SEASON_LABELS), required: true, half: true },
     { name: 'status', label: 'Gdje je', type: 'select', options: [{ value: 'on_vehicle', label: 'Na vozilu' }, { value: 'stored', label: 'Kod nas' }], half: true, required: true },
@@ -99,7 +97,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
         <CardHeader
           title={
             <span className="flex items-center gap-2">
-              <Disc3 className="size-4 text-accent" /> Setovi guma — {ctx.pkg.vocabulary.client.one.toLowerCase()}
+              <Disc3 className="size-4 text-accent" /> Setovi guma
             </span>
           }
           action={
@@ -164,7 +162,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                         <RecordSheet
                           key={pos.code}
                           table="wheel_tires"
-                          title={`${pos.label} — mjerenje`}
+                          title={`${pos.label}: mjerenje`}
                           upsertOn="set_id,position"
                           revalidate={path}
                           fixed={{ set_id: set.id, position: pos.code, measured_at: '__now__' }}
@@ -179,7 +177,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                               <span className="block text-[11px] text-muted">{pos.label}</span>
                               <span className="block font-mono text-sm font-semibold tabular">{measured.length ? values.map((v) => (v === null ? '–' : v.toFixed(1))).join(' / ') : 'izmjeri'}</span>
                               <span className="block text-[11px] text-faint">
-                                {tire?.dot_week ? `DOT ${String(tire.dot_week).padStart(2, '0')}${String(tire.dot_year).slice(-2)}` : 'DOT —'}
+                                {tire?.dot_week ? `DOT ${String(tire.dot_week).padStart(2, '0')}${String(tire.dot_year).slice(-2)}` : 'DOT -'}
                                 {dotAge !== null && dotAge >= 6 ? ` · ${dotAge} god.` : ''}
                               </span>
                             </button>
@@ -312,7 +310,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                 <li key={r.id as string} className="flex flex-wrap items-center gap-2 px-4 py-3 text-sm">
                   <span>{POSITIONS[r.position as keyof typeof POSITIONS]}</span>
                   <span className="text-muted">· {ZONE[r.damage_zone as keyof typeof ZONE]}</span>
-                  {r.allowed ? <Badge tone="ok">{r.method ? METHOD[r.method as keyof typeof METHOD] : 'Dopušteno'}</Badge> : <Badge tone="crit">Nije popravljivo — nova guma</Badge>}
+                  {r.allowed ? <Badge tone="ok">{r.method ? METHOD[r.method as keyof typeof METHOD] : 'Dopušteno'}</Badge> : <Badge tone="crit">Nije popravljivo, nova guma</Badge>}
                 </li>
               ))}
             </ul>
@@ -368,7 +366,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
         <CardHeader
           title={
             <span className="flex items-center gap-2">
-              <Ruler className="size-4 text-accent" /> Geometrija — prije i poslije
+              <Ruler className="size-4 text-accent" /> Geometrija prije i poslije
             </span>
           }
           action={
@@ -441,10 +439,10 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                                 <td className="py-1.5">
                                   {PARAM[v.parameter as keyof typeof PARAM]} <span className="text-faint">· {v.axle === 'front' ? 'prednja' : 'stražnja'} {v.wheel === 'left' ? 'L' : v.wheel === 'right' ? 'D' : ''}</span>
                                 </td>
-                                <td className={`py-1.5 text-right tabular ${out(v.before_value) ? 'text-crit' : ''}`}>{(v.before_value as number | null) ?? '—'}</td>
-                                <td className={`py-1.5 text-right tabular ${out(v.after_value) ? 'text-crit' : 'text-ok'}`}>{(v.after_value as number | null) ?? '—'}</td>
+                                <td className={`py-1.5 text-right tabular ${out(v.before_value) ? 'text-crit' : ''}`}>{(v.before_value as number | null) ?? '-'}</td>
+                                <td className={`py-1.5 text-right tabular ${out(v.after_value) ? 'text-crit' : 'text-ok'}`}>{(v.after_value as number | null) ?? '-'}</td>
                                 <td className="py-1.5 text-right tabular text-muted">
-                                  {(v.spec_min as number | null) ?? '—'} … {(v.spec_max as number | null) ?? '—'}
+                                  {(v.spec_min as number | null) ?? '-'} … {(v.spec_max as number | null) ?? '-'}
                                 </td>
                               </tr>
                             );

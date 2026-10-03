@@ -102,11 +102,11 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
         />
         {estimate ? (
           <div className="grid gap-x-8 px-4 py-1 sm:grid-cols-2">
-            <KeyValue label="Osiguranje">{estimate.insurer_id ? insurerName.get(estimate.insurer_id as string) : '—'}</KeyValue>
-            <KeyValue label="Broj štete">{(estimate.claim_number as string | null) ?? '—'}</KeyValue>
+            <KeyValue label="Osiguranje">{estimate.insurer_id ? insurerName.get(estimate.insurer_id as string) : '-'}</KeyValue>
+            <KeyValue label="Broj štete">{(estimate.claim_number as string | null) ?? '-'}</KeyValue>
             <KeyValue label="Datum štete">{formatDate(estimate.loss_date as string | null)}</KeyValue>
-            <KeyValue label="Vrsta">{estimate.loss_type ? LOSS_TYPE[estimate.loss_type as keyof typeof LOSS_TYPE] : '—'}</KeyValue>
-            <KeyValue label="Procjenitelj">{(estimate.assessor_name as string | null) ?? '—'}</KeyValue>
+            <KeyValue label="Vrsta">{estimate.loss_type ? LOSS_TYPE[estimate.loss_type as keyof typeof LOSS_TYPE] : '-'}</KeyValue>
+            <KeyValue label="Procjenitelj">{(estimate.assessor_name as string | null) ?? '-'}</KeyValue>
             {ctx.isOwner ? (
               <KeyValue label="Odobreni iznos">
                 <PrivateAmountSheet entity="body_estimates" entityId={estimate.id as string} field="approved_amount" title="Iznos koji je odobrilo osiguranje" amount={approvedAmount} revalidate={path} />
@@ -194,8 +194,8 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
                   { name: 'variant', label: 'Varijanta', half: true, extra: true },
                   { name: 'coat_structure', label: 'Struktura', type: 'select', options: opts(COAT), half: true, extra: true },
                   { name: 'color_match', label: 'Pogađanje nijanse', type: 'select', options: opts(MATCH), half: true, extra: true },
-                  { name: 'booth_temp_c', label: 'Kabina — temperatura', type: 'number', suffix: '°C', half: true, extra: true },
-                  { name: 'booth_humidity_pct', label: 'Kabina — vlaga', type: 'number', suffix: '%', half: true, extra: true },
+                  { name: 'booth_temp_c', label: 'Temperatura u kabini', type: 'number', suffix: '°C', half: true, extra: true },
+                  { name: 'booth_humidity_pct', label: 'Vlaga u kabini', type: 'number', suffix: '%', half: true, extra: true },
                 ]}
               />
             ) : null
@@ -238,7 +238,7 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
                         <td className="py-1.5 font-mono">{m.component_code}</td>
                         <td className="py-1.5 text-right tabular">{formatNumber(m.target_g)}</td>
                         <td className="py-1.5 text-right tabular">{formatNumber(m.actual_g)}</td>
-                        <td className={`py-1.5 text-right tabular ${dev !== null && Math.abs(dev) > 2 ? 'text-crit' : 'text-muted'}`}>{dev === null ? '—' : `${dev > 0 ? '+' : ''}${dev.toFixed(1)} %`}</td>
+                        <td className={`py-1.5 text-right tabular ${dev !== null && Math.abs(dev) > 2 ? 'text-crit' : 'text-muted'}`}>{dev === null ? '-' : `${dev > 0 ? '+' : ''}${dev.toFixed(1)} %`}</td>
                       </tr>
                     );
                   })}
@@ -285,7 +285,7 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
                 return (
                   <li key={p.id as string} className="flex items-center justify-between py-2">
                     <span>
-                      {PHASES[p.phase as keyof typeof PHASES]} <span className="text-faint">· {names.get(p.worker_id as string) ?? '—'}</span>
+                      {PHASES[p.phase as keyof typeof PHASES]} <span className="text-faint">· {names.get(p.worker_id as string) ?? '-'}</span>
                     </span>
                     <span className="tabular text-muted">{minutes === null ? 'u tijeku' : `${Math.floor(minutes / 60)} h ${minutes % 60} min`}</span>
                   </li>

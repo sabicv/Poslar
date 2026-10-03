@@ -22,8 +22,8 @@ export async function MessagesTab({ ctx, job }: { ctx: WorkshopContext; job: Job
         body: m.body,
         status: m.status,
         mine: m.sender_id === ctx.user.id,
-        from: names[m.sender_id] ?? '—',
-        to: m.receiver_id ? names[m.receiver_id] ?? '—' : null,
+        from: names[m.sender_id] ?? '-',
+        to: m.receiver_id ? names[m.receiver_id] ?? '-' : null,
         forMe: m.receiver_id === ctx.user.id || (ctx.isOwner && m.kind === 'help' && m.sender_id !== ctx.user.id),
         when: formatDateTime(m.created_at),
       }))}

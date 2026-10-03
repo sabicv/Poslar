@@ -53,9 +53,7 @@ export function NewJobForm({
   isFleet,
   preset,
   field,
-  scan = false,
 }: {
-  scan?: boolean;
   vocabulary: Vocabulary;
   assetTypes: { value: AssetType; label: string; unit: MeterUnit }[];
   defaultAssetType: AssetType;
@@ -280,8 +278,8 @@ export function NewJobForm({
           </div>
         ) : (
           <div className="space-y-3">
-            {scan && !isField && vehicles ? <ScanButton kind="prometna" label="Slikaj prometnu dozvolu" onResult={fromRegistration} /> : null}
-            <div className="relative">
+            {/* Search, with the camera for the registration certificate right beside it. */}
+            <div className="relative flex gap-2">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
               <Input
                 value={query}
@@ -290,6 +288,7 @@ export function NewJobForm({
                 className="pl-9"
                 autoFocus
               />
+              {!isField && vehicles ? <ScanButton kind="prometna" label="Slikaj prometnu dozvolu" onResult={fromRegistration} /> : null}
               {hits.length > 0 || query.trim().length >= 2 ? (
                 <div className="absolute inset-x-0 top-12 z-20 overflow-hidden rounded-xl border border-line bg-surface shadow-2xl shadow-black/40">
                   {hits.map((hit) => (
@@ -332,7 +331,7 @@ export function NewJobForm({
             </div>
             {more ? (
               <Field label="OIB">
-                <Input inputMode="numeric" maxLength={11} value={newClient.oib} onChange={(e) => setNewClient((c) => ({ ...c, oib: e.target.value }))} />
+                <DictateInput mode="digits" inputMode="numeric" maxLength={11} value={newClient.oib} onValue={(oib) => setNewClient((c) => ({ ...c, oib: oib.slice(0, 11) }))} />
               </Field>
             ) : null}
           </div>
@@ -386,10 +385,7 @@ export function NewJobForm({
                 <>
                   <Segmented value={newSite.kind} onChange={(kind) => setNewSite((s) => ({ ...s, kind }))} options={SITE_KINDS} />
                   <Field label="Upute za ulaz">
-                    <div className="flex gap-2">
-                      <Input value={newSite.accessNotes} onChange={(e) => setNewSite((s) => ({ ...s, accessNotes: e.target.value }))} placeholder="Kat, šifra, ključ kod susjeda…" />
-                      <DictateButton compact onText={(text) => setNewSite((s) => ({ ...s, accessNotes: s.accessNotes ? `${s.accessNotes.trimEnd()} ${text}` : text }))} />
-                    </div>
+                    <DictateInput value={newSite.accessNotes} onValue={(accessNotes) => setNewSite((s) => ({ ...s, accessNotes }))} placeholder="Kat, šifra, ključ kod susjeda…" />
                   </Field>
                 </>
               ) : null}
@@ -397,23 +393,25 @@ export function NewJobForm({
           ) : null}
 
           <div className="border-t border-line pt-4">
-            <h3 className="mb-2 text-sm font-semibold">{vocabulary.asset.one}</h3>
+            {/* The nameplate camera sits on the heading row, taking no extra line. */}
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold">{vocabulary.asset.one}</h3>
+              {!assetId ? (
+                <ScanButton
+                  kind="plocica"
+                  label="Slikaj natpisnu pločicu"
+                  onResult={(d) =>
+                    setNewAsset((a) => ({
+                      ...a,
+                      make: typeof d.make === 'string' && d.make ? d.make : a.make,
+                      model: typeof d.model === 'string' && d.model ? d.model : a.model,
+                      year: d.year ? String(d.year) : a.year,
+                    }))
+                  }
+                />
+              ) : null}
+            </div>
             {client && !usingNewSite ? <AssetChoice assets={visibleAssets} assetId={assetId} onPick={setAssetId} newLabel={vocabulary.asset.new} /> : null}
-            {!assetId && scan ? (
-              <ScanButton
-                kind="plocica"
-                label="Slikaj natpisnu pločicu"
-                className="mb-3"
-                onResult={(d) =>
-                  setNewAsset((a) => ({
-                    ...a,
-                    make: typeof d.make === 'string' && d.make ? d.make : a.make,
-                    model: typeof d.model === 'string' && d.model ? d.model : a.model,
-                    year: d.year ? String(d.year) : a.year,
-                  }))
-                }
-              />
-            ) : null}
             {!assetId ? <NewAssetFields vocabulary={vocabulary} assetTypes={assetTypes} value={newAsset} onChange={setNewAsset} field more={more} /> : null}
           </div>
 
@@ -486,7 +484,7 @@ export function NewJobForm({
           {!isField ? (
             <>
               <Field label={`Stanje brojila (${meterUnit === 'mth' ? 'motosati' : 'km'})`}>
-                <Input inputMode="decimal" value={meterIn} onChange={(e) => setMeterIn(e.target.value)} />
+                <DictateInput mode="number" inputMode="decimal" value={meterIn} onValue={setMeterIn} />
               </Field>
               <Field label="Obećano do">
                 <Input type="datetime-local" value={promisedAt} onChange={(e) => setPromisedAt(e.target.value)} />
@@ -557,7 +555,7 @@ function AssetChoice({
         >
           <span className="min-w-0">
             <span className="block truncate text-sm font-medium">{assetTitle(asset)}</span>
-            <span className="block font-mono text-xs text-muted">{asset.identifier ?? '—'}</span>
+            <span className="block font-mono text-xs text-muted">{asset.identifier ?? '-'}</span>
           </span>
           {assetId === asset.id ? <Check className="size-4 text-accent" /> : null}
         </button>
@@ -621,10 +619,10 @@ function NewAssetFields({
           ) : null}
           <div className="grid grid-cols-2 gap-3">
             <Field label={field ? 'Godina ugradnje' : 'Godište'}>
-              <Input inputMode="numeric" maxLength={4} value={value.year} onChange={(e) => onChange((a) => ({ ...a, year: e.target.value.replace(/\D/g, '') }))} />
+              <DictateInput mode="digits" inputMode="numeric" maxLength={4} value={value.year} onValue={(year) => onChange((a) => ({ ...a, year: year.replace(/\D/g, '').slice(0, 4) }))} />
             </Field>
             <Field label={field ? 'Serijski broj' : 'VIN'}>
-              <Input value={value.vin} className="font-mono uppercase" onChange={(e) => onChange((a) => ({ ...a, vin: e.target.value }))} />
+              <DictateInput mode={field ? 'text' : 'vin'} value={value.vin} className="font-mono uppercase" onValue={(vin) => onChange((a) => ({ ...a, vin }))} />
             </Field>
           </div>
         </>

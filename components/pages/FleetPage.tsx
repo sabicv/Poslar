@@ -43,7 +43,7 @@ export async function FleetPage({ ctx }: { ctx: WorkshopContext }) {
               return (
                 <li key={d.id}>
                   <Link href={d.asset ? `/app/assets/${d.asset.id}` : '#'} className="flex flex-wrap items-center gap-2 px-4 py-3 text-sm hover:bg-surface2">
-                    <span className="font-mono font-semibold">{d.asset?.identifier ?? '—'}</span>
+                    <span className="font-mono font-semibold">{d.asset?.identifier ?? '-'}</span>
                     <span className="text-muted">{assetTitle(d.asset)}</span>
                     <span className="w-full text-xs text-faint sm:w-auto">{clientName(d.asset?.client)}</span>
                     <span className="ml-auto flex items-center gap-2">

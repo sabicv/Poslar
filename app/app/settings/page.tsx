@@ -89,7 +89,7 @@ export default async function SettingsPage() {
             <Card>
               <CardHeader title="Tim" subtitle="Radnici vide naloge, ali ne i iznose, naplatu ni poslovanje" />
               <div className="p-4">
-                <TeamManager me={ctx.user.id} staff={((staff ?? []) as Profile[]).map((p) => ({ id: p.id, name: p.full_name ?? '—', role: p.role }))} />
+                <TeamManager me={ctx.user.id} staff={((staff ?? []) as Profile[]).map((p) => ({ id: p.id, name: p.full_name ?? '-', role: p.role }))} />
               </div>
             </Card>
             {ctx.pkg.optionalModules.length ? (

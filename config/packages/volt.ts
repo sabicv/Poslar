@@ -51,7 +51,7 @@ export const volt: PackageConfig = {
       'Uzrok potvrđen mjerenjem, ne samo kodom',
       'Popravak i brisanje kodova',
       'Probna vožnja ili ciklus pripreme',
-      'Kontrolno skeniranje — nema novih kodova',
+      'Kontrolno skeniranje, nema novih kodova',
       'Zaključak i preporuke upisani za zapisnik stranke',
     ]),
     checklist('volt.pre_write', 'Prije zapisa u modul', 'checklist', 'Programiranje, remap, IMMO', [
