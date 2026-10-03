@@ -14,3 +14,10 @@ export function fold(value: string): string {
 export function toIlike(value: string): string {
   return `%${value.replace(/[%_,()\\]/g, ' ').trim()}%`;
 }
+
+// A plate or VIN however it is typed: "ST 7001 TX", "st7001tx" and
+// "ST-7001-TX" all find ST-7001-TX (letters and digits in order, anything between).
+export function plateIlike(value: string): string {
+  const runs = value.match(/[a-zA-ZčćžšđČĆŽŠĐ]+|\d+/g) ?? [];
+  return runs.length ? `%${runs.join('%')}%` : toIlike(value);
+}

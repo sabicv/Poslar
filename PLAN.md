@@ -48,7 +48,10 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [x] Cijene se primjenjuju i kad predložak doda radnik; nova stavka rada kreće od satnice
 
 ## Stadij 6: Arhiva u Poslovanju
-- [ ] Zatvoreni nalozi, razdoblje, plaćeno/neplaćeno, traženje, iznos i broj računa
+- [x] Poslovanje → Arhiva (samo vlasnik): zatvoreni nalozi, razdoblje (i od do), plaćeno/neplaćeno, zbroj za odabir
+- [x] Traženje: registracija (s razmacima ili bez), VIN, ime, telefon, OIB, broj naloga, broj računa (12/2026)
+- [x] Iznos i broj računa na svakom nalogu; popis za Excel (CSV)
+- [x] Gumb Arhiva na Nalozima vodi vlasnika u Poslovanje; radnici zadržavaju svoju arhivu bez iznosa
 
 ## Stadij 7: QR samoprijem (Standard i Premium)
 - [ ] Mušterija skenira QR, slika prometnu, izgovori kvar; nalog stiže majstoru

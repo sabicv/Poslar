@@ -6,7 +6,7 @@ import { EmptyState, Input, PageHeader, buttonClass } from '@/components/ui';
 import { PHASE_ORDER, hasFieldWork, phaseLabel, type JobPhase } from '@/config/tenant.config';
 import { formatEuro } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
-import { cn, toIlike } from '@/lib/utils';
+import { cn, plateIlike, toIlike } from '@/lib/utils';
 
 const JOB_FIELDS =
   'id, number, phase, complaint, is_urgent, promised_at, payment_status, locked_at, updated_at, assigned_to, client:clients(kind, first_name, last_name, company_name), asset:assets(asset_type, identifier, make, model), assignee:profiles(full_name)';
@@ -56,8 +56,9 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   if (search) {
     const like = toIlike(search);
     const compact = toIlike(search.replace(/[\s-]/g, ''));
+    const plate = plateIlike(search);
     const [assets, clients] = await Promise.all([
-      ctx.supabase.from('assets').select('id').or(`identifier.ilike.${like},identifier.ilike.${compact},vin.ilike.${like},make.ilike.${like},model.ilike.${like}`).limit(50),
+      ctx.supabase.from('assets').select('id').or(`identifier.ilike.${plate},vin.ilike.${plate},make.ilike.${like},model.ilike.${like}`).limit(50),
       ctx.supabase.from('clients').select('id').or(`first_name.ilike.${like},last_name.ilike.${like},company_name.ilike.${like},phone.ilike.${compact}`).limit(50),
     ]);
     const parts = [
@@ -121,7 +122,9 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
               href={
                 chip.id === 'active'
                   ? `/app?view=faze${search ? `&q=${encodeURIComponent(search)}` : ''}`
-                  : `/app?f=${chip.id}${search ? `&q=${encodeURIComponent(search)}` : ''}`
+                  : chip.id === 'archive' && ctx.isOwner
+                    ? `/app/business/arhiva${search ? `?q=${encodeURIComponent(search)}` : ''}`
+                    : `/app?f=${chip.id}${search ? `&q=${encodeURIComponent(search)}` : ''}`
               }
               className={cn(buttonClass(filter === chip.id ? 'primary' : 'secondary', 'sm'), 'shrink-0 rounded-full')}
             >

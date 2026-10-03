@@ -4,6 +4,7 @@ import { billingFrom } from '@/components/invoice/InvoiceDocument';
 import { Card, CardHeader, EmptyState, PageHeader, Stat, buttonClass } from '@/components/ui';
 import { zagrebDate } from '@/lib/invoice';
 import { AccountingExport } from './AccountingExport';
+import { BusinessTabs } from './BusinessTabs';
 import { phaseLabel } from '@/config/tenant.config';
 import { assetTitle, clientName, countJobs, formatDecimal, formatEuro, formatRelative } from '@/lib/format';
 import { requireOwner } from '@/lib/session';
@@ -115,6 +116,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <PageHeader title="Poslovanje" />
+      <BusinessTabs active="pregled" />
       <div className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         {(Object.keys(RANGES) as Range[]).map((key) => (
           <Link key={key} href={`/app/business?range=${key}`} className={cn(buttonClass(range === key ? 'primary' : 'secondary', 'sm'), 'shrink-0 rounded-full')}>
