@@ -5,12 +5,14 @@ import { VideoChip } from '@/components/help/VideoChip';
 import { SupportButton } from '@/components/SupportButton';
 import { ReferralShare } from '@/components/billing/ReferralShare';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
+import { DeleteAccount } from '@/components/settings/DeleteAccount';
 import { Badge, Button, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
 import { HELP_TOPICS } from '@/config/help';
 import { LEGAL_PAGES } from '@/config/legal';
 import { AI_LABELS, TERM_LABELS, aiQuota, getPlan, monthlyPrice } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { loadHelpVideos } from '@/lib/help';
+import { isPlayApp } from '@/lib/play';
 import { signOut } from '@/lib/actions/auth';
 import { hasModule } from '@/config/tenant.config';
 import { formatDate } from '@/lib/format';
@@ -47,13 +49,14 @@ async function loadReferral(tenantId: string, billingRef: number) {
 export default async function SettingsPage() {
   const ctx = await requireWorkshop();
   const t = ctx.tenant;
-  const [{ data: staff }, { data: tickets }, scans, answers, tower, links] = await Promise.all([
+  const [{ data: staff }, { data: tickets }, scans, answers, tower, links, play] = await Promise.all([
     ctx.isOwner ? ctx.supabase.from('profiles').select('*').order('created_at') : Promise.resolve({ data: [] }),
     ctx.supabase.from('support_tickets').select('id, tenant_unread'),
     ctx.isOwner ? aiUsageThisMonth(t.id, 'scan') : Promise.resolve(0),
     ctx.isOwner ? aiUsageThisMonth(t.id, 'copilot') : Promise.resolve(0),
     isPlatformAdmin(),
     loadHelpVideos(),
+    isPlayApp(),
   ]);
   // How-to videos that have a link; a worker skips the owner's screens.
   const videos = HELP_TOPICS.filter((h) => links[h.id] && (ctx.isOwner || !h.owner)).map((h) => ({ ...h, url: links[h.id] }));
@@ -97,6 +100,12 @@ export default async function SettingsPage() {
                 fgasCertificate={hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'fgas') ? (ctx.profile.fgas_certificate ?? '') : undefined}
               />
             </div>
+            {/* Shared demo accounts are never deleted. */}
+            {!isDemo ? (
+              <div className="border-t border-line px-4 py-3">
+                <DeleteAccount owner={ctx.isOwner} />
+              </div>
+            ) : null}
           </Card>
           <Card>
             <CardHeader title="Pomoć" subtitle="Nešto ne radi ili Vam nešto treba? Javite nam." />
@@ -148,16 +157,25 @@ export default async function SettingsPage() {
                 <Badge tone={t.status === 'active' ? 'ok' : t.status === 'trial' ? 'warn' : 'crit'}>{t.status === 'active' ? 'Aktivno' : t.status === 'trial' ? 'Probno razdoblje' : 'Isključeno'}</Badge>
               </KeyValue>
               {t.status === 'trial' ? <KeyValue label="Proba traje do">{formatDate(t.trial_ends_at)}</KeyValue> : null}
-              <KeyValue label="Pretplata">{`${plan.name} · ${plan.people} · ${monthlyPrice(t.plan, t.billing_term)} € mjesečno`}</KeyValue>
-              <KeyValue label="Način plaćanja">{TERM_LABELS[t.billing_term] ?? TERM_LABELS.monthly}</KeyValue>
+              {/* The Google Play app shows no prices (config/play.ts). */}
+              {play ? (
+                <KeyValue label="Pretplata">{`${plan.name} · ${plan.people}`}</KeyValue>
+              ) : (
+                <>
+                  <KeyValue label="Pretplata">{`${plan.name} · ${plan.people} · ${monthlyPrice(t.plan, t.billing_term)} € mjesečno`}</KeyValue>
+                  <KeyValue label="Način plaćanja">{TERM_LABELS[t.billing_term] ?? TERM_LABELS.monthly}</KeyValue>
+                </>
+              )}
               {t.paid_until ? <KeyValue label="Plaćeno do">{formatDate(t.paid_until)}</KeyValue> : null}
               <KeyValue label={`${AI_LABELS.scan} ovaj mjesec`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>
               <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
             </div>
-            <Link href="/app/settings/pretplata" className="flex items-center justify-between border-t border-line px-4 py-3 text-sm font-medium text-accent">
-              Pretplata, paketi i uplata
-              <ChevronRight className="size-4" />
-            </Link>
+            {!play ? (
+              <Link href="/app/settings/pretplata" className="flex items-center justify-between border-t border-line px-4 py-3 text-sm font-medium text-accent">
+                Pretplata, paketi i uplata
+                <ChevronRight className="size-4" />
+              </Link>
+            ) : null}
           </Card>
           ) : null}
           {referral ? (

@@ -120,6 +120,7 @@ export default async function TowerWorkshops({ searchParams }: { searchParams: P
                         aiCopilot: w.ai.copilotQuota,
                         monthly: w.monthly,
                         payments: w.payments,
+                        demo: w.demo,
                       }}
                     />
                   </div>

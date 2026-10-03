@@ -5,6 +5,7 @@ import { accentStyle } from '@/config/tenant.config';
 import { subscription } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
 import { daysUntil, formatDate } from '@/lib/format';
+import { isPlayApp } from '@/lib/play';
 import { requireWorkshop } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
@@ -25,20 +26,32 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // The owner hears a week ahead that the subscription runs out, and again
   // in the week before the workshop locks.
   const sub = subscription(ctx.tenant);
+  // In the Google Play app only the dates, no way to pay (config/play.ts).
+  const play = await isPlayApp();
+  const noticeClass = cn('mb-4 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm', sub.status === 'grace' ? 'border-crit/40 bg-crit/10' : 'border-warn/40 bg-warn/10');
+  const noticeIcon = <Wallet className={cn('size-5 shrink-0', sub.status === 'grace' ? 'text-crit' : 'text-warn')} />;
   const notice =
     ctx.isOwner && (sub.status === 'due_soon' || sub.status === 'grace') ? (
-      <Link
-        href="/app/settings/pretplata"
-        className={cn('mb-4 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm', sub.status === 'grace' ? 'border-crit/40 bg-crit/10' : 'border-warn/40 bg-warn/10')}
-      >
-        <Wallet className={cn('size-5 shrink-0', sub.status === 'grace' ? 'text-crit' : 'text-warn')} />
-        <span className="flex-1">
-          {sub.status === 'grace'
-            ? `Pretplata je istekla ${formatDate(sub.paidUntil)} Aplikacija se zaključava ${formatDate(sub.lockOn)} ako uplata ne stigne.`
-            : `Pretplata vrijedi do ${formatDate(sub.paidUntil)} Uplatite na vrijeme.`}
-        </span>
-        <span className="font-medium">Plati</span>
-      </Link>
+      play ? (
+        <div className={noticeClass}>
+          {noticeIcon}
+          <span className="flex-1">
+            {sub.status === 'grace'
+              ? `Pretplata je istekla ${formatDate(sub.paidUntil)} Aplikacija se zaključava ${formatDate(sub.lockOn)}`
+              : `Pretplata vrijedi do ${formatDate(sub.paidUntil)}`}
+          </span>
+        </div>
+      ) : (
+        <Link href="/app/settings/pretplata" className={noticeClass}>
+          {noticeIcon}
+          <span className="flex-1">
+            {sub.status === 'grace'
+              ? `Pretplata je istekla ${formatDate(sub.paidUntil)} Aplikacija se zaključava ${formatDate(sub.lockOn)} ako uplata ne stigne.`
+              : `Pretplata vrijedi do ${formatDate(sub.paidUntil)} Uplatite na vrijeme.`}
+          </span>
+          <span className="font-medium">Plati</span>
+        </Link>
+      )
     ) : null;
 
   return (
@@ -51,6 +64,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         supportUnread={supportUnread ?? 0}
         doorCount={doorCount ?? 0}
         trialDaysLeft={trialDaysLeft}
+        play={play}
         demo={isDemoUser(ctx.user)}
         notice={notice}
       >

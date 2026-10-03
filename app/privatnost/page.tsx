@@ -111,7 +111,7 @@ export default function PrivacyPage() {
       <Section n={7} title="Vaša prava">
         <p>
           Imate pravo na pristup svojim podacima, ispravak, brisanje, ograničenje obrade, prenosivost i prigovor na obradu koja se temelji na legitimnom interesu. Zahtjev pošaljite na našu
-          e-adresu; odgovaramo u roku od mjesec dana.
+          e-adresu; odgovaramo u roku od mjesec dana. Kako zatražiti brisanje računa, piše na stranici <A href="/brisanje-racuna">Brisanje računa</A>.
         </p>
         <p>
           Ako mislite da obrada nije zakonita, možete podnijeti pritužbu Agenciji za zaštitu osobnih podataka (AZOP), Selska cesta 136, 10000 Zagreb, azop.hr.

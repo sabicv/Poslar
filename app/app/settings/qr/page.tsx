@@ -5,6 +5,7 @@ import { QrControls } from '@/components/intake/QrControls';
 import { BackLink, Card, CardHeader, PageHeader } from '@/components/ui';
 import { PLANS } from '@/config/plans';
 import { qrAllowed } from '@/lib/intake';
+import { isPlayApp } from '@/lib/play';
 import { intakeUrl, qrSvg } from '@/lib/qr';
 import { requireOwner } from '@/lib/session';
 
@@ -17,6 +18,7 @@ export default async function QrSettingsPage() {
   const url = await intakeUrl(t.intake_token);
   const svg = allowed ? await qrSvg(url) : null;
   const field = ctx.pkg.sector === 'field';
+  const play = !allowed && (await isPlayApp());
 
   return (
     <>
@@ -29,14 +31,20 @@ export default async function QrSettingsPage() {
       {!allowed ? (
         <Card>
           <div className="space-y-2 p-4 text-sm">
-            <p className="font-medium">QR samoprijem dolazi uz pakete Standard ({PLANS.standard.price} €) i Premium ({PLANS.premium.price} €).</p>
-            <p className="text-muted">
-              Paket mijenjate u{' '}
-              <Link href="/app/settings/pretplata" className="font-medium text-accent hover:underline">
-                Postavke → Pretplata
-              </Link>
-              .
-            </p>
+            {play ? (
+              <p className="font-medium">QR samoprijem dolazi uz pakete Standard i Premium.</p>
+            ) : (
+              <>
+                <p className="font-medium">QR samoprijem dolazi uz pakete Standard ({PLANS.standard.price} €) i Premium ({PLANS.premium.price} €).</p>
+                <p className="text-muted">
+                  Paket mijenjate u{' '}
+                  <Link href="/app/settings/pretplata" className="font-medium text-accent hover:underline">
+                    Postavke → Pretplata
+                  </Link>
+                  .
+                </p>
+              </>
+            )}
           </div>
         </Card>
       ) : (

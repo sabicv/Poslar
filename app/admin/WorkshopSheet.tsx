@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Settings2, Wallet } from 'lucide-react';
 import { Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import { PLANS, TERM_LABELS, type BillingTerm, type PlanId } from '@/config/plans';
 import { PACKAGES, type PackageId } from '@/config/tenant.config';
-import { adminExtendTrial, adminRecordPayment, adminSetPackage, adminSetStatus, adminUpdateSubscription } from '@/lib/actions/admin';
+import { adminDeleteWorkshop, adminExtendTrial, adminRecordPayment, adminSetPackage, adminSetStatus, adminUpdateSubscription } from '@/lib/actions/admin';
 
 export interface WorkshopSheetData {
   id: string;
@@ -22,6 +23,8 @@ export interface WorkshopSheetData {
   aiCopilot: number;
   monthly: number;
   payments: { id: string; amount: number; months: number; paid_on: string; note: string | null }[];
+  // Shared demo workshops are never deleted.
+  demo: boolean;
 }
 
 const digits = (v: string) => v.replace(/[^0-9]/g, '');
@@ -36,6 +39,8 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
   const [pack, setPack] = useState(w.pkg);
   const [sub, setSub] = useState({ plan: w.plan, term: w.term, paidUntil: w.paidUntil ?? '', notes: w.notes ?? '', aiScan: String(w.aiScan), aiCopilot: String(w.aiCopilot) });
   const [pay, setPay] = useState({ amount: String(w.monthly), months: '1', note: '' });
+  const [confirm, setConfirm] = useState('');
+  const router = useRouter();
   // A payment or another change elsewhere moves the date: the form follows,
   // so "Spremi pretplatu" never writes an old date back.
   useEffect(() => setSub((v) => ({ ...v, paidUntil: w.paidUntil ?? '' })), [w.paidUntil]);
@@ -182,6 +187,33 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
           </Field>
           <p className="mt-3 text-xs text-faint">Isključena radionica ne vidi ništa, ali se podaci ne brišu. Aktivacijom se sve vraća.</p>
         </section>
+
+        {/* Deletion on request, or a year after the subscription ended (privacy policy). */}
+        {!w.demo ? (
+          <section className="space-y-3 border-t border-line pt-4">
+            <p className="font-semibold text-crit">Brisanje</p>
+            <p className="text-xs text-muted">Briše radionicu, sve njezine naloge, mušterije i fotografije te prijave njezinih ljudi. Ne može se vratiti.</p>
+            <Field label="Za potvrdu upišite naziv radionice">
+              <Input value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder={w.name} />
+            </Field>
+            <Button
+              variant="danger"
+              className="w-full"
+              disabled={pending || confirm.trim() !== w.name}
+              onClick={() =>
+                run(() => adminDeleteWorkshop(w.id, confirm), {
+                  success: 'Radionica obrisana',
+                  onDone: () => {
+                    setOpen(false);
+                    router.refresh();
+                  },
+                })
+              }
+            >
+              Obriši radionicu i sve podatke
+            </Button>
+          </section>
+        ) : null}
       </div>
     </Sheet>
   );

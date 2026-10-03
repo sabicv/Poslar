@@ -29,6 +29,7 @@ export function AppShell({
   supportUnread = 0,
   doorCount = 0,
   trialDaysLeft,
+  play = false,
   demo,
   notice,
   children,
@@ -42,6 +43,8 @@ export function AppShell({
   // New requests from the door QR code: a dot on Nalozi / Raspored.
   doorCount?: number;
   trialDaysLeft: number | null;
+  // Inside the Google Play app: the trial note does not lead to paying.
+  play?: boolean;
   demo: boolean;
   // A note at the top of every page (e.g. the subscription is running out).
   notice?: React.ReactNode;
@@ -110,7 +113,7 @@ export function AppShell({
           </Link>
         </nav>
         <div className="mt-auto space-y-3 border-t border-line pt-4">
-          {trialDaysLeft !== null ? <TrialNote days={trialDaysLeft} /> : null}
+          {trialDaysLeft !== null ? <TrialNote days={trialDaysLeft} linked={!play} /> : null}
           <div className="flex items-center justify-between gap-2 px-2">
             <span className="min-w-0">
               <span className="block truncate text-sm">{user.name}</span>
@@ -152,7 +155,7 @@ export function AppShell({
           </div>
           {showTrial ? (
             <div className="flex h-11 items-start px-4">
-              <TrialNote days={trialDaysLeft} />
+              <TrialNote days={trialDaysLeft} linked={!play} />
             </div>
           ) : null}
         </header>
@@ -211,10 +214,14 @@ function DemoBar({ product, isOwner, className }: { product: PackageId; isOwner:
   );
 }
 
-function TrialNote({ days }: { days: number }) {
-  return (
-    <Link href="/app/settings/pretplata" className={cn('block rounded-lg border px-3 py-2 text-xs', days <= 3 ? 'border-warn/40 bg-warn/10 text-warn' : 'border-line bg-surface2 text-muted')}>
-      Probno razdoblje: {days <= 0 ? 'završava danas' : `još ${days} ${plural(days, 'dan', 'dana', 'dana')}`} · Pretplata
+function TrialNote({ days, linked }: { days: number; linked: boolean }) {
+  const className = cn('block rounded-lg border px-3 py-2 text-xs', days <= 3 ? 'border-warn/40 bg-warn/10 text-warn' : 'border-line bg-surface2 text-muted');
+  const left = `Probno razdoblje: ${days <= 0 ? 'završava danas' : `još ${days} ${plural(days, 'dan', 'dana', 'dana')}`}`;
+  return linked ? (
+    <Link href="/app/settings/pretplata" className={className}>
+      {left} · Pretplata
     </Link>
+  ) : (
+    <span className={className}>{left}</span>
   );
 }

@@ -92,6 +92,19 @@ export async function adminSetTicketStatus(ticketId: string, status: 'open' | 'a
   return { ok: true };
 }
 
+// "Zatraži brisanje računa" (Google Play asks for it too): a request the
+// tower carries out within 30 days, as the privacy policy says. The owner
+// asks for the whole workshop, a worker for their own account.
+export async function requestDeletion(): Promise<ActionResult<{ id: string }>> {
+  const ctx = await requireWorkshop();
+  if ((ctx.tenant.settings as { demo?: unknown } | null)?.demo === true) return fail('Demo račun se ne briše.');
+  const who = `${ctx.profile.full_name ?? 'Korisnik'} (${ctx.user.email ?? 'bez e-adrese'})`;
+  const text = ctx.isOwner
+    ? `ZAHTJEV ZA BRISANJE: vlasnik ${who} traži brisanje radionice ${ctx.tenant.name} (poziv na broj ${ctx.tenant.billing_ref}) i svih njezinih podataka.`
+    : `ZAHTJEV ZA BRISANJE: radnik ${who} traži brisanje svog računa.`;
+  return createTicket(text, '/app/settings');
+}
+
 // "Želim ovaj paket": a request the tower answers (plans change there).
 export async function requestPlan(plan: 'basic' | 'standard' | 'premium', term: 'monthly' | '24m'): Promise<ActionResult<{ id: string }>> {
   const ctx = await requireWorkshop();

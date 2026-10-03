@@ -6,4 +6,5 @@ export const LEGAL_PAGES = [
   { href: '/uvjeti', title: 'Uvjeti korištenja' },
   { href: '/privatnost', title: 'Politika privatnosti' },
   { href: '/obrada-podataka', title: 'Ugovor o obradi podataka' },
+  { href: '/brisanje-racuna', title: 'Brisanje računa' },
 ] as const;

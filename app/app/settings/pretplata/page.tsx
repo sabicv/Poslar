@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { PaymentInstructions } from '@/components/billing/PaymentInstructions';
 import { PlanRequest } from '@/components/billing/PlanRequest';
 import { BackLink, Badge, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
@@ -6,6 +7,7 @@ import { AI_LABELS, PLANS, TERM_DISCOUNT, TERM_LABELS, aiQuota, getPlan } from '
 import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { subscription } from '@/lib/billing';
 import { formatDate, formatEuro } from '@/lib/format';
+import { isPlayApp } from '@/lib/play';
 import { requireOwner } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +26,8 @@ const STATUS: Record<string, { label: string; tone: 'ok' | 'warn' | 'crit' | 'mu
 
 export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<{ mj?: string }> }) {
   const ctx = await requireOwner();
+  // Plans, prices and the payment slip are web only (config/play.ts).
+  if (await isPlayApp()) redirect('/app/settings');
   const t = ctx.tenant;
   const sub = subscription(t);
   const plan = getPlan(t.plan);

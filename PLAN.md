@@ -107,7 +107,13 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [ ] (V) U Vercel upisati TAKTIX_OIB (i TAKTIX_PAYEE_NAME, ulicu i grad); bez njih stranice pokazuju samo „TaktiX”
    - [ ] (V) Prihvatiti ugovore o obradi podataka kod Supabasea, Vercela i Anthropica (u njihovim postavkama)
    - [ ] (V) Jednom mjesečno u Tornju obrisati radionice kojima je pretplata istekla prije više od 12 mjeseci
-9. Google Play: paket aplikacije i povezivanje domene ((V) račun za razvojne programere, testeri)
+9. Google Play
+   - [x] /.well-known/assetlinks.json iz Vercela (ANDROID_PACKAGE_NAME, ANDROID_SHA256_FINGERPRINTS): aplikacija s Playa otvara se preko cijelog ekrana
+   - [x] Aplikacija otvorena s Playa (start /app?izvor=play) ne pokazuje cijene, uplatnicu ni „Želim paket” (pravila Google naplate); na webu sve ostaje
+   - [x] Brisanje računa (Google traži): Postavke → Moj račun → „Zatraži brisanje računa” (zahtjev stiže u Toranj), stranica /brisanje-racuna, u Tornju „Obriši radionicu i sve podatke” uz upis naziva
+   - [x] Uputa korak po korak: docs/GOOGLE_PLAY.md (domena, račun, PWABuilder, spajanje, stranica u trgovini, obrazac o podacima, testiranje)
+   - [ ] (V) Domena (npr. taktix.hr) spojena u Vercelu i Supabaseu prije Playa
+   - [ ] (V) Račun za razvojne programere, paket iz PWABuildera, otisci u Vercel, zatvoreno testiranje s testerima (najmanje 12 kroz 14 dana)
 
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).

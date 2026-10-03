@@ -9,6 +9,7 @@ import { signOut } from '@/lib/actions/auth';
 import { support } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
 import { formatDate } from '@/lib/format';
+import { isPlayApp } from '@/lib/play';
 import { getWorkshop, isPlatformAdmin } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -33,6 +34,8 @@ const TEXT = {
   },
 };
 
+const PLAY_BODY = 'Svi nalozi, fotografije i mušterije su sačuvani. Za nastavak se javite TaktiX podršci.';
+
 export default async function LockedPage({ searchParams }: { searchParams: Promise<{ mj?: string }> }) {
   const state = await getWorkshop();
   if (state.kind === 'anonymous') redirect('/login');
@@ -40,11 +43,13 @@ export default async function LockedPage({ searchParams }: { searchParams: Promi
   if (state.reason === 'no_workshop' && (await isPlatformAdmin())) redirect('/admin');
   if (state.reason === 'no_workshop' && isDemoUser(state.user)) redirect('/demo');
 
-  const text = TEXT[state.reason];
+  // The Google Play app shows no way to pay (config/play.ts).
+  const play = await isPlayApp();
+  const text = play && (state.reason === 'trial_ended' || state.reason === 'unpaid') ? { ...TEXT[state.reason], body: PLAY_BODY } : TEXT[state.reason];
   const help = support();
   const contact = [help.email, help.phone].filter(Boolean).join(' · ');
   // The owner of a workshop whose trial or subscription ran out sees how to pay.
-  const payable = (state.reason === 'trial_ended' || state.reason === 'unpaid') && state.role === 'owner' && state.tenantId;
+  const payable = !play && (state.reason === 'trial_ended' || state.reason === 'unpaid') && state.role === 'owner' && state.tenantId;
   // Read on the server: the database hides a locked workshop's row from its
   // own users, and the id comes from this user's own access, not the URL.
   const { data: tenant } = payable ? await createAdminClient().from('tenants').select('name, address, city, billing_ref, plan, billing_term').eq('id', state.tenantId!).maybeSingle() : { data: null };

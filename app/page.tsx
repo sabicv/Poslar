@@ -10,7 +10,9 @@ import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { ButtonLink } from '@/components/ui';
 import { BRAND, PACKAGES, TRADE_GROUPS, accentStyle, matchPackageFromHost, type PackageId } from '@/config/tenant.config';
+import { redirect } from 'next/navigation';
 import { support, supportWhatsApp } from '@/lib/billing';
+import { isPlayApp } from '@/lib/play';
 import { getAuth } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
@@ -93,6 +95,8 @@ const FAQ = [
 const HELLO = 'Pozdrav, zanima me TaktiX. ';
 
 export default async function Home() {
+  // The Google Play app is the app itself, with no prices (config/play.ts).
+  if (await isPlayApp()) redirect('/app');
   const host = (await headers()).get('host');
   const product = matchPackageFromHost(host);
   // The page shows to everyone, signed in or not (showing it to a customer
