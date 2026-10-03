@@ -39,7 +39,7 @@ export default async function TowerWorkshops({ searchParams }: { searchParams: P
   const needle = q.trim().toLowerCase();
   const list = all
     .filter(filter.test)
-    .filter((w) => !needle || [w.tenant.name, w.tenant.city, w.tenant.oib, w.owner?.name, w.owner?.email, w.owner?.phone].some((v) => v?.toLowerCase().includes(needle)));
+    .filter((w) => !needle || [w.tenant.name, w.tenant.city, w.tenant.oib, w.owner?.name, w.owner?.email, w.owner?.phone, String(w.tenant.billing_ref)].some((v) => v?.toLowerCase().includes(needle)));
   const href = (params: { f?: string; demo?: boolean }) => {
     const sp = new URLSearchParams();
     const nf = params.f ?? f;
@@ -55,7 +55,7 @@ export default async function TowerWorkshops({ searchParams }: { searchParams: P
       <PageHeader title="Radionice" subtitle={`${list.length} od ${all.length}`} action={<CreateWorkshop />} />
       <form className="relative mb-3" action="/admin/radionice">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
-        <Input name="q" defaultValue={q} placeholder="Naziv, vlasnik, e-mail, telefon, grad ili OIB" className="pl-9" />
+        <Input name="q" defaultValue={q} placeholder="Naziv, vlasnik, e-mail, telefon, grad, OIB ili poziv na broj" className="pl-9" />
         {f !== 'sve' ? <input type="hidden" name="f" value={f} /> : null}
         {showDemo ? <input type="hidden" name="demo" value="1" /> : null}
       </form>
@@ -97,7 +97,7 @@ export default async function TowerWorkshops({ searchParams }: { searchParams: P
                         ) : null}
                       </p>
                       <p className="truncate text-xs text-muted">{[w.owner?.name, w.owner?.phone, w.owner?.email].filter(Boolean).join(' · ')}</p>
-                      <p className="truncate text-xs text-faint">{[t.city, t.oib && `OIB ${t.oib}`, `od ${formatDate(t.created_at)}`].filter(Boolean).join(' · ')}</p>
+                      <p className="truncate text-xs text-faint">{[t.city, t.oib && `OIB ${t.oib}`, `poziv na broj ${t.billing_ref}`, `od ${formatDate(t.created_at)}`].filter(Boolean).join(' · ')}</p>
                     </div>
                     <WorkshopSheet
                       w={{

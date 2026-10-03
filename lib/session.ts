@@ -4,11 +4,12 @@ import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { getPackage, type PackageConfig, type PackageId } from '@/config/tenant.config';
+import { subscription } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
 import { createServerSupabaseClient, type ServerSupabaseClient } from '@/lib/supabase/server';
 import type { Profile, StaffRole, Tenant, TenantStatus } from '@/types/db';
 
-export type LockReason = 'suspended' | 'trial_ended' | 'no_workshop';
+export type LockReason = 'suspended' | 'trial_ended' | 'unpaid' | 'no_workshop';
 
 export interface WorkshopContext {
   supabase: ServerSupabaseClient;
@@ -22,7 +23,7 @@ export interface WorkshopContext {
 
 type WorkshopState =
   | { kind: 'anonymous' }
-  | { kind: 'locked'; reason: LockReason; user: User; name?: string; pkg?: PackageConfig; role?: StaffRole }
+  | { kind: 'locked'; reason: LockReason; user: User; name?: string; pkg?: PackageConfig; role?: StaffRole; tenantId?: string }
   | ({ kind: 'active' } & WorkshopContext);
 
 interface AccessRow {
@@ -56,7 +57,7 @@ export const getWorkshop = cache(async (): Promise<WorkshopState> => {
     return { kind: 'locked', reason: 'suspended', user, name: access.name, pkg, role: access.role };
   }
   if (access.status === 'trial' && access.trial_ends_at && new Date(access.trial_ends_at) < new Date()) {
-    return { kind: 'locked', reason: 'trial_ended', user, name: access.name, pkg, role: access.role };
+    return { kind: 'locked', reason: 'trial_ended', user, name: access.name, pkg, role: access.role, tenantId: access.tenant_id };
   }
 
   const [{ data: tenant }, { data: profile }] = await Promise.all([
@@ -64,6 +65,10 @@ export const getWorkshop = cache(async (): Promise<WorkshopState> => {
     supabase.from('profiles').select('*').eq('id', user.id).single(),
   ]);
   if (!tenant || !profile) return { kind: 'locked', reason: 'no_workshop', user };
+  // Paid until a date that is more than a week gone: locked until the payment arrives.
+  if (subscription(tenant as Tenant).status === 'overdue') {
+    return { kind: 'locked', reason: 'unpaid', user, name: access.name, pkg, role: access.role, tenantId: access.tenant_id };
+  }
 
   return {
     kind: 'active',

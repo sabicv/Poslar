@@ -91,3 +91,12 @@ export async function adminSetTicketStatus(ticketId: string, status: 'open' | 'a
   revalidatePath(`/admin/podrska/${ticketId}`);
   return { ok: true };
 }
+
+// "Želim ovaj paket": a request the tower answers (plans change there).
+export async function requestPlan(plan: 'basic' | 'standard' | 'premium', term: 'monthly' | '24m'): Promise<ActionResult<{ id: string }>> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Paket mijenja voditelj servisa.');
+  const names = { basic: 'Basic', standard: 'Standard', premium: 'Premium' } as const;
+  if (!(plan in names)) return fail('Nepoznat paket.');
+  return createTicket(`Želim paket ${names[plan]}${term === '24m' ? ', ugovor na 24 mjeseca' : ', mjesečno'}.`, '/app/settings/pretplata');
+}

@@ -38,6 +38,8 @@ export interface Tenant {
   // Door QR self-intake (/q/<intake_token>).
   intake_token: string;
   intake_enabled: boolean;
+  // Poziv na broj (model HR00) for the subscription payment.
+  billing_ref: number;
 }
 
 export interface Profile {

@@ -77,8 +77,10 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [ ] (V) FINA demo certifikat za testiranje
    - [ ] Spajanje na odabranog posrednika, test u njihovom testnom okruženju
 2. Naplata pretplate
-   - [ ] Postavke → Pretplata: cijena, plaćeno do, kako platiti (IBAN TaktiXa, poziv na broj radionice)
-   - [ ] Podsjetnik 7 dana prije isteka, 7 dana počeka, zatim zaključavanje dok uplata ne stigne
+   - [x] Postavke → Pretplata: paket, cijena, plaćeno do, AI potrošnja, „Želim ovaj paket”, uplatnica s barkodom za mobilno bankarstvo (IBAN TaktiXa, HR00 i poziv na broj radionice)
+   - [x] Traka vlasniku 7 dana prije isteka, 7 dana počeka, zatim zaključavanje s uplatnicom; radionica bez „plaćeno do” se ne zaključava; Toranj pokazuje poziv na broj
+   - [ ] (V) U Vercel upisati TAKTIX_IBAN, TAKTIX_PAYEE_NAME, TAKTIX_PAYEE_STREET, TAKTIX_PAYEE_CITY, SUPPORT_PHONE, SUPPORT_EMAIL
+   - [ ] (V) Račune za pretplatu TaktiX izdaje u svom programu dok se ne spoji posrednik; barkod provjeriti skeniranjem u svojoj banci
    - [ ] (V) Stripe račun za plaćanje karticom; zatim plaćanje karticom u aplikaciji
 3. Prvi koraci nakon registracije: popis od 4 stavke (logo i OIB, radnik, prvi nalog, prvi račun) i primjer podataka
 4. Lijevak u Tornju: registracija → prvi nalog → 10 naloga → plaća, i gdje ljudi odustaju

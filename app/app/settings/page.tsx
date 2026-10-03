@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ChevronRight, LogOut } from 'lucide-react';
 import { SupportButton } from '@/components/SupportButton';
 import { Badge, Button, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
-import { AI_LABELS, PLANS, TERM_LABELS, aiQuota, getPlan, monthlyPrice } from '@/config/plans';
+import { AI_LABELS, TERM_LABELS, aiQuota, getPlan, monthlyPrice } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { signOut } from '@/lib/actions/auth';
 import { hasModule } from '@/config/tenant.config';
@@ -107,7 +107,10 @@ export default async function SettingsPage() {
               <KeyValue label={`${AI_LABELS.scan} ovaj mjesec`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>
               <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
             </div>
-            <p className="border-t border-line px-4 py-2.5 text-xs text-faint">Veći paket: {Object.values(PLANS).filter((p) => p.price > plan.price).map((p) => `${p.name} ${p.price} €`).join(', ') || 'imate najveći'}. Promjenu tražite kroz „Javi problem”.</p>
+            <Link href="/app/settings/pretplata" className="flex items-center justify-between border-t border-line px-4 py-3 text-sm font-medium text-accent">
+              Pretplata, paketi i uplata
+              <ChevronRight className="size-4" />
+            </Link>
           </Card>
           ) : null}
         </div>

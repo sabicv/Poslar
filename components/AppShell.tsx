@@ -30,6 +30,7 @@ export function AppShell({
   doorCount = 0,
   trialDaysLeft,
   demo,
+  notice,
   children,
 }: {
   product: { id: PackageId; name: string; clients: string; modulePage: string; field: boolean };
@@ -42,6 +43,8 @@ export function AppShell({
   doorCount?: number;
   trialDaysLeft: number | null;
   demo: boolean;
+  // A note at the top of every page (e.g. the subscription is running out).
+  notice?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -156,6 +159,7 @@ export function AppShell({
 
         <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8 print:max-w-none print:p-0">
           {pathname === '/app' ? <InstallPrompt /> : null}
+          {notice}
           {children}
         </main>
 
@@ -209,8 +213,8 @@ function DemoBar({ product, isOwner, className }: { product: PackageId; isOwner:
 
 function TrialNote({ days }: { days: number }) {
   return (
-    <p className={cn('rounded-lg border px-3 py-2 text-xs', days <= 3 ? 'border-warn/40 bg-warn/10 text-warn' : 'border-line bg-surface2 text-muted')}>
-      Probno razdoblje: {days <= 0 ? 'završava danas' : `još ${days} ${plural(days, 'dan', 'dana', 'dana')}`}
-    </p>
+    <Link href="/app/settings/pretplata" className={cn('block rounded-lg border px-3 py-2 text-xs', days <= 3 ? 'border-warn/40 bg-warn/10 text-warn' : 'border-line bg-surface2 text-muted')}>
+      Probno razdoblje: {days <= 0 ? 'završava danas' : `još ${days} ${plural(days, 'dan', 'dana', 'dana')}`} · Pretplata
+    </Link>
   );
 }

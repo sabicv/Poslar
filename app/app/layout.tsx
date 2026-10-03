@@ -1,8 +1,12 @@
+import Link from 'next/link';
+import { Wallet } from 'lucide-react';
 import { AppShell } from '@/components/AppShell';
 import { accentStyle } from '@/config/tenant.config';
+import { subscription } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
-import { daysUntil } from '@/lib/format';
+import { daysUntil, formatDate } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
+import { cn } from '@/lib/utils';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireWorkshop();
@@ -18,6 +22,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   ]);
 
   const trialDaysLeft = ctx.tenant.status === 'trial' ? daysUntil(ctx.tenant.trial_ends_at) : null;
+  // The owner hears a week ahead that the subscription runs out, and again
+  // in the week before the workshop locks.
+  const sub = subscription(ctx.tenant);
+  const notice =
+    ctx.isOwner && (sub.status === 'due_soon' || sub.status === 'grace') ? (
+      <Link
+        href="/app/settings/pretplata"
+        className={cn('mb-4 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm', sub.status === 'grace' ? 'border-crit/40 bg-crit/10' : 'border-warn/40 bg-warn/10')}
+      >
+        <Wallet className={cn('size-5 shrink-0', sub.status === 'grace' ? 'text-crit' : 'text-warn')} />
+        <span className="flex-1">
+          {sub.status === 'grace'
+            ? `Pretplata je istekla ${formatDate(sub.paidUntil)} Aplikacija se zaključava ${formatDate(sub.lockOn)} ako uplata ne stigne.`
+            : `Pretplata vrijedi do ${formatDate(sub.paidUntil)} Uplatite na vrijeme.`}
+        </span>
+        <span className="font-medium">Plati</span>
+      </Link>
+    ) : null;
 
   return (
     <div className="accent-scope min-h-dvh" style={accentStyle(ctx.pkg)}>
@@ -30,6 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         doorCount={doorCount ?? 0}
         trialDaysLeft={trialDaysLeft}
         demo={isDemoUser(ctx.user)}
+        notice={notice}
       >
         {children}
       </AppShell>
