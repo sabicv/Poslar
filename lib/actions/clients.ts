@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { CLIMATE_TYPES, PACKAGES, type AssetType } from '@/config/tenant.config';
+import { DEVICE_TYPES, PACKAGES, type AssetType } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop } from '@/lib/session';
 import { toIlike } from '@/lib/utils';
@@ -122,7 +122,7 @@ export async function saveAsset(id: string | null, values: z.input<typeof assetS
   // Plates are upper case; a climate device's label ("Dnevni boravak") is not.
   const row = {
     ...parsed.data,
-    identifier: parsed.data.identifier && !CLIMATE_TYPES.includes(parsed.data.asset_type) ? parsed.data.identifier.toUpperCase() : parsed.data.identifier,
+    identifier: parsed.data.identifier && !DEVICE_TYPES.includes(parsed.data.asset_type) ? parsed.data.identifier.toUpperCase() : parsed.data.identifier,
   };
   const query = id
     ? ctx.supabase.from('assets').update(row).eq('id', id).select('id').single()

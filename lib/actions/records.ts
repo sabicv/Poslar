@@ -66,6 +66,12 @@ const WRITABLE: Record<string, string> = {
   air_equipment: 'asset_id',
   air_fgas_log: 'id',
   maintenance_plans: 'id',
+  aqua_equipment: 'asset_id',
+  aqua_pressure_tests: 'id',
+  tow_calls: 'job_id',
+  tow_storage: 'id',
+  deal_stock: 'job_id',
+  deal_test_drives: 'id',
 };
 
 type Values = Record<string, unknown>;
@@ -91,7 +97,7 @@ const MODULE_TABLES: Record<string, ModuleId> = {
 function tablePackage(table: string): PackageId | null {
   if (table === 'insurers') return 'body';
   const prefix = table.split('_')[0];
-  return (['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'air'] as PackageId[]).includes(prefix as PackageId) ? (prefix as PackageId) : null;
+  return (['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'air', 'aqua', 'tow', 'deal'] as PackageId[]).includes(prefix as PackageId) ? (prefix as PackageId) : null;
 }
 
 function allowedForWorkshop(ctx: WorkshopContext, table: string): boolean {
@@ -117,8 +123,10 @@ export async function saveRecord(
   );
   delete clean.tenant_id;
   delete clean.created_at;
-  // An F-gas record always names the technician who did it.
-  if (table === 'air_fgas_log' && !options.id) clean.technician_id = ctx.user.id;
+  // An F-gas record and a pressure test always name the technician who
+  // did it; a test drive names who handed over the keys.
+  if ((table === 'air_fgas_log' || table === 'aqua_pressure_tests') && !options.id) clean.technician_id = ctx.user.id;
+  if (table === 'deal_test_drives' && !options.id) clean.staff_id = ctx.user.id;
 
   let result;
   if (options.upsertOn) {

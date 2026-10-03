@@ -16,6 +16,7 @@ export function JobActionBar({
   isOwner,
   paid,
   locked,
+  billing = true,
 }: {
   jobId: string;
   phase: JobPhase;
@@ -23,6 +24,8 @@ export function JobActionBar({
   isOwner: boolean;
   paid: boolean;
   locked: boolean;
+  // False when the job is the business's own cost (Deal): nothing to collect.
+  billing?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -67,6 +70,7 @@ export function JobActionBar({
             <div className="mt-6 grid gap-2 border-t border-line pt-4">
               {/* Payment and lock live here, not as extra icons on the bar:
                   the bar keeps two big buttons with full phase names. */}
+              {billing ? (
               <Button
                 size="lg"
                 variant={paid ? 'ok' : 'secondary'}
@@ -76,6 +80,7 @@ export function JobActionBar({
               >
                 <Wallet className="size-5" /> {paid ? 'Plaćeno. Vrati na „Za naplatu”' : 'Označi plaćeno'}
               </Button>
+              ) : null}
               <Button
                 size="lg"
                 variant={locked ? 'danger' : 'secondary'}

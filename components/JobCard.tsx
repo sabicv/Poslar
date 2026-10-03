@@ -14,7 +14,7 @@ export type BoardJob = Pick<Job, 'id' | 'number' | 'phase' | 'complaint' | 'is_u
 // showPhase=false inside a list already grouped under the phase name.
 export function JobCard({ job, pkg, total, showMoney, showPhase = true }: { job: BoardJob; pkg: PackageConfig; total?: number; showMoney: boolean; showPhase?: boolean }) {
   const promised = daysUntil(job.promised_at);
-  const unpaid = showMoney && job.payment_status === 'unpaid' && (job.phase === 'ready' || job.phase === 'collected');
+  const unpaid = showMoney && !pkg.internalJobs && job.payment_status === 'unpaid' && (job.phase === 'ready' || job.phase === 'collected');
   return (
     <Link
       prefetch={false} href={`/app/jobs/${job.id}`}

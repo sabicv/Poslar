@@ -7,6 +7,9 @@ import { MotoModule } from './moto/MotoModule';
 import { VoltModule } from './volt/VoltModule';
 import { WheelModule } from './wheel/WheelModule';
 import { AirModule } from './air/AirModule';
+import { AquaModule } from './aqua/AquaModule';
+import { DealModule } from './deal/DealModule';
+import { TowModule } from './tow/TowModule';
 
 export interface ModuleProps {
   ctx: WorkshopContext;
@@ -33,5 +36,11 @@ export function ModuleTab(props: ModuleProps) {
       return <MotoModule {...props} />;
     case 'air':
       return <AirModule {...props} />;
+    case 'aqua':
+      return <AquaModule {...props} />;
+    case 'tow':
+      return <TowModule {...props} />;
+    case 'deal':
+      return <DealModule {...props} />;
   }
 }

@@ -3,7 +3,7 @@
 import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { CLIMATE_TYPES, defaultMeterUnit } from '@/config/tenant.config';
+import { DEVICE_TYPES, defaultMeterUnit } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { nameKey, phoneKey, type ImportClient } from '@/lib/import/detect';
 import { requireWorkshop } from '@/lib/session';
@@ -132,7 +132,7 @@ export async function importClients(batch: ImportClient[]): Promise<ActionResult
         client_id: clientId,
         site_id: siteId,
         asset_type: type,
-        identifier: a.identifier && !CLIMATE_TYPES.includes(type) ? a.identifier.toUpperCase() : a.identifier,
+        identifier: a.identifier && !DEVICE_TYPES.includes(type) ? a.identifier.toUpperCase() : a.identifier,
         vin: a.vin,
         make: a.make,
         model: a.model,

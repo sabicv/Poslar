@@ -300,5 +300,25 @@ console.log('\nInvoices');
   check('every job has a private invoice link token', /^[0-9a-f-]{36}$/.test(String(issued.invoice_token)), String(issued.invoice_token));
 }
 
+// Aqua, Tow and Deal: the new trades' records follow the same rules.
+console.log('\nAqua, Tow, Deal');
+{
+  const [heater] = await as(U.aOwner, () => q(`insert into public.assets (tenant_id, client_id, asset_type, make) values ($1,$2,'water_heater','Gorenje') returning id`, [tA, ids.client]));
+  check('a water heater is a valid object type', Boolean(heater?.id));
+  await as(U.aWorker, async () => {
+    await q(`insert into public.tow_calls (tenant_id, job_id, payer, pickup_address) values ($1,$2,'assistance','A1, 112. km')`, [tA, ids.job]);
+    await q(`insert into public.deal_stock (tenant_id, job_id, asset_id, asking_price) values ($1,$2,$3, 8900)`, [tA, ids.job, ids.asset]);
+    await q(`insert into public.aqua_pressure_tests (tenant_id, job_id, test_pressure_bar, end_pressure_bar, duration_min, passed) values ($1,$2,10,9.9,30,true)`, [tA, ids.job]);
+    check('worker writes a tow call, a car for sale and a pressure test', (await q(`select 1 from public.tow_calls union all select 1 from public.deal_stock union all select 1 from public.aqua_pressure_tests`)).length === 3);
+    check('worker cannot delete a car for sale', (await q(`delete from public.deal_stock where job_id = $1 returning job_id`, [ids.job])).length === 0);
+    await q(`insert into public.tow_storage (tenant_id, job_id, asset_id) values ($1,$2,$3)`, [tA, ids.job, ids.asset]);
+    check('the same car cannot be on the yard twice', await fails(() => q(`insert into public.tow_storage (tenant_id, job_id, asset_id) values ($1,$2,$3)`, [tA, ids.job, ids.asset])));
+  });
+  await as(U.bOwner, async () => {
+    check("another workshop sees none of A's calls, cars or tests", (await q(`select 1 from public.tow_calls union all select 1 from public.deal_stock union all select 1 from public.aqua_pressure_tests union all select 1 from public.tow_storage`)).length === 0);
+    check("another workshop cannot write into A's work order", await fails(() => q(`insert into public.tow_calls (tenant_id, job_id) values ($1,$2)`, [tA, ids.job])));
+  });
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

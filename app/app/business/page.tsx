@@ -191,32 +191,35 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
           )}
         </Card>
 
-        <Card>
-          <CardHeader title="Za naplatu" action={unpaidIds.length ? <span className="text-sm font-semibold tabular text-warn">{formatEuro(outstanding)}</span> : null} />
-          {(unpaid ?? []).length ? (
-            <ul className="divide-y divide-line">
-              {(unpaid ?? []).map((j) => (
-                <li key={j.id as string}>
-                  <Link prefetch={false} href={`/app/jobs/${j.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface2">
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm">
-                        {clientName(j.client as never)} <span className="text-faint">· #{j.number as number}</span>
+        {/* Deal: the jobs are the dealer's own cost, nothing to collect. */}
+        {!ctx.pkg.internalJobs ? (
+          <Card>
+            <CardHeader title="Za naplatu" action={unpaidIds.length ? <span className="text-sm font-semibold tabular text-warn">{formatEuro(outstanding)}</span> : null} />
+            {(unpaid ?? []).length ? (
+              <ul className="divide-y divide-line">
+                {(unpaid ?? []).map((j) => (
+                  <li key={j.id as string}>
+                    <Link prefetch={false} href={`/app/jobs/${j.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface2">
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm">
+                          {clientName(j.client as never)} <span className="text-faint">· #{j.number as number}</span>
+                        </span>
+                        <span className="block truncate text-xs text-muted">
+                          {assetTitle(j.asset as never)} · gotovo {formatRelative(j.finished_at as string | null)}
+                        </span>
                       </span>
-                      <span className="block truncate text-xs text-muted">
-                        {assetTitle(j.asset as never)} · gotovo {formatRelative(j.finished_at as string | null)}
-                      </span>
-                    </span>
-                    <span className="text-sm font-medium tabular">{formatEuro(gross.get(j.id as string))}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="p-4">
-              <EmptyState title="Sve je naplaćeno" />
-            </div>
-          )}
-        </Card>
+                      <span className="text-sm font-medium tabular">{formatEuro(gross.get(j.id as string))}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="p-4">
+                <EmptyState title="Sve je naplaćeno" />
+              </div>
+            )}
+          </Card>
+        ) : null}
 
         <AccountingExport perMonth={invoicesPerMonth} today={zagrebDate(new Date().toISOString())} />
       </div>

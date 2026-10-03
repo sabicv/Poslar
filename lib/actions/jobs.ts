@@ -3,7 +3,7 @@
 import { plural } from '@/lib/format';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { CLIMATE_TYPES, PACKAGES, PHASE_ORDER, defaultMeterUnit, phaseLabel, type AssetType, type JobPhase, type LineKind } from '@/config/tenant.config';
+import { DEVICE_TYPES, PACKAGES, PHASE_ORDER, defaultMeterUnit, phaseLabel, type AssetType, type JobPhase, type LineKind } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop, type WorkshopContext } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -128,7 +128,7 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
     meterUnit = defaultMeterUnit(a.assetType);
     const { data, error } = await ctx.supabase
       .from('assets')
-      .insert({ tenant_id, client_id: clientId, site_id: siteId, asset_type: a.assetType, identifier: a.identifier && !CLIMATE_TYPES.includes(a.assetType) ? a.identifier.toUpperCase() : a.identifier, make: a.make, model: a.model, year: a.year, vin: a.vin, meter_primary_unit: meterUnit })
+      .insert({ tenant_id, client_id: clientId, site_id: siteId, asset_type: a.assetType, identifier: a.identifier && !DEVICE_TYPES.includes(a.assetType) ? a.identifier.toUpperCase() : a.identifier, make: a.make, model: a.model, year: a.year, vin: a.vin, meter_primary_unit: meterUnit })
       .select('id')
       .single();
     if (error) return fail(error);

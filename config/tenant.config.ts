@@ -2,7 +2,7 @@
 // TaktiX · central tenant configuration
 //
 // One workshop = one package. Everything that differs between Volt,
-// Gear, Body, Wheel, Fleet and Moto lives here as typed data: brand and
+// Gear, Body, Wheel, Fleet, Moto, Air, Aqua, Tow and Deal lives here as typed data: brand and
 // accent colour, vocabulary (Mušterija vs Tvrtka, km vs mth), object
 // types, job phase wording, inspection checklists, work templates and
 // which modules are switched on. The database stores only the package
@@ -18,8 +18,11 @@ import { wheel } from './packages/wheel';
 import { fleet } from './packages/fleet';
 import { moto } from './packages/moto';
 import { air } from './packages/air';
+import { aqua } from './packages/aqua';
+import { tow } from './packages/tow';
+import { deal } from './packages/deal';
 
-export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'moto' | 'air';
+export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'moto' | 'air' | 'aqua' | 'tow' | 'deal';
 // Where the work happens: the customer brings the object in, or the
 // technician goes to the customer's address.
 export type Sector = 'workshop' | 'field';
@@ -37,7 +40,8 @@ export type LineKind = 'labor' | 'part' | 'material' | 'package' | 'sublet' | 'f
 export type AssetType =
   | 'car' | 'van' | 'truck' | 'tractor_unit' | 'bus' | 'trailer' | 'semi_trailer' | 'machine'
   | 'tractor' | 'implement' | 'motorcycle' | 'scooter' | 'atv' | 'jetski' | 'boat' | 'outboard' | 'inboard'
-  | 'ac_split' | 'ac_multi' | 'ac_ducted' | 'ac_vrf' | 'heat_pump' | 'ventilation' | 'chiller';
+  | 'ac_split' | 'ac_multi' | 'ac_ducted' | 'ac_vrf' | 'heat_pump' | 'ventilation' | 'chiller'
+  | 'water_heater' | 'gas_boiler' | 'plumbing' | 'drainage' | 'heating' | 'pump';
 
 export type ModuleId =
   | 'dvi'
@@ -116,10 +120,15 @@ export interface PackageConfig {
   pitch: string[];
   sector: Sector;
   accent: string;
+  // Work orders are the business's own cost (Deal: getting a car ready
+  // for sale), never a bill: no "Za naplatu", no invoice.
+  internalJobs?: boolean;
   vocabulary: Vocabulary;
   assetTypes: AssetType[];
   defaultAssetType: AssetType;
   phaseLabels: Partial<Record<JobPhase, string>>;
+  // Phases the trade never uses: left out of the phase picker and "next".
+  skipPhases?: JobPhase[];
   symptoms: string[];
   photoTags: { code: string; label: string }[];
   diagram: 'car' | 'truck' | 'moto' | 'boat';
@@ -133,17 +142,19 @@ export interface PackageConfig {
   modulePage: string;
 }
 
-export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto, air };
+export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto, air, aqua, tow, deal };
 export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 
-// Two groups so a visitor first says how he works, then picks the trade:
+// Groups so a visitor first says how he works, then picks the trade:
 // the work is run from the workshop (trucks and machines too, with notes
-// from the field), or the craftsman goes to the customer. A road-service
-// group can come back with a package of its own.
-export type TradeGroupId = 'radionica' | 'teren';
+// from the field), the craftsman goes to the customer, the truck goes to
+// the road, or the cars are bought and sold.
+export type TradeGroupId = 'radionica' | 'teren' | 'cesta' | 'prodaja';
 export const TRADE_GROUPS: { id: TradeGroupId; name: string; hint: string; packages: PackageId[] }[] = [
   { id: 'radionica', name: 'Radionica', hint: 'Posao se vodi iz radionice', packages: ['volt', 'gear', 'body', 'wheel', 'moto', 'fleet'] },
-  { id: 'teren', name: 'Teren', hint: 'Majstor ide k mušteriji', packages: ['air'] },
+  { id: 'teren', name: 'Teren', hint: 'Majstor ide k mušteriji', packages: ['air', 'aqua'] },
+  { id: 'cesta', name: 'Cesta', hint: 'Vuča i pomoć na cesti, danju i noću', packages: ['tow'] },
+  { id: 'prodaja', name: 'Prodaja', hint: 'Otkup, priprema i prodaja rabljenih vozila', packages: ['deal'] },
 ];
 export function tradeGroupOf(id: PackageId): TradeGroupId {
   return TRADE_GROUPS.find((g) => g.packages.includes(id))?.id ?? 'radionica';
@@ -209,10 +220,19 @@ export const ASSET_TYPE_LABELS: Record<AssetType, string> = {
   heat_pump: 'Dizalica topline',
   ventilation: 'Ventilacija / rekuperator',
   chiller: 'Rashladnik vode (chiller)',
+  water_heater: 'Bojler',
+  gas_boiler: 'Plinski kotao',
+  plumbing: 'Vodovodna instalacija',
+  drainage: 'Odvodnja i kanalizacija',
+  heating: 'Grijanje (radijatori, podno)',
+  pump: 'Pumpa ili hidrofor',
 };
 
-const MTH_TYPES: AssetType[] = ['machine', 'tractor', 'implement', 'jetski', 'boat', 'outboard', 'inboard', 'ac_split', 'ac_multi', 'ac_ducted', 'ac_vrf', 'heat_pump', 'ventilation', 'chiller'];
 export const CLIMATE_TYPES: AssetType[] = ['ac_split', 'ac_multi', 'ac_ducted', 'ac_vrf', 'heat_pump', 'ventilation', 'chiller'];
+export const WATER_TYPES: AssetType[] = ['water_heater', 'gas_boiler', 'plumbing', 'drainage', 'heating', 'pump'];
+// Not a vehicle: no plate, no kilometres, a serial number instead of a VIN.
+export const DEVICE_TYPES: AssetType[] = [...CLIMATE_TYPES, ...WATER_TYPES];
+const MTH_TYPES: AssetType[] = ['machine', 'tractor', 'implement', 'jetski', 'boat', 'outboard', 'inboard', ...DEVICE_TYPES];
 
 export function defaultMeterUnit(type: AssetType): MeterUnit {
   return MTH_TYPES.includes(type) ? 'mth' : 'km';
@@ -222,14 +242,14 @@ export function identifierLabel(type: AssetType): string {
   if (type === 'boat' || type === 'jetski') return 'Registarska oznaka plovila';
   if (type === 'outboard' || type === 'inboard') return 'Serijski broj motora';
   if (type === 'machine' || type === 'implement') return 'Serijski broj';
-  if (CLIMATE_TYPES.includes(type)) return 'Oznaka uređaja';
+  if (DEVICE_TYPES.includes(type)) return 'Oznaka uređaja';
   return 'Registracija';
 }
 
 export function vinLabel(type: AssetType): string {
   if (type === 'boat' || type === 'jetski') return 'HIN / CIN (14 znakova)';
   if (type === 'outboard' || type === 'inboard') return 'Oznaka modela';
-  if (CLIMATE_TYPES.includes(type)) return 'Serijski broj';
+  if (DEVICE_TYPES.includes(type)) return 'Serijski broj';
   return 'VIN';
 }
 
@@ -261,7 +281,7 @@ export function findInspection(pkg: PackageConfig, code: string): InspectionTemp
 }
 
 // Product by domain: gearfiles.hr → Gear. Subdomains (gear.localhost,
-// gear.x-files.vercel.app) work too, for testing all six on one server.
+// gear.x-files.vercel.app) work too, for testing all of them on one server.
 export function matchPackageFromHost(host: string | null | undefined): PackageConfig | null {
   const h = (host ?? '').toLowerCase().split(':')[0];
   for (const pkg of Object.values(PACKAGES)) {

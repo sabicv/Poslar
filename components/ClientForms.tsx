@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Pencil, Plus } from 'lucide-react';
 import { ConfirmButton, DictateButton, DictateInput, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
-import { CLIMATE_TYPES, type AssetType, type MeterUnit } from '@/config/tenant.config';
+import { DEVICE_TYPES, type AssetType, type MeterUnit } from '@/config/tenant.config';
 import { ScanButton } from '@/components/ScanButton';
 import { deleteAsset, deleteClient, saveAsset, saveClient } from '@/lib/actions/clients';
 import { deleteSite, saveSite } from '@/lib/actions/field';
@@ -189,7 +189,7 @@ export function AssetSheet({
   const set = (key: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [key]: e.target.value }));
   const unit = assetTypes.find((t) => t.value === v.asset_type)?.unit ?? 'km';
   // A vehicle is read from its registration certificate, a device from its nameplate.
-  const device = assetTypes.some((t) => CLIMATE_TYPES.includes(t.value));
+  const device = assetTypes.some((t) => DEVICE_TYPES.includes(t.value));
   const fromPhoto = (d: Record<string, unknown>) => {
     const s = (k: string) => (typeof d[k] === 'string' && (d[k] as string).trim() ? (d[k] as string).trim() : null);
     setV((x) => ({

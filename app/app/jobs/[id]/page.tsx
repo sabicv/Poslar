@@ -62,7 +62,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
 
   return (
     <div className="pb-24">
-      <JobHeader job={job} backHref="/app" backLabel={ctx.pkg.sector === 'field' ? 'Raspored' : 'Nalozi'} copilot={Boolean(process.env.ANTHROPIC_API_KEY)} />
+      <JobHeader job={job} backHref="/app" backLabel={ctx.pkg.sector === 'field' ? 'Raspored' : 'Nalozi'} copilot={Boolean(process.env.ANTHROPIC_API_KEY)} billing={!ctx.pkg.internalJobs} />
 
       {/* The tabs scroll sideways; "Više" stays pinned on the right so it is always in sight. */}
       <nav className="sticky top-[var(--shell-top)] z-20 -mx-4 mb-5 flex border-b border-line bg-bg/90 pl-4 backdrop-blur-md sm:mx-0 sm:pl-0 lg:top-0">
@@ -109,10 +109,11 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       <JobActionBar
         jobId={job.id}
         phase={job.phase}
-        phases={PHASE_ORDER.map((p) => ({ id: p, label: phaseLabel(ctx.pkg, p) }))}
+        phases={PHASE_ORDER.filter((p) => !ctx.pkg.skipPhases?.includes(p)).map((p) => ({ id: p, label: phaseLabel(ctx.pkg, p) }))}
         isOwner={ctx.isOwner}
         paid={job.payment_status === 'paid'}
         locked={locked}
+        billing={!ctx.pkg.internalJobs}
       />
     </div>
   );

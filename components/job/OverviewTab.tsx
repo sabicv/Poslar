@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { FieldActions, ScheduleSheet } from '@/components/field/FieldActions';
 import { Card, CardHeader, KeyValue } from '@/components/ui';
-import { CLIMATE_TYPES } from '@/config/tenant.config';
+import { DEVICE_TYPES } from '@/config/tenant.config';
 import { formatDateTime, plural } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import type { JobWithRefs } from '@/types/db';
@@ -19,7 +19,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
   const staffList = (staff ?? []).map((s) => ({ id: s.id as string, name: (s.full_name as string | null) ?? 'Bez imena' }));
   const field = job.work_mode === 'field';
   // Air conditioners and heat pumps have no km or hour meter to read.
-  const climate = CLIMATE_TYPES.includes(job.asset.asset_type);
+  const climate = DEVICE_TYPES.includes(job.asset.asset_type);
   const visits = earlier ?? 0;
 
   return (

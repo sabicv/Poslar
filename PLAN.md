@@ -26,6 +26,13 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [x] Cijene: Basic 30 €, Standard 50 €, Premium 90 € s PDV-om; 10 % popusta uz 24 mjeseca
 - [x] Kraća registracija; gumb za instalaciju na mobitel
 
+## Stadij 3b: Tri nova zanimanja
+- [x] Aqua Files (vodoinstalater, Teren): tlačna proba sa zapisnikom, podaci bojlera i kotla, servisni planovi, bojleri sa starom anodom
+- [x] Tow Files (vučna služba, nova grupa Cesta): poziv, tko plaća i broj slučaja, navigacija, koraci s vremenom i GPS-om, plac i ležarina
+- [x] Deal Files (trgovac rabljenim vozilima, nova grupa Prodaja): otkup, oglas, rezervacija, prodaja, dani na placu, zarada samo za vlasnika, probne vožnje
+- [x] Demo radionice za sva tri (Split, Karlovac, Osijek)
+- [ ] Kasnije za Deal: kupoprodajni ugovor i račun po posebnom postupku (marža), uz knjigovođu
+
 ## Stadij 4: Toranj (Vedranova upravljačka ploča)
 - [ ] Radionice: paket, status, proba, plaćeno do, napomene
 - [ ] Podrška: „Javi problem” iz aplikacije, odgovori iz tornja

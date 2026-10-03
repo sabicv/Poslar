@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import { AirPage } from '@/components/pages/AirPage';
+import { AquaPage } from '@/components/pages/AquaPage';
+import { DealPage } from '@/components/pages/DealPage';
+import { TowPage } from '@/components/pages/TowPage';
 import { BodyPage } from '@/components/pages/BodyPage';
 import { FleetPage } from '@/components/pages/FleetPage';
 import { GearPage } from '@/components/pages/GearPage';
@@ -29,6 +32,9 @@ export default async function ModulePage({ searchParams }: { searchParams: Promi
       {ctx.pkg.id === 'fleet' ? <FleetPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'moto' ? <MotoPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'air' ? <AirPage ctx={ctx} year={y} /> : null}
+      {ctx.pkg.id === 'aqua' ? <AquaPage ctx={ctx} /> : null}
+      {ctx.pkg.id === 'tow' ? <TowPage ctx={ctx} /> : null}
+      {ctx.pkg.id === 'deal' ? <DealPage ctx={ctx} /> : null}
     </>
   );
 }

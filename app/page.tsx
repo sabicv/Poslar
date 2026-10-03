@@ -27,6 +27,9 @@ const HEADLINES: Record<PackageId, string> = {
   fleet: 'Servis kamiona i strojeva. Nijedan rok ne propuštaš.',
   moto: 'Servis motora i plovila. Zimovanje bez papira.',
   air: 'Klima servis na terenu. Raspored, izvještaj i F-plinovi.',
+  aqua: 'Vodoinstalater na terenu. Raspored, tlačna proba i račun.',
+  tow: 'Poziv u tri ujutro? Lokacija, slike i račun odmah.',
+  deal: 'Svaki auto na placu: dani, troškovi i zarada.',
 };
 
 // The four troubles every craftsman knows, each with its fix.
@@ -91,11 +94,11 @@ export default async function Home() {
   if (user) redirect('/app');
   const trialDays = Number(process.env.TRIAL_DAYS ?? 30) || 30;
   const register = '/register';
-  // Screenshots of this trade, or of the general workshop on the TaktiX address.
-  const shots = product?.id ?? 'gear';
+  const dir = path.join(process.cwd(), 'public', 'landing');
+  // Screenshots of this trade (once made), or of the general workshop on the TaktiX address.
+  const shots = product && existsSync(path.join(dir, `${product.id}-hero.webp`)) ? product.id : 'gear';
   const examples = (product ?? PACKAGES.gear).symptoms.slice(0, 4);
   // Photos from real work (public/landing/foto-1.jpg …), shown once added.
-  const dir = path.join(process.cwd(), 'public', 'landing');
   const photos = Array.from({ length: 10 }, (_, i) => ['jpg', 'webp'].map((ext) => `foto-${i + 1}.${ext}`).find((f) => existsSync(path.join(dir, f)))).filter(Boolean) as string[];
 
   return (

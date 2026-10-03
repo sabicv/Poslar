@@ -1,11 +1,12 @@
-import { CalendarClock, Gauge, ShieldCheck } from 'lucide-react';
+import { Gauge, ShieldCheck } from 'lucide-react';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
 import { REFRIGERANTS, fgasObligations, nextLeakCheck } from '@/config/packages/air';
 import { assetTitle, daysUntil, formatDate, formatDateTime, formatDecimal, formatNumber } from '@/lib/format';
-import { addMonths, dayOf, todayInZagreb } from '@/lib/time';
+import { dayOf } from '@/lib/time';
 import type { ModuleProps } from '../ModuleTab';
 import { MoreSections, foldable } from '../more';
 import { DeleteRecordButton, RecordSheet } from '../kit';
+import { PlanCard } from '../PlanCard';
 import { opts } from '../options';
 import { ChargeCalculator } from './ChargeCalculator';
 
@@ -41,7 +42,6 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
   const leakCheck = duty.leakCheckMonths ? nextLeakCheck(duty.leakCheckMonths, lastDay('leak_check'), lastDay('repair')) : null;
   const nextCheck = leakCheck?.due ?? null;
   const plan = (plans ?? []).find((p) => p.asset_id === job.asset.id) ?? (plans ?? []).find((p) => !p.asset_id && p.site_id === job.site_id) ?? null;
-  const today = todayInZagreb();
   const refrigerant = (device?.refrigerant as string | null) ?? 'R32';
   const { show, hidden } = foldable(extras);
   const showCalculator = !locked && show('dopuna za duljinu cijevi', false);
@@ -174,52 +174,7 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
       {/* Extra charge calculator */}
       {showCalculator ? <ChargeCalculator jobId={job.id} assetId={job.asset.id} refrigerant={refrigerant} certificate={(me?.fgas_certificate as string | null) ?? ''} /> : null}
 
-      {/* Maintenance plan */}
-      <Card>
-        <CardHeader
-          title={
-            <span className="flex items-center gap-2">
-              <CalendarClock className="size-4 text-accent" /> Servisni plan
-            </span>
-          }
-          subtitle={plan ? `${plan.title} · svakih ${plan.interval_months} mj.` : 'Ponavljajući servis: aplikacija sama ponudi termin kad se približi'}
-          action={
-            <RecordSheet
-              table="maintenance_plans"
-              title="Servisni plan"
-              id={plan?.id as string | undefined}
-              revalidate={path}
-              fixed={{ client_id: job.client.id, site_id: job.site_id, asset_id: job.asset.id }}
-              initial={
-                plan ?? {
-                  title: `Godišnji servis: ${assetTitle(job.asset)}`,
-                  interval_months: 12,
-                  next_due_date: addMonths(today, 12),
-                  template_code: 'air.service_one',
-                }
-              }
-              label={plan ? 'Uredi' : 'Uključi'}
-              deletable={ctx.isOwner}
-              fields={[
-                { name: 'title', label: 'Naziv', required: true },
-                { name: 'interval_months', label: 'Svakih', type: 'number', suffix: 'mj.', half: true, required: true },
-                { name: 'next_due_date', label: 'Sljedeći servis', type: 'date', half: true, required: true },
-                { name: 'template_code', label: 'Predložak posla', type: 'select', options: ctx.pkg.templates.map((t) => ({ value: t.code, label: t.name })) },
-                { name: 'notes', label: 'Napomena', type: 'textarea' },
-              ]}
-            />
-          }
-        />
-        {plan ? (
-          <div className="flex flex-wrap items-center gap-2 px-4 py-3 text-sm">
-            <span className="text-muted">Sljedeći servis:</span>
-            <Badge tone={(daysUntil(plan.next_due_date as string) ?? 0) < 0 ? 'crit' : (daysUntil(plan.next_due_date as string) ?? 99) <= 30 ? 'warn' : 'ok'}>{formatDate(plan.next_due_date as string)}</Badge>
-            <span className="text-xs text-faint">Kad je ovaj nalog vezan uz plan i označen „Odrađeno”, datum se sam pomakne.</span>
-          </div>
-        ) : (
-          <p className="px-4 py-3 text-sm text-muted">Nakon uključivanja klijent se mjesec dana prije roka sam pojavi u „Servisni planovi”, spreman za podsjetnik i zakazivanje.</p>
-        )}
-      </Card>
+      <PlanCard ctx={ctx} job={job} plan={plan} title={`Godišnji servis: ${assetTitle(job.asset)}`} templateCode="air.service_one" />
       <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );

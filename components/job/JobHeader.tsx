@@ -11,8 +11,8 @@ import type { JobWithRefs } from '@/types/db';
 // the client page (the name here links there), km in Pregled. On a field visit the
 // call and navigation buttons sit in the visit card, so the header only
 // names the address.
-export function JobHeader({ job, backHref, backLabel, copilot }: { job: JobWithRefs; backHref: string; backLabel: string; copilot: boolean }) {
-  const finished = job.phase === 'ready' || job.phase === 'collected';
+export function JobHeader({ job, backHref, backLabel, copilot, billing = true }: { job: JobWithRefs; backHref: string; backLabel: string; copilot: boolean; billing?: boolean }) {
+  const finished = billing && (job.phase === 'ready' || job.phase === 'collected');
   const field = job.work_mode === 'field';
   return (
     <header className="mb-4">

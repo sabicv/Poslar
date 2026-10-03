@@ -52,6 +52,7 @@ export function LinesEditor({
   appUrl,
   clientPhone,
   vatRegistered,
+  invoice = true,
 }: {
   jobId: string;
   lines: JobLine[];
@@ -63,6 +64,7 @@ export function LinesEditor({
   appUrl: string;
   clientPhone: string | null;
   vatRegistered: boolean;
+  invoice?: boolean;
 }) {
   const { pending, run } = useAction();
   const [editing, setEditing] = useState<JobLine | null>(null);
@@ -183,9 +185,11 @@ export function LinesEditor({
             <span>{vatRegistered ? 'Ukupno' : 'Ukupno (odobreno)'}</span>
             <span className="tabular">{formatEuro(totals.gross)}</span>
           </div>
-          <Link href={`/app/jobs/${jobId}/racun`} prefetch={false} className={cn(buttonClass('primary', 'lg'), 'mt-3 w-full')}>
-            <FileText className="size-5" /> Račun
-          </Link>
+          {invoice ? (
+            <Link href={`/app/jobs/${jobId}/racun`} prefetch={false} className={cn(buttonClass('primary', 'lg'), 'mt-3 w-full')}>
+              <FileText className="size-5" /> Račun
+            </Link>
+          ) : null}
         </Card>
       ) : null}
 

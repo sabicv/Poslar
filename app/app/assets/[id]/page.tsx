@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AssetSheet } from '@/components/ClientForms';
 import { BackLink, Badge, ButtonLink, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
-import { ASSET_TYPE_LABELS, CLIMATE_TYPES, PHASE_TONE, defaultMeterUnit, phaseLabel, vinLabel } from '@/config/tenant.config';
+import { ASSET_TYPE_LABELS, DEVICE_TYPES, PHASE_TONE, defaultMeterUnit, phaseLabel, vinLabel } from '@/config/tenant.config';
 import { assetTitle, clientName, formatDate, formatMeter } from '@/lib/format';
 import { requireWorkshop } from '@/lib/session';
 import { signPaths } from '@/lib/signed';
@@ -40,7 +40,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   const signed = await signPaths(ctx.supabase, gallery.map((p) => p.path as string));
   const unit = asset.meter_primary_unit;
   // Air conditioners and heat pumps have no meter to read.
-  const climate = CLIMATE_TYPES.includes(asset.asset_type);
+  const climate = DEVICE_TYPES.includes(asset.asset_type);
 
   return (
     <>

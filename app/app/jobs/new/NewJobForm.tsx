@@ -7,7 +7,7 @@ import { Building2, Check, ChevronDown, MapPin, Search, User, X } from 'lucide-r
 import { DictateButton, DictateInput, Segmented } from '@/components/client-ui';
 import { ScanButton } from '@/components/ScanButton';
 import { Button, Card, Field, Input, Select, Textarea } from '@/components/ui';
-import { CLIMATE_TYPES, type AssetType, type MeterUnit, type Vocabulary } from '@/config/tenant.config';
+import { DEVICE_TYPES, type AssetType, type MeterUnit, type Vocabulary } from '@/config/tenant.config';
 import { createJob } from '@/lib/actions/jobs';
 import { searchClients, type ClientHit } from '@/lib/actions/clients';
 import { clearDraft, readDraft, writeDraft } from '@/lib/drafts';
@@ -90,7 +90,7 @@ export function NewJobForm({
   const restored = useRef(false);
   const isField = mode === 'field';
   // Road vehicles have a registration certificate to photograph; devices have a nameplate.
-  const vehicles = !CLIMATE_TYPES.includes(defaultAssetType);
+  const vehicles = !DEVICE_TYPES.includes(defaultAssetType);
 
   // Unsaved intake survives a closed tab or a dead battery.
   useEffect(() => {

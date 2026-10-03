@@ -41,7 +41,9 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
       </>
     );
   }
-  const filter: Filter = (['active', 'mine', 'urgent', 'unpaid', 'archive'] as const).includes(f as Filter) ? (f as Filter) : 'active';
+  // Deal: the jobs are the dealer's own cost, so there is nothing to collect.
+  const billing = !ctx.pkg.internalJobs;
+  const filter: Filter = (['active', 'mine', 'urgent', 'unpaid', 'archive'] as const).includes(f as Filter) && (billing || f !== 'unpaid') ? (f as Filter) : 'active';
   const search = q.trim();
 
   let query = ctx.supabase.from('jobs').select(JOB_FIELDS).order('updated_at', { ascending: false });
@@ -77,7 +79,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   if (ctx.isOwner) {
     const [{ data: rows }, { data: unpaidJobs }] = await Promise.all([
       jobs.length ? ctx.supabase.from('job_totals').select('job_id, gross_total').in('job_id', jobs.map((j) => j.id)) : Promise.resolve({ data: [] }),
-      ctx.supabase.from('jobs').select('id').in('phase', ['ready', 'collected']).eq('payment_status', 'unpaid'),
+      billing ? ctx.supabase.from('jobs').select('id').in('phase', ['ready', 'collected']).eq('payment_status', 'unpaid') : Promise.resolve({ data: [] as { id: string }[] }),
     ]);
     for (const row of rows ?? []) totals.set(row.job_id as string, Number(row.gross_total));
     unpaidCount = unpaidJobs?.length ?? 0;
@@ -96,7 +98,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
     { id: 'active', label: 'U radu', count: openCount ? String(openCount) : null },
     { id: 'mine', label: 'Moji' },
     { id: 'urgent', label: 'Hitno', count: urgentCount ? String(urgentCount) : null },
-    { id: 'unpaid', label: 'Za naplatu', count: unpaidCount ? formatEuro(unpaidSum) : null, ownerOnly: true },
+    ...(billing ? [{ id: 'unpaid' as const, label: 'Za naplatu', count: unpaidCount ? formatEuro(unpaidSum) : null, ownerOnly: true }] : []),
     { id: 'archive', label: 'Arhiva' },
   ];
 

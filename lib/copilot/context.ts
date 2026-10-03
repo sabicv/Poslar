@@ -269,5 +269,27 @@ async function packageData(ctx: WorkshopContext, jobId: string, asset: Json & { 
         radionica_evidencija_f_plina: log,
       };
     }
+    case 'aqua': {
+      const [{ data: device }, { data: tests }] = await Promise.all([
+        s.from('aqua_equipment').select('energy, capacity_l, power_kw, working_pressure_bar, install_date, warranty_until, anode_changed_on, descaled_on').eq('asset_id', asset.id).maybeSingle(),
+        s.from('aqua_pressure_tests').select('section, medium, test_pressure_bar, end_pressure_bar, duration_min, passed, performed_at').eq('job_id', jobId),
+      ]);
+      return { uredjaj: device, tlacne_probe: tests };
+    }
+    case 'tow': {
+      const [{ data: call }, { data: yard }] = await Promise.all([
+        s.from('tow_calls').select('service, payer, payer_name, claim_no, pickup_address, dropoff_address, distance_km, called_at, departed_at, arrived_at, loaded_at, delivered_at, notes').eq('job_id', jobId).maybeSingle(),
+        s.from('tow_storage').select('spot, in_at, out_at, released_to').eq('job_id', jobId),
+      ]);
+      return { poziv: call, na_placu: yard };
+    }
+    case 'deal': {
+      // Prices stay out: the owner sees them on the page, the copilot needs the car.
+      const [{ data: stock }, { data: drives }] = await Promise.all([
+        s.from('deal_stock').select('source, purchased_on, asking_price, listed_on, reserved_until, sold_on, warranty_months, keys_count, service_book, registered_until, notes').eq('job_id', jobId).maybeSingle(),
+        s.from('deal_test_drives').select('out_at, back_at, note').eq('asset_id', asset.id).order('out_at', { ascending: false }).limit(5),
+      ]);
+      return { vozilo_na_prodaju: stock, probne_voznje: drives };
+    }
   }
 }

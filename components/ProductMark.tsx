@@ -1,4 +1,4 @@
-import { Anchor, Cog, Disc3, Fan, SprayCan, Truck, Zap, type LucideIcon } from 'lucide-react';
+import { Anchor, CarFront, Cog, Disc3, Droplets, Fan, Siren, SprayCan, Truck, Zap, type LucideIcon } from 'lucide-react';
 import { BRAND, type PackageId } from '@/config/tenant.config';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +10,9 @@ export const PRODUCT_ICONS: Record<PackageId, LucideIcon> = {
   fleet: Truck,
   moto: Anchor,
   air: Fan,
+  aqua: Droplets,
+  tow: Siren,
+  deal: CarFront,
 };
 
 // The TaktiX mark, after Vedran's design: an abstract metronome ("takt" is
