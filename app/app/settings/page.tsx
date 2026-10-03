@@ -8,7 +8,7 @@ import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { signOut } from '@/lib/actions/auth';
 import { hasModule } from '@/config/tenant.config';
 import { formatDate } from '@/lib/format';
-import { requireWorkshop } from '@/lib/session';
+import { isPlatformAdmin, requireWorkshop } from '@/lib/session';
 import type { Profile } from '@/types/db';
 import { billingFrom } from '@/components/invoice/InvoiceDocument';
 import { BillingForm, LogoUpload, ModuleToggles, ProfileForm, TeamManager, ThemeToggle, WorkshopForm } from './SettingsForms';
@@ -28,11 +28,12 @@ const MODULE_LABELS: Record<string, string> = {
 export default async function SettingsPage() {
   const ctx = await requireWorkshop();
   const t = ctx.tenant;
-  const [{ data: staff }, { data: tickets }, scans, answers] = await Promise.all([
+  const [{ data: staff }, { data: tickets }, scans, answers, tower] = await Promise.all([
     ctx.isOwner ? ctx.supabase.from('profiles').select('*').order('created_at') : Promise.resolve({ data: [] }),
     ctx.supabase.from('support_tickets').select('id, tenant_unread'),
     ctx.isOwner ? aiUsageThisMonth(t.id, 'scan') : Promise.resolve(0),
     ctx.isOwner ? aiUsageThisMonth(t.id, 'copilot') : Promise.resolve(0),
+    isPlatformAdmin(),
   ]);
   const plan = getPlan(t.plan);
   const unread = (tickets ?? []).filter((x) => x.tenant_unread).length;
@@ -42,6 +43,16 @@ export default async function SettingsPage() {
       <PageHeader title="Postavke" />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-4">
+          {/* Only for TaktiX itself: the way into the tower from a workshop account. */}
+          {tower ? (
+            <Link href="/admin" className="flex items-center justify-between gap-3 rounded-2xl border border-accent/50 bg-accent/10 px-4 py-3">
+              <span>
+                <span className="block font-semibold">Toranj</span>
+                <span className="block text-sm text-muted">Radionice, pretplate, podrška i greške</span>
+              </span>
+              <ChevronRight className="size-5 text-accent" />
+            </Link>
+          ) : null}
           <Card>
             <CardHeader
               title="Moj račun"

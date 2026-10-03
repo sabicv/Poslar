@@ -39,7 +39,7 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [x] Greške: automatsko hvatanje grešaka iz preglednika, servera i spremanja
 - [x] Analiza: prihod, radionice po paketu i zanatu, aktivnost, AI potrošnja, tko se gasi
 - [x] Kvote za slikanje i Kopilot po paketu (Basic 150/100, Standard 300/200, Premium 600/400), broj radnika po paketu
-- [ ] Vedran: `npm run toranj -- e-mail lozinka` u svom terminalu otvara Toranj za njegov račun
+- [x] Toranj otvoren za Vedranov račun (ulaz: /admin ili Postavke → Toranj)
 
 ## Stadij 5: Cjenik i predlošci
 - [ ] Postavke → Cjenik: satnica, vlastiti predlošci s cijenama

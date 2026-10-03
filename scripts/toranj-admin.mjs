@@ -1,4 +1,4 @@
-// npm run toranj -- e-mail lozinka
+// node scripts/toranj-admin.mjs e-mail [lozinka]   (or: npm run toranj -- e-mail lozinka)
 // Opens the tower (/admin) for one account. A new e-mail gets an account
 // with that password; an existing account only gets access (its password
 // stays, unless --nova-lozinka is added). `--ukloni` takes access away.
@@ -16,7 +16,7 @@ const args = process.argv.slice(2);
 const flags = new Set(args.filter((a) => a.startsWith('--')));
 const [email, password] = args.filter((a) => !a.startsWith('--'));
 if (!email || !/@/.test(email)) {
-  console.error('Upotreba: npm run toranj -- tvoj@email.hr TvojaLozinka');
+  console.error("Upotreba: node scripts/toranj-admin.mjs 'tvoj@email.hr' 'Lozinka'  (lozinka samo za novi račun)");
   process.exit(1);
 }
 const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
@@ -56,4 +56,4 @@ if (!user) {
 
 const { error } = await sb.from('platform_admins').upsert({ user_id: user.id }, { onConflict: 'user_id' });
 if (error) throw error;
-console.log(`Toranj otvoren za ${email}. Prijava na /login, aplikacija vodi na /admin.`);
+console.log(`Toranj otvoren za ${email}. Ulaz: /admin, ili Postavke → Toranj ako račun ima i radionicu.`);
