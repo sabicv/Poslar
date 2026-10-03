@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BellRing } from 'lucide-react';
+import { HelpVideo } from '@/components/help/HelpVideo';
 import { ReminderActions } from '@/components/reminders/ReminderActions';
 import { Badge, Card, CardHeader, EmptyState, PageHeader } from '@/components/ui';
 import { formatDate } from '@/lib/format';
@@ -27,10 +28,13 @@ export default async function RemindersPage() {
     <>
       <PageHeader title="Poslovanje" />
       <BusinessTabs active="podsjetnici" count={items.length} />
-      <p className="mb-4 text-sm text-muted">
-        WhatsApp otvara poruku s Vašim potpisom; Vi samo pritisnete pošalji.{' '}
-        {sentLately ? <span className="text-faint">Poslano u zadnjih 30 dana: {sentLately}.</span> : null}
-      </p>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <p className="text-sm text-muted">
+          WhatsApp otvara poruku s Vašim potpisom; Vi samo pritisnete pošalji.{' '}
+          {sentLately ? <span className="text-faint">Poslano u zadnjih 30 dana: {sentLately}.</span> : null}
+        </p>
+        <HelpVideo topic="reminders" className="shrink-0" />
+      </div>
 
       {groups.length === 0 ? (
         <EmptyState icon={<BellRing className="size-8" />} title="Nitko ne čeka podsjetnik">

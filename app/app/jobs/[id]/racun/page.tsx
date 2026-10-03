@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { HelpVideo } from '@/components/help/HelpVideo';
 import { InvoiceDocument, invoiceNumberLabel } from '@/components/invoice/InvoiceDocument';
 import { BackLink } from '@/components/ui';
 import { loadInvoice } from '@/lib/invoice';
@@ -25,7 +26,10 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   return (
     <div className="space-y-5 pb-10">
       <div className="space-y-4 print:hidden">
-        <BackLink href={`/app/jobs/${id}?tab=stavke`}>Nalog #{invoice.jobNumber}</BackLink>
+        <div className="flex items-center justify-between gap-3">
+          <BackLink href={`/app/jobs/${id}?tab=stavke`}>Nalog #{invoice.jobNumber}</BackLink>
+          <HelpVideo topic="invoice" />
+        </div>
         <InvoiceActions
           jobId={id}
           issued={invoice.number !== null}

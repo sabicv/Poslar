@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { HelpVideo } from '@/components/help/HelpVideo';
 import { QrControls } from '@/components/intake/QrControls';
 import { BackLink, Card, CardHeader, PageHeader } from '@/components/ui';
 import { PLANS } from '@/config/plans';
@@ -18,12 +20,23 @@ export default async function QrSettingsPage() {
 
   return (
     <>
-      <PageHeader title="QR samoprijem" subtitle={field ? 'Mušterija skenira kod i zatraži dolazak' : 'Mušterija na vratima skenira kod i sama prijavi kvar'} back={<BackLink href="/app/settings">Postavke</BackLink>} />
+      <PageHeader
+        title="QR samoprijem"
+        subtitle={field ? 'Mušterija skenira kod i zatraži dolazak' : 'Mušterija na vratima skenira kod i sama prijavi kvar'}
+        back={<BackLink href="/app/settings">Postavke</BackLink>}
+        action={<HelpVideo topic="qr" />}
+      />
       {!allowed ? (
         <Card>
           <div className="space-y-2 p-4 text-sm">
             <p className="font-medium">QR samoprijem dolazi uz pakete Standard ({PLANS.standard.price} €) i Premium ({PLANS.premium.price} €).</p>
-            <p className="text-muted">Za promjenu paketa javite se kroz „Javi problem” u Postavkama.</p>
+            <p className="text-muted">
+              Paket mijenjate u{' '}
+              <Link href="/app/settings/pretplata" className="font-medium text-accent hover:underline">
+                Postavke → Pretplata
+              </Link>
+              .
+            </p>
           </div>
         </Card>
       ) : (

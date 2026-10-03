@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronRight, LogOut } from 'lucide-react';
+import { ChevronRight, LogOut, PlayCircle } from 'lucide-react';
+import { VideoChip } from '@/components/help/VideoChip';
 import { SupportButton } from '@/components/SupportButton';
 import { ReferralShare } from '@/components/billing/ReferralShare';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { Badge, Button, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
+import { HELP_TOPICS } from '@/config/help';
 import { AI_LABELS, TERM_LABELS, aiQuota, getPlan, monthlyPrice } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
+import { loadHelpVideos } from '@/lib/help';
 import { signOut } from '@/lib/actions/auth';
 import { hasModule } from '@/config/tenant.config';
 import { formatDate } from '@/lib/format';
@@ -43,13 +46,16 @@ async function loadReferral(tenantId: string, billingRef: number) {
 export default async function SettingsPage() {
   const ctx = await requireWorkshop();
   const t = ctx.tenant;
-  const [{ data: staff }, { data: tickets }, scans, answers, tower] = await Promise.all([
+  const [{ data: staff }, { data: tickets }, scans, answers, tower, links] = await Promise.all([
     ctx.isOwner ? ctx.supabase.from('profiles').select('*').order('created_at') : Promise.resolve({ data: [] }),
     ctx.supabase.from('support_tickets').select('id, tenant_unread'),
     ctx.isOwner ? aiUsageThisMonth(t.id, 'scan') : Promise.resolve(0),
     ctx.isOwner ? aiUsageThisMonth(t.id, 'copilot') : Promise.resolve(0),
     isPlatformAdmin(),
+    loadHelpVideos(),
   ]);
+  // How-to videos that have a link; a worker skips the owner's screens.
+  const videos = HELP_TOPICS.filter((h) => links[h.id] && (ctx.isOwner || !h.owner)).map((h) => ({ ...h, url: links[h.id] }));
   const plan = getPlan(t.plan);
   const unread = (tickets ?? []).filter((x) => x.tenant_unread).length;
   // The owner's own link for colleagues (not in the shared demo workshops).
@@ -110,6 +116,21 @@ export default async function SettingsPage() {
                 </Link>
               ) : null}
             </div>
+            {videos.length ? (
+              <div className="border-t border-line">
+                <p className="px-4 pt-3 text-xs font-medium text-muted">Video upute</p>
+                <ul className="py-1">
+                  {videos.map((v) => (
+                    <li key={v.id}>
+                      <a href={v.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-surface2">
+                        <PlayCircle className="size-5 shrink-0 text-accent" />
+                        {v.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </Card>
           <Card>
             <CardHeader title="Izgled" />
@@ -190,7 +211,7 @@ export default async function SettingsPage() {
               </div>
             </Card>
             <Card>
-              <CardHeader title="Tim" subtitle="Radnici vide naloge, ali ne i iznose, naplatu ni poslovanje" />
+              <CardHeader title="Tim" subtitle="Radnici vide naloge, ali ne i iznose, naplatu ni poslovanje" action={<VideoChip href={links.team} />} />
               <div className="p-4">
                 <TeamManager me={ctx.user.id} staff={((staff ?? []) as Profile[]).map((p) => ({ id: p.id, name: p.full_name ?? '-', role: p.role }))} />
               </div>

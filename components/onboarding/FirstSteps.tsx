@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, Circle, ChevronRight, X } from 'lucide-react';
 import { useAction } from '@/components/client-ui';
+import { VideoChip } from '@/components/help/VideoChip';
 import { Button } from '@/components/ui';
 import { createSample, deleteSample, hideFirstSteps, markSolo } from '@/lib/actions/onboarding';
 import { cn } from '@/lib/utils';
@@ -11,7 +12,7 @@ import { cn } from '@/lib/utils';
 type Step = { id: string; title: string; hint: string; href: string; done: boolean };
 
 // The new owner's first four steps, on the board until they are done.
-export function FirstSteps({ steps, sample }: { steps: Step[]; sample: boolean }) {
+export function FirstSteps({ steps, sample, video }: { steps: Step[]; sample: boolean; video?: string | null }) {
   const router = useRouter();
   const { pending, run } = useAction();
   const done = steps.filter((s) => s.done).length;
@@ -61,7 +62,8 @@ export function FirstSteps({ steps, sample }: { steps: Step[]; sample: boolean }
             Pogledaj primjer naloga
           </Button>
         )}
-        <span className="text-xs text-faint">{sample ? 'Obrišite ga kad Vam više ne treba; nestaju svi podaci primjera.' : 'Doda jedan izmišljeni nalog da vidite kako izgleda.'}</span>
+        <VideoChip href={video} label="Video: prvi dan" />
+        <span className="w-full text-xs text-faint">{sample ? 'Obrišite ga kad Vam više ne treba; nestaju svi podaci primjera.' : 'Doda jedan izmišljeni nalog da vidite kako izgleda.'}</span>
       </div>
     </section>
   );

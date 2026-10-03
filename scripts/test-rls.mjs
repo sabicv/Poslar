@@ -434,5 +434,16 @@ console.log('\nPretplata i preporuke');
   check('the server records who referred a workshop', (await q(`select 1 from public.tenants where id = $1 and referred_by = $2`, [tA, tB])).length === 1);
 }
 
+// Help videos: written by the tower through the server only.
+console.log('\nVideo upute');
+{
+  await q(`insert into public.help_videos (topic, url) values ('start', 'https://youtu.be/abc')`);
+  check('a link must start with https://', await fails(() => q(`insert into public.help_videos (topic, url) values ('install', 'javascript:alert(1)')`)));
+  await as(U.aOwner, async () => {
+    check('an owner cannot read the table directly', await fails(() => q(`select * from public.help_videos`)));
+    check('an owner cannot change a video', await fails(() => q(`update public.help_videos set url = 'https://evil.example' where topic = 'start'`)));
+  });
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -7,6 +7,7 @@ import { AccountingExport } from './AccountingExport';
 import { BusinessTabs } from './BusinessTabs';
 import { phaseLabel } from '@/config/tenant.config';
 import { assetTitle, clientName, countJobs, formatDecimal, formatEuro, formatRelative } from '@/lib/format';
+import { helpVideo } from '@/lib/help';
 import { allRows, inChunks } from '@/lib/paged';
 import { requireOwner } from '@/lib/session';
 import { cn } from '@/lib/utils';
@@ -227,7 +228,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
           </Card>
         ) : null}
 
-        <AccountingExport perMonth={invoicesPerMonth} today={zagrebDate(new Date().toISOString())} />
+        <AccountingExport perMonth={invoicesPerMonth} today={zagrebDate(new Date().toISOString())} video={await helpVideo('accountant')} />
       </div>
     </>
   );

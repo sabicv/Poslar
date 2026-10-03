@@ -6,6 +6,7 @@ import { EmptyState, Input, PageHeader, buttonClass } from '@/components/ui';
 import { PHASE_ORDER, hasFieldWork, phaseLabel, type JobPhase } from '@/config/tenant.config';
 import { formatEuro } from '@/lib/format';
 import { FirstSteps } from '@/components/onboarding/FirstSteps';
+import { helpVideo } from '@/lib/help';
 import { loadFirstSteps } from '@/lib/onboarding';
 import { allRows, inChunks } from '@/lib/paged';
 import { loadReminders } from '@/lib/reminders';
@@ -23,7 +24,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   // The owner sees who is waiting for a reminder (tyres, service, deadlines).
   const waiting = ctx.isOwner ? (await loadReminders(ctx)).items.length : 0;
   const first = await loadFirstSteps(ctx);
-  const firstSteps = first ? <FirstSteps steps={first.steps} sample={first.sample} /> : null;
+  const firstSteps = first ? <FirstSteps steps={first.steps} sample={first.sample} video={await helpVideo('start')} /> : null;
   const reminderBanner = waiting ? (
     <Link href="/app/business/podsjetnici" className="mb-4 flex items-center gap-3 rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm">
       <BellRing className="size-5 shrink-0 text-accent" />

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { HelpVideo } from '@/components/help/HelpVideo';
 import { BackLink, PageHeader } from '@/components/ui';
 import { ASSET_TYPE_LABELS, defaultMeterUnit, hasFieldWork } from '@/config/tenant.config';
 import type { ClientHit } from '@/lib/actions/clients';
@@ -45,7 +46,11 @@ export default async function NewJobPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={preset?.planId ? 'Zakaži servis' : 'Novi nalog'} back={<BackLink href="/app">{ctx.pkg.sector === 'field' ? 'Raspored' : 'Nalozi'}</BackLink>} />
+      <PageHeader
+        title={preset?.planId ? 'Zakaži servis' : 'Novi nalog'}
+        back={<BackLink href="/app">{ctx.pkg.sector === 'field' ? 'Raspored' : 'Nalozi'}</BackLink>}
+        action={<HelpVideo topic="new_job" />}
+      />
       <NewJobForm
         vocabulary={ctx.pkg.vocabulary}
         assetTypes={ctx.pkg.assetTypes.map((t) => ({ value: t, label: ASSET_TYPE_LABELS[t], unit: defaultMeterUnit(t) }))}

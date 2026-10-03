@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Download, FileSpreadsheet } from 'lucide-react';
+import { VideoChip } from '@/components/help/VideoChip';
 import { Card, CardHeader, Select, buttonClass } from '@/components/ui';
 import { plural } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -10,7 +11,7 @@ const MONTHS = ['siječanj', 'veljača', 'ožujak', 'travanj', 'svibanj', 'lipan
 
 // One month of issued invoices for the accountant: a ZIP with the invoice
 // book (CSV for Excel) and an e-Račun XML per invoice, or just the table.
-export function AccountingExport({ perMonth, today }: { perMonth: Record<string, number>; today: string }) {
+export function AccountingExport({ perMonth, today, video }: { perMonth: Record<string, number>; today: string; video?: string | null }) {
   const [y, m] = today.split('-').map(Number);
   const months = Array.from({ length: 12 }, (_, i) => {
     const d = new Date(Date.UTC(y, m - 1 - i, 1));
@@ -24,7 +25,7 @@ export function AccountingExport({ perMonth, today }: { perMonth: Record<string,
 
   return (
     <Card>
-      <CardHeader title="Za knjigovođu" subtitle="Izdani računi za jedan mjesec" />
+      <CardHeader title="Za knjigovođu" subtitle="Izdani računi za jedan mjesec" action={<VideoChip href={video} />} />
       <div className="space-y-3 p-4">
         <Select value={month} onChange={(e) => setMonth(e.target.value)} aria-label="Mjesec">
           {months.map((o) => (

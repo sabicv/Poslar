@@ -11,6 +11,7 @@ export function TowerNav({ tickets, errors }: { tickets: number; errors: number 
     { href: '/admin/radionice', label: 'Radionice' },
     { href: '/admin/podrska', label: 'Podrška', count: tickets },
     { href: '/admin/greske', label: 'Greške', count: errors },
+    { href: '/admin/upute', label: 'Upute' },
   ];
   return (
     <nav className="no-scrollbar mx-auto flex max-w-6xl gap-1 overflow-x-auto px-2 sm:px-4">

@@ -95,7 +95,10 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [x] Gumb s gotovom porukom: početna stranica („Pitaj na WhatsAppu”, broj u podnožju i u čestim pitanjima), registracija, prijava, Postavke → Pomoć (s imenom radionice i pozivom na broj), zaključan ekran (s razlogom)
    - [x] Bez upisanog broja ništa se ne prikazuje
    - [ ] (V) U Vercel upisati SUPPORT_PHONE (broj s WhatsAppom)
-7. Video upute: mjesta u Pomoći i uz ekrane ((V) snima kratke video upute)
+7. Video upute
+   - [x] Toranj → Upute: 10 tema (prvi dan, aplikacija na mobitelu, novi nalog, rad na nalogu, račun, radnici, cjenik, QR, podsjetnici, knjigovođa); zalijepiš YouTube poveznicu, spremiš; prazno polje miče video
+   - [x] U aplikaciji: popis u Postavke → Pomoć (radnik ne vidi teme samo za voditelja) i gumb „Video” uz Prve korake, Novi nalog, Račun, Tim, Cjenik, QR samoprijem, Podsjetnike i Za knjigovođu; bez poveznice ništa se ne prikazuje
+   - [ ] (V) Snimiti kratke video upute (1 do 2 minute, mobitelom) i staviti ih na YouTube kao „Neizlistano”
 8. Pravni dio: uvjeti korištenja, politika privatnosti, ugovor o obradi podataka ((V) pravnik pregleda prije prodaje)
 9. Google Play: paket aplikacije i povezivanje domene ((V) račun za razvojne programere, testeri)
 

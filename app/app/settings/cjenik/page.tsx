@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ChevronRight, Plus } from 'lucide-react';
+import { HelpVideo } from '@/components/help/HelpVideo';
 import { HourlyRateForm, TemplateEditor, type EditorTemplate } from '@/components/pricing/TemplateEditor';
 import { BackLink, Badge, Button, Card, CardHeader, PageHeader } from '@/components/ui';
 import { formatEuro } from '@/lib/format';
@@ -66,7 +67,12 @@ export default async function PriceListPage() {
 
   return (
     <>
-      <PageHeader title="Cjenik i predlošci" subtitle="Vaše cijene vidite samo Vi. Radnici vide stavke bez iznosa." back={<BackLink href="/app/settings">Postavke</BackLink>} />
+      <PageHeader
+        title="Cjenik i predlošci"
+        subtitle="Vaše cijene vidite samo Vi. Radnici vide stavke bez iznosa."
+        back={<BackLink href="/app/settings">Postavke</BackLink>}
+        action={<HelpVideo topic="pricing" />}
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-4">
           <Card>

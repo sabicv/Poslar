@@ -1,7 +1,8 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
+import { HELP_TOPIC_IDS } from '@/config/help';
 import { PLANS, PLAN_IDS, type PlanId } from '@/config/plans';
 import { PACKAGE_IDS, type PackageId } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
@@ -162,6 +163,34 @@ async function rewardReferrer(tenantId: string) {
         : {};
   await admin.from('tenants').update({ ...patch, admin_notes: [r.admin_notes, note].filter(Boolean).join('\n') }).eq('id', r.id);
   await admin.from('tenants').update({ referral_rewarded_at: new Date().toISOString() }).eq('id', tenantId);
+}
+
+// ---------------------------------------------------------------------
+// Help videos: one link per topic; an empty link removes the video
+// ---------------------------------------------------------------------
+export async function adminSetHelpVideo(topic: string, url: string): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return denied;
+  if (!HELP_TOPIC_IDS.includes(topic)) return fail('Nepoznata tema.');
+  const link = url.trim();
+  const admin = createAdminClient();
+  if (!link) {
+    const { error } = await admin.from('help_videos').delete().eq('topic', topic);
+    if (error) return fail(error);
+  } else {
+    let ok = false;
+    try {
+      ok = new URL(link).protocol === 'https:' && link.length <= 500;
+    } catch {
+      ok = false;
+    }
+    if (!ok) return fail('Zalijepite cijelu poveznicu koja počinje s https://');
+    const { error } = await admin.from('help_videos').upsert({ topic, url: link, updated_at: new Date().toISOString() }, { onConflict: 'topic' });
+    if (error) return fail(error);
+  }
+  revalidateTag('help-videos');
+  revalidatePath('/admin/upute');
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------------
