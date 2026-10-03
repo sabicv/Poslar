@@ -34,6 +34,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           Registrirajte se
         </Link>
       </p>
+      <Link href="/" className="mt-3 text-sm text-faint hover:text-fg">
+        ← Početna stranica
+      </Link>
     </main>
   );
 }

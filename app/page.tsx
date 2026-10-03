@@ -2,7 +2,6 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import Link from 'next/link';
 import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { Camera, Check, ClipboardCheck, EyeOff, FileSpreadsheet, History, Mic, MessageCircle, Receipt, Smartphone, Upload, X } from 'lucide-react';
 import { TryIt } from '@/components/landing/TryIt';
 import { PLANS as PLAN_CONFIG, TERM_DISCOUNT } from '@/config/plans';
@@ -91,9 +90,10 @@ const FAQ = [
 export default async function Home() {
   const host = (await headers()).get('host');
   const product = matchPackageFromHost(host);
+  // The page shows to everyone, signed in or not (showing it to a customer
+  // from your own phone must work); a signed-in visitor gets "Otvori
+  // aplikaciju" instead of "Prijava". The installed app starts at /app.
   const { user } = await getAuth();
-  // A signed-in person going to the address just wants the app.
-  if (user) redirect('/app');
   const trialDays = Number(process.env.TRIAL_DAYS ?? 30) || 30;
   const register = '/register';
   const dir = path.join(process.cwd(), 'public', 'landing');
@@ -122,9 +122,15 @@ export default async function Home() {
             <ButtonLink href="#cijene" size="sm" variant="ghost">
               Cijene
             </ButtonLink>
-            <ButtonLink href="/login" size="sm" variant="ghost">
-              Prijava
-            </ButtonLink>
+            {user ? (
+              <ButtonLink href="/app" size="sm" variant="secondary">
+                Otvori aplikaciju
+              </ButtonLink>
+            ) : (
+              <ButtonLink href="/login" size="sm" variant="ghost">
+                Prijava
+              </ButtonLink>
+            )}
             <ButtonLink href={register} size="sm" variant="primary" className="hidden sm:inline-flex">
               Probaj besplatno
             </ButtonLink>
