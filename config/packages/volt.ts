@@ -13,7 +13,7 @@ export const volt: PackageConfig = {
     'Trajni dnevnik zahvata na modulima s backupom',
   ],
   sector: 'workshop',
-  accent: '#3D9BFF',
+  accent: '#FFD60A',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },
     asset: { one: 'Vozilo', many: 'Vozila', new: 'Novo vozilo' },

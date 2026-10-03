@@ -11,11 +11,11 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [ ] Večeras: provjera pravog čitanja slika s ključem
 
 ## Stadij 2: TaktIX identitet
-- [ ] Ime TaktIX, slogan „Manje administracije. Više odrađenog posla.”
-- [ ] Logo: narančast s crnim obrubom; nova ikona aplikacije (PWA)
-- [ ] Glavna boja svijetlo plava, grafitna pozadina, jasni rubovi kartica
-- [ ] Boje zanata: Volt žuta, Gear F1 crvena, Body petrolej, Wheel brončana, Fleet narančasta, Moto Kawasaki zelena, Air ledeno tirkizna
-- [ ] Ikone zanata: tamna pločica, svijetleći znak; naslovi u užem sportskom fontu
+- [x] Ime TaktIX, slogan „Manje administracije. Više odrađenog posla.”
+- [x] Logo: narančast s crnim obrubom; nova ikona aplikacije (PWA)
+- [x] Glavna boja svijetlo plava, grafitna pozadina, jasni rubovi kartica
+- [x] Boje zanata: Volt žuta, Gear F1 crvena, Body petrolej, Wheel brončana, Fleet narančasta, Moto Kawasaki zelena, Air ledeno tirkizna
+- [x] Ikone zanata: tamna pločica, svijetleći znak; naslovi u užem sportskom fontu
 
 ## Stadij 3: Prodajna početna stranica
 - [ ] Prave snimke aplikacije (naslov i 3 koraka), automatski iz dema

@@ -2,19 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Dark is the default: workshops are dim, screens are greasy, and a dark
-   UI in the style of Linear/Vercel keeps status colours readable.
+/* "Industrial dark": graphite with a hint of blue instead of black, which
+   glares less on a phone and reads like a tool, not like office software.
+   Page, card, raised part and border are clear steps apart.
    Values are RGB triplets for Tailwind's alpha modifiers. */
-/* The steps between page, card, raised part and border are wide enough to
-   tell apart on a phone in a bright workshop (they used to blend into one). */
 :root {
-  --bg: 9 9 11;
-  --surface: 25 25 29;
-  --surface2: 38 38 44;
-  --line: 60 60 68;
-  --fg: 240 240 243;
-  --muted: 172 172 182;
-  --faint: 132 132 142;
+  --bg: 15 23 42;
+  --surface: 30 41 59;
+  --surface2: 42 56 78;
+  --line: 61 77 102;
+  --fg: 248 250 252;
+  --muted: 160 174 196;
+  --faint: 118 134 158;
   --ok: 52 211 153;
   --warn: 251 191 36;
   --crit: 248 113 113;

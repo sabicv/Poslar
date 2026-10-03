@@ -2,14 +2,14 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Camera, Check, ClipboardCheck, EyeOff, FileSpreadsheet, History, Mic, MessageCircle, Receipt, Smartphone, Upload } from 'lucide-react';
-import { BrandMark, ProductMark } from '@/components/ProductMark';
+import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { ButtonLink } from '@/components/ui';
 import { BRAND, PACKAGES, TRADE_GROUPS, accentStyle, matchPackageFromHost, type PackageConfig, type PackageId } from '@/config/tenant.config';
 import { getAuth } from '@/lib/session';
 
 // The landing page sells the product by itself: what it does in a day's
 // work, in plain words, for a craftsman on a phone. On a product domain
-// (airfiles.hr) it speaks about that trade; anywhere else about X-Files.
+// (airfiles.hr) it speaks about that trade; anywhere else about TaktIX.
 
 // The way it is said in a workshop: "ti", short sentences (ten words at
 // most), and only the real troubles — oily hands, lost papers, arguments
@@ -82,8 +82,14 @@ export default async function Home() {
         {/* Header */}
         <header className="flex h-16 items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2.5">
-            {product ? <ProductMark id={product.id} /> : <BrandMark />}
-            <span className="font-semibold tracking-tight">{product ? product.product : BRAND.name}</span>
+            {product ? (
+              <>
+                <ProductMark id={product.id} />
+                <span className="font-semibold tracking-tight">{product.product}</span>
+              </>
+            ) : (
+              <BrandLogo />
+            )}
           </Link>
           <nav className="flex items-center gap-2">
             <ButtonLink href="/login" size="sm" variant="ghost">
@@ -102,7 +108,7 @@ export default async function Home() {
               <span className="size-1.5 rounded-full bg-accent" />
               {product ? product.tagline : 'Radionica · Teren · Cesta'}
             </p>
-            <h1 className="max-w-2xl text-balance text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+            <h1 className="max-w-2xl text-balance font-display text-5xl font-bold leading-[1.0] tracking-tight sm:text-7xl">
               {product ? HEADLINES[product.id] : (
                 <>
                   Gotov posao, poslan račun. <span className="text-accent">Sve iz mobitela.</span>
@@ -135,7 +141,7 @@ export default async function Home() {
 
         {/* The troubles, each with its fix */}
         <section className="border-t border-line py-14">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Znaš kako to ide</h2>
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Znaš kako to ide</h2>
           <ul className="mt-8 grid gap-4 sm:grid-cols-2">
             {PROBLEMS.map((p) => (
               <li key={p.pain} className="rounded-2xl border border-line bg-surface p-5">
@@ -151,7 +157,7 @@ export default async function Home() {
 
         {/* How it works */}
         <section id="kako" className="scroll-mt-6 border-t border-line py-14">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Kako ide jedan posao</h2>
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Kako ide jedan posao</h2>
           <ol className="mt-8 grid gap-4 md:grid-cols-3">
             {STEPS.map((s, i) => (
               <li key={s.title} className="rounded-2xl border border-line bg-surface p-5">
@@ -168,7 +174,7 @@ export default async function Home() {
 
         {/* Benefits */}
         <section className="border-t border-line py-14">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Rađeno za majstore, ne za urede</h2>
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Rađeno za majstore, ne za urede</h2>
           <div className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
             {BENEFITS.map((b) => (
               <div key={b.title} className="flex gap-4">
@@ -186,7 +192,7 @@ export default async function Home() {
         <section className="border-t border-line py-14">
           {product ? (
             <>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Posebno za {product.product}</h2>
+              <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Posebno za {product.product}</h2>
               <ul className="mt-6 grid gap-3 sm:grid-cols-3">
                 {product.pitch.map((line) => (
                   <li key={line} className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-4 text-sm">
@@ -198,7 +204,7 @@ export default async function Home() {
             </>
           ) : (
             <>
-              <h2 id="zanati" className="scroll-mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">
+              <h2 id="zanati" className="scroll-mt-6 font-display text-3xl font-bold tracking-tight sm:text-4xl">
                 Odaberi svoj posao
               </h2>
               <p className="mt-2 text-muted">Svaki paket priča jezikom tvog zanata.</p>
@@ -227,7 +233,7 @@ export default async function Home() {
 
         {/* FAQ */}
         <section className="border-t border-line py-14">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Česta pitanja</h2>
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Česta pitanja</h2>
           <div className="mt-6 divide-y divide-line rounded-2xl border border-line bg-surface">
             {FAQ.map((f) => (
               <details key={f.q} className="group px-5 py-4">
@@ -243,7 +249,7 @@ export default async function Home() {
 
         {/* Final call */}
         <section className="my-10 rounded-3xl border border-line bg-surface px-6 py-12 text-center">
-          <h2 className="text-balance text-3xl font-semibold tracking-tight">Probaj na sljedećem poslu.</h2>
+          <h2 className="text-balance font-display text-4xl font-bold tracking-tight">Probaj na sljedećem poslu.</h2>
           <p className="mx-auto mt-3 max-w-md text-muted">{trialDays} dana besplatno. Ako ti ne pomogne, ne plaćaš ništa.</p>
           <div className="mt-7 flex justify-center">
             <ButtonLink href={register} variant="primary" size="lg">
@@ -254,7 +260,7 @@ export default async function Home() {
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line py-8 text-sm text-faint">
           <span className="flex items-center gap-2">
-            <BrandMark className="size-6" /> X-Files
+            <BrandLogo size="sm" />
           </span>
           <Link href="/login" className="hover:text-fg">
             Prijava za korisnike

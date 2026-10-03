@@ -52,7 +52,7 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
         </form>
       </header>
 
-      <h1 className="text-2xl font-semibold tracking-tight">Odaberite proizvod i ulogu</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight">Odaberite proizvod i ulogu</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted">
         Jedan račun za svih sedam proizvoda. Voditelj vidi cijene i naplatu, radnik vidi samo posao. Podaci su izmišljeni: slobodno mijenjajte, dodajte i brišite,
         demo se može vratiti na početno stanje. Iz aplikacije se ovamo vraćate preko trake <span className="font-medium text-fg">Demo</span> na vrhu.

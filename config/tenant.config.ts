@@ -1,5 +1,5 @@
 // =====================================================================
-// X-Files · central tenant configuration
+// TaktIX · central tenant configuration
 //
 // One workshop = one package. Everything that differs between Volt,
 // Gear, Body, Wheel, Fleet and Moto lives here as typed data: brand and
@@ -302,7 +302,9 @@ function luminance([r, g, b]: [number, number, number]): number {
 // black and white by contrast.
 // The umbrella brand, for an address that is no product's domain (the
 // Vercel URL) and a visitor who is not signed in.
-export const BRAND = { id: 'xfiles', name: 'X-Files', tagline: 'Aplikacija za obrtnike i servise', accent: '#F4F4F5' } as const;
+// TaktIX: light "Gulf" blue with an orange mark, the racing livery the
+// audience knows from Le Mans. Products keep their own colours inside the app.
+export const BRAND = { id: 'taktix', name: 'TaktIX', tagline: 'Manje administracije. Više odrađenog posla.', accent: '#6CC5EA', mark: '#FF6A13' } as const;
 
 export function brandAccentStyle(): CSSProperties {
   return accentStyle({ accent: BRAND.accent } as PackageConfig);

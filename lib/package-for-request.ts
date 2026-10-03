@@ -8,7 +8,7 @@ import { getWorkshop } from '@/lib/session';
 // or, on an address that is no product's domain (the Vercel URL, a local
 // network IP), the signed-in person's own workshop — so the app installed
 // from there carries the right name and icon. With neither, the page shows
-// the X-Files brand itself (generic: true).
+// the TaktIX brand itself (generic: true).
 export async function packageForRequest(): Promise<{ pkg: PackageConfig; byDomain: boolean; generic: boolean }> {
   const byHost = matchPackageFromHost((await headers()).get('host'));
   if (byHost) return { pkg: byHost, byDomain: true, generic: false };

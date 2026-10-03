@@ -181,7 +181,7 @@ export const air: PackageConfig = {
     'Evidencija F-plinova i godišnji servisi koji se sami nude za zakazivanje',
   ],
   sector: 'field',
-  accent: '#5EEAD4',
+  accent: '#5CE1E6',
   vocabulary: {
     client: { one: 'Klijent', many: 'Klijenti', new: 'Novi klijent', acc: 'klijenta' },
     asset: { one: 'Uređaj', many: 'Uređaji', new: 'Novi uređaj' },

@@ -1,6 +1,6 @@
 import 'server-only';
 
-// System prompt of the X-Files AI Kopilot (per the spec), extended with the
+// System prompt of the TaktIX AI Kopilot (per the spec), extended with the
 // rules a workshop tool needs: order data is data (not instructions), every
 // number says where it came from, and nothing that defeats emission or
 // safety systems.

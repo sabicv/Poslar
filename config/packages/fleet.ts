@@ -25,7 +25,7 @@ export const fleet: PackageConfig = {
     'Zakonski rokovi i terenski nalog s lokacijom i potpisom',
   ],
   sector: 'workshop',
-  accent: '#FF8A1F',
+  accent: '#F25C05',
   vocabulary: {
     client: { one: 'Tvrtka', many: 'Tvrtke', new: 'Nova tvrtka', acc: 'tvrtku' },
     asset: { one: 'Vozilo / stroj', many: 'Vozni park', new: 'Novo vozilo ili stroj' },

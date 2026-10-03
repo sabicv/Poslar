@@ -31,7 +31,7 @@ export function JobHeader({ job, backHref, backLabel, copilot }: { job: JobWithR
           ) : null}
           {finished ? <Badge tone={job.payment_status === 'paid' ? 'ok' : 'warn'}>{job.payment_status === 'paid' ? 'Plaćeno' : 'Za naplatu'}</Badge> : null}
         </div>
-        <h1 className="line-clamp-2 break-words text-2xl font-semibold tracking-tight">
+        <h1 className="line-clamp-2 break-words font-display text-3xl font-bold tracking-tight">
           <Link prefetch={false} href={`/app/assets/${job.asset.id}`} className="hover:underline">
             {assetTitle(job.asset)}
           </Link>

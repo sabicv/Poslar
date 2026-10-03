@@ -34,7 +34,7 @@ export const wheel: PackageConfig = {
     'Geometrija prije i poslije, moment pritezanja u Nm',
   ],
   sector: 'workshop',
-  accent: '#D5DBE3',
+  accent: '#C9953C',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },
     asset: { one: 'Vozilo', many: 'Vozila', new: 'Novo vozilo' },

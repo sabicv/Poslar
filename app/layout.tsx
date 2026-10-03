@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { GeistMono } from 'geist/font/mono';
 import { GeistSans } from 'geist/font/sans';
+import { Saira_Condensed } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { ServiceWorker } from '@/components/ServiceWorker';
 import { BRAND, accentStyle, brandAccentStyle } from '@/config/tenant.config';
@@ -22,8 +23,11 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+// Headings in a narrow, sporty face; body text stays in Geist for reading.
+const display = Saira_Condensed({ subsets: ['latin', 'latin-ext'], weight: ['600', '700'], variable: '--font-display', display: 'swap' });
+
 export const viewport: Viewport = {
-  themeColor: '#09090b',
+  themeColor: '#0F172A',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
@@ -38,7 +42,7 @@ const THEME_SCRIPT = `try{if(localStorage.getItem('theme')==='light')document.do
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { pkg, generic } = await packageForRequest();
   return (
-    <html lang="hr" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="hr" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable} ${display.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>

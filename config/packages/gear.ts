@@ -113,7 +113,7 @@ export const gear: PackageConfig = {
     'Dijelovi s kataloškim brojem, dobavljačem i jamstvom',
   ],
   sector: 'workshop',
-  accent: '#9580FF',
+  accent: '#E8112D',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },
     asset: { one: 'Vozilo', many: 'Vozila', new: 'Novo vozilo' },

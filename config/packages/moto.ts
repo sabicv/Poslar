@@ -24,7 +24,7 @@ export const moto: PackageConfig = {
     'HIN/CIN, serijski broj motora i motosati po motoru',
   ],
   sector: 'workshop',
-  accent: '#2BD4E6',
+  accent: '#66CC33',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },
     asset: { one: 'Vozilo / plovilo', many: 'Vozila i plovila', new: 'Novo vozilo ili plovilo' },
