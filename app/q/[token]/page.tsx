@@ -55,7 +55,13 @@ export default async function DoorIntakePage({ params }: { params: Promise<{ tok
         symptoms={t.pkg.symptoms.slice(0, 8)}
         identifierLabel={identifierLabel(t.pkg.defaultAssetType)}
       />
-      <p className="py-8 text-center text-xs text-faint">Pokreće TaktiX</p>
+      <p className="pt-8 text-center text-xs text-faint">
+        Podatke šaljete radionici {t.name}, samo za ovaj posao.{' '}
+        <a href="/privatnost" target="_blank" className="underline hover:text-fg">
+          Privatnost
+        </a>
+      </p>
+      <p className="pb-8 pt-1 text-center text-xs text-faint">Pokreće TaktiX</p>
     </main>
   );
 }

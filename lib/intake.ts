@@ -78,6 +78,8 @@ export async function overLimit(tenantId: string, ipHash: string, kind: 'submit'
   const l = LIMITS[kind];
   if (hour >= l.hour || day >= l.day || all >= l.workshopDay) return true;
   await admin.from('intake_attempts').insert({ tenant_id: tenantId, ip_hash: ipHash, kind });
+  // Kept 30 days (privacy policy); the limits need only the last day.
+  await admin.from('intake_attempts').delete().eq('tenant_id', tenantId).lt('created_at', new Date(Date.now() - 30 * 86400_000).toISOString());
   return false;
 }
 

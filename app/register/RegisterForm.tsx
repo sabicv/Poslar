@@ -110,7 +110,21 @@ export function RegisterForm({ initialPackage, packageLocked, referral = '' }: {
       <input tabIndex={-1} autoComplete="off" aria-hidden className="hidden" value={form.website} onChange={set('website')} />
       <label className="flex items-start gap-3 text-sm text-muted">
         <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} className="mt-0.5 size-5 accent-[rgb(var(--accent))]" />
-        <span>Prihvaćam uvjete korištenja i obradu podataka radionice radi pružanja usluge.</span>
+        <span>
+          Prihvaćam{' '}
+          <a href="/uvjeti" target="_blank" className="font-medium text-accent hover:underline">
+            uvjete korištenja
+          </a>{' '}
+          i{' '}
+          <a href="/obrada-podataka" target="_blank" className="font-medium text-accent hover:underline">
+            ugovor o obradi podataka
+          </a>
+          . Kako čuvamo podatke:{' '}
+          <a href="/privatnost" target="_blank" className="font-medium text-accent hover:underline">
+            politika privatnosti
+          </a>
+          .
+        </span>
       </label>
       {error ? <p className="rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-sm text-crit">{error}</p> : null}
       <Button type="submit" variant="primary" size="lg" className="w-full" disabled={pending}>

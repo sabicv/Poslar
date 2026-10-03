@@ -7,6 +7,7 @@ import { ReferralShare } from '@/components/billing/ReferralShare';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { Badge, Button, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
 import { HELP_TOPICS } from '@/config/help';
+import { LEGAL_PAGES } from '@/config/legal';
 import { AI_LABELS, TERM_LABELS, aiQuota, getPlan, monthlyPrice } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { loadHelpVideos } from '@/lib/help';
@@ -227,6 +228,13 @@ export default async function SettingsPage() {
           </div>
         ) : null}
       </div>
+      <p className="mt-8 flex flex-wrap gap-x-4 gap-y-1 text-xs text-faint">
+        {LEGAL_PAGES.map((p) => (
+          <Link key={p.href} href={p.href} className="hover:text-fg">
+            {p.title}
+          </Link>
+        ))}
+      </p>
     </>
   );
 }

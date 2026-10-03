@@ -59,6 +59,8 @@ export async function logError(report: ErrorReport): Promise<void> {
       p_tenant: tenantId,
       p_user: userId,
     });
+    // Resolved errors are kept 12 months (privacy policy).
+    await admin.from('app_errors').delete().eq('status', 'resolved').lt('last_seen', new Date(Date.now() - 365 * 86400_000).toISOString());
   } catch (error) {
     console.error('[errors] not logged', error);
   }

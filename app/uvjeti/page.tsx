@@ -1,0 +1,153 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { LegalPage, ProviderBlock, Section } from '@/components/legal/LegalPage';
+import { PLANS, TERM_DISCOUNT } from '@/config/plans';
+import { GRACE_DAYS } from '@/lib/billing';
+
+export const metadata: Metadata = { title: 'Uvjeti korištenja' };
+
+const A = ({ href, children }: { href: string; children: React.ReactNode }) => (
+  <Link href={href} className="font-medium text-accent hover:underline">
+    {children}
+  </Link>
+);
+
+// Terms of use. A draft in plain words, to be reviewed by a lawyer before
+// the paid launch (PLAN.md, stage 9).
+export default function TermsPage() {
+  const trialDays = Number(process.env.TRIAL_DAYS ?? 30) || 30;
+  const plans = Object.values(PLANS);
+  return (
+    <LegalPage
+      title="Uvjeti korištenja"
+      intro={<p>Ovi uvjeti vrijede za korištenje aplikacije TaktiX. Registracijom radionice prihvaćate ove uvjete i Ugovor o obradi podataka.</p>}
+    >
+      <Section n={1} title="Pružatelj usluge">
+        <p>Uslugu pruža (u daljnjem tekstu: Pružatelj):</p>
+        <ProviderBlock />
+      </Section>
+
+      <Section n={2} title="Što je TaktiX">
+        <p>
+          TaktiX je web aplikacija za radionice i obrtnike: radni nalozi, fotografije, mušterije, ponude i odobrenja, računi, podsjetnici i izvještaji. Koristi se u pregledniku ili kao aplikacija na
+          mobitelu.
+        </p>
+        <p>
+          Usluga je namijenjena obrtnicima i tvrtkama, za njihovu djelatnost. Nije namijenjena potrošačima. Radionicu koja koristi uslugu, zajedno s njezinim vlasnikom ili voditeljem, ovi uvjeti
+          zovu Korisnik.
+        </p>
+      </Section>
+
+      <Section n={3} title="Račun, radnici i lozinke">
+        <ul>
+          <li>Radionicu registrira vlasnik ili voditelj. Podaci pri registraciji moraju biti točni.</li>
+          <li>Korisnik sam dodaje radnike i određuje im ulogu. Radnici ne vide iznose, naplatu ni poslovanje.</li>
+          <li>Korisnik čuva lozinke i odgovara za sve što se radi s računima njegove radionice. Ako posumnja da je netko došao do lozinke, odmah je mijenja i javlja Pružatelju.</li>
+        </ul>
+      </Section>
+
+      <Section n={4} title="Probno razdoblje">
+        <p>
+          Nova radionica koristi TaktiX {trialDays} dana bez plaćanja i bez kartice. Nakon toga aplikacija se zaključava dok Korisnik ne uplati pretplatu. Podaci ostaju sačuvani i nakon uplate se
+          nastavlja gdje se stalo.
+        </p>
+      </Section>
+
+      <Section n={5} title="Pretplata i plaćanje">
+        <ul>
+          <li>
+            Paketi i mjesečne cijene: {plans.map((p) => `${p.name} ${p.price} €`).join(', ')}. Cijene su s PDV-om. Opseg paketa (broj radnika, broj čitanja fotografija i odgovora Kopilota
+            mjesečno, dodatne mogućnosti) navodi se na početnoj stranici i u aplikaciji, u Postavke → Pretplata.
+          </li>
+          <li>Pretplata se plaća unaprijed, uplatom na račun Pružatelja s pozivom na broj radionice, za jedan ili više mjeseci.</li>
+          <li>Uz ugovor na 24 mjeseca mjesečna cijena je {Math.round(TERM_DISCOUNT * 100)} % niža. Za takav ugovor vrijede i odredbe ugovora.</li>
+          <li>
+            Ako uplata ne stigne do isteka plaćenog razdoblja, Korisnik ima još {GRACE_DAYS} dana. Nakon toga aplikacija se zaključava do uplate. Zbog kašnjenja se podaci ne brišu.
+          </li>
+          <li>Promjenu cijena Pružatelj najavljuje najmanje 30 dana unaprijed. Već plaćeno razdoblje ostaje po staroj cijeni.</li>
+        </ul>
+      </Section>
+
+      <Section n={6} title="Preporuka">
+        <p>
+          Kad radionica registrirana preko poveznice Korisnika plati prvu pretplatu, Korisnik dobiva mjesec dana besplatno, jednom za svaku takvu radionicu. Pružatelj ne dodjeljuje nagradu ako je
+          preporuka zlouporabljena, primjerice ako Korisnik preporuči sam sebe pod drugim imenom.
+        </p>
+      </Section>
+
+      <Section n={7} title="Prestanak korištenja">
+        <ul>
+          <li>Korisnik bez ugovornog razdoblja može prestati koristiti uslugu kad želi. Uplaćeni iznos za započeto razdoblje ne vraća se.</li>
+          <li>Pružatelj može isključiti pristup zbog neplaćanja ili zbog teškog ili ponovljenog kršenja ovih uvjeta. O tome obavještava Korisnika.</li>
+        </ul>
+      </Section>
+
+      <Section n={8} title="Podaci Korisnika">
+        <ul>
+          <li>
+            Podaci koje Korisnik unese (mušterije, nalozi, fotografije, računi) pripadaju Korisniku. Pružatelj ih obrađuje samo radi pružanja usluge, prema{' '}
+            <A href="/obrada-podataka">Ugovoru o obradi podataka</A>.
+          </li>
+          <li>Korisnik u svakom trenutku može preuzeti izdane račune (paket za knjigovođu) i popis zatvorenih naloga (Arhiva, tablica za Excel).</li>
+          <li>
+            Nakon prestanka korištenja podaci se čuvaju 12 mjeseci, kako bi se Korisnik mogao vratiti, a zatim se brišu. Na zahtjev Korisnika brišu se ranije, u roku od 30 dana.
+          </li>
+          <li>Račune i druge isprave Korisnik sam čuva onoliko koliko propisuje zakon. Prije brisanja neka ih preuzme.</li>
+        </ul>
+        <p>
+          Kako Pružatelj postupa s osobnim podacima, opisuje <A href="/privatnost">Politika privatnosti</A>.
+        </p>
+      </Section>
+
+      <Section n={9} title="Računi i fiskalizacija">
+        <p>
+          TaktiX izrađuje račun sa stavkama i e-račun (XML). Aplikacija trenutno ne fiskalizira račune: fiskalni račun Korisnik izdaje svojom blagajnom, a broj fiskalnog računa može upisati na
+          račun u aplikaciji. Korisnik odgovara za ispravnost računa i za svoje porezne obveze.
+        </p>
+      </Section>
+
+      <Section n={10} title="Umjetna inteligencija">
+        <p>
+          Čitanje fotografija (Slikanje) i Kopilot rade uz pomoć umjetne inteligencije. Rezultati mogu sadržavati pogreške pa ih Korisnik provjerava prije upotrebe. Kopilot daje prijedloge; ne
+          zamjenjuje stručnu prosudbu, upute proizvođača ni propise.
+        </p>
+      </Section>
+
+      <Section n={11} title="Poruke mušterijama">
+        <p>
+          Aplikacija priprema poruke (WhatsApp, SMS) koje Korisnik šalje sa svog mobitela. Korisnik odgovara za njihov sadržaj i za to da mušterijama smije slati obavijesti i podsjetnike.
+        </p>
+      </Section>
+
+      <Section n={12} title="Dostupnost i promjene usluge">
+        <ul>
+          <li>Pružatelj nastoji da usluga radi bez prekida, ali neprekidnu dostupnost ne jamči. Planirano održavanje najavljuje kad je moguće.</li>
+          <li>Usluga se razvija i mogućnosti se mijenjaju. Bitne promjene na štetu Korisnika Pružatelj najavljuje unaprijed.</li>
+        </ul>
+      </Section>
+
+      <Section n={13} title="Odgovornost">
+        <ul>
+          <li>Pružatelj ne odgovara za izgubljenu dobit ni za posrednu štetu, osim ako je šteta prouzročena namjerno ili krajnjom nepažnjom.</li>
+          <li>U ostalim slučajevima odgovornost Pružatelja ograničena je na iznos koji je Korisnik platio za uslugu u posljednjih 12 mjeseci.</li>
+          <li>Korisnik odgovara za podatke koje unosi i za način na koji koristi aplikaciju.</li>
+        </ul>
+      </Section>
+
+      <Section n={14} title="Zabranjeno korištenje">
+        <p>Nije dopušteno: unositi tuđe podatke bez pravne osnove, pokušavati pristupiti tuđim podacima, ometati ili preopterećivati sustav, te preprodavati ili ustupati pristup trećima.</p>
+      </Section>
+
+      <Section n={15} title="Izmjene uvjeta">
+        <p>
+          Pružatelj može izmijeniti ove uvjete. O bitnim izmjenama obavještava Korisnika u aplikaciji ili e-poštom najmanje 30 dana prije nego što počnu vrijediti. Ako se Korisnik ne slaže, može
+          prestati koristiti uslugu prije toga dana.
+        </p>
+      </Section>
+
+      <Section n={16} title="Pravo i sporovi">
+        <p>Primjenjuje se pravo Republike Hrvatske. Sporove strane rješavaju dogovorom, a ako ne uspiju, nadležan je stvarno nadležni sud prema sjedištu Pružatelja.</p>
+      </Section>
+    </LegalPage>
+  );
+}

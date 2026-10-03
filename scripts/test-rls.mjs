@@ -418,6 +418,7 @@ console.log('\nPretplata i preporuke');
     check('owner cannot change the payment reference', await fails(() => q(`update public.tenants set billing_ref = 5 where id = $1`, [tA])));
     check('owner cannot pick who referred the workshop', await fails(() => q(`update public.tenants set referred_by = $2 where id = $1`, [tA, tB])));
     check('owner cannot mark the referral as rewarded', await fails(() => q(`update public.tenants set referral_rewarded_at = now() where id = $1`, [tA])));
+    check('owner cannot rewrite when the terms were accepted', await fails(() => q(`update public.tenants set terms_accepted_at = now(), terms_version = 'x' where id = $1`, [tA])));
     await q(`update public.tenants set settings = settings || '{"demo": true}' where id = $1`, [tA]);
   });
   const [own] = await q(`select settings ? 'demo' as demo from public.tenants where id = $1`, [tA]);

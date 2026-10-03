@@ -99,7 +99,14 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [x] Toranj → Upute: 10 tema (prvi dan, aplikacija na mobitelu, novi nalog, rad na nalogu, račun, radnici, cjenik, QR, podsjetnici, knjigovođa); zalijepiš YouTube poveznicu, spremiš; prazno polje miče video
    - [x] U aplikaciji: popis u Postavke → Pomoć (radnik ne vidi teme samo za voditelja) i gumb „Video” uz Prve korake, Novi nalog, Račun, Tim, Cjenik, QR samoprijem, Podsjetnike i Za knjigovođu; bez poveznice ništa se ne prikazuje
    - [ ] (V) Snimiti kratke video upute (1 do 2 minute, mobitelom) i staviti ih na YouTube kao „Neizlistano”
-8. Pravni dio: uvjeti korištenja, politika privatnosti, ugovor o obradi podataka ((V) pravnik pregleda prije prodaje)
+8. Pravni dio
+   - [x] Nacrti: /uvjeti (uvjeti korištenja), /privatnost (politika privatnosti), /obrada-podataka (ugovor o obradi podataka, čl. 28. GDPR-a); podaci pružatelja iz Vercela; samo provjerene činjenice (podaci u Irskoj, AI samo na zahtjev, bez kolačića za praćenje, fiskalizacija se još radi na blagajni)
+   - [x] Poveznice: registracija (kvačica), podnožje početne stranice, Postavke; QR stranica i odobrenje kažu mušteriji tko dobiva podatke
+   - [x] Registracija pamti kad su uvjeti prihvaćeni i koju verziju; sažeci IP adresa brišu se nakon 30 dana, riješene greške nakon 12 mjeseci
+   - [ ] (V) Pravnik pregleda sva tri teksta prije prodaje (posebno rokove: 12 mjeseci čuvanja, brisanje na zahtjev u 30 dana, obavijest o povredi u 48 sati)
+   - [ ] (V) U Vercel upisati TAKTIX_OIB (i TAKTIX_PAYEE_NAME, ulicu i grad); bez njih stranice pokazuju samo „TaktiX”
+   - [ ] (V) Prihvatiti ugovore o obradi podataka kod Supabasea, Vercela i Anthropica (u njihovim postavkama)
+   - [ ] (V) Jednom mjesečno u Tornju obrisati radionice kojima je pretplata istekla prije više od 12 mjeseci
 9. Google Play: paket aplikacije i povezivanje domene ((V) račun za razvojne programere, testeri)
 
 ## Kasnije

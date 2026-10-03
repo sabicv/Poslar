@@ -127,6 +127,12 @@ export default async function ApprovePage({ params }: { params: Promise<{ token:
         <section className="mt-5 rounded-2xl border border-line bg-surface p-5 text-sm text-muted">Trenutno nema novih prijedloga za odobrenje.</section>
       )}
       <p className="mt-8 text-center text-xs text-faint">{vatRegistered ? 'Cijene su s PDV-om. ' : ''}Poveznica vrijedi do {formatDateTime(approval.expires_at as string)}.</p>
+      <p className="mt-2 text-center text-xs text-faint">
+        Uz odluku radionica pamti ime, vrijeme i IP adresu, kao dokaz odobrenja.{' '}
+        <a href="/privatnost" target="_blank" className="underline hover:text-fg">
+          Privatnost
+        </a>
+      </p>
     </main>
   );
 }

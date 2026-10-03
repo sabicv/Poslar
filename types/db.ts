@@ -43,6 +43,9 @@ export interface Tenant {
   // Who sent this workshop (referral), and when that one got its free month.
   referred_by: string | null;
   referral_rewarded_at: string | null;
+  // Terms and data processing agreement accepted at registration (version = date).
+  terms_accepted_at: string | null;
+  terms_version: string | null;
 }
 
 export interface Profile {

@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { headers } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+import { LEGAL_VERSION } from '@/config/legal';
 import { PACKAGE_IDS, type PackageId } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -104,11 +105,16 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
     await admin.auth.admin.deleteUser(userId);
     return fail('Radionica nije stvorena. Pokušajte ponovno.');
   }
-  // Sent by another workshop: remember who, for its free month later.
-  if (v.referral && tenantId) {
+  // The terms and the data processing agreement, accepted with the form;
+  // and, sent by another workshop, who it was (for its free month later).
+  const patch: Record<string, unknown> = { terms_accepted_at: new Date().toISOString(), terms_version: LEGAL_VERSION };
+  if (v.referral) {
     const { data: referrer } = await admin.from('tenants').select('id').eq('billing_ref', Number(v.referral)).maybeSingle();
-    if (referrer && referrer.id !== tenantId) await admin.from('tenants').update({ referred_by: referrer.id }).eq('id', tenantId as string);
+    if (referrer && referrer.id !== tenantId) patch.referred_by = referrer.id;
   }
+  if (tenantId) await admin.from('tenants').update(patch).eq('id', tenantId as string);
+  // Attempts are only needed for the hourly and daily limits.
+  await admin.from('registration_attempts').delete().lt('created_at', new Date(Date.now() - 30 * 86400_000).toISOString());
   return { ok: true, data: { confirmEmail } };
 }
 

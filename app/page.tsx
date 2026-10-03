@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { Camera, Check, ClipboardCheck, EyeOff, FileSpreadsheet, History, Mic, MessageCircle, Receipt, Smartphone, Upload, X } from 'lucide-react';
 import { TryIt } from '@/components/landing/TryIt';
+import { LEGAL_PAGES } from '@/config/legal';
 import { PLANS as PLAN_CONFIG, TERM_DISCOUNT } from '@/config/plans';
 import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
@@ -397,6 +398,13 @@ export default async function Home() {
             <Link href="/login" className="hover:text-fg">
               Prijava za korisnike
             </Link>
+          </span>
+          <span className="flex w-full flex-wrap gap-x-5 gap-y-2 text-xs">
+            {LEGAL_PAGES.map((p) => (
+              <Link key={p.href} href={p.href} className="hover:text-fg">
+                {p.title}
+              </Link>
+            ))}
           </span>
         </footer>
       </div>
