@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { Lock } from 'lucide-react';
 import { PaymentInstructions } from '@/components/billing/PaymentInstructions';
+import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { Button } from '@/components/ui';
 import { monthlyPrice } from '@/config/plans';
 import { signOut } from '@/lib/actions/auth';
@@ -71,6 +72,7 @@ export default async function LockedPage({ searchParams }: { searchParams: Promi
         </section>
       ) : null}
       {contact ? <p className="mt-6 rounded-xl border border-line bg-surface px-4 py-3 text-sm">Podrška: {contact}</p> : null}
+      <SupportWhatsApp message={`Pozdrav, ${state.name ? `ovdje ${state.name}. ` : ''}${text.title}. `} label="Pišite nam na WhatsApp" className="mt-3 self-start" />
       <p className="mt-2 text-xs text-faint">Prijavljeni ste kao {state.user.email} · {formatDate(new Date().toISOString())}</p>
       <form action={signOut} className="mt-8">
         <Button type="submit" variant="secondary">

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ChevronRight, LogOut } from 'lucide-react';
 import { SupportButton } from '@/components/SupportButton';
 import { ReferralShare } from '@/components/billing/ReferralShare';
+import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { Badge, Button, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
 import { AI_LABELS, TERM_LABELS, aiQuota, getPlan, monthlyPrice } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
@@ -94,6 +95,13 @@ export default async function SettingsPage() {
             <CardHeader title="Pomoć" subtitle="Nešto ne radi ili Vam nešto treba? Javite nam." />
             <div className="flex flex-wrap items-center gap-2 p-4">
               <SupportButton />
+              <SupportWhatsApp
+                message={
+                  isDemo
+                    ? `Pozdrav, isprobavam TaktiX demo (${ctx.pkg.product}). `
+                    : `Pozdrav, ovdje ${[ctx.profile.full_name, t.name].filter(Boolean).join(', ')} (br. ${t.billing_ref}). `
+                }
+              />
               {(tickets ?? []).length ? (
                 <Link href="/app/podrska" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-muted hover:bg-surface2 hover:text-fg">
                   Moje prijave ({(tickets ?? []).length})

@@ -6,8 +6,10 @@ import { Camera, Check, ClipboardCheck, EyeOff, FileSpreadsheet, History, Mic, M
 import { TryIt } from '@/components/landing/TryIt';
 import { PLANS as PLAN_CONFIG, TERM_DISCOUNT } from '@/config/plans';
 import { BrandLogo, ProductMark } from '@/components/ProductMark';
+import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { ButtonLink } from '@/components/ui';
 import { BRAND, PACKAGES, TRADE_GROUPS, accentStyle, matchPackageFromHost, type PackageId } from '@/config/tenant.config';
+import { support, supportWhatsApp } from '@/lib/billing';
 import { getAuth } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
@@ -58,8 +60,8 @@ const NEW_WAY = ['Izgovoriš kvar i nalog je otvoren.', 'Cijenu pošalješ na Wh
 // Prices and team sizes come from config/plans.ts, the same numbers the tower enforces.
 const PLANS = [
   { ...PLAN_CONFIG.basic, extras: ['Nalozi, slike i računi', 'Odobrenje preko WhatsAppa', 'Paket za knjigovođu'], best: false },
-  { ...PLAN_CONFIG.standard, extras: ['Sve iz paketa Basic', 'QR samoprijem na vratima (uskoro)'], best: true },
-  { ...PLAN_CONFIG.premium, extras: ['Sve iz paketa Standard', 'QR samoprijem na vratima (uskoro)'], best: false },
+  { ...PLAN_CONFIG.standard, extras: ['Sve iz paketa Basic', 'QR samoprijem na vratima'], best: true },
+  { ...PLAN_CONFIG.premium, extras: ['Sve iz paketa Standard', 'QR samoprijem na vratima'], best: false },
 ];
 
 const BENEFITS = [
@@ -87,6 +89,8 @@ const FAQ = [
   { q: 'Što ako zapnem?', a: 'Javi nam se. Pomoći ćemo ti.' },
 ];
 
+const HELLO = 'Pozdrav, zanima me TaktiX. ';
+
 export default async function Home() {
   const host = (await headers()).get('host');
   const product = matchPackageFromHost(host);
@@ -102,6 +106,10 @@ export default async function Home() {
   const examples = (product ?? PACKAGES.gear).symptoms.slice(0, 4);
   // Photos from real work (public/landing/foto-1.jpg …), shown once added.
   const photos = Array.from({ length: 10 }, (_, i) => ['jpg', 'webp'].map((ext) => `foto-${i + 1}.${ext}`).find((f) => existsSync(path.join(dir, f)))).filter(Boolean) as string[];
+  // The support number, once it is set (SUPPORT_PHONE).
+  const help = support();
+  const chat = supportWhatsApp(HELLO);
+  const faq = FAQ.map((f) => (f.q === 'Što ako zapnem?' && chat && help.phone ? { ...f, a: `Piši nam na WhatsApp ili nazovi: ${help.phone}. Pomoći ćemo ti.` } : f));
 
   return (
     <div className="min-h-dvh" style={product ? accentStyle(product) : undefined}>
@@ -352,7 +360,7 @@ export default async function Home() {
         <section className="border-t border-line py-14">
           <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Česta pitanja</h2>
           <div className="mt-6 divide-y divide-line rounded-2xl border border-line bg-surface">
-            {FAQ.map((f) => (
+            {faq.map((f) => (
               <details key={f.q} className="group px-5 py-4">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium">
                   {f.q}
@@ -368,10 +376,11 @@ export default async function Home() {
         <section className="my-10 rounded-3xl border border-line bg-surface px-6 py-12 text-center">
           <h2 className="text-balance font-display text-4xl font-bold tracking-tight">Probaj na sljedećem poslu.</h2>
           <p className="mx-auto mt-3 max-w-md text-muted">{trialDays} dana besplatno. Ako ti ne pomogne, ne plaćaš ništa.</p>
-          <div className="mt-7 flex justify-center">
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
             <ButtonLink href={register} variant="primary" size="lg">
               Probaj besplatno
             </ButtonLink>
+            <SupportWhatsApp message={HELLO} label="Pitaj na WhatsAppu" size="lg" />
           </div>
         </section>
 
@@ -379,9 +388,16 @@ export default async function Home() {
           <span className="flex items-center gap-2">
             <BrandLogo size="sm" />
           </span>
-          <Link href="/login" className="hover:text-fg">
-            Prijava za korisnike
-          </Link>
+          <span className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {chat ? (
+              <a href={chat} target="_blank" rel="noopener noreferrer" className="hover:text-fg">
+                WhatsApp {help.phone}
+              </a>
+            ) : null}
+            <Link href="/login" className="hover:text-fg">
+              Prijava za korisnike
+            </Link>
+          </span>
         </footer>
       </div>
     </div>

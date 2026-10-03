@@ -91,7 +91,10 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [x] Postavke → „Preporučite TaktiX”: vlastita poveznica, slanje na WhatsApp, koliko se registriralo i koliko plaća
    - [x] Registracija preko poveznice pamti tko je preporučio; prva uplata nove radionice (upis u Tornju) daje preporučitelju mjesec gratis, jednom, s bilješkom; Toranj pokazuje „Preporuka: …”
    - [x] Vlasnik ne može sam sebi upisati preporuku ni označiti radionicu kao demo (demo se ne naplaćuje)
-6. WhatsApp broj za pomoć na stranici i u aplikaciji ((V) broj)
+6. WhatsApp za pomoć
+   - [x] Gumb s gotovom porukom: početna stranica („Pitaj na WhatsAppu”, broj u podnožju i u čestim pitanjima), registracija, prijava, Postavke → Pomoć (s imenom radionice i pozivom na broj), zaključan ekran (s razlogom)
+   - [x] Bez upisanog broja ništa se ne prikazuje
+   - [ ] (V) U Vercel upisati SUPPORT_PHONE (broj s WhatsAppom)
 7. Video upute: mjesta u Pomoći i uz ekrane ((V) snima kratke video upute)
 8. Pravni dio: uvjeti korištenja, politika privatnosti, ugovor o obradi podataka ((V) pravnik pregleda prije prodaje)
 9. Google Play: paket aplikacije i povezivanje domene ((V) račun za razvojne programere, testeri)

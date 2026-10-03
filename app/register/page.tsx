@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import Link from 'next/link';
 import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { BRAND, PACKAGE_IDS, matchPackageFromHost, resolvePackageFromHost, type PackageId } from '@/config/tenant.config';
+import { supportWhatsApp } from '@/lib/billing';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { RegisterForm } from './RegisterForm';
 
@@ -20,6 +21,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   // previews) the visitor picks one.
   const initial = matched?.id ?? (PACKAGE_IDS.includes(paket as PackageId) ? (paket as PackageId) : pkg.id);
   const trialDays = Number(process.env.TRIAL_DAYS ?? 30) || 30;
+  const chat = supportWhatsApp('Pozdrav, zapelo mi je kod registracije u TaktiX. ');
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col px-5 pb-safe pt-safe">
@@ -39,12 +41,21 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
       </p>
       {referrer ? <p className="mb-5 rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm">Preporučila te je radionica {referrer.name as string}.</p> : null}
       <RegisterForm initialPackage={initial} packageLocked={matched !== null} referral={referrer ? referral : ''} />
-      <p className="mb-10 mt-6 text-sm text-muted">
+      <p className="mt-6 text-sm text-muted">
         Već imaš račun?{' '}
         <Link href="/login" className="font-medium text-accent hover:underline">
           Prijava
         </Link>
       </p>
+      {chat ? (
+        <p className="mt-2 text-sm text-muted">
+          Zapelo?{' '}
+          <a href={chat} target="_blank" rel="noopener noreferrer" className="font-medium text-accent hover:underline">
+            Piši nam na WhatsApp
+          </a>
+        </p>
+      ) : null}
+      <div className="mb-10" />
     </main>
   );
 }

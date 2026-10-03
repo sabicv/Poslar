@@ -1,5 +1,6 @@
 import 'server-only';
 import { getPlan, monthlyPrice } from '@/config/plans';
+import { internationalDigits, whatsappLink } from '@/lib/contact';
 import { addDays, todayInZagreb } from '@/lib/time';
 import type { Tenant } from '@/types/db';
 
@@ -26,6 +27,13 @@ export function payee(): Payee | null {
 
 export function support(): { phone: string | null; email: string | null } {
   return { phone: process.env.SUPPORT_PHONE?.trim() || null, email: process.env.SUPPORT_EMAIL?.trim() || null };
+}
+
+// WhatsApp to TaktiX support with the message ready; null while no number
+// is set (SUPPORT_PHONE), so nothing points to an empty chat.
+export function supportWhatsApp(message: string): string | null {
+  const { phone } = support();
+  return internationalDigits(phone) ? whatsappLink(phone, message) : null;
 }
 
 export type BillingStatus = 'demo' | 'trial' | 'manual' | 'paid' | 'due_soon' | 'grace' | 'overdue' | 'suspended';

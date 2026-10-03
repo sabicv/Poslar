@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import Link from 'next/link';
 import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { BRAND, matchPackageFromHost } from '@/config/tenant.config';
+import { supportWhatsApp } from '@/lib/billing';
 import { LoginForm } from './LoginForm';
 
 export const metadata: Metadata = { title: 'Prijava' };
@@ -12,6 +13,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const pkg = matchPackageFromHost((await headers()).get('host'));
   const { next } = await searchParams;
   const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '/app';
+  const chat = supportWhatsApp('Pozdrav, ne mogu se prijaviti u TaktiX. ');
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-5 pb-safe pt-safe">
@@ -34,6 +36,14 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           Registrirajte se
         </Link>
       </p>
+      {chat ? (
+        <p className="mt-2 text-sm text-muted">
+          Ne možete se prijaviti?{' '}
+          <a href={chat} target="_blank" rel="noopener noreferrer" className="font-medium text-accent hover:underline">
+            Pišite nam na WhatsApp
+          </a>
+        </p>
+      ) : null}
       <Link href="/" className="mt-3 text-sm text-faint hover:text-fg">
         ← Početna stranica
       </Link>
