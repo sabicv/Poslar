@@ -240,6 +240,27 @@ export async function adminResetPassword(userId: string): Promise<ActionResult<{
 }
 
 // ---------------------------------------------------------------------
+// AI phone: the workshop's number at Vapi (its id there, and the number
+// the owner forwards to). Both empty switches it off.
+// ---------------------------------------------------------------------
+export async function adminSetPhoneAgent(tenantId: string, numberId: string, number: string): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return denied;
+  const id = numberId.trim();
+  const phone = number.trim();
+  if ((id === '') !== (phone === '')) return fail('Upišite i Vapi ID broja i sam broj, ili ništa.');
+  if (id && !/^[A-Za-z0-9-]{8,80}$/.test(id)) return fail('Vapi ID broja izgleda kao duga oznaka iz Vapija (Phone Numbers → ID).');
+  if (phone && !/^\+\d{8,15}$/.test(phone.replace(/\s/g, ''))) return fail('Broj upišite s pozivnim, npr. +385 1 234 5678.');
+  const { error } = await createAdminClient()
+    .from('tenants')
+    .update({ phone_agent_number_id: id || null, phone_agent_number: phone || null })
+    .eq('id', tenantId);
+  if (error) return fail(/duplicate|unique/i.test(error.message) ? 'Taj Vapi broj je već na drugoj radionici.' : error.message);
+  revalidatePath('/admin', 'layout');
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------
 // Help videos: one link per topic; an empty link removes the video
 // ---------------------------------------------------------------------
 export async function adminSetHelpVideo(topic: string, url: string): Promise<ActionResult> {

@@ -63,14 +63,15 @@ export async function scheduleJob(jobId: string, input: { start: string | null; 
   const start = input.start ? new Date(input.start) : null;
   if (start && Number.isNaN(start.getTime())) return fail('Neispravan termin.');
   const minutes = Math.min(Math.max(input.durationMin ?? 60, 15), 12 * 60);
-  const { data: job } = await ctx.supabase.from('jobs').select('phase').eq('id', jobId).single();
+  const { data: job } = await ctx.supabase.from('jobs').select('phase, work_mode').eq('id', jobId).single();
   if (!job) return fail('Nalog nije pronađen.');
   const patch: Record<string, unknown> = {
     scheduled_start: start?.toISOString() ?? null,
     scheduled_end: start ? new Date(start.getTime() + minutes * 60000).toISOString() : null,
     assigned_to: input.assignedTo,
   };
-  if (start && job.phase === 'intake') patch.phase = 'diagnosis';
+  // On the road a booked visit is "Zakazano"; a workshop job keeps its phase.
+  if (start && job.phase === 'intake' && job.work_mode === 'field') patch.phase = 'diagnosis';
   const { error } = await ctx.supabase.from('jobs').update(patch).eq('id', jobId);
   if (error) return fail(error);
   let tech = '';

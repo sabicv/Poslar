@@ -69,8 +69,8 @@ const buyCheck: InspectionTemplate = {
 
 export const deal: PackageConfig = {
   id: 'deal',
-  product: 'Deal Files',
-  short: 'Deal',
+  product: 'TaktiX Auto plac',
+  short: 'Auto plac',
   domain: 'dealfiles.hr',
   tagline: 'Otkup, priprema i prodaja rabljenih vozila',
   pitch: [

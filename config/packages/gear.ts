@@ -103,8 +103,8 @@ const dvi50: InspectionTemplate = {
 
 export const gear: PackageConfig = {
   id: 'gear',
-  product: 'Gear Files',
-  short: 'Gear',
+  product: 'TaktiX Automehaničar',
+  short: 'Automehaničar',
   domain: 'gearfiles.hr',
   tagline: 'Automehanika i opći servis',
   pitch: [

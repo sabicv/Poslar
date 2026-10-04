@@ -89,6 +89,10 @@ export default function PrivacyPage() {
             <strong>Anthropic PBC</strong> (SAD): samo kad korisnik pokrene čitanje fotografije (Slikanje) ili Kopilot. Šalje se ta fotografija (primjerice prometna dozvola, s podacima vlasnika
             vozila) ili tehnički podaci naloga: vozilo ili uređaj, opis kvara, stavke i nalazi. Ime, telefon i adresu mušterije Kopilotu ne šaljemo.
           </li>
+          <li>
+            <strong>Vapi Inc.</strong> (SAD): AI telefon, samo za radionice koje ga uključe. Obrađuje razgovor s pozivateljem: broj s kojeg zove, govor, prijepis i sažetak. Za
+            prepoznavanje i izgovor govora Vapi koristi svoje podizvršitelje.
+          </li>
         </ul>
         <p>
           S izvršiteljima obrade imamo ugovore o obradi podataka. Gdje podaci odlaze izvan Europskog gospodarskog prostora, prijenos se temelji na standardnim ugovornim klauzulama Europske

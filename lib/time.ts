@@ -24,6 +24,12 @@ export function zagrebMidnight(day: string): Date {
   return new Date(guess.getTime() - offsetMinutes(guess) * 60000);
 }
 
+// "2026-10-07", "09:30" in Zagreb → that instant (summer and winter time).
+export function zagrebInstant(day: string, time: string): Date {
+  const guess = new Date(`${day}T${time}:00Z`);
+  return new Date(guess.getTime() - offsetMinutes(guess) * 60000);
+}
+
 export function todayInZagreb(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: ZONE }).format(new Date());
 }

@@ -122,5 +122,15 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [x] Mikrofon više ne upisuje dvaput kad Android ponovno pošalje iste riječi
    - [ ] (V) Brevo i e-pošta: docs/EMAIL_BREVO.md, zatim AUTH_EMAIL=1 u Vercelu
 
+## Stadij 10: AI telefon i jasni nazivi
+- [x] Nazivi zanata: TaktiX Autoelektričar, Automehaničar, Limar i lakirer, Vulkanizer, Kamioni i strojevi, Moto i nautika, Klima serviser, Vodoinstalater, Vučna služba, Auto plac; ispod ikone na mobitelu piše TaktiX
+- [x] AI telefon (Vapi): poziv koji vlasnik ne preuzme (ne javi se, odbije, zauzet) preuzima AI; prepozna mušteriju po broju, ponudi slobodne termine iz radnog vremena, upiše nalog u Prijem s terminom („AI telefon”, točkica na Nalozima), kaže stanje otvorenih naloga
+- [x] Postavke → AI telefon: radno vrijeme po danima, trajanje termina, poslova u isto vrijeme, najranije za; kodovi za preusmjeravanje; zadnji pozivi sa sažetkom i cijelim razgovorom
+- [x] Nalog: kartica Termin (pomicanje termina), „Dogovorio AI telefon” sa sažetkom, „Potvrdi termin na WhatsApp”; e-mail vlasniku o novom terminu (Brevo API)
+- [x] Toranj → Radionice → Uredi → AI telefon: Vapi broj radionice; minute i pozivi ovaj mjesec (za doplatu)
+- [x] Hrvatski blagdani zatvoreni; isti termin se ne daje dvaput; ponovljen poziv alata ne radi dupli nalog
+- [ ] (V) Vapi račun, hrvatski broj (Twilio), asistent, alati i spajanje po docs/VAPI.md
+- [ ] (V) Cijena AI telefona kao doplate (Toranj pokazuje minute)
+
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).

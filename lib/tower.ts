@@ -30,6 +30,9 @@ export interface TowerWorkshop {
   referredBy: string | null;
   // Everyone with a login, owner first (for "Nova lozinka").
   staff: { id: string; name: string; role: string; email: string | null; phone: string | null }[];
+  // AI phone this month: calls and minutes (Vapi bills by the minute).
+  phoneCalls: number;
+  phoneMinutes: number;
 }
 
 const DAY = 86400000;
@@ -42,13 +45,14 @@ export async function loadWorkshops(): Promise<TowerWorkshop[]> {
   const admin = createAdminClient();
   const monthStart = zagrebMidnight(`${todayInZagreb().slice(0, 7)}-01`).toISOString();
   const since = new Date(Date.now() - 60 * DAY).toISOString();
-  const [tenants, profiles, jobs, ai, payments, users] = await Promise.all([
+  const [tenants, profiles, jobs, ai, payments, users, calls] = await Promise.all([
     allRows<Tenant>((a, b) => admin.from('tenants').select('*').order('created_at', { ascending: false }).order('id').range(a, b)),
     allRows<Row>((a, b) => admin.from('profiles').select('id, tenant_id, role, full_name, phone, created_at').order('id').range(a, b)),
     allRows<Row>((a, b) => admin.from('jobs').select('tenant_id, created_at, updated_at').gte('updated_at', since).order('id').range(a, b)),
     allRows<Row>((a, b) => admin.from('ai_usage').select('tenant_id, kind, input_tokens, output_tokens').gte('created_at', monthStart).order('id').range(a, b)),
     allRows<Row>((a, b) => admin.from('subscription_payments').select('id, tenant_id, amount, months, paid_on, note').order('paid_on', { ascending: false }).order('id').range(a, b)),
     listEmails(admin),
+    allRows<Row>((a, b) => admin.from('phone_calls').select('tenant_id, duration_s').gte('created_at', monthStart).order('id').range(a, b)),
   ]);
 
   const now = Date.now();
@@ -86,6 +90,8 @@ export async function loadWorkshops(): Promise<TowerWorkshop[]> {
       quiet: t.status !== 'suspended' && (last ? quietSince > 14 : signedUpDaysAgo > 3),
       payments: payments.filter((p) => p.tenant_id === t.id).map((p) => ({ id: p.id as string, amount: Number(p.amount), months: p.months as number, paid_on: p.paid_on as string, note: (p.note as string | null) ?? null })),
       referredBy: t.referred_by ? (names.get(t.referred_by) ?? null) : null,
+      phoneCalls: calls.filter((c) => c.tenant_id === t.id).length,
+      phoneMinutes: Math.round(calls.filter((c) => c.tenant_id === t.id).reduce((s, c) => s + Number(c.duration_s ?? 0), 0) / 60),
       staff: [...staff]
         .sort((a, b) => (a.role === b.role ? String(a.created_at).localeCompare(String(b.created_at)) : a.role === 'owner' ? -1 : 1))
         .map((p) => ({ id: p.id as string, name: (p.full_name as string | null) ?? '-', role: p.role as string, email: users.get(p.id as string) ?? null, phone: (p.phone as string | null) ?? null })),

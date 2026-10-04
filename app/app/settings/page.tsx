@@ -213,6 +213,13 @@ export default async function SettingsPage() {
               </span>
               <ChevronRight className="size-5 text-faint" />
             </Link>
+            <Link href="/app/settings/telefon" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
+              <span>
+                <span className="block font-semibold">AI telefon</span>
+                <span className="block text-sm text-muted">{t.phone_agent_number_id ? 'Uključen · radno vrijeme i pozivi' : 'Javlja se kad Vi ne možete, dogovara termine'}</span>
+              </span>
+              <ChevronRight className="size-5 text-faint" />
+            </Link>
             <Link href="/app/settings/cjenik" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
               <span>
                 <span className="block font-semibold">Cjenik i predlošci</span>

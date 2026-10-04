@@ -36,8 +36,8 @@ export function storageDays(inAt: string, outAt: string | null, now = new Date()
 
 export const tow: PackageConfig = {
   id: 'tow',
-  product: 'Tow Files',
-  short: 'Tow',
+  product: 'TaktiX Vučna služba',
+  short: 'Vučna služba',
   domain: 'towfiles.hr',
   tagline: 'Vuča vozila i pomoć na cesti',
   pitch: [

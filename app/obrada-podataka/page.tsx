@@ -51,6 +51,7 @@ export default function ProcessingAgreementPage() {
           <li>Fotografije (mogu prikazivati osobe, registracije ili dokumente), s vremenom i mjestom snimanja.</li>
           <li>Adrese i lokacije rada na terenu, vremena dolaska i odlaska.</li>
           <li>Opisi kvarova i radova, ponude, odobrenja (ime potpisnika, vrijeme, IP adresa i preglednik) i računi.</li>
+          <li>Pozivi AI telefonu, kad ga Korisnik uključi: broj pozivatelja, prijepis i sažetak razgovora, dogovoreni termin.</li>
           <li>Podaci o radnicima Korisnika: ime, telefon, uloga, broj certifikata gdje se vodi, rad na nalozima.</li>
         </ul>
         <p>Posebne kategorije podataka (primjerice podaci o zdravlju) nisu potrebne za uslugu i Korisnik ih ne unosi.</p>
@@ -81,6 +82,9 @@ export default function ProcessingAgreementPage() {
           </li>
           <li>
             <strong>Anthropic PBC</strong>, SAD: čitanje fotografija i Kopilot, samo kad ih korisnik pokrene; bez imena, telefona i adrese mušterije u Kopilotu.
+          </li>
+          <li>
+            <strong>Vapi Inc.</strong>, SAD: AI telefon, samo kad ga Korisnik uključi: broj pozivatelja, razgovor, prijepis i sažetak.
           </li>
         </ul>
         <p>

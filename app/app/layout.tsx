@@ -18,8 +18,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const [{ count }, { count: supportUnread }, { count: doorCount }] = await Promise.all([
     inbox,
     ctx.supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('tenant_unread', true),
-    // Requests from the door QR code still waiting in Prijem.
-    ctx.supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('source', 'qr').eq('phase', 'intake'),
+    // Requests from the door QR code and the AI phone still waiting in Prijem.
+    ctx.supabase.from('jobs').select('id', { count: 'exact', head: true }).in('source', ['qr', 'phone']).eq('phase', 'intake'),
   ]);
 
   const trialDaysLeft = ctx.tenant.status === 'trial' ? daysUntil(ctx.tenant.trial_ends_at) : null;

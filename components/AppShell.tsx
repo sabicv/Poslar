@@ -52,7 +52,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const items: NavItem[] = [
-    { href: '/app', label: product.field ? 'Raspored' : 'Nalozi', icon: product.field ? CalendarDays : ClipboardList, exact: true, dot: doorCount > 0 ? `Prijave s vrata: ${doorCount}` : undefined },
+    { href: '/app', label: product.field ? 'Raspored' : 'Nalozi', icon: product.field ? CalendarDays : ClipboardList, exact: true, dot: doorCount > 0 ? `Nove prijave: ${doorCount}` : undefined },
     { href: '/app/clients', label: product.clients, icon: Users },
     { href: '/app/module', label: product.modulePage, icon: PRODUCT_ICONS[product.id] },
     ...(user.isOwner ? [{ href: '/app/business', label: 'Poslovanje', icon: BarChart3 }] : []),

@@ -448,6 +448,21 @@ console.log('\nAbeceda mušterija');
   check('the sort key cannot be written', await fails(() => as(U.aOwner, () => q(`update public.clients set sort_name = 'a' where tenant_id = $1`, [tA]))));
 }
 
+// AI phone: the number is the tower's; calls are the owner's to read.
+console.log('\nAI telefon');
+{
+  await as(U.aOwner, async () => {
+    check('owner cannot attach a phone number', await fails(() => q(`update public.tenants set phone_agent_number_id = 'x' where id = $1`, [tA])));
+    check('owner cannot write a call', await fails(() => q(`insert into public.phone_calls (tenant_id, provider_call_id) values ($1, 'c0')`, [tA])));
+  });
+  await q(`insert into public.phone_calls (tenant_id, provider_call_id, caller, summary) values ($1, 'c1', '+385911', 'Termin za utorak')`, [tA]);
+  check('owner reads the workshop calls', (await as(U.aOwner, () => q(`select summary from public.phone_calls`))).length === 1);
+  check('a worker does not', (await as(U.aWorker, () => q(`select summary from public.phone_calls`))).length === 0);
+  check('another workshop does not', (await as(U.bOwner, () => q(`select summary from public.phone_calls`))).length === 0);
+  await q(`update public.tenants set phone_agent_number_id = 'vapi-1' where id = $1`, [tA]);
+  check('one Vapi number belongs to one workshop', await fails(() => q(`update public.tenants set phone_agent_number_id = 'vapi-1' where id = $1`, [tB])));
+}
+
 // Help videos: written by the tower through the server only.
 console.log('\nVideo upute');
 {

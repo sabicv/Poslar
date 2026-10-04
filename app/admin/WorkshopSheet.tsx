@@ -10,7 +10,7 @@ import { copyText } from '@/lib/clipboard';
 import { whatsappLink } from '@/lib/contact';
 import { PLANS, TERM_LABELS, type BillingTerm, type PlanId } from '@/config/plans';
 import { PACKAGES, type PackageId } from '@/config/tenant.config';
-import { adminDeleteWorkshop, adminExtendTrial, adminRecordPayment, adminResetPassword, adminSetPackage, adminSetStatus, adminUpdateSubscription } from '@/lib/actions/admin';
+import { adminDeleteWorkshop, adminExtendTrial, adminRecordPayment, adminResetPassword, adminSetPackage, adminSetPhoneAgent, adminSetStatus, adminUpdateSubscription } from '@/lib/actions/admin';
 
 export interface WorkshopSheetData {
   id: string;
@@ -29,6 +29,32 @@ export interface WorkshopSheetData {
   // Shared demo workshops are never deleted.
   demo: boolean;
   staff: { id: string; name: string; role: string; email: string | null; phone: string | null }[];
+  phone: { numberId: string; number: string; calls: number; minutes: number };
+}
+
+// The workshop's AI phone number at Vapi; empty switches it off.
+function PhoneAgent({ id, phone }: { id: string; phone: WorkshopSheetData['phone'] }) {
+  const { pending, run } = useAction();
+  const [v, setV] = useState({ numberId: phone.numberId, number: phone.number });
+  return (
+    <section className="space-y-3 border-t border-line pt-4">
+      <p className="font-semibold">AI telefon</p>
+      <p className="text-xs text-muted">
+        {phone.numberId ? `Uključen. Ovaj mjesec: ${phone.calls} poziva, ${phone.minutes} min.` : 'Isključen. Upišite broj iz Vapija (docs/VAPI.md).'}
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Vapi ID broja">
+          <Input value={v.numberId} onChange={(e) => setV((s) => ({ ...s, numberId: e.target.value }))} placeholder="Phone Numbers → ID" />
+        </Field>
+        <Field label="Broj za preusmjeravanje">
+          <Input value={v.number} onChange={(e) => setV((s) => ({ ...s, number: e.target.value }))} placeholder="+385 1 234 5678" inputMode="tel" />
+        </Field>
+      </div>
+      <Button className="w-full" disabled={pending} onClick={() => run(() => adminSetPhoneAgent(id, v.numberId, v.number), { success: v.numberId ? 'AI telefon spremljen' : 'AI telefon isključen' })}>
+        Spremi AI telefon
+      </Button>
+    </section>
+  );
 }
 
 // Someone forgot the password: a new one, shown once, sent on WhatsApp.
@@ -223,6 +249,9 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
             Spremi pretplatu
           </Button>
         </section>
+
+        {/* Also on a demo workshop: that is where the first test call goes. */}
+        <PhoneAgent id={w.id} phone={w.phone} />
 
         <section className="border-t border-line pt-4">
           <Field label="Zanat" hint="Promjena zanata mijenja izbornike i obrasce. Podaci ostaju.">

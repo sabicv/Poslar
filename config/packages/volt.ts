@@ -3,8 +3,8 @@ import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 export const volt: PackageConfig = {
   id: 'volt',
-  product: 'Volt Files',
-  short: 'Volt',
+  product: 'TaktiX Autoelektričar',
+  short: 'Autoelektričar',
   domain: 'voltfiles.hr',
   tagline: 'Autoelektrika, dijagnostika i elektronika',
   pitch: [

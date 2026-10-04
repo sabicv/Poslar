@@ -15,8 +15,8 @@ export const COMPLIANCE_LABELS: Record<string, string> = {
 
 export const fleet: PackageConfig = {
   id: 'fleet',
-  product: 'Fleet Files',
-  short: 'Fleet',
+  product: 'TaktiX Kamioni i strojevi',
+  short: 'Kamioni i strojevi',
   domain: 'fleetfiles.hr',
   tagline: 'Teretni program, građevina i flote',
   pitch: [

@@ -1,9 +1,11 @@
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, MessageCircle } from 'lucide-react';
 import { FieldActions, ScheduleSheet } from '@/components/field/FieldActions';
-import { Card, CardHeader, KeyValue } from '@/components/ui';
+import { Card, CardHeader, KeyValue, buttonClass } from '@/components/ui';
 import { DEVICE_TYPES } from '@/config/tenant.config';
-import { formatDateTime, plural } from '@/lib/format';
+import { spokenSlot } from '@/lib/calendar';
+import { whatsappLink } from '@/lib/contact';
+import { formatDateTime, plural, vocativeHR } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import type { JobWithRefs } from '@/types/db';
 import { OverviewEditor } from './OverviewEditor';
@@ -11,10 +13,21 @@ import { OverviewEditor } from './OverviewEditor';
 // Client and object details are not repeated here: the header names them
 // and links to their pages, where everything about them lives once.
 export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; job: JobWithRefs; extras: boolean }) {
-  const [{ data: staff }, { count: earlier }] = await Promise.all([
+  const [{ data: staff }, { count: earlier }, { data: calls }] = await Promise.all([
     ctx.supabase.from('profiles').select('id, full_name, role').order('full_name'),
     ctx.supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('asset_id', job.asset.id).neq('id', job.id),
+    // The AI phone call that booked it (the owner sees calls).
+    ctx.isOwner ? ctx.supabase.from('phone_calls').select('summary, started_at, created_at').eq('job_id', job.id).order('created_at').limit(1) : Promise.resolve({ data: [] }),
   ]);
+  const call = (calls ?? [])[0] as { summary: string | null; started_at: string | null; created_at: string } | undefined;
+  // "Potvrdi termin": the appointment to the customer on WhatsApp.
+  const confirm =
+    job.scheduled_start && job.client.phone
+      ? whatsappLink(
+          job.client.phone,
+          `${job.client.kind === 'person' && job.client.first_name ? `Poštovani ${vocativeHR(job.client.first_name)}, ` : 'Poštovani, '}potvrđujemo termin: ${spokenSlot(new Date(job.scheduled_start))}.${job.work_mode === 'field' ? '' : ctx.tenant.address ? ` Adresa: ${[ctx.tenant.address, ctx.tenant.city].filter(Boolean).join(', ')}.` : ''}\n\n${ctx.tenant.name}`
+        )
+      : null;
 
   const staffList = (staff ?? []).map((s) => ({ id: s.id as string, name: (s.full_name as string | null) ?? 'Bez imena' }));
   const field = job.work_mode === 'field';
@@ -46,6 +59,45 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
                   isOwner: ctx.isOwner,
                 }}
               />
+            </div>
+          </Card>
+        ) : null}
+        {!field && (job.scheduled_start || job.source === 'phone') ? (
+          <Card>
+            <CardHeader
+              title="Termin"
+              subtitle={job.scheduled_start ? spokenSlot(new Date(job.scheduled_start)) : 'Još nije zakazano'}
+              action={<ScheduleSheet jobId={job.id} current={{ start: job.scheduled_start, end: job.scheduled_end, assignedTo: job.assigned_to }} staff={staffList} />}
+            />
+            {confirm || call ? (
+              <div className="space-y-3 p-4 text-sm">
+                {call ? (
+                  <p className="text-muted">
+                    <span className="font-medium text-fg">Dogovorio AI telefon.</span> {call.summary ?? ''}
+                  </p>
+                ) : null}
+                {confirm ? (
+                  <a href={confirm} target="_blank" rel="noopener noreferrer" className={buttonClass('primary')}>
+                    <MessageCircle className="size-4" /> Potvrdi termin na WhatsApp
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
+          </Card>
+        ) : null}
+        {field && (call || (confirm && job.source === 'phone')) ? (
+          <Card>
+            <div className="space-y-3 p-4 text-sm">
+              {call ? (
+                <p className="text-muted">
+                  <span className="font-medium text-fg">Dogovorio AI telefon.</span> {call.summary ?? ''}
+                </p>
+              ) : null}
+              {confirm ? (
+                <a href={confirm} target="_blank" rel="noopener noreferrer" className={buttonClass('primary')}>
+                  <MessageCircle className="size-4" /> Potvrdi termin na WhatsApp
+                </a>
+              ) : null}
             </div>
           </Card>
         ) : null}

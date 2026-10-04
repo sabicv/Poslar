@@ -14,7 +14,7 @@ import { requireWorkshop } from '@/lib/session';
 import { cn, plateIlike, toIlike } from '@/lib/utils';
 
 const JOB_FIELDS =
-  'id, number, phase, complaint, is_urgent, promised_at, payment_status, locked_at, updated_at, assigned_to, source, client:clients(kind, first_name, last_name, company_name), asset:assets(asset_type, identifier, make, model), assignee:profiles(full_name)';
+  'id, number, phase, complaint, is_urgent, promised_at, payment_status, locked_at, updated_at, assigned_to, source, scheduled_start, client:clients(kind, first_name, last_name, company_name), asset:assets(asset_type, identifier, make, model), assignee:profiles(full_name)';
 
 type Filter = 'active' | 'mine' | 'urgent' | 'unpaid' | 'archive';
 

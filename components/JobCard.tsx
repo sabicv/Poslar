@@ -1,13 +1,14 @@
 import Link from 'next/link';
-import { CalendarClock, Lock, UserRound } from 'lucide-react';
+import { CalendarClock, Lock, Phone, UserRound } from 'lucide-react';
 import { Badge, Dot } from '@/components/ui';
 import { PHASE_TONE, phaseLabel, type JobPhase, type PackageConfig } from '@/config/tenant.config';
 import { assetTitle, clientName, daysUntil, formatDate, formatEuro, formatRelative } from '@/lib/format';
 import type { Asset, Client, Job } from '@/types/db';
 
 export type BoardJob = Pick<Job, 'id' | 'number' | 'phase' | 'complaint' | 'is_urgent' | 'promised_at' | 'payment_status' | 'locked_at' | 'updated_at' | 'assigned_to'> & {
-  // 'qr': sent by the customer from the door code.
+  // 'qr': sent by the customer from the door code; 'phone': booked by the AI phone.
   source?: string | null;
+  scheduled_start?: string | null;
   client: Pick<Client, 'kind' | 'first_name' | 'last_name' | 'company_name'> | null;
   asset: Pick<Asset, 'asset_type' | 'identifier' | 'make' | 'model'> | null;
   assignee: { full_name: string | null } | null;
@@ -46,6 +47,17 @@ export function JobCard({ job, pkg, total, showMoney, showPhase = true }: { job:
         ) : null}
         {job.is_urgent ? <Badge tone="crit">Hitno</Badge> : null}
         {job.source === 'qr' && job.phase === 'intake' ? <Badge tone="accent">S vrata</Badge> : null}
+        {job.source === 'phone' && job.phase === 'intake' ? (
+          <Badge tone="accent">
+            <Phone className="size-3" /> AI telefon
+          </Badge>
+        ) : null}
+        {job.scheduled_start && job.phase !== 'collected' ? (
+          <Badge tone="neutral">
+            <CalendarClock className="size-3" />
+            {new Date(job.scheduled_start).toLocaleString('hr-HR', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zagreb' })}
+          </Badge>
+        ) : null}
         {unpaid ? <Badge tone="warn">Za naplatu</Badge> : null}
         {promised !== null && job.phase !== 'collected' ? (
           <Badge tone={promised < 0 ? 'crit' : promised === 0 ? 'warn' : 'muted'}>

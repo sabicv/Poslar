@@ -171,8 +171,8 @@ const heatPump: InspectionTemplate = {
 
 export const air: PackageConfig = {
   id: 'air',
-  product: 'Air Files',
-  short: 'Air',
+  product: 'TaktiX Klima serviser',
+  short: 'Klima serviser',
   domain: 'airfiles.hr',
   tagline: 'Klime, dizalice topline i ventilacija na terenu',
   pitch: [

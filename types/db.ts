@@ -46,6 +46,9 @@ export interface Tenant {
   // Terms and data processing agreement accepted at registration (version = date).
   terms_accepted_at: string | null;
   terms_version: string | null;
+  // The AI phone agent at Vapi: its phone number id and the number to forward to.
+  phone_agent_number_id: string | null;
+  phone_agent_number: string | null;
 }
 
 export interface Profile {

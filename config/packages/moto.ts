@@ -14,8 +14,8 @@ export const BOAT_ZONES = [
 
 export const moto: PackageConfig = {
   id: 'moto',
-  product: 'Moto & Marine Files',
-  short: 'Moto',
+  product: 'TaktiX Moto i nautika',
+  short: 'Moto i nautika',
   domain: 'motofiles.hr',
   tagline: 'Motocikli, quadovi i nautika',
   pitch: [
