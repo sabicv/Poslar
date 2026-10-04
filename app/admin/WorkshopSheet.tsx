@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Settings2, Wallet } from 'lucide-react';
+import { toast } from 'sonner';
+import { Copy, KeyRound, MessageCircle, Settings2, Wallet } from 'lucide-react';
 import { Sheet, useAction } from '@/components/client-ui';
-import { Button, Field, Input, Select, Textarea } from '@/components/ui';
+import { Button, Field, Input, Select, Textarea, buttonClass } from '@/components/ui';
+import { copyText } from '@/lib/clipboard';
+import { whatsappLink } from '@/lib/contact';
 import { PLANS, TERM_LABELS, type BillingTerm, type PlanId } from '@/config/plans';
 import { PACKAGES, type PackageId } from '@/config/tenant.config';
-import { adminDeleteWorkshop, adminExtendTrial, adminRecordPayment, adminSetPackage, adminSetStatus, adminUpdateSubscription } from '@/lib/actions/admin';
+import { adminDeleteWorkshop, adminExtendTrial, adminRecordPayment, adminResetPassword, adminSetPackage, adminSetStatus, adminUpdateSubscription } from '@/lib/actions/admin';
 
 export interface WorkshopSheetData {
   id: string;
@@ -25,6 +28,45 @@ export interface WorkshopSheetData {
   payments: { id: string; amount: number; months: number; paid_on: string; note: string | null }[];
   // Shared demo workshops are never deleted.
   demo: boolean;
+  staff: { id: string; name: string; role: string; email: string | null; phone: string | null }[];
+}
+
+// Someone forgot the password: a new one, shown once, sent on WhatsApp.
+function NewPassword({ person }: { person: WorkshopSheetData['staff'][number] }) {
+  const { pending, run } = useAction();
+  const [password, setPassword] = useState<string | null>(null);
+  const message = (p: string) =>
+    `Pozdrav, nova lozinka za TaktiX: ${p}\nPrijava: ${window.location.origin}/login${person.email ? `\nE-mail: ${person.email}` : ''}\nLozinku možete promijeniti u Postavke → Moj račun → Promijeni lozinku.`;
+  return (
+    <li className="space-y-2 px-3 py-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-medium">
+            {person.name} <span className="text-xs font-normal text-faint">{person.role === 'owner' ? 'voditelj' : 'radnik'}</span>
+          </span>
+          <span className="block truncate text-xs text-muted">{[person.email, person.phone].filter(Boolean).join(' · ')}</span>
+        </span>
+        <Button size="sm" disabled={pending} onClick={() => run(() => adminResetPassword(person.id), { success: 'Nova lozinka postavljena', onDone: (d) => d && setPassword(d.password) })}>
+          <KeyRound className="size-4" /> Nova lozinka
+        </Button>
+      </div>
+      {password ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-3 py-2">
+          <span className="font-mono text-base tracking-wide">{password}</span>
+          <span className="ml-auto flex gap-2">
+            <Button size="sm" variant="ghost" onClick={() => copyText(message(password)).then((ok) => (ok ? toast.success('Poruka kopirana') : toast.error('Kopiranje nije uspjelo')))}>
+              <Copy className="size-4" /> Kopiraj
+            </Button>
+            {person.phone ? (
+              <a href={whatsappLink(person.phone, message(password))} target="_blank" rel="noopener noreferrer" className={buttonClass('primary', 'sm')}>
+                <MessageCircle className="size-4" /> WhatsApp
+              </a>
+            ) : null}
+          </span>
+        </div>
+      ) : null}
+    </li>
+  );
 }
 
 const digits = (v: string) => v.replace(/[^0-9]/g, '');
@@ -73,6 +115,18 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
             <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="npr. neplaćena pretplata za rujan" />
           </Field>
         </section>
+
+        {!w.demo && w.staff.length ? (
+          <section className="space-y-2 border-t border-line pt-4">
+            <p className="font-semibold">Ljudi i lozinke</p>
+            <ul className="divide-y divide-line rounded-xl border border-line">
+              {w.staff.map((p) => (
+                <NewPassword key={p.id} person={p} />
+              ))}
+            </ul>
+            <p className="text-xs text-faint">Nova lozinka odmah zamjenjuje staru. Pošaljite je osobi i recite joj da je promijeni.</p>
+          </section>
+        ) : null}
 
         <section className="space-y-3 border-t border-line pt-4">
           <p className="font-semibold">Uplata</p>

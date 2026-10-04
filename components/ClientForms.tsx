@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pencil, Plus } from 'lucide-react';
-import { ConfirmButton, DictateButton, DictateInput, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
+import { DeleteConfirm, DictateButton, DictateInput, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import { DEVICE_TYPES, type AssetType, type MeterUnit } from '@/config/tenant.config';
 import { ScanButton } from '@/components/ScanButton';
@@ -133,13 +133,17 @@ export function ClientSheet({ client, title, isOwner }: { client?: Client; title
           >
             Spremi
           </Button>
-          {client && isOwner ? (
-            <ConfirmButton size="lg" confirmLabel="Obrisati sve?" onConfirm={() => run(() => deleteClient(client.id), { success: 'Obrisano', onDone: () => router.replace('/app/clients') })}>
-              Obriši
-            </ConfirmButton>
-          ) : null}
         </div>
-        {client && isOwner ? <p className="text-xs text-faint">Brisanjem se brišu i svi objekti, nalozi i fotografije ove stranke.</p> : null}
+        {client && isOwner ? (
+          <DeleteConfirm
+            label="Obriši mušteriju"
+            question="Obrisati ovu mušteriju?"
+            detail="Brišu se i njezina vozila i uređaji, nalozi i slike. To se ne može vratiti. Mušterija s izdanim računima se ne briše."
+            disabled={pending}
+            className="w-full"
+            onConfirm={() => run(() => deleteClient(client.id), { success: 'Mušterija obrisana', onDone: () => router.replace('/app/clients') })}
+          />
+        ) : null}
       </div>
     </Sheet>
   );
@@ -334,12 +338,17 @@ export function AssetSheet({
           >
             Spremi
           </Button>
-          {asset && isOwner ? (
-            <ConfirmButton size="lg" confirmLabel="Obrisati s nalozima?" onConfirm={() => run(() => deleteAsset(asset.id), { success: 'Obrisano', onDone: () => router.replace(`/app/clients/${clientId}`) })}>
-              Obriši
-            </ConfirmButton>
-          ) : null}
         </div>
+        {asset && isOwner ? (
+          <DeleteConfirm
+            label="Obriši"
+            question="Obrisati ovo, zajedno s nalozima?"
+            detail="Brišu se i njegovi nalozi i slike. To se ne može vratiti. Ako ima izdanih računa, ne briše se."
+            disabled={pending}
+            className="w-full"
+            onConfirm={() => run(() => deleteAsset(asset.id), { success: 'Obrisano', onDone: () => router.replace(`/app/clients/${clientId}`) })}
+          />
+        ) : null}
       </div>
     </Sheet>
   );
@@ -429,12 +438,16 @@ export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?
           >
             Spremi
           </Button>
-          {site && isOwner ? (
-            <ConfirmButton size="lg" confirmLabel="Obrisati lokaciju?" onConfirm={() => run(() => deleteSite(site.id, clientId), { success: 'Obrisano', onDone: () => setOpen(false) })}>
-              Obriši
-            </ConfirmButton>
-          ) : null}
         </div>
+        {site && isOwner ? (
+          <DeleteConfirm
+            label="Obriši lokaciju"
+            question="Obrisati ovu lokaciju?"
+            disabled={pending}
+            className="w-full"
+            onConfirm={() => run(() => deleteSite(site.id, clientId), { success: 'Obrisano', onDone: () => setOpen(false) })}
+          />
+        ) : null}
       </div>
     </Sheet>
   );

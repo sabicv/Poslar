@@ -1,5 +1,6 @@
 'use server';
 
+import { randomInt } from 'node:crypto';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { HELP_TOPIC_IDS } from '@/config/help';
@@ -206,6 +207,36 @@ export async function adminDeleteWorkshop(tenantId: string, confirmName: string)
   for (const p of people ?? []) if (!keep.has(p.id as string)) await admin.auth.admin.deleteUser(p.id as string);
   revalidatePath('/admin', 'layout');
   return { ok: true };
+}
+
+// ---------------------------------------------------------------------
+// A new password for someone who forgot theirs (until e-mail does it):
+// easy to read out and type on a phone, shown once to the tower. Never
+// for the shared demo accounts or another tower account.
+// ---------------------------------------------------------------------
+const READABLE = 'abcdefghjkmnpqrstuvwxyz23456789';
+
+function readablePassword(): string {
+  const group = () => Array.from({ length: 4 }, () => READABLE[randomInt(READABLE.length)]).join('');
+  return `${group()}-${group()}-${group()}`;
+}
+
+export async function adminResetPassword(userId: string): Promise<ActionResult<{ password: string }>> {
+  const denied = await guard();
+  if (denied) return denied;
+  if (!/^[0-9a-f-]{36}$/i.test(userId)) return fail('Neispravna osoba.');
+  const admin = createAdminClient();
+  const [{ data: person }, { data: tower }] = await Promise.all([
+    admin.from('profiles').select('tenant_id, tenant:tenants(settings)').eq('id', userId).maybeSingle(),
+    admin.from('platform_admins').select('user_id').eq('user_id', userId).maybeSingle(),
+  ]);
+  if (!person) return fail('Osoba nije pronađena.');
+  if ((person.tenant as { settings?: { demo?: unknown } | null } | null)?.settings?.demo === true) return fail('Demo računi imaju zajedničku lozinku.');
+  if (tower) return fail('Račun s pristupom Tornju mijenja lozinku sam.');
+  const password = readablePassword();
+  const { error } = await admin.auth.admin.updateUserById(userId, { password });
+  if (error) return fail(error);
+  return { ok: true, data: { password } };
 }
 
 // ---------------------------------------------------------------------

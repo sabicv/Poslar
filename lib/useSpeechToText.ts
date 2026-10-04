@@ -45,6 +45,23 @@ const ERROR_MESSAGES_HR: Record<string, string> = {
   'no-speech': 'Nisam čuo govor. Dodirnite mikrofon i pričajte odmah.',
 };
 
+// Words compared without capitals and punctuation ("Akumulator." = "akumulator").
+function splitWords(text: string): string[] {
+  return text.split(/\s+/).filter((w) => normalizeWord(w) !== '');
+}
+function normalizeWord(word: string): string {
+  return word.toLowerCase().replace(/[.,!?;:"„”'()]/g, '');
+}
+function startsWithWords(words: string[], prefix: string[]): boolean {
+  return prefix.length <= words.length && prefix.every((w, i) => words[i] === w);
+}
+function endsWithWords(words: string[], suffix: string[]): boolean {
+  return suffix.length > 0 && suffix.length <= words.length && suffix.every((w, i) => words[words.length - suffix.length + i] === w);
+}
+function sameWords(a: string[], b: string[]): boolean {
+  return a.length > 0 && a.length === b.length && a.every((w, i) => w === b[i]);
+}
+
 export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
   const [isSupported, setIsSupported] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
@@ -56,10 +73,14 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
   // a ref so onend (fired by the browser) always reads the latest value.
   const keepGoingRef = useRef(false);
   const isMobileRef = useRef(false);
-  // Android Chrome re-delivers finals: sometimes verbatim, sometimes as the
-  // whole utterance so far ("prazan" → "prazan akumulator"). Only the part
-  // not yet emitted is passed on, so text never doubles up.
-  const lastFinalTranscriptRef = useRef('');
+  // Android Chrome re-delivers finals: the same result again (also at a new
+  // index and with another capital or full stop), or the whole utterance so
+  // far ("prazan" → "prazan akumulator"). What each result index already
+  // gave is remembered per session, and only words not yet passed on go out,
+  // so text never doubles up.
+  const sessionFinalsRef = useRef<string[][]>([]);
+  const sessionWordsRef = useRef<string[]>([]);
+  const lastChunkRef = useRef<{ words: string[]; at: number }>({ words: [], at: 0 });
   // Did the current recognition session hear anything? Restarting after a
   // silent session is what made phones beep and buzz in a loop.
   const heardSpeechRef = useRef(false);
@@ -90,7 +111,8 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
     recognition.onresult = (event) => {
       let interim = '';
       const finalChunks: string[] = [];
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      // Every result, not only from resultIndex: Android reports it wrongly.
+      for (let i = 0; i < event.results.length; i++) {
         const result = event.results[i];
         const transcript = result[0].transcript.trim();
         if (!transcript) continue;
@@ -98,14 +120,38 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
         sessionHadSpeechRef.current = true;
 
         if (!result.isFinal) {
-          interim += `${transcript} `;
+          if (i >= event.resultIndex) interim += `${transcript} `;
           continue;
         }
 
-        const previous = lastFinalTranscriptRef.current;
-        const addition = previous && transcript.startsWith(previous) ? transcript.slice(previous.length).trim() : transcript;
-        lastFinalTranscriptRef.current = transcript;
-        if (addition && addition !== previous) finalChunks.push(addition);
+        const words = splitWords(transcript);
+        const norms = words.map(normalizeWord);
+        const before = sessionFinalsRef.current[i];
+        let addition: string[] = [];
+        if (before) {
+          // This result was handled: only words it has grown by.
+          if (startsWithWords(norms, before) && norms.length > before.length) addition = words.slice(before.length);
+        } else {
+          const said = sessionWordsRef.current;
+          const last = lastChunkRef.current;
+          // Re-sends come right away; the same words said again later stay.
+          const recent = Date.now() - last.at < 3000;
+          if (said.length && norms.length > said.length && startsWithWords(norms, said)) {
+            // The whole utterance so far again, with something new at the end.
+            addition = words.slice(said.length);
+          } else if (recent && (endsWithWords(said, norms) || sameWords(norms, last.words))) {
+            // Already passed on: the same words re-sent.
+            addition = [];
+          } else {
+            addition = words;
+          }
+        }
+        sessionFinalsRef.current[i] = norms;
+        if (addition.length) {
+          finalChunks.push(addition.join(' '));
+          sessionWordsRef.current = [...sessionWordsRef.current, ...addition.map(normalizeWord)];
+          lastChunkRef.current = { words: addition.map(normalizeWord), at: Date.now() };
+        }
       }
       if (finalChunks.length > 0) onFinalTextRef.current?.(finalChunks.join(' '));
       setInterimText(interim.trim());
@@ -125,6 +171,9 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
       setInterimText('');
       const shouldRestart = keepGoingRef.current && (!isMobileRef.current || heardSpeechRef.current);
       heardSpeechRef.current = false;
+      // A new session numbers its results from 0 again.
+      sessionFinalsRef.current = [];
+      sessionWordsRef.current = [];
       if (shouldRestart) {
         try {
           recognition.start();
@@ -155,7 +204,9 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
       return;
     }
 
-    lastFinalTranscriptRef.current = '';
+    sessionFinalsRef.current = [];
+    sessionWordsRef.current = [];
+    lastChunkRef.current = { words: [], at: 0 };
     heardSpeechRef.current = false;
     sessionHadSpeechRef.current = false;
     keepGoingRef.current = true;

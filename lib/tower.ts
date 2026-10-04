@@ -28,6 +28,8 @@ export interface TowerWorkshop {
   payments: { id: string; amount: number; months: number; paid_on: string; note: string | null }[];
   // The workshop whose link it signed up through.
   referredBy: string | null;
+  // Everyone with a login, owner first (for "Nova lozinka").
+  staff: { id: string; name: string; role: string; email: string | null; phone: string | null }[];
 }
 
 const DAY = 86400000;
@@ -84,6 +86,9 @@ export async function loadWorkshops(): Promise<TowerWorkshop[]> {
       quiet: t.status !== 'suspended' && (last ? quietSince > 14 : signedUpDaysAgo > 3),
       payments: payments.filter((p) => p.tenant_id === t.id).map((p) => ({ id: p.id as string, amount: Number(p.amount), months: p.months as number, paid_on: p.paid_on as string, note: (p.note as string | null) ?? null })),
       referredBy: t.referred_by ? (names.get(t.referred_by) ?? null) : null,
+      staff: [...staff]
+        .sort((a, b) => (a.role === b.role ? String(a.created_at).localeCompare(String(b.created_at)) : a.role === 'owner' ? -1 : 1))
+        .map((p) => ({ id: p.id as string, name: (p.full_name as string | null) ?? '-', role: p.role as string, email: users.get(p.id as string) ?? null, phone: (p.phone as string | null) ?? null })),
     };
   });
 }

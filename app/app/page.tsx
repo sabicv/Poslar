@@ -66,7 +66,12 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   const filter: Filter = (['active', 'mine', 'urgent', 'unpaid', 'archive'] as const).includes(f as Filter) && (billing || f !== 'unpaid') ? (f as Filter) : 'active';
   const search = q.trim();
 
-  let query = ctx.supabase.from('jobs').select(JOB_FIELDS).order('updated_at', { ascending: false });
+  // The archive in the order jobs were closed (newest first); the rest by
+  // the latest change, so what was just touched is on top.
+  let query =
+    filter === 'archive'
+      ? ctx.supabase.from('jobs').select(JOB_FIELDS).order('collected_at', { ascending: false, nullsFirst: false }).order('number', { ascending: false })
+      : ctx.supabase.from('jobs').select(JOB_FIELDS).order('updated_at', { ascending: false });
   if (filter === 'archive') query = query.eq('phase', 'collected').limit(100);
   else if (filter === 'unpaid') query = query.in('phase', ['ready', 'collected']).eq('payment_status', 'unpaid').limit(200);
   else query = query.neq('phase', 'collected').limit(300);

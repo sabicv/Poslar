@@ -121,6 +121,7 @@ export default async function TowerWorkshops({ searchParams }: { searchParams: P
                         monthly: w.monthly,
                         payments: w.payments,
                         demo: w.demo,
+                        staff: w.staff,
                       }}
                     />
                   </div>

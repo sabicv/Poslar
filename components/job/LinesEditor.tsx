@@ -200,26 +200,30 @@ export function LinesEditor({
       ) : null}
 
       {!locked ? (
-        <div className="flex flex-wrap gap-2">
-          <Button variant="primary" onClick={() => setAdding(true)}>
-            <Plus className="size-4" /> Dodaj stavku
-          </Button>
+        // Two rows on a phone: the buttons, then the template picker across
+        // the full width, so nothing is squeezed under anything else.
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Button variant="primary" onClick={() => setAdding(true)}>
+              <Plus className="size-4" /> Dodaj stavku
+            </Button>
+            {isOwner && approved.length ? <SaveAsTemplate jobId={jobId} suggestion={templateName} /> : null}
+          </div>
           {templates.length ? (
-            <div className="flex min-w-0 flex-1 gap-2 sm:flex-none">
-              <Select value={template} onChange={(e) => setTemplate(e.target.value)} className="min-w-0 sm:w-64">
-                <option value="">Predložak…</option>
+            <div className="flex gap-2 sm:max-w-md">
+              <Select value={template} onChange={(e) => setTemplate(e.target.value)} className="min-w-0 flex-1" aria-label="Predložak">
+                <option value="">Dodaj iz predloška…</option>
                 {templates.map((t) => (
                   <option key={t.code} value={t.code}>
                     {t.name}
                   </option>
                 ))}
               </Select>
-              <Button disabled={!template || pending} onClick={() => run(() => applyTemplate(jobId, template), { success: 'Predložak dodan', onDone: () => setTemplate('') })}>
+              <Button className="shrink-0" disabled={!template || pending} onClick={() => run(() => applyTemplate(jobId, template), { success: 'Predložak dodan', onDone: () => setTemplate('') })}>
                 Dodaj
               </Button>
             </div>
           ) : null}
-          {isOwner && approved.length ? <SaveAsTemplate jobId={jobId} suggestion={templateName} /> : null}
         </div>
       ) : (
         <p className="text-sm text-muted">Nalog je zaključan. Stavke se više ne mogu mijenjati.</p>

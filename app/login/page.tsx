@@ -30,6 +30,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <h1 className="text-2xl font-semibold tracking-tight">Prijava</h1>
       <p className="mb-6 mt-1 text-sm text-muted">E-mail i lozinka koje ste dobili od voditelja servisa.</p>
       <LoginForm next={safeNext} />
+      <Link href="/zaboravljena-lozinka" className="mt-3 self-start text-sm font-medium text-accent hover:underline">
+        Zaboravili ste lozinku?
+      </Link>
       <p className="mt-6 text-sm text-muted">
         Nova radionica?{' '}
         <Link href="/register" className="font-medium text-accent hover:underline">

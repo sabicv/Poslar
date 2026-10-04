@@ -102,7 +102,10 @@ export default async function SettingsPage() {
             </div>
             {/* Shared demo accounts are never deleted. */}
             {!isDemo ? (
-              <div className="border-t border-line px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3">
+                <Link href="/nova-lozinka" className="text-sm font-medium text-accent hover:underline">
+                  Promijeni lozinku
+                </Link>
                 <DeleteAccount owner={ctx.isOwner} />
               </div>
             ) : null}

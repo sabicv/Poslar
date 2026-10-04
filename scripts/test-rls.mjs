@@ -435,6 +435,19 @@ console.log('\nPretplata i preporuke');
   check('the server records who referred a workshop', (await q(`select 1 from public.tenants where id = $1 and referred_by = $2`, [tA, tB])).length === 1);
 }
 
+// Customers sort by surname (a company by its name).
+console.log('\nAbeceda mušterija');
+{
+  const rows = await as(U.aOwner, () =>
+    q(
+      `insert into public.clients (tenant_id, kind, first_name, last_name, company_name) values ($1,'person','Ivan','Babić',null),($1,'company','Pero','Zec','Auto Centar d.o.o.'),($1,'person','Ana',null,null) returning sort_name`,
+      [tA]
+    )
+  );
+  check('sort key: surname first, a company by its name', rows.map((r) => r.sort_name).join('|') === 'babić ivan|auto centar d.o.o.|ana', rows.map((r) => r.sort_name).join('|'));
+  check('the sort key cannot be written', await fails(() => as(U.aOwner, () => q(`update public.clients set sort_name = 'a' where tenant_id = $1`, [tA]))));
+}
+
 // Help videos: written by the tower through the server only.
 console.log('\nVideo upute');
 {

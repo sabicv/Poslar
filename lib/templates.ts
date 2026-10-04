@@ -34,7 +34,8 @@ export async function listTemplates(ctx: WorkshopContext, { includeHidden = fals
       byCode.set(row.code as string, { code: row.code as string, name: row.name as string, lines: strip(lines), inspection, kind: 'own', changed: false, hidden });
     }
   }
-  const all = [...byCode.values()];
+  // Alphabetical, the way a workshop looks for a job (č, ć, š, ž in place).
+  const all = [...byCode.values()].sort((a, b) => a.name.localeCompare(b.name, 'hr', { sensitivity: 'base' }));
   return includeHidden ? all : all.filter((t) => !t.hidden);
 }
 

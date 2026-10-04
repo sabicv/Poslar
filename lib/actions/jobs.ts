@@ -310,6 +310,12 @@ export async function setJobLocked(jobId: string, locked: boolean): Promise<Acti
 export async function deleteJob(jobId: string): Promise<ActionResult> {
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Samo voditelj servisa briše naloge.');
+  // An issued invoice must stay: its number may not leave a gap.
+  const { data: job } = await ctx.supabase.from('jobs').select('invoice_number, invoice_year, invoice_premises, invoice_device').eq('id', jobId).maybeSingle();
+  if (job?.invoice_number) {
+    const label = job.invoice_premises && job.invoice_device ? `${job.invoice_number}/${job.invoice_premises}/${job.invoice_device}` : `${job.invoice_number}/${job.invoice_year}`;
+    return fail(`Nalog ima izdan račun br. ${label}. Račun se ne smije brisati, pa ni nalog. Možete ga zaključati.`);
+  }
   const { data: files } = await ctx.supabase.from('attachments').select('path, has_thumb').eq('job_id', jobId);
   const { error, count } = await ctx.supabase.from('jobs').delete({ count: 'exact' }).eq('id', jobId);
   if (error) return fail(error);

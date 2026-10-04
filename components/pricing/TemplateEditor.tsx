@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { EyeOff, Plus, RotateCcw, Trash2, X } from 'lucide-react';
+import { EyeOff, Plus, RotateCcw, Save, Trash2, X } from 'lucide-react';
 import { ConfirmButton, DictateInput, Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select } from '@/components/ui';
 import type { LineKind } from '@/config/tenant.config';
@@ -231,8 +231,8 @@ export function SaveAsTemplate({ jobId, suggestion }: { jobId: string; suggestio
       onOpenChange={setOpen}
       title="Spremi kao predložak"
       trigger={
-        <Button variant="ghost" size="sm">
-          Spremi kao predložak
+        <Button variant="secondary">
+          <Save className="size-4" /> Spremi kao predložak
         </Button>
       }
     >

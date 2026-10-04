@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, ChevronRight, Lock, LockOpen, Wallet } from 'lucide-react';
-import { ConfirmButton, Sheet, useAction } from '@/components/client-ui';
+import { DeleteConfirm, Sheet, useAction } from '@/components/client-ui';
 import { Button } from '@/components/ui';
 import type { JobPhase } from '@/config/tenant.config';
 import { deleteJob, setJobLocked, setJobPaid, setJobPhase } from '@/lib/actions/jobs';
@@ -90,9 +90,13 @@ export function JobActionBar({
               >
                 {locked ? <LockOpen className="size-5" /> : <Lock className="size-5" />} {locked ? 'Otključaj nalog' : 'Zaključaj nalog'}
               </Button>
-              <ConfirmButton size="lg" confirmLabel="Da, obriši nalog trajno" onConfirm={() => run(() => deleteJob(jobId), { success: 'Nalog obrisan', onDone: () => router.replace('/app') })}>
-                Obriši nalog
-              </ConfirmButton>
+              <DeleteConfirm
+                label="Obriši nalog"
+                question="Obrisati ovaj nalog?"
+                detail="Brišu se i stavke, slike i poruke naloga. To se ne može vratiti. Nalog s izdanim računom se ne briše."
+                disabled={pending}
+                onConfirm={() => run(() => deleteJob(jobId), { success: 'Nalog obrisan', onDone: () => router.replace('/app') })}
+              />
             </div>
           ) : null}
         </Sheet>

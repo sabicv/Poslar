@@ -1,4 +1,5 @@
 import 'server-only';
+import { allRows } from '@/lib/paged';
 import type { WorkshopContext } from '@/lib/session';
 import { addDays, addMonths, todayInZagreb, zagrebMidnight } from '@/lib/time';
 import { plateIlike, toIlike } from '@/lib/utils';
@@ -149,14 +150,21 @@ export async function loadArchive(ctx: WorkshopContext, f: ArchiveFilters): Prom
     if (f.paid === 'placeno') query = query.eq('payment_status', 'paid');
     if (f.paid === 'neplaceno') query = query.eq('payment_status', 'unpaid');
     if (match) query = query.or(match);
-    return query.order('collected_at', { ascending: false, nullsFirst: false });
+    // Chronological by closing, newest first; the job number settles ties.
+    return query.order('collected_at', { ascending: false, nullsFirst: false }).order('number', { ascending: false });
   };
 
-  const [{ data: page }, { data: all }] = await Promise.all([
+  const [{ data: page }, allRowsRead] = await Promise.all([
     base('id, number, collected_at, payment_status, paid_at, locked_at, invoice_number, invoice_year, invoice_premises, invoice_device, complaint, client:clients(kind, first_name, last_name, company_name, phone), asset:assets(asset_type, identifier, make, model)').limit(f.limit),
-    base('id, payment_status').limit(MAX_SUMMARY),
+    // The sums read in pages (the API gives 1000 rows at a time), up to the cap.
+    allRows<{ id: string; payment_status: string }>((a, b) =>
+      a >= MAX_SUMMARY
+        ? Promise.resolve({ data: [], error: null })
+        : (base('id, payment_status').range(a, Math.min(b, MAX_SUMMARY - 1)) as unknown as PromiseLike<{ data: { id: string; payment_status: string }[] | null; error: unknown }>)
+    ),
   ]);
-  const ids = (all ?? []).map((j) => (j as unknown as { id: string }).id);
+  const all = allRowsRead;
+  const ids = all.map((j) => j.id);
 
   // Totals in batches: a long id list doesn't fit one request.
   const gross = new Map<string, number>();
@@ -167,7 +175,7 @@ export async function loadArchive(ctx: WorkshopContext, f: ArchiveFilters): Prom
 
   let paid = 0;
   let unpaid = 0;
-  for (const j of (all ?? []) as unknown as { id: string; payment_status: string }[]) {
+  for (const j of all) {
     const g = gross.get(j.id) ?? 0;
     if (j.payment_status === 'paid') paid += g;
     else unpaid += g;

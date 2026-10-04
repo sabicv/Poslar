@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition, type ReactNode } from 'reac
 import { createPortal } from 'react-dom';
 import { Drawer } from 'vaul';
 import { toast } from 'sonner';
-import { ChevronDown, ChevronLeft, ChevronRight, MapPin, Mic, MicOff, X } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, MapPin, Mic, MicOff, Trash2, X } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 import type { ActionResult } from '@/lib/action-result';
 import { useSpeechToText } from '@/lib/useSpeechToText';
@@ -191,6 +191,60 @@ export function ConfirmButton({
     >
       {armed ? confirmLabel : children}
     </Button>
+  );
+}
+
+// Deleting, asked in plain words: the first tap opens a short question
+// with "Da, obriši" and "Odustani", which stays until answered (no
+// countdown to miss on a phone).
+export function DeleteConfirm({
+  label,
+  question,
+  detail,
+  confirmLabel = 'Da, obriši',
+  onConfirm,
+  disabled,
+  size = 'lg',
+  className,
+}: {
+  label: string;
+  question: string;
+  detail?: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+  disabled?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}) {
+  const [asking, setAsking] = useState(false);
+  if (!asking) {
+    return (
+      <Button variant="danger" size={size} disabled={disabled} className={className} onClick={() => setAsking(true)}>
+        <Trash2 className="size-4" /> {label}
+      </Button>
+    );
+  }
+  return (
+    <div className={cn('space-y-3 rounded-xl border border-crit/40 bg-crit/10 p-3', className)}>
+      <p className="text-sm font-medium">{question}</p>
+      {detail ? <p className="text-xs text-muted">{detail}</p> : null}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="danger"
+          size={size}
+          disabled={disabled}
+          onClick={() => {
+            setAsking(false);
+            onConfirm();
+          }}
+        >
+          {confirmLabel}
+        </Button>
+        <Button variant="secondary" size={size} onClick={() => setAsking(false)}>
+          Odustani
+        </Button>
+      </div>
+    </div>
   );
 }
 

@@ -46,7 +46,7 @@ export function PlanCard({
               { name: 'title', label: 'Naziv', required: true },
               { name: 'interval_months', label: 'Svakih', type: 'number', suffix: 'mj.', half: true, required: true },
               { name: 'next_due_date', label: 'Sljedeći servis', type: 'date', half: true, required: true },
-              { name: 'template_code', label: 'Predložak posla', type: 'select', options: ctx.pkg.templates.map((t) => ({ value: t.code, label: t.name })) },
+              { name: 'template_code', label: 'Predložak posla', type: 'select', options: [...ctx.pkg.templates].sort((a, b) => a.name.localeCompare(b.name, 'hr')).map((t) => ({ value: t.code, label: t.name })) },
               { name: 'notes', label: 'Napomena', type: 'textarea' },
             ]}
           />

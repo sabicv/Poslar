@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { DEVICE_TYPES, PACKAGES, type AssetType } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
-import { requireWorkshop } from '@/lib/session';
+import { requireWorkshop, type WorkshopContext } from '@/lib/session';
 import { toIlike } from '@/lib/utils';
 import type { Asset, Client, Site } from '@/types/db';
 
@@ -79,12 +79,37 @@ export async function saveClient(id: string | null, values: z.input<typeof clien
   return { ok: true, data: { id: data.id as string } };
 }
 
+// What goes with a customer or a vehicle: its jobs and their photos. An
+// issued invoice must stay (its number may not leave a gap), so a customer
+// or vehicle with one is not deleted.
+async function filesAndInvoices(ctx: WorkshopContext, by: { client_id: string } | { asset_id: string }) {
+  const column = 'client_id' in by ? 'client_id' : 'asset_id';
+  const value = 'client_id' in by ? by.client_id : by.asset_id;
+  const { data: jobs } = await ctx.supabase.from('jobs').select('id, invoice_number').eq(column, value);
+  const invoiced = (jobs ?? []).filter((j) => j.invoice_number !== null).length;
+  const jobIds = (jobs ?? []).map((j) => j.id as string);
+  const assetIds = column === 'asset_id' ? [value] : ((await ctx.supabase.from('assets').select('id').eq('client_id', value)).data ?? []).map((a) => a.id as string);
+  const files = [
+    ...(jobIds.length ? ((await ctx.supabase.from('attachments').select('path, has_thumb').in('job_id', jobIds.slice(0, 300))).data ?? []) : []),
+    ...(assetIds.length ? ((await ctx.supabase.from('attachments').select('path, has_thumb').in('asset_id', assetIds.slice(0, 300))).data ?? []) : []),
+  ];
+  const paths = [...new Set(files.flatMap((f) => (f.has_thumb ? [f.path as string, `${f.path}.thumb.jpg`] : [f.path as string])))];
+  return { invoiced, paths };
+}
+
+async function removeFiles(ctx: WorkshopContext, paths: string[]) {
+  for (let i = 0; i < paths.length; i += 500) await ctx.supabase.storage.from('job-files').remove(paths.slice(i, i + 500));
+}
+
 export async function deleteClient(id: string): Promise<ActionResult> {
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Brisanje je dopušteno voditelju servisa.');
+  const { invoiced, paths } = await filesAndInvoices(ctx, { client_id: id });
+  if (invoiced) return fail(`Mušterija ima ${invoiced === 1 ? 'izdan račun' : 'izdane račune'}. Računi se ne smiju brisati, pa ni ona.`);
   const { error, count } = await ctx.supabase.from('clients').delete({ count: 'exact' }).eq('id', id);
   if (error) return fail(error);
   if (!count) return fail('Nije obrisano.');
+  await removeFiles(ctx, paths);
   revalidatePath('/app/clients');
   return { ok: true };
 }
@@ -137,9 +162,12 @@ export async function saveAsset(id: string | null, values: z.input<typeof assetS
 export async function deleteAsset(id: string): Promise<ActionResult> {
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Brisanje je dopušteno voditelju servisa.');
+  const { invoiced, paths } = await filesAndInvoices(ctx, { asset_id: id });
+  if (invoiced) return fail(`Ima ${invoiced === 1 ? 'izdan račun' : 'izdane račune'}. Računi se ne smiju brisati.`);
   const { error, count } = await ctx.supabase.from('assets').delete({ count: 'exact' }).eq('id', id);
   if (error) return fail(error);
   if (!count) return fail('Nije obrisano.');
+  await removeFiles(ctx, paths);
   revalidatePath('/app/clients');
   return { ok: true };
 }

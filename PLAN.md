@@ -114,6 +114,13 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [x] Uputa korak po korak: docs/GOOGLE_PLAY.md (domena, račun, PWABuilder, spajanje, stranica u trgovini, obrazac o podacima, testiranje)
    - [ ] (V) Domena (npr. taktix.hr) spojena u Vercelu i Supabaseu prije Playa
    - [ ] (V) Račun za razvojne programere, paket iz PWABuildera, otisci u Vercel, zatvoreno testiranje s testerima (najmanje 12 kroz 14 dana)
+10. Pred betu (nalazi s Vedranova testiranja)
+   - [x] Lozinke: Toranj → Uredi → Ljudi i lozinke → Nova lozinka (s WhatsAppom); Postavke → Promijeni lozinku; prijava → „Zaboravili ste lozinku?” (WhatsApp, a nakon Breva poveznica e-poštom)
+   - [x] Brisanje naloga, mušterije, vozila i lokacije: jasno pitanje „Da, obriši / Odustani” umjesto drugog dodira u 3 sekunde; nalog ili mušterija s izdanim računom se ne briše (broj računa ne smije nestati); slike se brišu i iz spremišta
+   - [x] Predlošci abecedno (hrvatski poredak), mušterije po prezimenu sa slovima kao razdjelnicima, arhiva po datumu zatvaranja (najnoviji gore)
+   - [x] Red „Dodaj stavku / predložak / Spremi kao predložak” na mobitelu u dva retka, bez preklapanja
+   - [x] Mikrofon više ne upisuje dvaput kad Android ponovno pošalje iste riječi
+   - [ ] (V) Brevo i e-pošta: docs/EMAIL_BREVO.md, zatim AUTH_EMAIL=1 u Vercelu
 
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).
