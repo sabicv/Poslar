@@ -14,7 +14,8 @@ export interface FirstStep {
 
 export async function loadFirstSteps(ctx: WorkshopContext): Promise<{ steps: FirstStep[]; sample: boolean } | null> {
   const settings = (ctx.tenant.settings ?? {}) as { demo?: boolean; onboarding_hidden?: boolean; onboarding_solo?: boolean };
-  if (!ctx.isOwner || settings.demo || settings.onboarding_hidden) return null;
+  // Not during the 24-hour trial on examples: they are the first steps then.
+  if (!ctx.isOwner || settings.demo || settings.onboarding_hidden || ctx.tenant.sample_until) return null;
   const s = ctx.supabase;
   const own = ctx.pkg.internalJobs;
   const [{ count: staff }, { count: jobs }, { count: invoices }, { count: stock }, { count: sample }] = await Promise.all([

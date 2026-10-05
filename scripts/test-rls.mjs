@@ -474,5 +474,118 @@ console.log('\nVideo upute');
   });
 }
 
+// The 24-hour trial: a copy of the trade's sample workshop, then real work.
+console.log('\nProbni dan');
+{
+  const S = { owner: '44444444-4444-4444-8444-444444444444', worker: '55555555-5555-4555-8555-555555555555' };
+  const T = { owner: '66666666-6666-4666-8666-666666666666' };
+  await q(`insert into auth.users (id, email) values ($1,'uzorak@x'),($2,'uzorak.radnik@x'),($3,'probni@x')`, [S.owner, S.worker, T.owner]);
+  const [{ register_workshop: tS }] = await q(`select public.register_workshop($1, 'Uzorak', 'Uzorak Gear', 'wheel', null, null, null, 'active')`, [S.owner]);
+  await q(`insert into public.profiles (id, tenant_id, full_name, role) values ($1, $2, 'Radnik uzorka', 'worker')`, [S.worker, tS]);
+  // Seeded ten days ago.
+  await q(`update public.tenants set slug = 'uzorak-wheel', created_at = now() - interval '10 days', settings = '{"demo": true, "sample": true, "calendar": {"slotMinutes": 60}}' where id = $1`, [tS]);
+  await q(`update public.price_lists set labor_rates = '{"default": 55}' where tenant_id = $1`, [tS]);
+  const [c1] = await q(`insert into public.clients (tenant_id, first_name, last_name, phone) values ($1,'Marko','Kovač','+385981') returning id`, [tS]);
+  const [c2] = await q(`insert into public.clients (tenant_id, first_name, last_name) values ($1,'Iva','Perić') returning id`, [tS]);
+  const [a1] = await q(`insert into public.assets (tenant_id, client_id, asset_type, identifier) values ($1,$2,'car','ST-100-AA') returning id`, [tS, c1.id]);
+  const [a2] = await q(`insert into public.assets (tenant_id, client_id, asset_type, identifier) values ($1,$2,'car','ZG-200-BB') returning id`, [tS, c2.id]);
+  const [j1] = await q(
+    `insert into public.jobs (tenant_id, client_id, asset_id, complaint, number, assigned_to, created_by, created_at, scheduled_start, invoice_number, invoice_year, invoice_issued_at, locked_at)
+     values ($1,$2,$3,'Zamjena guma',1,$4,$5, now() - interval '10 days', (current_date - 10) + time '10:00', 3, extract(year from now())::int, now() - interval '10 days', now() - interval '10 days') returning id, report_token, invoice_token`,
+    [tS, c1.id, a1.id, S.worker, S.owner]
+  );
+  const [j2] = await q(`insert into public.jobs (tenant_id, client_id, asset_id, complaint, number) values ($1,$2,$3,'Balansiranje',2) returning id`, [tS, c2.id, a2.id]);
+  const [l1] = await q(`insert into public.job_lines (tenant_id, job_id, kind, description, qty) values ($1,$2,'labor','Zamjena 4 gume',1) returning id`, [tS, j1.id]);
+  await q(`insert into public.job_line_prices (job_line_id, tenant_id, unit_price) values ($1,$2,40)`, [l1.id, tS]);
+  await q(`insert into public.attachments (tenant_id, job_id, path, has_thumb, created_by) values ($1,$2,$3,true,$4)`, [tS, j1.id, `${tS}/${j1.id}/a.jpg`, S.worker]);
+  const [ap] = await q(`insert into public.approvals (tenant_id, job_id, signature_path) values ($1,$2,$3) returning token`, [tS, j1.id, `${tS}/${j1.id}/potpis.png`]);
+  const [m1] = await q(`insert into public.job_messages (tenant_id, job_id, sender_id, receiver_id, kind, body) values ($1,$2,$3,$4,'task','Provjeri tlak') returning id`, [tS, j1.id, S.owner, S.worker]);
+  await q(`insert into public.job_messages (tenant_id, job_id, sender_id, kind, body, reply_to_id) values ($1,$2,$3,'help','Gotovo',$4)`, [tS, j1.id, S.worker, m1.id]);
+  const [set1] = await q(`insert into public.wheel_tire_sets (tenant_id, client_id, asset_id, season) values ($1,$2,$3,'winter') returning qr_code`, [tS, c1.id, a1.id]);
+  await q(`insert into public.reminders (tenant_id, client_id, asset_id, kind, title, due_date) values ($1,$2,$3,'season','Zimske gume', current_date - 10 + 30)`, [tS, c1.id, a1.id]);
+  // A job and its maintenance plan point at each other.
+  const [plan] = await q(`insert into public.maintenance_plans (tenant_id, client_id, asset_id, title, next_due_date, last_job_id) values ($1,$2,$3,'Godišnji pregled', current_date + 20, $4) returning id`, [tS, c1.id, a1.id, j1.id]);
+  await q(`update public.jobs set plan_id = $2 where id = $1`, [j2.id, plan.id]);
+  const count = async (tenant) =>
+    Object.fromEntries(
+      await Promise.all(
+        ['clients', 'assets', 'jobs', 'job_lines', 'job_line_prices', 'attachments', 'approvals', 'job_messages', 'wheel_tire_sets', 'reminders'].map(async (t) => [t, (await q(`select count(*)::int as n from public.${t} where tenant_id = $1`, [tenant]))[0].n])
+      )
+    );
+  const before = await count(tS);
+
+  const [{ register_workshop: tT }] = await q(`select public.register_workshop($1, 'Probni Vlasnik', 'Probni Vlasnik', 'wheel')`, [T.owner]);
+  check('only a sample workshop can be copied', await fails(() => q(`select * from public.clone_sample($1, $2)`, [tA, tT])));
+  check('a signed-in owner cannot start a copy', await fails(() => as(T.owner, () => q(`select * from public.clone_sample($1, $2)`, [tS, tT]))));
+  const files = await q(`select * from public.clone_sample($1, $2)`, [tS, tT]);
+  const after = await count(tT);
+  check('every sample row is copied', JSON.stringify(after) === JSON.stringify(before), JSON.stringify(after));
+  check('the sample itself is untouched', JSON.stringify(await count(tS)) === JSON.stringify(before));
+  check(
+    'files to copy move to the new folder, thumbnail included',
+    files.length === 3 && files.every((f) => f.from_path.startsWith(`${tS}/`) && f.to_path === `${tT}/` + f.from_path.slice(tS.length + 1)) && files.some((f) => f.to_path.endsWith('a.jpg.thumb.jpg')),
+    JSON.stringify(files)
+  );
+  const [nj] = await q(
+    `select j.*, round(extract(epoch from (j.scheduled_start - $2::timestamptz)) / 86400)::int as moved, c.tenant_id as client_tenant, c.is_demo as client_demo from public.jobs j join public.clients c on c.id = j.client_id where j.tenant_id = $1 and j.number = 1`,
+    [tT, (await q(`select scheduled_start from public.jobs where id = $1`, [j1.id]))[0].scheduled_start]
+  );
+  check('links follow the new ids', nj && nj.id !== j1.id && nj.client_tenant === tT);
+  check('the sample people become the new owner', nj.assigned_to === T.owner && nj.created_by === T.owner, `${nj.assigned_to} ${nj.created_by}`);
+  check('dates move to today (whole days)', nj.moved === 10, JSON.stringify(nj.moved));
+  check('tokens are new', nj.report_token !== j1.report_token && nj.invoice_token !== j1.invoice_token);
+  check('marked as samples, invoice in the PRIMJER series', nj.is_demo === true && nj.client_demo === true && nj.invoice_premises === 'PRIMJER' && nj.invoice_number === 3);
+  const [na] = await q(`select token, signature_path from public.approvals where tenant_id = $1`, [tT]);
+  check('approval link and signature path are new', na.token !== ap.token && na.signature_path.startsWith(`${tT}/`));
+  const [nm] = await q(`select r.id from public.job_messages r join public.job_messages p on p.id = r.reply_to_id where r.tenant_id = $1 and p.tenant_id = $1`, [tT]);
+  check('a reply points to the copied message', Boolean(nm));
+  const [cyc] = await q(
+    `select p.tenant_id as plan_tenant, lj.tenant_id as last_job_tenant, lj.number as last_job_number from public.jobs j join public.maintenance_plans p on p.id = j.plan_id join public.jobs lj on lj.id = p.last_job_id where j.tenant_id = $1 and j.number = 2`,
+    [tT]
+  );
+  check('a job and its plan point at each other in the copy', cyc?.plan_tenant === tT && cyc?.last_job_tenant === tT && cyc?.last_job_number === 1, JSON.stringify(cyc));
+  const [ns] = await q(`select qr_code from public.wheel_tire_sets where tenant_id = $1`, [tT]);
+  check('QR codes are new', ns.qr_code !== set1.qr_code);
+  const [tt] = await q(`select settings, sample_until > now() + interval '23 hours' as day, (select labor_rates from public.price_lists where tenant_id = $1 and is_default) as rates from public.tenants where id = $1`, [tT]);
+  check('24 hours start; hours and labour rate come along; no demo flag', tt.day && tt.settings.calendar?.slotMinutes === 60 && !('demo' in tt.settings) && !('sample' in tt.settings) && tt.rates.default === 55, JSON.stringify(tt));
+  check('a second copy into the same workshop is refused', await fails(() => q(`select * from public.clone_sample($1, $2)`, [tS, tT])));
+  await as(T.owner, async () => {
+    check('the owner sees the sample jobs', (await q(`select id from public.jobs`)).length === 2);
+    check('the owner cannot end the trial time', await fails(() => q(`update public.tenants set sample_until = null where id = $1`, [tT])));
+    check('the owner cannot end the trial in the database', await fails(() => q(`select * from public.end_sample($1)`, [tT])));
+    check('the owner cannot read the sample bookkeeping', await fails(() => q(`select * from public.sample_rows`)));
+  });
+
+  // Real work during the trial: a new customer, and a real job for a sample customer.
+  const real = await as(T.owner, async () => {
+    const [rc] = await q(`insert into public.clients (tenant_id, first_name, last_name) values ($1,'Pravi','Kupac') returning id`, [tT]);
+    const [ra] = await q(`insert into public.assets (tenant_id, client_id, asset_type, identifier) values ($1,$2,'car','RI-1-RI') returning id`, [tT, rc.id]);
+    const [rj] = await q(`insert into public.jobs (tenant_id, client_id, asset_id, complaint) values ($1,$2,$3,'Pravi posao') returning id, number`, [tT, rc.id, ra.id]);
+    const [sc] = await q(`select id, (select id from public.assets where client_id = c.id) as asset from public.clients c where last_name = 'Kovač'`);
+    const [sj] = await q(`insert into public.jobs (tenant_id, client_id, asset_id, complaint) values ($1,$2,$3,'Stalna mušterija') returning id`, [tT, sc.id, sc.asset]);
+    await q(`insert into public.job_lines (tenant_id, job_id, kind, description, qty) values ($1,(select id from public.jobs where number = 2),'labor','Dodano u primjer',1)`, [tT]);
+    await q(`update public.jobs set phase = 'ready' where id = $1`, [rj.id]);
+    const [inv] = await q(`select * from public.issue_invoice($1, 'cash')`, [rj.id]);
+    return { client: rc.id, job: rj.id, number: rj.number, sampleClient: sc.id, sampleClientJob: sj.id, invoice: inv.o_number };
+  });
+  check('a real job numbers after the samples', real.number === 3, String(real.number));
+  check("the first real invoice is number 1 (samples have their own series)", real.invoice === 1, String(real.invoice));
+
+  const gone = await q(`select * from public.end_sample($1)`, [tT]);
+  const left = await count(tT);
+  check('sample jobs go, with what was added to them', left.jobs === 2 && left.job_lines === 0 && left.approvals === 0 && left.job_messages === 0, JSON.stringify(left));
+  check('a sample customer with a real job stays, as a real customer', (await q(`select is_demo from public.clients where id = $1`, [real.sampleClient]))[0]?.is_demo === false);
+  check('the other sample customer goes', left.clients === 2, String(left.clients));
+  check('real work stays', (await q(`select 1 from public.jobs where id = any($1::uuid[]) and not is_demo`, [[real.job, real.sampleClientJob]])).length === 2);
+  check('files no row points to are returned for deletion', gone.length === 3 && gone.every((g) => g.path.startsWith(`${tT}/`)), JSON.stringify(gone));
+  const [done] = await q(`select sample_until, (select count(*)::int from public.sample_rows where tenant_id = $1) as rows from public.tenants where id = $1`, [tT]);
+  check('the trial is over: no sample bookkeeping left', done.sample_until === null && done.rows === 0, JSON.stringify(done));
+  check('the sample workshop still has everything', JSON.stringify(await count(tS)) === JSON.stringify(before));
+
+  await q(`insert into public.trial_feedback (workshop, stars, body, may_publish) values ('Probni Vlasnik', 4, 'Dobro', true)`);
+  check('stars are 1 to 5', await fails(() => q(`insert into public.trial_feedback (workshop, stars) values ('x', 6)`)));
+  check('an owner cannot read the reviews', await fails(() => as(T.owner, () => q(`select * from public.trial_feedback`))));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

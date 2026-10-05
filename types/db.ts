@@ -49,6 +49,10 @@ export interface Tenant {
   // The AI phone agent at Vapi: its phone number id and the number to forward to.
   phone_agent_number_id: string | null;
   phone_agent_number: string | null;
+  // The 24-hour trial on sample data ends at this time (null = real work),
+  // and when the owner asked for news about new features. Server only.
+  sample_until: string | null;
+  news_consent_at: string | null;
 }
 
 export interface Profile {

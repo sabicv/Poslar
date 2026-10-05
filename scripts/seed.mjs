@@ -66,11 +66,18 @@ async function allUsers() {
 // Only the demo workshops this script made (exact slug + demo flag),
 // never a real workshop whose name happens to start with "Demo".
 const ALL_PACKAGES = ['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'air', 'aqua', 'tow', 'deal'];
-const DEMO_SLUGS = ALL_PACKAGES.map((p) => `demo-${p}`);
+// `npm run db:seed -- --uzorak` makes the sample workshops instead: the
+// same data under uzorak-<package>, with logins nobody can use. A new
+// workshop's 24-hour trial is a copy of its trade's sample (clone_sample,
+// 0025), so testers never leave their marks in it.
+const SAMPLE = process.argv.includes('--uzorak');
+const PREFIX = SAMPLE ? 'uzorak' : 'demo';
+const DEMO_SLUGS = ALL_PACKAGES.map((p) => `${PREFIX}-${p}`);
 // `npm run db:seed -- aqua tow` redoes only those; the others keep
 // whatever a tester has entered in them.
 const ONLY = process.argv.slice(2).filter((a) => ALL_PACKAGES.includes(a));
-const RESEED = ONLY.length ? ONLY.map((p) => `demo-${p}`) : DEMO_SLUGS;
+const RESEED = ONLY.length ? ONLY.map((p) => `${PREFIX}-${p}`) : DEMO_SLUGS;
+const login = (role, pkg) => `${SAMPLE ? 'uzorak.' : ''}${role}.${pkg}@${DOMAIN}`;
 
 async function cleanup() {
   const tenants = await q(sb.from('tenants').select('id').in('slug', RESEED).eq('settings->>demo', 'true'));
@@ -81,8 +88,9 @@ async function cleanup() {
     for (let i = 0; i < paths.length; i += 100) await sb.storage.from('job-files').remove(paths.slice(i, i + 100));
   }
   // The demo accounts themselves stay (same id, so whoever is testing stays
-  // signed in through a reset); only strays in the demo domain go.
-  const keep = new Set([`demo@${DOMAIN}`, ...DEMO_SLUGS.flatMap((s) => [`vlasnik.${s.slice(5)}@${DOMAIN}`, `radnik.${s.slice(5)}@${DOMAIN}`])]);
+  // signed in through a reset), and so do the samples' accounts; only
+  // strays in the demo domain go.
+  const keep = new Set([`demo@${DOMAIN}`, ...ALL_PACKAGES.flatMap((p) => ['', 'uzorak.'].flatMap((s) => [`${s}vlasnik.${p}@${DOMAIN}`, `${s}radnik.${p}@${DOMAIN}`]))]);
   for (const user of (await allUsers()).filter((u) => u.email?.endsWith(`@${DOMAIN}`) && !keep.has(u.email))) await sb.auth.admin.deleteUser(user.id);
   // Profiles go with their workshop (on delete cascade).
   if (ids.length) await q(sb.from('tenants').delete().in('id', ids));
@@ -95,8 +103,15 @@ async function cleanup() {
 let existingUsers = null;
 async function createUser(email, fullName) {
   existingUsers ??= new Map((await allUsers()).map((u) => [u.email?.toLowerCase(), u]));
-  const attrs = { email_confirm: true, user_metadata: { full_name: fullName }, app_metadata: { demo: true } };
   const known = existingUsers.get(email.toLowerCase());
+  // A sample's people never sign in: an unknown password and a ban.
+  if (SAMPLE) {
+    const attrs = { email_confirm: true, password: randomUUID() + randomUUID(), ban_duration: '876000h', user_metadata: { full_name: fullName }, app_metadata: { sample: true } };
+    const { data, error } = known ? await sb.auth.admin.updateUserById(known.id, attrs) : await sb.auth.admin.createUser({ email, ...attrs });
+    if (error) throw new Error(`${email}: ${error.message}`);
+    return data.user;
+  }
+  const attrs = { email_confirm: true, user_metadata: { full_name: fullName }, app_metadata: { demo: true } };
   if (!known) {
     const { data, error } = await sb.auth.admin.createUser({ email, password: PASSWORD, ...attrs });
     if (error) throw new Error(`${email}: ${error.message}`);
@@ -112,7 +127,7 @@ async function createUser(email, fullName) {
 }
 
 async function workshop({ pkg, name, city, address, phone, owner, worker }) {
-  const ownerUser = await createUser(`vlasnik.${pkg}@${DOMAIN}`, owner);
+  const ownerUser = await createUser(login('vlasnik', pkg), owner);
   const tenantId = await q(
     sb.rpc('register_workshop', {
       p_user_id: ownerUser.id,
@@ -129,10 +144,10 @@ async function workshop({ pkg, name, city, address, phone, owner, worker }) {
   await q(
     sb
       .from('tenants')
-      .update({ slug: `demo-${pkg}`, address, email: `info@${pkg}.${DOMAIN}`, oib: '58234167900', settings: { demo: true, iban: 'HR1210010051863000160', vat_registered: true } })
+      .update({ slug: `${PREFIX}-${pkg}`, address, email: `info@${pkg}.${DOMAIN}`, oib: '58234167900', settings: { demo: true, ...(SAMPLE ? { sample: true } : {}), iban: 'HR1210010051863000160', vat_registered: true } })
       .eq('id', tenantId)
   );
-  const workerUser = await createUser(`radnik.${pkg}@${DOMAIN}`, worker);
+  const workerUser = await createUser(login('radnik', pkg), worker);
   await q(sb.from('profiles').insert({ id: workerUser.id, tenant_id: tenantId, full_name: worker, role: 'worker' }));
   return { id: tenantId, pkg, owner: ownerUser.id, worker: workerUser.id, ownerName: owner, workerName: worker };
 }
@@ -1672,6 +1687,10 @@ for (const [name, fn] of [
   const result = await fn();
   results.push({ name, ...result });
   console.log('✓');
+}
+if (SAMPLE) {
+  console.log(`\nUzorne radionice za probni dan: ${results.map((r) => `uzorak-${r.T.pkg}`).join(', ')} (bez prijave).`);
+  process.exit(0);
 }
 // One login for all of them: no workshop of its own, lands on /demo.
 await createUser(`demo@${DOMAIN}`, 'Demo centar');

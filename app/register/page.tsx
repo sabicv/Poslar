@@ -7,7 +7,7 @@ import { supportWhatsApp } from '@/lib/billing';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { RegisterForm } from './RegisterForm';
 
-export const metadata: Metadata = { title: 'Registracija' };
+export const metadata: Metadata = { title: 'Isprobaj 24 sata' };
 
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ paket?: string; ref?: string }> }) {
   const host = (await headers()).get('host');
@@ -20,7 +20,6 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   // On a product domain the package is fixed; elsewhere (localhost,
   // previews) the visitor picks one.
   const initial = matched?.id ?? (PACKAGE_IDS.includes(paket as PackageId) ? (paket as PackageId) : pkg.id);
-  const trialDays = Number(process.env.TRIAL_DAYS ?? 30) || 30;
   const chat = supportWhatsApp('Pozdrav, zapelo mi je kod registracije u TaktiX. ');
 
   return (
@@ -35,10 +34,8 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
           <BrandLogo />
         )}
       </Link>
-      <h1 className="text-2xl font-semibold tracking-tight">Registracija radionice</h1>
-      <p className="mb-6 mt-1 text-sm text-muted">
-        {trialDays} dana besplatno, bez kartice. Radnike dodaješ poslije, u Postavkama.
-      </p>
+      <h1 className="text-balance font-display text-3xl font-bold tracking-tight">Isprobaj TaktiX besplatno na 24 sata</h1>
+      <p className="mb-6 mt-2 text-sm text-muted">Otvori radionicu napunjenu primjerima iz tvoje struke i uvjeri se kako sustav olakšava rad.</p>
       {referrer ? <p className="mb-5 rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm">Preporučila te je radionica {referrer.name as string}.</p> : null}
       <RegisterForm initialPackage={initial} packageLocked={matched !== null} referral={referrer ? referral : ''} />
       <p className="mt-6 text-sm text-muted">

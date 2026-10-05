@@ -132,5 +132,16 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [ ] (V) Vapi račun, hrvatski broj (Twilio), asistent, alati i spajanje po docs/VAPI.md
 - [ ] (V) Cijena AI telefona kao doplate (Toranj pokazuje minute)
 
+## Stadij 11: Nova početna stranica i probni dan
+- [x] Početna i 10 stranica zanata (/zanat/automehanicar …) Vedranovim tekstom; sav tekst u config/landing.ts
+- [x] „Isprobaj 24 sata” samo u zaglavlju, na vrhu i na kraju; cijene s prekidačem mjesečno / ugovor
+- [x] Probni dan: registracija otvara radionicu napunjenu primjerima zanata (kopija uzorne radionice uzorak-<zanat>, datumi pomaknuti na danas)
+- [x] Traka „Probni period: preostalo još N h · Pređite na prave poslove”
+- [x] Nakon 24 sata: „Krenite 30 dana besplatno” (primjeri se brišu, upisano ostaje) ili recenzija i brisanje radionice
+- [x] Toranj → Pregled: „Nakon probnog dana” (ocjene, tekst, smije li se objaviti) i popis onih koji žele obavijesti
+- [x] Uzorne radionice: `node scripts/seed.mjs --uzorak` (bez prijave); demo radionice ostaju za prezentacije
+- [ ] Stvarniji primjeri u demo i uzornim radionicama, nove snimke za početnu (i za Vodoinstalatera, Vučnu službu, Auto plac)
+- [ ] (V) Odluka: „Godišnji ugovor (10 %)” na početnoj ili 24 mjeseca kao u aplikaciji i Uvjetima
+
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).

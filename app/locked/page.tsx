@@ -42,6 +42,7 @@ export default async function LockedPage({ searchParams }: { searchParams: Promi
   if (state.kind === 'active') redirect('/app');
   if (state.reason === 'no_workshop' && (await isPlatformAdmin())) redirect('/admin');
   if (state.reason === 'no_workshop' && isDemoUser(state.user)) redirect('/demo');
+  if (state.reason === 'sample_ended') redirect('/probni-dan');
 
   // The Google Play app shows no way to pay (config/play.ts).
   const play = await isPlayApp();

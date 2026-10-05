@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { Wallet } from 'lucide-react';
 import { AppShell } from '@/components/AppShell';
+import { SampleDayBanner } from '@/components/onboarding/SampleDayBanner';
 import { accentStyle } from '@/config/tenant.config';
 import { subscription } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
 import { daysUntil, formatDate } from '@/lib/format';
 import { isPlayApp } from '@/lib/play';
+import { sampleHoursLeft } from '@/lib/sample-day';
 import { requireWorkshop } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +24,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ctx.supabase.from('jobs').select('id', { count: 'exact', head: true }).in('source', ['qr', 'phone']).eq('phase', 'intake'),
   ]);
 
-  const trialDaysLeft = ctx.tenant.status === 'trial' ? daysUntil(ctx.tenant.trial_ends_at) : null;
+  // During the 24-hour trial on examples the banner counts hours instead.
+  const sampleHours = sampleHoursLeft(ctx.tenant.sample_until);
+  const trialDaysLeft = ctx.tenant.status === 'trial' && sampleHours === null ? daysUntil(ctx.tenant.trial_ends_at) : null;
   // The owner hears a week ahead that the subscription runs out, and again
   // in the week before the workshop locks.
   const sub = subscription(ctx.tenant);
@@ -31,7 +35,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const noticeClass = cn('mb-4 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm', sub.status === 'grace' ? 'border-crit/40 bg-crit/10' : 'border-warn/40 bg-warn/10');
   const noticeIcon = <Wallet className={cn('size-5 shrink-0', sub.status === 'grace' ? 'text-crit' : 'text-warn')} />;
   const notice =
-    ctx.isOwner && (sub.status === 'due_soon' || sub.status === 'grace') ? (
+    sampleHours !== null ? (
+      <SampleDayBanner hours={sampleHours} owner={ctx.isOwner} />
+    ) : ctx.isOwner && (sub.status === 'due_soon' || sub.status === 'grace') ? (
       play ? (
         <div className={noticeClass}>
           {noticeIcon}

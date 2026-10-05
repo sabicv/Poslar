@@ -18,7 +18,7 @@ const DAY = 86400000;
 export default async function TowerOverview() {
   const admin = await requireTower();
   const monthStart = zagrebMidnight(`${todayInZagreb().slice(0, 7)}-01`).toISOString();
-  const [all, tokens, { count: openTickets }, { count: openErrors }, { count: newErrors }, realJobs] = await Promise.all([
+  const [all, tokens, { count: openTickets }, { count: openErrors }, { count: newErrors }, realJobs, { data: reviews }] = await Promise.all([
     loadWorkshops(),
     allRows<{ kind: string; input_tokens: number; output_tokens: number }>((a, b) =>
       admin.from('ai_usage').select('kind, input_tokens, output_tokens').gte('created_at', monthStart).order('id').range(a, b)
@@ -31,6 +31,8 @@ export default async function TowerOverview() {
     allRows<{ tenant_id: string }>((a, b) =>
       admin.from('jobs').select('tenant_id').eq('is_demo', false).gte('created_at', new Date(Date.now() - 90 * DAY).toISOString()).order('id').range(a, b)
     ),
+    // What those who left after the 24-hour trial told us.
+    admin.from('trial_feedback').select('*').order('created_at', { ascending: false }).limit(20),
   ]);
   // Demo workshops never count as business.
   const real = all.filter((w) => !w.demo);
@@ -47,6 +49,10 @@ export default async function TowerOverview() {
   const funnelTop = Math.max(1, funnel[0].n);
   const paying = real.filter((w) => w.tenant.status === 'active');
   const trial = real.filter((w) => w.tenant.status === 'trial');
+  // On the 24-hour trial with examples, or past it and not yet decided.
+  const sampleDay = trial.filter((w) => w.tenant.sample_until);
+  // Who asked for news about new features (at registration).
+  const newsEmails = real.filter((w) => w.tenant.news_consent_at && w.owner?.email).map((w) => w.owner!.email as string);
   const mrr = paying.reduce((s, w) => s + w.monthly, 0);
   const expiring = trial.filter((w) => w.trialLeft !== null && w.trialLeft >= 0 && w.trialLeft <= 7);
   const overdue = paying.filter((w) => w.overdue);
@@ -75,7 +81,12 @@ export default async function TowerOverview() {
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Mjesečni prihod" value={formatEuro(mrr)} hint={`${formatEuro(mrr * 12)} godišnje, s PDV-om`} tone="ok" />
         <Stat label="Plaćaju" value={paying.length} hint={noPayment.length ? `${noPayment.length} bez upisane uplate` : undefined} />
-        <Stat label="Na probi" value={trial.length} hint={expiring.length ? `${expiring.length} istječe u 7 dana` : undefined} tone={expiring.length ? 'warn' : undefined} />
+        <Stat
+          label="Na probi"
+          value={trial.length}
+          hint={[sampleDay.length ? `${sampleDay.length} na probnom danu` : null, expiring.length ? `${expiring.length} istječe u 7 dana` : null].filter(Boolean).join(' · ') || undefined}
+          tone={expiring.length ? 'warn' : undefined}
+        />
         <Stat label="Kasne s plaćanjem" value={overdue.length} tone={overdue.length ? 'crit' : undefined} />
       </section>
 
@@ -214,6 +225,38 @@ export default async function TowerOverview() {
           <p className="border-t border-line px-4 py-2.5 text-xs text-faint">Procjena po cijeni tokena ({formatNumber(cost * 100, 0)} centi). Točan iznos je na računu Anthropica.</p>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader
+          title="Nakon probnog dana"
+          subtitle={reviews?.length ? `Odustali i ostavili ocjenu: prosjek ${formatNumber(reviews.reduce((s, r) => s + Number(r.stars), 0) / reviews.length, 1)} od 5` : 'Ocjene onih koji su odustali nakon 24 sata'}
+        />
+        {reviews?.length ? (
+          <ul className="divide-y divide-line">
+            {reviews.map((r) => (
+              <li key={r.id as string} className="px-4 py-3 text-sm">
+                <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="text-warn" aria-label={`${r.stars} od 5`}>
+                    {'★'.repeat(Number(r.stars))}
+                    <span className="text-faint">{'★'.repeat(5 - Number(r.stars))}</span>
+                  </span>
+                  <span className="font-medium">{r.workshop as string}</span>
+                  {r.package ? <span className="text-muted">{PACKAGES[r.package as keyof typeof PACKAGES]?.short}</span> : null}
+                  {r.may_publish ? <Badge tone="ok">smije se objaviti</Badge> : null}
+                  <span className="ml-auto text-xs text-faint">{formatRelative(r.created_at as string)}</span>
+                </p>
+                {r.body ? <p className="mt-1.5 whitespace-pre-line text-muted">{r.body as string}</p> : null}
+                <p className="mt-1 text-xs text-faint">{[r.owner_name, r.email, r.news_consent ? 'želi obavijesti' : null].filter(Boolean).join(' · ')}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="px-4 py-4 text-sm text-muted">Još nitko nije odustao nakon probnog dana.</p>
+        )}
+        <p className="border-t border-line px-4 py-2.5 text-xs text-faint">
+          Žele obavijesti o novostima ({newsEmails.length}): {newsEmails.length ? newsEmails.join(', ') : 'nitko još'}
+        </p>
+      </Card>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Link href="/admin/podrska" className="rounded-2xl border border-line bg-surface p-4 hover:border-accent/60">

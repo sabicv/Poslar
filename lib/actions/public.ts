@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { LEGAL_VERSION } from '@/config/legal';
 import { PACKAGE_IDS, type PackageId } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
+import { startSampleDay } from '@/lib/sample-day';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 async function clientIp(): Promise<{ ip: string | null; userAgent: string | null }> {
@@ -29,7 +30,7 @@ const registerSchema = z.object({
   package: z.enum(PACKAGE_IDS as [PackageId, ...PackageId[]]),
   // Optional: a new workshop starts under the owner's name and renames itself in Postavke.
   workshopName: z.string().trim().max(120).optional().or(z.literal('')),
-  fullName: z.string().trim().min(2, 'Upišite ime i prezime.').max(120),
+  fullName: z.string().trim().min(2, 'Upiši ime i prezime.').max(120),
   email: z.string().trim().toLowerCase().email('Neispravan e-mail.'),
   password: z.string().min(8, 'Lozinka mora imati barem 8 znakova.').max(72),
   phone: z.string().trim().max(40).optional(),
@@ -37,12 +38,14 @@ const registerSchema = z.object({
   oib: z.string().trim().regex(/^\d{11}$/, 'OIB ima 11 znamenki.').optional().or(z.literal('')),
   website: z.string(),
   elapsedMs: z.number().int().min(0),
-  acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Potvrdite uvjete korištenja.' }) }),
+  acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Potvrdi uvjete korištenja i ugovor o obradi podataka.' }) }),
+  // "Želim primati obavijesti o novim funkcionalnostima" (optional).
+  news: z.boolean().optional(),
   // The referral code from another workshop's link (its payment reference).
   referral: z.string().trim().regex(/^\d{1,9}$/).optional().or(z.literal('')),
 });
 
-const GENERIC_FAILURE = 'Registracija nije uspjela. Ako već imate račun, prijavite se; inače pokušajte ponovno za nekoliko minuta.';
+const GENERIC_FAILURE = 'Registracija nije uspjela. Ako već imaš račun, prijavi se. Inače pokušaj ponovno za nekoliko minuta.';
 
 export async function registerWorkshop(values: z.input<typeof registerSchema>): Promise<ActionResult<{ confirmEmail: boolean }>> {
   const parsed = registerSchema.safeParse(values);
@@ -103,16 +106,19 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
   });
   if (rpcError) {
     await admin.auth.admin.deleteUser(userId);
-    return fail('Radionica nije stvorena. Pokušajte ponovno.');
+    return fail('Radionica nije stvorena. Pokušaj ponovno.');
   }
   // The terms and the data processing agreement, accepted with the form;
   // and, sent by another workshop, who it was (for its free month later).
   const patch: Record<string, unknown> = { terms_accepted_at: new Date().toISOString(), terms_version: LEGAL_VERSION };
+  if (v.news) patch.news_consent_at = new Date().toISOString();
   if (v.referral) {
     const { data: referrer } = await admin.from('tenants').select('id').eq('billing_ref', Number(v.referral)).maybeSingle();
     if (referrer && referrer.id !== tenantId) patch.referred_by = referrer.id;
   }
   if (tenantId) await admin.from('tenants').update(patch).eq('id', tenantId as string);
+  // The 24-hour trial: the workshop opens full of examples from its trade.
+  if (tenantId) await startSampleDay(admin, tenantId as string, v.package);
   // Attempts are only needed for the hourly and daily limits.
   await admin.from('registration_attempts').delete().lt('created_at', new Date(Date.now() - 30 * 86400_000).toISOString());
   return { ok: true, data: { confirmEmail } };

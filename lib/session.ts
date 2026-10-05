@@ -9,7 +9,9 @@ import { isDemoUser } from '@/lib/demo';
 import { createServerSupabaseClient, type ServerSupabaseClient } from '@/lib/supabase/server';
 import type { Profile, StaffRole, Tenant, TenantStatus } from '@/types/db';
 
-export type LockReason = 'suspended' | 'trial_ended' | 'unpaid' | 'no_workshop';
+// sample_ended: the 24-hour trial on sample data is over and the owner
+// has not yet chosen how to go on (/probni-dan).
+export type LockReason = 'suspended' | 'trial_ended' | 'unpaid' | 'no_workshop' | 'sample_ended';
 
 export interface WorkshopContext {
   supabase: ServerSupabaseClient;
@@ -65,6 +67,9 @@ export const getWorkshop = cache(async (): Promise<WorkshopState> => {
     supabase.from('profiles').select('*').eq('id', user.id).single(),
   ]);
   if (!tenant || !profile) return { kind: 'locked', reason: 'no_workshop', user };
+  if ((tenant as Tenant).sample_until && new Date((tenant as Tenant).sample_until!) <= new Date()) {
+    return { kind: 'locked', reason: 'sample_ended', user, name: access.name, pkg, role: access.role, tenantId: access.tenant_id };
+  }
   // Paid until a date that is more than a week gone: locked until the payment arrives.
   if (subscription(tenant as Tenant).status === 'overdue') {
     return { kind: 'locked', reason: 'unpaid', user, name: access.name, pkg, role: access.role, tenantId: access.tenant_id };
@@ -88,7 +93,7 @@ export const getWorkshop = cache(async (): Promise<WorkshopState> => {
 export async function requireWorkshop(): Promise<WorkshopContext> {
   const state = await getWorkshop();
   if (state.kind === 'anonymous') redirect('/login');
-  if (state.kind === 'locked') redirect(state.reason === 'no_workshop' && isDemoUser(state.user) ? '/demo' : '/locked');
+  if (state.kind === 'locked') redirect(state.reason === 'sample_ended' ? '/probni-dan' : state.reason === 'no_workshop' && isDemoUser(state.user) ? '/demo' : '/locked');
   return state;
 }
 

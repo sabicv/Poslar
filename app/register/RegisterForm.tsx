@@ -9,12 +9,15 @@ import { registerWorkshop } from '@/lib/actions/public';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 
+// The trial sign-up: name, e-mail, password and the trade. The workshop
+// opens full of examples from that trade for 24 hours.
 export function RegisterForm({ initialPackage, packageLocked, referral = '' }: { initialPackage: PackageId; packageLocked: boolean; referral?: string }) {
   const router = useRouter();
   const [pkg, setPkg] = useState<PackageId>(initialPackage);
   const group = TRADE_GROUPS.find((g) => g.id === tradeGroupOf(pkg))!;
   const [form, setForm] = useState({ workshopName: '', fullName: '', email: '', password: '', phone: '', city: '', oib: '', website: '' });
   const [accept, setAccept] = useState(false);
+  const [news, setNews] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
@@ -26,7 +29,7 @@ export function RegisterForm({ initialPackage, packageLocked, referral = '' }: {
     event.preventDefault();
     setPending(true);
     setError(null);
-    const result = await registerWorkshop({ ...form, package: pkg, acceptTerms: accept as true, elapsedMs: Date.now() - openedAt.current, referral });
+    const result = await registerWorkshop({ ...form, package: pkg, acceptTerms: accept as true, news, elapsedMs: Date.now() - openedAt.current, referral });
     if (!result.ok) {
       setPending(false);
       setError(result.error);
@@ -48,9 +51,9 @@ export function RegisterForm({ initialPackage, packageLocked, referral = '' }: {
   if (checkEmail) {
     return (
       <div className="rounded-2xl border border-ok/40 bg-ok/10 p-5 text-sm">
-        <p className="font-medium text-fg">Provjerite e-mail</p>
+        <p className="font-medium text-fg">Provjeri e-mail</p>
         <p className="mt-1 text-muted">
-          Poslali smo poveznicu za potvrdu na {form.email}. Nakon potvrde prijavite se e-mailom i lozinkom. Ako poruka ne stigne za nekoliko minuta, pogledajte i mapu neželjene pošte.
+          Poslali smo poveznicu za potvrdu na {form.email}. Nakon potvrde prijavi se e-mailom i lozinkom. Ako poruka ne stigne za nekoliko minuta, pogledaj i mapu neželjene pošte.
         </p>
       </div>
     );
@@ -58,9 +61,19 @@ export function RegisterForm({ initialPackage, packageLocked, referral = '' }: {
 
   return (
     <form onSubmit={submit} className="space-y-5">
+      <Field label="Ime i prezime">
+        <Input required autoComplete="name" value={form.fullName} onChange={set('fullName')} />
+      </Field>
+      <Field label="E-mail adresa">
+        <Input type="email" required autoComplete="email" value={form.email} onChange={set('email')} />
+      </Field>
+      <Field label="Lozinka" hint="Barem 8 znakova.">
+        <Input type="password" required minLength={8} autoComplete="new-password" value={form.password} onChange={set('password')} />
+      </Field>
+
       {!packageLocked ? (
         <div className="space-y-2">
-          <span className="block text-xs font-medium text-muted">Kako radite?</span>
+          <span className="block text-xs font-medium text-muted">Odabir struke</span>
           <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-surface p-1">
             {TRADE_GROUPS.map((g) => (
               <button
@@ -74,13 +87,13 @@ export function RegisterForm({ initialPackage, packageLocked, referral = '' }: {
               </button>
             ))}
           </div>
-          <p className="text-xs text-faint">{group.hint}</p>
           <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-3">
             {group.packages.map((id) => PACKAGES[id]).map((p) => (
               <button
                 key={p.id}
                 type="button"
                 onClick={() => setPkg(p.id)}
+                aria-pressed={pkg === p.id}
                 style={accentStyle(p)}
                 className={cn(
                   'accent-scope flex items-center gap-2 rounded-xl border bg-surface p-2.5 text-left text-sm transition-colors',
@@ -92,45 +105,41 @@ export function RegisterForm({ initialPackage, packageLocked, referral = '' }: {
               </button>
             ))}
           </div>
-          <p className="text-xs text-faint">{PACKAGES[pkg].tagline}</p>
         </div>
       ) : null}
 
-      {/* Only what is needed to start; the workshop's name, OIB, address and
-          phone go into Postavke later. */}
-      <Field label="Ime i prezime">
-        <Input required autoComplete="name" value={form.fullName} onChange={set('fullName')} />
-      </Field>
-      <Field label="E-mail (za prijavu)">
-        <Input type="email" required autoComplete="email" value={form.email} onChange={set('email')} />
-      </Field>
-      <Field label="Lozinka" hint="Barem 8 znakova.">
-        <Input type="password" required minLength={8} autoComplete="new-password" value={form.password} onChange={set('password')} />
-      </Field>
       <input tabIndex={-1} autoComplete="off" aria-hidden className="hidden" value={form.website} onChange={set('website')} />
-      <label className="flex items-start gap-3 text-sm text-muted">
-        <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} className="mt-0.5 size-5 accent-[rgb(var(--accent))]" />
-        <span>
-          Prihvaćam{' '}
-          <a href="/uvjeti" target="_blank" className="font-medium text-accent hover:underline">
-            uvjete korištenja
-          </a>{' '}
-          i{' '}
-          <a href="/obrada-podataka" target="_blank" className="font-medium text-accent hover:underline">
-            ugovor o obradi podataka
-          </a>
-          . Kako čuvamo podatke:{' '}
-          <a href="/privatnost" target="_blank" className="font-medium text-accent hover:underline">
-            politika privatnosti
-          </a>
-          .
-        </span>
-      </label>
+      <div className="space-y-3">
+        <label className="flex items-start gap-3 text-sm text-muted">
+          <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[rgb(var(--accent))]" />
+          <span>
+            Prihvaćam{' '}
+            <a href="/uvjeti" target="_blank" className="font-medium text-accent hover:underline">
+              Uvjete korištenja
+            </a>{' '}
+            i{' '}
+            <a href="/obrada-podataka" target="_blank" className="font-medium text-accent hover:underline">
+              Ugovor o obradi podataka
+            </a>
+            .
+          </span>
+        </label>
+        <label className="flex items-start gap-3 text-sm text-muted">
+          <input type="checkbox" checked={news} onChange={(e) => setNews(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[rgb(var(--accent))]" />
+          <span>Želim primati obavijesti o novim funkcionalnostima.</span>
+        </label>
+      </div>
       {error ? <p className="rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-sm text-crit">{error}</p> : null}
       <Button type="submit" variant="primary" size="lg" className="w-full" disabled={pending}>
-        {pending ? 'Stvaram radionicu…' : `Otvori ${PACKAGES[pkg].product}`}
+        {pending ? 'Otvaram probnu radionicu…' : 'Otvori probnu radionicu'}
       </Button>
-      <p className="text-center text-xs text-faint">Naziv radionice, OIB i adresu upišeš kasnije, u Postavkama.</p>
+      <p className="text-center text-xs text-faint">
+        Kako čuvamo podatke:{' '}
+        <a href="/privatnost" target="_blank" className="hover:underline">
+          Politika privatnosti
+        </a>
+        .
+      </p>
     </form>
   );
 }
