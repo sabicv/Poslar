@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { isNumberWords } from '@/lib/spokenNumbers';
 
 // Minimal shape of the Web Speech API we actually use — not part of
 // lib.dom.d.ts, and support varies (Chrome/Edge/Safari; no Firefox), so
@@ -81,6 +82,10 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
   const sessionFinalsRef = useRef<string[][]>([]);
   const sessionWordsRef = useRef<string[]>([]);
   const lastChunkRef = useRef<{ words: string[]; at: number }>({ words: [], at: 0 });
+  // Result indexes the phone showed while they were being spoken. A re-send
+  // arrives final at once; words said again ("56 56" in a phone number) are
+  // first heard as they are spoken.
+  const spokenAtRef = useRef<boolean[]>([]);
   // Did the current recognition session hear anything? Restarting after a
   // silent session is what made phones beep and buzz in a loop.
   const heardSpeechRef = useRef(false);
@@ -120,6 +125,7 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
         sessionHadSpeechRef.current = true;
 
         if (!result.isFinal) {
+          if (!sessionFinalsRef.current[i]) spokenAtRef.current[i] = true;
           if (i >= event.resultIndex) interim += `${transcript} `;
           continue;
         }
@@ -136,10 +142,12 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
           const last = lastChunkRef.current;
           // Re-sends come right away; the same words said again later stay.
           const recent = Date.now() - last.at < 3000;
+          // A number heard while it was said again is new, not a re-send.
+          const saidAgain = spokenAtRef.current[i] && isNumberWords(norms);
           if (said.length && norms.length > said.length && startsWithWords(norms, said)) {
             // The whole utterance so far again, with something new at the end.
             addition = words.slice(said.length);
-          } else if (recent && (endsWithWords(said, norms) || sameWords(norms, last.words))) {
+          } else if (recent && !saidAgain && (endsWithWords(said, norms) || sameWords(norms, last.words))) {
             // Already passed on: the same words re-sent.
             addition = [];
           } else {
@@ -173,6 +181,7 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
       heardSpeechRef.current = false;
       // A new session numbers its results from 0 again.
       sessionFinalsRef.current = [];
+      spokenAtRef.current = [];
       sessionWordsRef.current = [];
       if (shouldRestart) {
         try {
@@ -205,6 +214,7 @@ export function useSpeechToText({ onFinalText }: UseSpeechToTextOptions = {}) {
     }
 
     sessionFinalsRef.current = [];
+    spokenAtRef.current = [];
     sessionWordsRef.current = [];
     lastChunkRef.current = { words: [], at: 0 };
     heardSpeechRef.current = false;

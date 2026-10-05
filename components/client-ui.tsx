@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { ChevronDown, ChevronLeft, ChevronRight, MapPin, Mic, MicOff, Trash2, X } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 import type { ActionResult } from '@/lib/action-result';
+import { spokenDigits, spokenNumber, spokenPhone } from '@/lib/spokenNumbers';
 import { useSpeechToText } from '@/lib/useSpeechToText';
 import { cn } from '@/lib/utils';
 
@@ -280,15 +281,16 @@ export function DictateButton({ onText, compact = false }: { onText: (text: stri
 // field: the phone hands over what was said piece by piece ("091", then
 // "234", then "5678"), and the pieces are joined, never written over each
 // other. Tidied for the field: names get capitals, a phone and an OIB keep
-// only digits, a plate becomes "ZG-1234-AB", a VIN loses its spaces.
+// only digits (spoken words become digits too), a plate becomes
+// "ZG-1234-AB", a VIN loses its spaces.
 export type DictateMode = 'text' | 'name' | 'phone' | 'plate' | 'number' | 'digits' | 'vin' | 'email';
 function tidySpoken(text: string, mode: DictateMode): string {
   const t = text.trim().replace(/[.!?]+$/, '');
   if (mode === 'name') return t.replace(/(^|\s|-)(\p{L})/gu, (_, sep: string, c: string) => sep + c.toUpperCase());
-  if (mode === 'phone') return t.replace(/[^\d+ ]/g, '').replace(/\s+/g, ' ').trim();
-  if (mode === 'digits') return t.replace(/\D/g, '');
-  // "120.000 km" is a thousand separator, "2,5" a decimal comma.
-  if (mode === 'number') return t.replace(/(\d)\.(?=\d{3}\b)/g, '$1').replace(/[^\d,]/g, '');
+  // Numbers come as digits or as words ("pet", "dvanaest i pol").
+  if (mode === 'phone') return spokenPhone(t);
+  if (mode === 'digits') return spokenDigits(t);
+  if (mode === 'number') return spokenNumber(t);
   if (mode === 'vin') return t.toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (mode === 'email') return t.toLowerCase().replace(/\s+/g, '');
   if (mode === 'plate')
