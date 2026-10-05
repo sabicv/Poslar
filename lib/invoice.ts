@@ -54,6 +54,21 @@ export async function loadIssuedInvoices(db: SupabaseClient, month: string): Pro
   return assemble(db, inMonth);
 }
 
+// Every invoice issued on one day (Zagreb time), in the order they were
+// issued: "Računi danas", to type into the fiscal till. Owner only.
+export async function loadInvoicesOfDay(db: SupabaseClient, day: string): Promise<LoadedInvoice[]> {
+  // A day either side, then exact by the Zagreb calendar date.
+  const from = new Date(Date.parse(`${day}T00:00:00Z`) - 86400_000).toISOString();
+  const to = new Date(Date.parse(`${day}T00:00:00Z`) + 2 * 86400_000).toISOString();
+  const jobs = await allRows<JobRow>((a, b) =>
+    db.from('jobs').select(JOB_FIELDS).not('invoice_number', 'is', null).gte('invoice_issued_at', from).lt('invoice_issued_at', to).order('invoice_issued_at').order('id').range(a, b)
+  );
+  return assemble(
+    db,
+    jobs.filter((j) => zagrebDate(j.invoice_issued_at as string) === day)
+  );
+}
+
 // "2026-09-30" as the calendar date in Croatia.
 export function zagrebDate(iso: string): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zagreb', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));

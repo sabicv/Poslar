@@ -27,7 +27,7 @@ export default async function RemindersPage() {
   return (
     <>
       <PageHeader title="Poslovanje" />
-      <BusinessTabs active="podsjetnici" count={items.length} />
+      <BusinessTabs active="podsjetnici" count={items.length} invoices={!ctx.pkg.internalJobs} />
       <div className="mb-4 flex items-start justify-between gap-3">
         <p className="text-sm text-muted">
           WhatsApp otvara poruku s Vašim potpisom; Vi samo pritisnete pošalji.{' '}

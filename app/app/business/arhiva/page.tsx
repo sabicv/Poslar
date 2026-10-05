@@ -31,7 +31,7 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageHeader title="Poslovanje" />
-      <BusinessTabs active="arhiva" />
+      <BusinessTabs active="arhiva" invoices={billing} />
 
       <form className="mb-3 space-y-2" action="/app/business/arhiva">
         <div className="relative">

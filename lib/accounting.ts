@@ -53,6 +53,30 @@ export function invoiceBookCsv(invoices: LoadedInvoice[]): string {
   return `﻿${rows.join('\r\n')}\r\n`;
 }
 
+// The VAT rates a till asks for, highest first.
+export const TILL_RATES = [25, 13, 5];
+
+// One day's invoices for the fiscal till ("Računi danas"): the base and VAT
+// per rate, as most tills are filled in, and the till's own number once
+// typed in.
+export function tillDayCsv(invoices: LoadedInvoice[]): string {
+  const header = ['Broj računa', 'Vrijeme', 'Kupac', 'OIB kupca', 'Način plaćanja', ...TILL_RATES.flatMap((r) => [`Osnovica ${r} %`, `PDV ${r} %`]), 'Bez PDV-a', 'Ukupno', 'Fiskalni račun', 'Radni nalog'];
+  const rows = [header.map(csvCell).join(';')];
+  const sum = new Array(TILL_RATES.length * 2 + 2).fill(0);
+  for (const inv of invoices) {
+    const t = invoiceTotals(inv.lines, inv.billing.vatRegistered);
+    const byRate = new Map(t.allRates);
+    const cells = [...TILL_RATES.flatMap((r) => [byRate.get(r)?.base ?? 0, byRate.get(r)?.vat ?? 0]), t.allRates.filter(([r]) => !TILL_RATES.includes(r)).reduce((s, [, x]) => s + x.base, 0), t.gross];
+    cells.forEach((n, i) => (sum[i] += n));
+    const time = new Date(inv.issuedAt!).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zagreb' });
+    rows.push(
+      [invoiceId(inv), time, clientName(inv.client as never), inv.client.oib, inv.paymentMethod ? PAYMENT_METHODS[inv.paymentMethod] : '', ...cells.map(csvMoney), inv.fiscalRef, inv.jobNumber].map(csvCell).join(';')
+    );
+  }
+  rows.push(['', '', '', '', 'Ukupno', ...sum.map(csvMoney), '', ''].map(csvCell).join(';'));
+  return `﻿${rows.join('\r\n')}\r\n`;
+}
+
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const tag = (name: string, value: string | number | null | undefined, attrs = '') => (value === null || value === undefined || value === '' ? '' : `<cbc:${name}${attrs}>${esc(String(value))}</cbc:${name}>`);
 const eur = (name: string, n: number) => tag(name, money(n), ' currencyID="EUR"');
