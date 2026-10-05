@@ -1,0 +1,110 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { Check, ClipboardList, PhoneIncoming, Wrench } from 'lucide-react';
+import { FaqSection, FinalCall, LandingFooter, LandingHeader, PhoneShot, PricingSection, Section, SectionTitle } from '@/components/landing/Parts';
+import { ProductMark } from '@/components/ProductMark';
+import { ButtonLink } from '@/components/ui';
+import { CTA, TRADE_SECTION, type TradePage } from '@/config/landing';
+import { PACKAGES, accentStyle } from '@/config/tenant.config';
+
+// One trade's page: its own headline, the AI secretary and a scene from
+// its work, the troubles it knows, what it gets and its ready-made jobs.
+// Shown at /zanat/<slug> and as the home page of the trade's own domain.
+export function TradeLanding({ trade, signedIn, ownDomain }: { trade: TradePage; signedIn: boolean; ownDomain: boolean }) {
+  const pkg = PACKAGES[trade.id];
+  const register = `/register?paket=${trade.id}`;
+  const shot = existsSync(path.join(process.cwd(), 'public', 'landing', `${trade.id}-hero.webp`)) ? `/landing/${trade.id}-hero.webp` : null;
+  // Where this trade's work happens, for the heading of its scene.
+  const scene = trade.id === 'deal' ? 'Prizor s placa' : pkg.sector === 'field' || trade.id === 'tow' ? 'Prizor s terena' : TRADE_SECTION.scene;
+
+  return (
+    <div className="accent-scope min-h-dvh" style={accentStyle(pkg)}>
+      <div className="mx-auto max-w-6xl px-5 pb-safe">
+        <LandingHeader product={ownDomain ? pkg : null} signedIn={signedIn} register={register} tradesHref={ownDomain ? '#mogucnosti' : '/#zanati'} />
+
+        {/* Hero */}
+        <section className={shot ? 'grid items-center gap-10 py-12 lg:grid-cols-[1.15fr_0.85fr] lg:py-20' : 'py-12 lg:py-20'}>
+          <div>
+            <p className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-line bg-surface py-1 pl-1 pr-3 text-xs text-muted">
+              <ProductMark id={pkg.id} className="size-6 rounded-full" />
+              {trade.eyebrow}
+            </p>
+            <h1 className="max-w-3xl text-balance font-display text-4xl font-bold leading-[1.02] tracking-tight sm:text-6xl">{trade.title}</h1>
+            <p className="mt-5 max-w-xl text-base text-muted sm:text-lg">{trade.subtitle}</p>
+            <ButtonLink href={register} variant="primary" size="lg" className="mt-8">
+              {CTA}
+            </ButtonLink>
+          </div>
+          {shot ? <PhoneShot src={shot} alt={`${pkg.product}: radni nalog u aplikaciji`} priority /> : null}
+        </section>
+
+        {/* The AI secretary and a scene from the work */}
+        <Section>
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              { title: TRADE_SECTION.agent, text: trade.agent, icon: PhoneIncoming },
+              { title: scene, text: trade.scene, icon: Wrench },
+            ].map((b) => (
+              <div key={b.title} className="rounded-2xl border border-line bg-surface p-6">
+                <p className="flex items-center gap-3 font-display text-xl font-bold">
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-accent/15 text-accent">
+                    <b.icon className="size-5" />
+                  </span>
+                  {b.title}
+                </p>
+                <p className="mt-4 text-muted">{b.text}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* Troubles it knows */}
+        <Section>
+          <SectionTitle title={TRADE_SECTION.pains} />
+          <ul className="mt-8 grid gap-4 md:grid-cols-3">
+            {trade.pains.map((p) => (
+              <li key={p.q} className="rounded-2xl border border-line bg-surface p-5">
+                <p className="text-lg font-semibold">{p.q}</p>
+                <p className="mt-3 flex gap-3 text-sm text-muted">
+                  <Check className="mt-0.5 size-5 shrink-0 text-accent" />
+                  {p.a}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </Section>
+
+        {/* What it gets */}
+        <Section>
+          <SectionTitle id="mogucnosti" title={TRADE_SECTION.features} />
+          <div className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
+            {trade.features.map((f) => (
+              <div key={f.title} className="border-l-2 border-accent/70 pl-4">
+                <h3 className="font-semibold">{f.title}</h3>
+                <p className="mt-1 text-sm text-muted">{f.text}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        {/* Ready-made jobs */}
+        <Section>
+          <SectionTitle title={TRADE_SECTION.jobs} />
+          <ul className="mt-6 flex flex-wrap gap-2">
+            {trade.jobs.map((j) => (
+              <li key={j} className="flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-2 text-sm">
+                <ClipboardList className="size-4 text-accent" />
+                {j}
+              </li>
+            ))}
+          </ul>
+        </Section>
+
+        <PricingSection />
+        <FaqSection />
+        <FinalCall register={register} />
+        <LandingFooter />
+      </div>
+    </div>
+  );
+}
