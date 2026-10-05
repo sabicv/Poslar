@@ -320,9 +320,17 @@ async function photo(T, jobId, p) {
   const thumb = await sharp(jpg).resize(360).jpeg({ quality: 70 }).toBuffer();
   const filePath = `${T.id}/${jobId}/${randomUUID()}.jpg`;
   const bucket = sb.storage.from('job-files');
-  const up = await bucket.upload(filePath, jpg, { contentType: 'image/jpeg' });
-  if (up.error) throw new Error(`upload: ${up.error.message}`);
-  await bucket.upload(`${filePath}.thumb.jpg`, thumb, { contentType: 'image/jpeg' });
+  // The storage API now and then drops a connection: three tries.
+  const upload = async (p, body) => {
+    for (let i = 0; ; i++) {
+      const r = await bucket.upload(p, body, { contentType: 'image/jpeg', upsert: true }).catch((e) => ({ error: e }));
+      if (!r.error) return;
+      if (i === 2) throw new Error(`upload: ${r.error.message}`);
+      await new Promise((ok) => setTimeout(ok, 1500));
+    }
+  };
+  await upload(filePath, jpg);
+  await upload(`${filePath}.thumb.jpg`, thumb);
   const [row] = await q(
     sb
       .from('attachments')
@@ -1651,6 +1659,220 @@ async function seedDeal() {
 }
 
 // ---------------------------------------------------------------------
+// The AI phone at work: in every trade one call the owner missed, taken
+// by the AI secretary, ended as a job in Prijem with its slot, the call
+// summary and the conversation (the scenes on the trade pages).
+// ---------------------------------------------------------------------
+const AI_BOOKINGS = {
+  volt: {
+    client: { first: 'Marina', last: 'Vuković', phone: '+385 91 744 2310', city: 'Zagreb' },
+    asset: { id: 'ZG-7713-MV', make: 'Škoda', model: 'Octavia III 1.6 TDI', year: 2015, fuel: 'diesel' },
+    complaint: 'Ujutro teško pali. Svijetle lampica akumulatora i ESP-a, traje desetak dana.',
+    slot: [1, 8, 30, 60],
+    summary: 'Marina Vuković: Škoda Octavia ujutro teško pali, svijetle lampica akumulatora i ESP-a, traje desetak dana. Dogovorena dijagnostika sutra u 8:30.',
+    talk: [
+      ['AI', 'Dobar dan, Autoelektrika Horvat, ovdje virtualni asistent. Majstor se trenutno ne može javiti. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Dobar dan, Octavia mi ujutro jako teško pali, a pale se lampica akumulatora i ESP.'],
+      ['AI', 'Razumijem. Koliko dugo to traje i pali li auto na kraju?'],
+      ['Mušterija', 'Desetak dana. Upali iz drugog, trećeg puta.'],
+      ['AI', 'Predlažem dijagnostiku sutra u 8:30. Može registracija vozila?'],
+      ['Mušterija', 'ZG 7713 MV. Sutra u pola devet mi odgovara.'],
+      ['AI', 'Upisano: sutra u 8:30, dijagnostika za Škodu Octaviju ZG-7713-MV. Majstor će Vam potvrditi termin porukom. Doviđenja.'],
+    ],
+  },
+  gear: {
+    client: { first: 'Petar', last: 'Jurić', phone: '+385 98 451 2207', city: 'Split' },
+    asset: { id: 'ST-552-PJ', make: 'Volkswagen', model: 'Golf VII 1.6 TDI', year: 2016, fuel: 'diesel' },
+    complaint: 'Mali servis: ulje i filteri. Pali se lampica servisa.',
+    slot: [1, 8, 0, 60],
+    summary: 'Petar Jurić traži mali servis za VW Golf VII 1.6 TDI (ST-552-PJ). Pali se lampica servisa, zadnji servis prije godinu dana. Termin sutra u 8:00, auto ostavlja ujutro.',
+    talk: [
+      ['AI', 'Dobar dan, Autoservis Kovač, ovdje virtualni asistent. Majstor je trenutno pod autom. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Trebao bih mali servis, pali mi se lampica servisa na Golfu.'],
+      ['AI', 'Može. Koji je model i registracija?'],
+      ['Mušterija', 'Golf sedmica, 1.6 TDI, ST 552 PJ. Zadnji servis bio je prije godinu dana.'],
+      ['AI', 'Prvi slobodan termin je sutra u 8:00, a zatim sutra u 11:00. Što Vam više odgovara?'],
+      ['Mušterija', 'Sutra u osam, ostavit ću auto ujutro.'],
+      ['AI', 'Upisano: sutra u 8:00, mali servis za Golf ST-552-PJ. Majstor će Vam potvrditi termin porukom. Doviđenja.'],
+    ],
+  },
+  body: {
+    client: { first: 'Lana', last: 'Petrović', phone: '+385 95 662 1408', city: 'Rijeka' },
+    asset: { id: 'RI-2290-LP', make: 'Hyundai', model: 'i30 1.4 T-GDi', year: 2019, fuel: 'petrol' },
+    complaint: 'Ogrebotina i udubljenje na desnim stražnjim vratima (parkiralište). Ima kasko.',
+    slot: [1, 10, 0, 30],
+    summary: 'Lana Petrović: ogrebotina i udubljenje na desnim stražnjim vratima Hyundaija i30, oštećeno na parkiralištu. Ima kasko i javit će osiguranju. Procjena štete sutra u 10:00.',
+    talk: [
+      ['AI', 'Dobar dan, Limarija i lakirnica Jurić, ovdje virtualni asistent. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Netko mi je na parkiralištu udario vrata, ogrebeno je i malo udubljeno.'],
+      ['AI', 'Žao mi je. Koja su vrata i o kojem je vozilu riječ?'],
+      ['Mušterija', 'Desna stražnja, Hyundai i30, RI 2290 LP. Imam kasko.'],
+      ['AI', 'Za procjenu štete imamo slobodno sutra u 10:00. Ponesite policu kaska. Odgovara li Vam?'],
+      ['Mušterija', 'Odgovara, hvala.'],
+      ['AI', 'Upisano: sutra u 10:00, procjena štete za Hyundai i30 RI-2290-LP. Doviđenja.'],
+    ],
+  },
+  wheel: {
+    client: { first: 'Goran', last: 'Kovačević', phone: '+385 98 233 5106', city: 'Osijek' },
+    asset: { id: 'OS-631-GK', make: 'Škoda', model: 'Fabia III 1.0 TSI', year: 2018, fuel: 'petrol' },
+    complaint: 'Sezonska zamjena: zimske gume iz hotela (set na čeličnim felgama).',
+    slot: [1, 7, 30, 30],
+    summary: 'Goran Kovačević: zamjena ljetnih za zimske na Fabiji OS-631-GK. Zimske su kod nas u hotelu, set na čeličnim felgama. Termin sutra u 7:30.',
+    talk: [
+      ['AI', 'Dobar dan, Vulkanizer Brzi kotač, ovdje virtualni asistent. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Treba mi zamjena za zimske, gume su kod vas na čuvanju.'],
+      ['AI', 'Može. Na koju registraciju su gume spremljene?'],
+      ['Mušterija', 'OS 631 GK, Škoda Fabia.'],
+      ['AI', 'Pronašao sam set zimskih guma na felgama. Slobodno je sutra u 7:30 ili u 13:00.'],
+      ['Mušterija', 'Pola osam, prije posla.'],
+      ['AI', 'Upisano: sutra u 7:30, zamjena na zimske za OS-631-GK. Doviđenja.'],
+    ],
+  },
+  fleet: {
+    client: { company: 'Transport Babić d.o.o.', first: 'Ivica', last: 'Babić', phone: '+385 91 557 3304', city: 'Sesvete' },
+    asset: { type: 'tractor_unit', id: 'ZG-9081-TB', make: 'MAN', model: 'TGX 18.510', year: 2020, fuel: 'diesel' },
+    complaint: 'Redovni servis tegljača po planu (PM-A), 118.000 km.',
+    slot: [1, 7, 0, 240],
+    summary: 'Ivica Babić, Transport Babić: tegljač MAN TGX ZG-9081-TB treba redovni servis PM-A, ima 118.000 km. Vozilo dolazi sutra u 7:00, mora natrag na cestu do 15:00.',
+    talk: [
+      ['AI', 'Dobar dan, Servis gospodarskih vozila Perić, ovdje virtualni asistent. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Babić, Transport Babić. Tegljaču je došao redovni servis.'],
+      ['AI', 'Koje vozilo i koliko kilometara?'],
+      ['Mušterija', 'MAN TGX, ZG 9081 TB, oko 118 tisuća. Treba nam natrag do tri popodne.'],
+      ['AI', 'Sutra u 7:00 imamo slobodnu dizalicu za cijelo jutro. Može?'],
+      ['Mušterija', 'Može, vozač dolazi u sedam.'],
+      ['AI', 'Upisano: sutra u 7:00, servis PM-A za ZG-9081-TB, gotovo do 15:00. Doviđenja.'],
+    ],
+  },
+  moto: {
+    client: { first: 'Mislav', last: 'Grubišić', phone: '+385 99 410 7720', city: 'Zadar' },
+    asset: { type: 'outboard', id: '6EN-1032847', make: 'Yamaha', model: 'F100 FETX', year: 2017, unit: 'mth' },
+    complaint: 'Konzervacija vanbrodskog motora za zimu i vađenje broda na suho.',
+    slot: [2, 9, 0, 120],
+    summary: 'Mislav Grubišić: konzervacija Yamahe F100 za zimu i vađenje broda na suho. Brod dovozi prekosutra ujutro. Termin prekosutra u 9:00.',
+    talk: [
+      ['AI', 'Dobar dan, Moto & Marine Barić, ovdje virtualni asistent. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Trebam konzervaciju motora za zimu i brod na suho.'],
+      ['AI', 'Koji je motor i koliko ima radnih sati?'],
+      ['Mušterija', 'Yamaha F100, oko 410 sati.'],
+      ['AI', 'Prvi slobodan termin za vađenje je prekosutra u 9:00. Odgovara li Vam?'],
+      ['Mušterija', 'Odgovara, dovest ću ga ujutro.'],
+      ['AI', 'Upisano: prekosutra u 9:00, konzervacija Yamahe F100 i vađenje broda. Doviđenja.'],
+    ],
+  },
+  air: {
+    client: { first: 'Tea', last: 'Horvat', phone: '+385 91 220 4417', city: 'Zagreb' },
+    site: { kind: 'flat', address: 'Vukovarska 58', city: 'Zagreb', postal_code: '10000', access_notes: '2. kat, zvono Horvat. Parking u dvorištu.', lat: 45.8027, lng: 15.9809 },
+    asset: { type: 'ac_split', id: 'Dnevni boravak', make: 'Daikin', model: 'Sensira 3,5 kW', year: 2021 },
+    complaint: 'Klima ne grije, na unutarnjoj jedinici treperi lampica.',
+    slot: [1, 10, 0, 60],
+    summary: 'Tea Horvat: Daikin u dnevnom boravku ne grije, treperi lampica na unutarnjoj jedinici. Stan na 2. katu, Vukovarska 58. Termin sutra od 10:00 do 11:00.',
+    talk: [
+      ['AI', 'Dobar dan, Klima servis Polar, ovdje virtualni asistent. Serviser je trenutno na montaži. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Klima mi ne grije, a na unutarnjoj jedinici treperi lampica.'],
+      ['AI', 'Koja je marka uređaja i na kojoj adresi?'],
+      ['Mušterija', 'Daikin, Vukovarska 58, drugi kat.'],
+      ['AI', 'Serviser je u tom dijelu grada sutra od 10 do 11 sati. Može?'],
+      ['Mušterija', 'Može, bit ću doma.'],
+      ['AI', 'Upisano: sutra od 10:00 do 11:00, Vukovarska 58. Serviser će Vam javiti kad krene. Doviđenja.'],
+    ],
+  },
+  aqua: {
+    client: { first: 'Josipa', last: 'Marinović', phone: '+385 98 330 6612', city: 'Split' },
+    site: { kind: 'house', address: 'Put Brodarice 12', city: 'Split', postal_code: '21000', access_notes: 'Glavni ventil u šahtu uz ulaz, poklopac lijevo od vrata.', lat: 43.5136, lng: 16.4685 },
+    asset: { type: 'plumbing', make: null, model: 'Kuhinja, dovod i odvod' },
+    complaint: 'HITNO: puknuta cijev ispod sudopera, voda po kuhinji. Glavni ventil zatvoren.',
+    urgent: true,
+    slot: [0, 15, 0, 90],
+    summary: 'Josipa Marinović: puknula cijev ispod sudopera, voda po kuhinji. Uputio sam je da zatvori glavni ventil u šahtu uz ulaz, zatvorila je. Put Brodarice 12, Split. Hitna intervencija danas u 15:00.',
+    talk: [
+      ['AI', 'Dobar dan, Vodoinstalacije Jadran, ovdje virtualni asistent. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Pukla mi je cijev ispod sudopera, voda je posvuda!'],
+      ['AI', 'Odmah zatvorite glavni ventil za vodu. Obično je u šahtu uz ulaz ili kod vodomjera. Javite mi kad je zatvoren.'],
+      ['Mušterija', 'Zatvorila sam, prestalo je.'],
+      ['AI', 'Odlično. Isključite i bojler ako je pod vodom. Koja je adresa?'],
+      ['Mušterija', 'Put Brodarice 12, Split.'],
+      ['AI', 'Upisana hitna intervencija danas u 15:00. Majstor će Vas nazvati kad krene. Doviđenja.'],
+    ],
+  },
+  tow: {
+    client: { first: 'Damir', last: 'Šimunović', phone: '+385 91 778 2045', city: 'Zagreb' },
+    asset: { id: 'ZG-1187-DS', make: 'Audi', model: 'A4 Avant 2.0 TDI', year: 2018, fuel: 'diesel' },
+    complaint: 'Vozilo stalo na autocesti, ne pali. Vuča u servis.',
+    slot: [0, 3, 40, 60],
+    called: [0, 3, 8],
+    tow: { service: 'tow', payer: 'assistance', payer_name: 'Asistencija Demo', claim_no: 'AP-56231', pickup_address: 'A1, odmorište Draganić, smjer Zagreb', pickup_lat: 45.5764, pickup_lng: 15.6362, dropoff_address: 'Autoservis Mrežnica, Karlovac', distance_km: 21, truck: 'KA-202-VS' },
+    summary: 'Damir Šimunović: Audi A4 stao na A1 kod odmorišta Draganić, smjer Zagreb, ne pali. Lokacija poslana s mobitela. Asistencija Demo, broj predmeta AP-56231. Vuča do servisa u Karlovcu.',
+    talk: [
+      ['AI', 'Dobar dan, Autovuča Sokol, ovdje virtualni asistent. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Auto mi je stao na autocesti i ne pali.'],
+      ['AI', 'Jeste li na sigurnom? Upalite sva četiri žmigavca i stanite iza zaštitne ograde. Gdje se nalazite?'],
+      ['Mušterija', 'Na A1, kod odmorišta Draganić, prema Zagrebu.'],
+      ['AI', 'Poslao sam Vam poruku s poveznicom za točnu lokaciju. Koje je vozilo i imate li broj predmeta asistencije?'],
+      ['Mušterija', 'Audi A4, ZG 1187 DS. Asistencija mi je dala AP 56231.'],
+      ['AI', 'Upisano. Vučno vozilo kreće odmah, stiže za oko 30 minuta. Vozač će Vas nazvati. Doviđenja.'],
+    ],
+  },
+};
+
+async function aiBooking(T, b) {
+  const clientId = await client(T, b.client);
+  let siteId = null;
+  if (b.site) {
+    const [s] = await q(sb.from('sites').insert({ tenant_id: T.id, client_id: clientId, ...b.site }).select('id'));
+    siteId = s.id;
+  }
+  const assetId = await asset(T, clientId, { ...b.asset, site: siteId });
+  const [day0, hour, minute, length] = b.slot;
+  const start = zagrebAt(day0, hour, minute);
+  const end = new Date(new Date(start).getTime() + length * 60000).toISOString();
+  const called = b.called ? zagrebAt(...b.called) : new Date(Date.now() - 40 * 60000).toISOString();
+  const [row] = await q(
+    sb
+      .from('jobs')
+      .insert({
+        tenant_id: T.id,
+        client_id: clientId,
+        asset_id: assetId,
+        phase: 'intake',
+        complaint: b.complaint,
+        is_urgent: Boolean(b.urgent),
+        source: 'phone',
+        work_mode: b.site ? 'field' : 'workshop',
+        site_id: siteId,
+        meter_unit: b.asset.unit ?? 'km',
+        scheduled_start: start,
+        scheduled_end: end,
+        created_by: T.owner,
+        created_at: called,
+        updated_at: called,
+        is_demo: true,
+      })
+      .select('id, number')
+  );
+  await q(sb.from('job_events').insert({ tenant_id: T.id, job_id: row.id, event_type: 'created', message: 'Termin dogovorio AI telefon', created_at: called }));
+  if (b.tow) await q(sb.from('tow_calls').insert({ tenant_id: T.id, job_id: row.id, called_at: called, ...b.tow }));
+  const seconds = 60 + b.talk.length * 14;
+  await q(
+    sb.from('phone_calls').insert({
+      tenant_id: T.id,
+      provider_call_id: `seed-${randomUUID()}`,
+      caller: b.client.phone,
+      started_at: called,
+      ended_at: new Date(new Date(called).getTime() + seconds * 1000).toISOString(),
+      duration_s: seconds,
+      ended_reason: 'customer-ended-call',
+      summary: b.summary,
+      transcript: b.talk.map(([who, text]) => `${who}: ${text}`).join('\n'),
+      job_id: row.id,
+      cost: 0.14,
+      created_at: called,
+    })
+  );
+  return row;
+}
+
+// ---------------------------------------------------------------------
 // Super admin (optional)
 // ---------------------------------------------------------------------
 async function seedSuperAdmin() {
@@ -1685,6 +1907,7 @@ for (const [name, fn] of [
 ].filter(([name]) => !ONLY.length || ONLY.includes(name.toLowerCase()))) {
   process.stdout.write(`  ${name}… `);
   const result = await fn();
+  if (AI_BOOKINGS[result.T.pkg]) await aiBooking(result.T, AI_BOOKINGS[result.T.pkg]);
   results.push({ name, ...result });
   console.log('✓');
 }

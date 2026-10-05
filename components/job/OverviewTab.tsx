@@ -38,6 +38,23 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <div className="space-y-4">
+        {/* On the field what the caller said comes first, then the visit. */}
+        {field && (call || (confirm && job.source === 'phone')) ? (
+          <Card>
+            <div className="space-y-3 p-4 text-sm">
+              {call ? (
+                <p className="text-muted">
+                  <span className="font-medium text-fg">Dogovorio AI telefon.</span> {call.summary ?? ''}
+                </p>
+              ) : null}
+              {confirm ? (
+                <a href={confirm} target="_blank" rel="noopener noreferrer" className={buttonClass('primary')}>
+                  <MessageCircle className="size-4" /> Potvrdi termin na WhatsApp
+                </a>
+              ) : null}
+            </div>
+          </Card>
+        ) : null}
         {field ? (
           <Card>
             <CardHeader
@@ -83,22 +100,6 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
                 ) : null}
               </div>
             ) : null}
-          </Card>
-        ) : null}
-        {field && (call || (confirm && job.source === 'phone')) ? (
-          <Card>
-            <div className="space-y-3 p-4 text-sm">
-              {call ? (
-                <p className="text-muted">
-                  <span className="font-medium text-fg">Dogovorio AI telefon.</span> {call.summary ?? ''}
-                </p>
-              ) : null}
-              {confirm ? (
-                <a href={confirm} target="_blank" rel="noopener noreferrer" className={buttonClass('primary')}>
-                  <MessageCircle className="size-4" /> Potvrdi termin na WhatsApp
-                </a>
-              ) : null}
-            </div>
           </Card>
         ) : null}
         <OverviewEditor
