@@ -140,7 +140,7 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [x] Nakon 24 sata: „Krenite 30 dana besplatno” (primjeri se brišu, upisano ostaje) ili recenzija i brisanje radionice
 - [x] Toranj → Pregled: „Nakon probnog dana” (ocjene, tekst, smije li se objaviti) i popis onih koji žele obavijesti
 - [x] Uzorne radionice: `node scripts/seed.mjs --uzorak` (bez prijave); demo radionice ostaju za prezentacije
-- [ ] Stvarniji primjeri u demo i uzornim radionicama, nove snimke za početnu (i za Vodoinstalatera, Vučnu službu, Auto plac)
+- [x] U svakoj demo i uzornoj radionici poziv koji je preuzeo AI tajnik (prema „AI tajnik na djelu”); nove snimke za svih 10 zanata
 - [ ] (V) Odluka: „Godišnji ugovor (10 %)” na početnoj ili 24 mjeseca kao u aplikaciji i Uvjetima
 
 ## Kasnije
