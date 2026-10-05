@@ -1,8 +1,11 @@
 import { timingSafeEqual } from 'node:crypto';
+import { PHONE_CALL_MAX_SECONDS, PHONE_PACK } from '@/config/plans';
 import { appOrigin } from '@/lib/qr';
 import { sendMail } from '@/lib/mail';
 import { agentVariables, book, callerContext, offerSlots, openJobsText, ownerEmail, tenantForNumber } from '@/lib/phone-agent';
+import { phoneUsage } from '@/lib/phone-usage';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { todayInZagreb } from '@/lib/time';
 
 // The one server address of the AI phone agent at Vapi (docs/VAPI.md).
 // Vapi sends: "assistant-request" when a call comes in (we answer with the
@@ -65,7 +68,20 @@ export async function POST(request: Request) {
       });
     }
     const variables = agentVariables(at, await callerContext(admin, at, caller));
-    return Response.json({ assistantId, assistantOverrides: { firstMessage: variables.pozdrav, variableValues: variables } });
+    // The month's minutes are used up: a short message and the call ends,
+    // so a busy month never runs up a bill (the owner was warned by e-mail).
+    const usage = await phoneUsage(admin, at.tenant);
+    if (usage.used >= usage.quota) {
+      return Response.json({
+        assistantId,
+        assistantOverrides: {
+          firstMessage: `Dobar dan, ${at.tenant.name}. Majstor se trenutno ne može javiti. Nazvat će Vas čim stigne. Doviđenja.`,
+          variableValues: { ...variables, rezervacije: 'ne' },
+          maxDurationSeconds: 20,
+        },
+      });
+    }
+    return Response.json({ assistantId, assistantOverrides: { firstMessage: variables.pozdrav, variableValues: variables, maxDurationSeconds: PHONE_CALL_MAX_SECONDS } });
   }
 
   if (type === 'tool-calls') {
@@ -147,8 +163,32 @@ export async function POST(request: Request) {
     if (existing?.job_id && row.summary) {
       await admin.from('job_events').insert({ tenant_id: at.tenant.id, job_id: existing.job_id, event_type: 'note', message: `Sažetak poziva: ${row.summary}`.slice(0, 2000) });
     }
+    await warnAboutMinutes(admin, at.tenant);
     return Response.json({ ok: true });
   }
 
   return Response.json({ ok: true });
+}
+
+// The owner hears once a month at 80 % and once at 100 % of the AI phone
+// minutes (settings.phone_warned remembers "2026-10:80"), with the add-on.
+async function warnAboutMinutes(admin: ReturnType<typeof createAdminClient>, tenant: { id: string; name: string; plan: string | null; ai_quota: unknown; settings: Record<string, unknown> | null }) {
+  const usage = await phoneUsage(admin, tenant);
+  if (usage.pct === null || usage.pct < 80) return;
+  const level = usage.pct >= 100 ? 100 : 80;
+  const month = todayInZagreb().slice(0, 7);
+  const warned = String((tenant.settings ?? {}).phone_warned ?? '');
+  const [warnedMonth, warnedLevel] = warned.split(':');
+  if (warnedMonth === month && Number(warnedLevel) >= level) return;
+  await admin.from('tenants').update({ settings: { ...(tenant.settings ?? {}), phone_warned: `${month}:${level}` } }).eq('id', tenant.id);
+  const to = await ownerEmail(admin, tenant.id);
+  if (!to) return;
+  const link = `${appOrigin()}/app/settings/telefon`;
+  await sendMail(
+    to,
+    level === 100 ? 'AI tajnik: minute za ovaj mjesec su potrošene' : 'AI tajnik: potrošeno 80 % minuta',
+    level === 100
+      ? `AI tajnik je ovaj mjesec potrošio ${usage.used} od ${usage.quota} minuta. Do kraja mjeseca pozivatelji čuju kratku poruku da ćete ih nazvati.\n\nDodatnih ${PHONE_PACK.minutes} minuta mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
+      : `AI tajnik je ovaj mjesec potrošio ${usage.used} od ${usage.quota} minuta.\n\nDodatnih ${PHONE_PACK.minutes} minuta mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
+  );
 }

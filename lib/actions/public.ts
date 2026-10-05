@@ -41,6 +41,9 @@ const registerSchema = z.object({
   acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Potvrdi uvjete korištenja i ugovor o obradi podataka.' }) }),
   // "Želim primati obavijesti o novim funkcionalnostima" (optional).
   news: z.boolean().optional(),
+  // The demo: the workshop opens full of examples for 24 hours. Without it
+  // the workshop starts empty, on its 30 free days.
+  demo: z.boolean().optional(),
   // The referral code from another workshop's link (its payment reference).
   referral: z.string().trim().regex(/^\d{1,9}$/).optional().or(z.literal('')),
 });
@@ -117,8 +120,8 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
     if (referrer && referrer.id !== tenantId) patch.referred_by = referrer.id;
   }
   if (tenantId) await admin.from('tenants').update(patch).eq('id', tenantId as string);
-  // The 24-hour trial: the workshop opens full of examples from its trade.
-  if (tenantId) await startSampleDay(admin, tenantId as string, v.package);
+  // The demo: the workshop opens full of examples from its trade.
+  if (tenantId && v.demo) await startSampleDay(admin, tenantId as string, v.package);
   // Attempts are only needed for the hourly and daily limits.
   await admin.from('registration_attempts').delete().lt('created_at', new Date(Date.now() - 30 * 86400_000).toISOString());
   return { ok: true, data: { confirmEmail } };

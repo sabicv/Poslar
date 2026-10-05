@@ -99,6 +99,8 @@ const subscriptionSchema = z.object({
   notes: z.string().trim().max(4000).nullable(),
   aiScan: z.number().int().min(0).max(100000).nullable(),
   aiCopilot: z.number().int().min(0).max(100000).nullable(),
+  // AI phone minutes a month, add-on packs included.
+  aiPhone: z.number().int().min(0).max(100000).nullable().optional(),
 });
 
 export async function adminUpdateSubscription(tenantId: string, values: z.input<typeof subscriptionSchema>): Promise<ActionResult> {
@@ -111,6 +113,7 @@ export async function adminUpdateSubscription(tenantId: string, values: z.input<
   const quota: Record<string, number> = {};
   if (v.aiScan !== null && v.aiScan !== PLANS[v.plan].ai.scan) quota.scan = v.aiScan;
   if (v.aiCopilot !== null && v.aiCopilot !== PLANS[v.plan].ai.copilot) quota.copilot = v.aiCopilot;
+  if (v.aiPhone !== null && v.aiPhone !== undefined && v.aiPhone !== PLANS[v.plan].phoneMinutes) quota.phone = v.aiPhone;
   const { error } = await createAdminClient()
     .from('tenants')
     .update({ plan: v.plan, billing_term: v.term, paid_until: v.paidUntil, admin_notes: v.notes || null, ai_quota: Object.keys(quota).length ? quota : null })

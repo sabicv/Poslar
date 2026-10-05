@@ -73,7 +73,7 @@ export const body: PackageConfig = {
     'Zapisnik za osiguranje s fotografijama prije i poslije',
   ],
   sector: 'workshop',
-  accent: '#0E9AA7',
+  accent: '#FF6A00',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },
     asset: { one: 'Vozilo', many: 'Vozila', new: 'Novo vozilo' },

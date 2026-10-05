@@ -6,6 +6,7 @@ import { ConfirmButton, DictateButton, DictateInput, Sheet, useAction } from '@/
 import { ScanButton, type ScanKind } from '@/components/ScanButton';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import type { ActionResult } from '@/lib/action-result';
+import { proposeTemplateLine } from '@/lib/actions/jobs';
 import { deleteRecord, savePrivateAmount, saveRecord } from '@/lib/actions/records';
 import { cn } from '@/lib/utils';
 
@@ -272,6 +273,7 @@ export function RecordSheet({
   label = 'Dodaj',
   deletable,
   scan,
+  proposeTemplate,
 }: {
   table: string;
   title: string;
@@ -285,6 +287,10 @@ export function RecordSheet({
   label?: string;
   deletable?: boolean;
   scan?: FormScan;
+  // A priced template to propose on the job once this record is saved
+  // (the going rate for the measurement itself, e.g. "Test akumulatora").
+  // Never approved automatically — the owner confirms it in Stavke.
+  proposeTemplate?: string;
 }) {
   const [open, setOpen] = useState(false);
   const scanTarget = useRef<((data: Record<string, unknown>) => void) | null>(null);
@@ -309,7 +315,12 @@ export function RecordSheet({
           draftKey={`${table}:${id ?? JSON.stringify(fixed)}`}
           scan={scan}
           scanTarget={scanTarget}
-          onSubmit={(values) => saveRecord(table, { ...values, ...fixed }, { id, upsertOn, revalidate })}
+          onSubmit={async (values) => {
+            const result = await saveRecord(table, { ...values, ...fixed }, { id, upsertOn, revalidate });
+            const jobId = fixed.job_id;
+            if (result.ok && proposeTemplate && typeof jobId === 'string') await proposeTemplateLine(jobId, proposeTemplate);
+            return result;
+          }}
           onDelete={deletable && id ? () => deleteRecord(table, id, revalidate) : undefined}
           onDone={() => setOpen(false)}
         />

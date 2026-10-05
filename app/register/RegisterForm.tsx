@@ -9,9 +9,9 @@ import { registerWorkshop } from '@/lib/actions/public';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 
-// The trial sign-up: name, e-mail, password and the trade. The workshop
-// opens full of examples from that trade for 24 hours.
-export function RegisterForm({ initialPackage, packageLocked, referral = '' }: { initialPackage: PackageId; packageLocked: boolean; referral?: string }) {
+// The sign-up: name, e-mail, password and the trade. The workshop opens
+// empty for 30 free days, or (demo) full of examples for 24 hours.
+export function RegisterForm({ initialPackage, packageLocked, referral = '', demo = false }: { initialPackage: PackageId; packageLocked: boolean; referral?: string; demo?: boolean }) {
   const router = useRouter();
   const [pkg, setPkg] = useState<PackageId>(initialPackage);
   const group = TRADE_GROUPS.find((g) => g.id === tradeGroupOf(pkg))!;
@@ -29,7 +29,7 @@ export function RegisterForm({ initialPackage, packageLocked, referral = '' }: {
     event.preventDefault();
     setPending(true);
     setError(null);
-    const result = await registerWorkshop({ ...form, package: pkg, acceptTerms: accept as true, news, elapsedMs: Date.now() - openedAt.current, referral });
+    const result = await registerWorkshop({ ...form, package: pkg, acceptTerms: accept as true, news, demo, elapsedMs: Date.now() - openedAt.current, referral });
     if (!result.ok) {
       setPending(false);
       setError(result.error);
@@ -131,7 +131,7 @@ export function RegisterForm({ initialPackage, packageLocked, referral = '' }: {
       </div>
       {error ? <p className="rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-sm text-crit">{error}</p> : null}
       <Button type="submit" variant="primary" size="lg" className="w-full" disabled={pending}>
-        {pending ? 'Otvaram probnu radionicu…' : 'Otvori probnu radionicu'}
+        {pending ? (demo ? 'Otvaram demo radionicu…' : 'Otvaram radionicu…') : demo ? 'Otvori demo radionicu' : 'Otvori radionicu'}
       </Button>
       <p className="text-center text-xs text-faint">
         Kako čuvamo podatke:{' '}

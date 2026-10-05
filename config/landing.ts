@@ -4,7 +4,15 @@
 
 import type { PackageId } from '@/config/tenant.config';
 
-export const CTA = 'Isprobaj 24 sata';
+// The main button: straight to real work, 30 days free. Where the work
+// happens decides the words (Vedran, 2026-10-05).
+export const CTA_HEADER = '30 dana besplatno';
+export function ctaTrial(where: 'radionica' | 'teren' | 'cesta' | 'plac' | 'sve'): string {
+  const place = { radionica: 'u radionici', teren: 'na terenu', cesta: 'na cesti', plac: 'na placu', sve: 'u radionici ili na terenu' }[where];
+  return `Isprobaj ${place} 30 dana besplatno`;
+}
+// The other way in: a demo workshop full of examples, for 24 hours.
+export const CTA_DEMO = 'Isprobaj demo verziju s izmišljenim podacima';
 
 export const MAIN = {
   eyebrow: 'Operativni sustav za radionice i majstore na terenu',
@@ -39,6 +47,9 @@ export const MAIN = {
       text: 'Jednostavno uvezi bazu mušterija iz imenika ili Excela. Stare papirnate naloge i račune samo fotografiraj: AI ih sam prepoznaje i razvrstava u povijest svakog vozila.',
     },
   ],
+  // Phone first, but a tablet or laptop shows even more (Vedran, 2026-10-05).
+  devicesTitle: 'Mobitel na terenu. Laptop u uredu.',
+  devicesText: 'Aplikacija je napravljena za mobitel. Na tabletu i laptopu je još preglednija: cijeli nalog, grafovi i raspored na jednom ekranu. Podaci su isti na svim uređajima i odmah usklađeni.',
   painsTitle: 'Zvuči ti poznato?',
   pains: [
     { q: 'Završavaš radni dan, a tek te čeka pisanje računa?', a: 'Izradi i pošalji čist račun ili ponudu izravno s terena u nekoliko sekundi.' },
@@ -51,7 +62,7 @@ export const MAIN = {
   tradesTitle: 'Prilagođeno tvojoj struci',
   tradesSubtitle: 'Svaki zanat ima svoje specifične izazove. TaktiX ima rješenje za svaki od njih.',
   finalTitle: 'Isprobaj na prvom sljedećem poslu.',
-  finalCta: 'Isprobaj 24 sata bez obveze',
+  finalSub: 'Stekni prednost pred konkurencijom i digitaliziraj posao po svojoj mjeri.',
   finalAsk: 'Pitaj nas na WhatsAppu',
   madeIn: 'Razvijeno u Hrvatskoj',
 };
@@ -72,23 +83,24 @@ export const TRADE_LINES: Record<PackageId, string> = {
 
 export const PRICING = {
   title: 'Košta manje od jednog radnog sata mjesečno.',
-  subtitle: 'Započni s 24-satnim probnim pristupom napunjenim primjerima. Nakon toga koristi 30 dana potpuno besplatno na vlastitim poslovima.',
+  subtitle: 'Kreni odmah: 30 dana besplatno na svojim poslovima. Ili prvo 24 sata isprobaj demo s izmišljenim podacima.',
   monthly: 'Mjesečno',
-  yearly: 'Godišnji ugovor (10 % popusta)',
+  yearly: 'Ugovor na 24 mjeseca (10 % popusta)',
+  funding: 'Mogućnost sufinanciranja pretplate iz EU fondova i nacionalnih sredstava.',
   best: 'Najčešći izbor',
   vat: 'Sve istaknute cijene uključuju PDV.',
   plans: {
-    basic: ['Voditelj i do 2 radnika', 'Radni nalozi, fotodokumentacija i računi', 'Odobrenje ponuda i cijena putem WhatsAppa', 'Automatski paket za knjigovođu', '150 skeniranja i 100 upita Kopilotu mjesečno', 'AI tajnik: opcija doplate po potrošnji'],
-    standard: ['Voditelj i do 5 radnika', 'Sve funkcionalnosti iz Basic paketa', 'QR sustav prijave na ulazu radionice', 'AI tajnik: uključenih 100 minuta razgovora mjesečno', '300 skeniranja i 200 upita Kopilotu mjesečno'],
-    premium: ['Voditelj i do 10 radnika', 'Sve funkcionalnosti iz Standard paketa', 'AI tajnik: uključenih 300 minuta razgovora mjesečno', 'Upravljanje s više poslovnica / radionica', '600 skeniranja i 400 upita Kopilotu mjesečno'],
+    basic: ['Voditelj i do 2 radnika', 'Radni nalozi, fotodokumentacija i računi', 'Odobrenje ponuda i cijena putem WhatsAppa', 'Automatski paket za knjigovođu', '150 skeniranja i 100 upita Kopilotu mjesečno', 'AI tajnik: uz doplatu, 100 minuta za 25 €'],
+    standard: ['Voditelj i do 5 radnika', 'Sve funkcionalnosti iz Basic paketa', 'QR sustav prijave na ulazu radionice', 'AI tajnik: uključeno 60 minuta razgovora mjesečno', '300 skeniranja i 200 upita Kopilotu mjesečno'],
+    premium: ['Voditelj i do 10 radnika', 'Sve funkcionalnosti iz Standard paketa', 'AI tajnik: uključeno 150 minuta razgovora mjesečno', 'Upravljanje s više poslovnica / radionica', '600 skeniranja i 400 upita Kopilotu mjesečno'],
   } as Record<'basic' | 'standard' | 'premium', string[]>,
 };
 
 export const FAQ: { q: string; a: string }[] = [
-  { q: 'Treba li mi računalo u radionici?', a: 'Ne treba. Aplikacija je u potpunosti prilagođena radu na mobitelu i tabletu (Android i iPhone).' },
+  { q: 'Treba li mi računalo u radionici?', a: 'Ne treba. Aplikacija je u potpunosti prilagođena radu na mobitelu (Android i iPhone). Ako imaš tablet ili laptop, na njima je sve još preglednije, a podaci su isti na svim uređajima.' },
   {
     q: 'Kako funkcionira besplatni probni period?',
-    a: 'Prva 24 sata dobivaš pristup radionici s već unesenim primjerima iz tvoje struke kako bi vidio sve mogućnosti. Nakon toga biraš: nastavljaš 30 dana besplatno na svojim pravim poslovima ili jednostavno odustaješ. Unos bankovne kartice za vrijeme trajanja besplatnog perioda nije potreban.',
+    a: 'Odmah otvaraš svoju radionicu i 30 dana radiš besplatno na pravim poslovima. Ako želiš prvo razgledati, otvori demo s izmišljenim primjerima iz tvoje struke: traje 24 sata, a nakon toga nastavljaš 30 dana besplatno ili jednostavno odustaješ. Unos bankovne kartice za vrijeme trajanja besplatnog perioda nije potreban.',
   },
   {
     q: 'Što točno radi AI tajnik?',
@@ -106,7 +118,7 @@ export const FAQ: { q: string; a: string }[] = [
   { q: 'Što iz aplikacije dobiva moj knjigovođa?', a: 'Na kraju mjeseca aplikacija generira jedinstveni paket koji sadrži sve izdane račune u strukturiranoj Excel tablici te datoteke spremne za e-Račun.' },
   { q: 'Kako je riješeno pitanje fiskalizacije?', a: 'Fiskalni račun trenutno izdaješ na svojoj blagajni, a u aplikaciju jednostavno upišeš njegov broj radi potpune evidencije po radnom nalogu.' },
   { q: 'Je li za rad potrebna stalna internetska veza?', a: 'Da, potrebna je internetska veza. Sustav je optimiziran tako da troši minimalno podataka i radi stabilno čak i na slabijem mobilnom signalu.' },
-  { q: 'Postoji li ugovorna obveza?', a: 'Ne. Možeš otkazati pretplatu u bilo kojem trenutku bez otkaznog roka. Prije odlaska jednostavnim klikom preuzmeš svu svoju arhivu i podatke.' },
+  { q: 'Postoji li ugovorna obveza?', a: 'Ne, ako plaćaš mjesečno: otkazuješ u bilo kojem trenutku, bez otkaznog roka. Uz ugovor na 24 mjeseca dobivaš 10 % popusta. Prije odlaska jednostavnim klikom preuzmeš svu svoju arhivu i podatke.' },
   { q: 'Što ako mi zatreba pomoć pri korištenju?', a: 'Naša podrška dostupna ti je izravno putem WhatsAppa ili telefonskog poziva. Pomažemo ti u podešavanju i radu.' },
 ];
 

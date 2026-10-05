@@ -1,11 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PhoneForwarded } from 'lucide-react';
+import { PhonePackRequest } from '@/components/billing/PhonePackRequest';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { BackLink, Card, CardHeader, EmptyState, PageHeader } from '@/components/ui';
+import { PHONE_CALL_MAX_SECONDS, PHONE_PACK } from '@/config/plans';
 import { readHours } from '@/lib/calendar';
 import { formatDateTime } from '@/lib/format';
+import { phoneUsage } from '@/lib/phone-usage';
+import { isPlayApp } from '@/lib/play';
 import { requireOwner } from '@/lib/session';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { CalendarForm } from './CalendarForm';
 
 export const metadata: Metadata = { title: 'AI telefon' };
@@ -24,6 +29,9 @@ export default async function PhoneAgentPage() {
     .limit(20);
   type Call = { id: string; caller: string | null; started_at: string | null; created_at: string; duration_s: number | null; summary: string | null; transcript: string | null; job_id: string | null; job: { number: number } | null };
   const rows = (calls ?? []) as unknown as Call[];
+  // The month's minutes against the quota; the Google Play app shows no prices.
+  const [usage, play] = await Promise.all([phoneUsage(createAdminClient(), t), isPlayApp()]);
+  const pct = usage.pct === null ? 0 : Math.min(100, usage.pct);
 
   return (
     <>
@@ -58,6 +66,22 @@ export default async function PhoneAgentPage() {
                   <SupportWhatsApp message={`Pozdrav, želim AI telefon za radionicu ${t.name}. `} label="Želim AI telefon" variant="primary" />
                 </>
               )}
+            </div>
+          </Card>
+          <Card>
+            <CardHeader title="Minute ovaj mjesec" subtitle={usage.quota ? `${usage.used} od ${usage.quota} minuta` : 'Vaš paket ne uključuje minute AI tajnika'} />
+            <div className="space-y-3 p-4 text-sm">
+              {usage.quota ? (
+                <div className="h-2 overflow-hidden rounded-full bg-surface2">
+                  <div className={usage.pct !== null && usage.pct >= 100 ? 'h-full bg-crit' : usage.pct !== null && usage.pct >= 80 ? 'h-full bg-warn' : 'h-full bg-accent'} style={{ width: `${pct}%` }} />
+                </div>
+              ) : null}
+              <p className="text-muted">
+                {usage.quota && usage.used >= usage.quota
+                  ? 'Minute su potrošene. Do kraja mjeseca pozivatelj čuje kratku poruku da ćete ga nazvati.'
+                  : `Jedan poziv traje najviše ${PHONE_CALL_MAX_SECONDS / 60} minute. Na 80 % i 100 % potrošnje dobivate e-mail.`}
+              </p>
+              {!play ? <PhonePackRequest label={`Dodatnih ${PHONE_PACK.minutes} minuta mjesečno za ${PHONE_PACK.price} €`} /> : null}
             </div>
           </Card>
           <Card>

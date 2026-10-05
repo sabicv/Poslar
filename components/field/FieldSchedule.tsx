@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { AlertTriangle, CalendarPlus, KeyRound, MapPin } from 'lucide-react';
-import { Badge, Card, EmptyState } from '@/components/ui';
+import { Badge, Card, EmptyState, buttonClass } from '@/components/ui';
 import { PHASE_TONE, hasModule, phaseLabel, type JobPhase } from '@/config/tenant.config';
 import { dayRouteLink } from '@/lib/contact';
 import { assetTitle, clientName, plural } from '@/lib/format';
@@ -11,7 +11,7 @@ import { FieldActions, ScheduleSheet } from './FieldActions';
 import { ScheduleShell } from './ScheduleShell';
 
 const VISIT_FIELDS =
-  'id, number, phase, complaint, is_urgent, scheduled_start, scheduled_end, departed_at, arrived_at, arrived_lat, arrived_lng, left_at, customer_notified_at, report_token, report_shared_at, assigned_to, client:clients(kind, first_name, last_name, company_name, phone), asset:assets(asset_type, make, model, identifier), site:sites(label, address, city, lat, lng, access_notes, contact_phone), assignee:profiles(full_name)';
+  'id, number, phase, complaint, is_urgent, source, scheduled_start, scheduled_end, departed_at, arrived_at, arrived_lat, arrived_lng, left_at, customer_notified_at, report_token, report_shared_at, assigned_to, client:clients(kind, first_name, last_name, company_name, phone), asset:assets(asset_type, make, model, identifier), site:sites(label, address, city, lat, lng, access_notes, contact_phone), assignee:profiles(full_name)';
 
 type Visit = {
   id: string;
@@ -19,6 +19,7 @@ type Visit = {
   phase: JobPhase;
   complaint: string | null;
   is_urgent: boolean;
+  source: string;
   scheduled_start: string | null;
   scheduled_end: string | null;
   departed_at: string | null;
@@ -36,8 +37,10 @@ type Visit = {
   assignee: { full_name: string | null } | null;
 };
 
-// The field technician's day: who, where, when — and the next tap.
-export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }: { ctx: WorkshopContext; day?: string; tech?: string }) {
+// The day's appointments. On the field: who, where, when, and the next tap.
+// In a workshop (fieldMode false): the cars booked for the day, by the AI
+// phone or by hand.
+export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, fieldMode = true }: { ctx: WorkshopContext; day?: string; tech?: string; fieldMode?: boolean }) {
   const today = todayInZagreb();
   const day = requested && /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : today;
   const monday = weekStart(day);
@@ -47,13 +50,13 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
   let weekQuery = ctx.supabase
     .from('jobs')
     .select('scheduled_start')
-    .eq('work_mode', 'field')
+    .in('work_mode', fieldMode ? ['field'] : ['field', 'workshop'])
     .gte('scheduled_start', zagrebMidnight(monday).toISOString())
     .lt('scheduled_start', zagrebMidnight(addDays(monday, 7)).toISOString());
   let dayQuery = ctx.supabase
     .from('jobs')
     .select(VISIT_FIELDS)
-    .eq('work_mode', 'field')
+    .in('work_mode', fieldMode ? ['field'] : ['field', 'workshop'])
     .gte('scheduled_start', zagrebMidnight(day).toISOString())
     .lt('scheduled_start', zagrebMidnight(addDays(day, 1)).toISOString())
     .order('scheduled_start');
@@ -65,14 +68,9 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
   const [{ data: week }, { data: visits }, { data: unscheduled }, { data: staff }, plans] = await Promise.all([
     weekQuery,
     dayQuery,
-    ctx.supabase
-      .from('jobs')
-      .select(VISIT_FIELDS)
-      .eq('work_mode', 'field')
-      .is('scheduled_start', null)
-      .not('phase', 'in', '(ready,collected)')
-      .order('created_at')
-      .limit(30),
+    fieldMode
+      ? ctx.supabase.from('jobs').select(VISIT_FIELDS).eq('work_mode', 'field').is('scheduled_start', null).not('phase', 'in', '(ready,collected)').order('created_at').limit(30)
+      : Promise.resolve({ data: [] }),
     ctx.supabase.from('profiles').select('id, full_name').order('full_name'),
     showPlans
       ? ctx.supabase.from('maintenance_plans').select('id', { count: 'exact', head: true }).eq('active', true).lte('next_due_date', addDays(today, 30))
@@ -132,9 +130,16 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
         </Link>
       ) : null}
 
+      {/* Book for the day on screen */}
+      <Link prefetch={false} href={`/app/jobs/new?d=${day}`} className={buttonClass('secondary', 'md', 'w-full')}>
+        <CalendarPlus className="size-4" /> {fieldMode ? 'Zakaži posjet' : 'Zakaži termin'} za {day === today ? 'danas' : dayTitle}
+      </Link>
+
       {/* The day */}
       {list.length === 0 ? (
-        <EmptyState title={day === today ? 'Danas nema zakazanih posjeta' : 'Nema zakazanih posjeta'}>Posjeti se zakazuju pri otvaranju naloga ili iz popisa „Nezakazano”.</EmptyState>
+        <EmptyState title={day === today ? (fieldMode ? 'Danas nema zakazanih posjeta' : 'Danas nema termina') : fieldMode ? 'Nema zakazanih posjeta' : 'Nema termina'}>
+          {fieldMode ? 'Dodirnite „Zakaži posjet” iznad ili zakažite iz popisa „Nezakazano”.' : 'Dodirnite „Zakaži termin” iznad. Termine upisuje i AI telefon.'}
+        </EmptyState>
       ) : (
         <ol className="space-y-3">
           {list.map((v) => (
@@ -156,7 +161,13 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
                         <MapPin className="size-3.5 shrink-0" /> {[v.site.address, v.site.city].filter(Boolean).join(', ')}
                       </p>
                     ) : null}
+                    {!fieldMode && v.source === 'phone' ? (
+                      <p className="mt-0.5">
+                        <Badge tone="warn">AI telefon</Badge>
+                      </p>
+                    ) : null}
                     <p className="truncate text-sm text-muted">
+                      {!fieldMode && v.asset?.identifier ? `${v.asset.identifier} · ` : ''}
                       {assetTitle(v.asset)}
                       {v.complaint ? ` · ${v.complaint}` : ''}
                     </p>
@@ -168,9 +179,11 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
                     {ctx.isOwner && tech === 'all' && v.assignee?.full_name ? <p className="mt-1 text-xs text-faint">{v.assignee.full_name}</p> : null}
                   </Link>
                 </div>
-                <div className="mt-3">
-                  <FieldActions job={v} site={v.site} ctx={fieldCtx(v)} />
-                </div>
+                {v.site ? (
+                  <div className="mt-3">
+                    <FieldActions job={v} site={v.site} ctx={fieldCtx(v)} />
+                  </div>
+                ) : null}
               </Card>
             </li>
           ))}
@@ -193,7 +206,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech }
                     {[v.site?.address, v.site?.city].filter(Boolean).join(', ') || 'bez adrese'} · {v.complaint ?? assetTitle(v.asset)}
                   </p>
                 </Link>
-                <ScheduleSheet jobId={v.id} current={{ start: null, end: null, assignedTo: v.assigned_to }} staff={staffList} />
+                <ScheduleSheet jobId={v.id} current={{ start: null, end: null, assignedTo: v.assigned_to }} staff={staffList} defaultDate={day} />
               </li>
             ))}
           </ul>

@@ -3,7 +3,7 @@ import { KeyRound, Lock, MapPin, Phone } from 'lucide-react';
 import { CopilotDrawer } from '@/components/copilot/CopilotDrawer';
 import { Badge, BackLink } from '@/components/ui';
 import { ASSET_TYPE_LABELS } from '@/config/tenant.config';
-import { assetTitle, clientName } from '@/lib/format';
+import { assetTitle, clientName, formatDateTime } from '@/lib/format';
 import type { JobWithRefs } from '@/types/db';
 
 // Everything about the job exactly once: the phase lives in the bottom
@@ -48,6 +48,13 @@ export function JobHeader({ job, backHref, backLabel, copilot, billing = true }:
             </a>
           ) : null}
         </div>
+        {/* When it happened: never shown elsewhere on the job, so it goes here. */}
+        <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-faint">
+          <span>Primljeno {formatDateTime(job.created_at)}</span>
+          {job.finished_at ? <span>Gotovo {formatDateTime(job.finished_at)}</span> : null}
+          {job.collected_at ? <span>Preuzeto {formatDateTime(job.collected_at)}</span> : null}
+          {finished && job.payment_status === 'paid' && job.paid_at ? <span>Plaćeno {formatDateTime(job.paid_at)}</span> : null}
+        </p>
         {field && job.site ? (
           <div className="mt-2 space-y-1 text-sm">
             <p className="flex items-center gap-1.5">

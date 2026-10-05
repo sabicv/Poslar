@@ -141,7 +141,17 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [x] Toranj → Pregled: „Nakon probnog dana” (ocjene, tekst, smije li se objaviti) i popis onih koji žele obavijesti
 - [x] Uzorne radionice: `node scripts/seed.mjs --uzorak` (bez prijave); demo radionice ostaju za prezentacije
 - [x] U svakoj demo i uzornoj radionici poziv koji je preuzeo AI tajnik (prema „AI tajnik na djelu”); nove snimke za svih 10 zanata
-- [ ] (V) Odluka: „Godišnji ugovor (10 %)” na početnoj ili 24 mjeseca kao u aplikaciji i Uvjetima
+- [x] Odluka: ugovor na 24 mjeseca (10 %), uz napomenu o sufinanciranju iz EU i nacionalnih sredstava
+
+## Stadij 12: Vedranove primjedbe (5. 10.)
+- [x] Dva ulaza: glavni „Isprobaj u radionici / na terenu 30 dana besplatno” (prazna radionica) i „Isprobaj demo verziju s izmišljenim podacima” (24 h s primjerima)
+- [x] AI tajnik: Standard 60 min, Premium 150 min, Basic samo doplata (100 min za 25 €); poziv najviše 4 min; kad minute nestanu kratka poruka; e-mail na 80 % i 100 %; u Tornju polje minuta
+- [x] Kalendar: odabrani dan ide u novi nalog, „Zakaži termin za [dan]”, Raspored i za radioničke zanate, termin za kasnije u radionici, nedovršeni unos samo u svojoj radionici (12 h)
+- [x] Nalog: datumi primljeno, gotovo, preuzeto, plaćeno; mjerenje (test akumulatora, parazitska potrošnja, geometrija) predlaže stavku
+- [x] Novi logo (plavi metronom, narančasta strelica iz sredine), nove boje: Moto plava, Limar narančasta, Kamioni siva, Vučna neon žuta
+- [x] Fotografije na početnoj i stranicama zanata, pravi ekrani u mobitelu i laptopu; „Mobitel na terenu. Laptop u uredu.”
+- [ ] Mjerenje → stavka i za ostale zanate (Vedran bira koje radnje i cijene)
+- [ ] Priprema za fiskalnu blagajnu na kraju dana (popis računa dana za prepisivanje ili izvoz), pa povezivanje s posrednikom kad ga knjigovođa odabere
 
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).

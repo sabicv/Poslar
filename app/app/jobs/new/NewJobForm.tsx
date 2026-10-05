@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Building2, Check, ChevronDown, MapPin, Search, User, X } from 'lucide-react';
+import { Building2, CalendarClock, Check, ChevronDown, MapPin, Search, User, X } from 'lucide-react';
 import { DictateButton, DictateInput, Segmented } from '@/components/client-ui';
 import { ScanButton } from '@/components/ScanButton';
 import { Button, Card, Field, Input, Select, Textarea } from '@/components/ui';
@@ -14,7 +14,8 @@ import { clearDraft, readDraft, writeDraft } from '@/lib/drafts';
 import { assetTitle, clientName } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
-const DRAFT_KEY = 'draft:new-job';
+// Half-typed intake is kept for half a day at most.
+const DRAFT_MAX_AGE = 12 * 3600 * 1000;
 
 type SiteKind = 'house' | 'flat' | 'apartment' | 'office' | 'commercial' | 'other';
 const SITE_KINDS: { value: SiteKind; label: string }[] = [
@@ -53,6 +54,8 @@ export function NewJobForm({
   isFleet,
   preset,
   field,
+  draftKey,
+  presetDate,
 }: {
   vocabulary: Vocabulary;
   assetTypes: { value: AssetType; label: string; unit: MeterUnit }[];
@@ -62,6 +65,10 @@ export function NewJobForm({
   isFleet: boolean;
   preset: NewJobPreset | null;
   field: FieldOptions;
+  // Per workshop and person, so a draft never crosses into another workshop.
+  draftKey: string;
+  // The day picked in the schedule (YYYY-MM-DD).
+  presetDate: string | null;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -83,7 +90,10 @@ export function NewJobForm({
   const [isUrgent, setIsUrgent] = useState(false);
   const [promisedAt, setPromisedAt] = useState('');
   const [source, setSource] = useState<'workshop' | 'phone' | 'field'>('workshop');
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(presetDate ?? '');
+  // A workshop job can be booked for later (the car comes on that day).
+  const [booking, setBooking] = useState(Boolean(presetDate));
+  const [restoredAt, setRestoredAt] = useState<number | null>(null);
   const [time, setTime] = useState('08:00');
   const [duration, setDuration] = useState('60');
   const [tech, setTech] = useState(field.isOwner ? '' : field.me);
@@ -96,8 +106,11 @@ export function NewJobForm({
   useEffect(() => {
     if (restored.current || preset) return;
     restored.current = true;
-    const draft = readDraft<{ complaint: string; picked: string[]; newClient: typeof newClient; newAsset: typeof newAsset; meterIn: string; newSite?: typeof newSite }>(DRAFT_KEY);
-    if (draft) {
+    const saved = readDraft<{ complaint: string; picked: string[]; newClient: typeof newClient; newAsset: typeof newAsset; meterIn: string; newSite?: typeof newSite }>(draftKey, DRAFT_MAX_AGE);
+    const draft = saved?.data;
+    const typed = draft && Boolean(draft.complaint || draft.picked?.length || draft.newClient?.name || draft.newClient?.companyName || draft.newClient?.phone || draft.newAsset?.identifier || draft.newAsset?.make || draft.newAsset?.model || draft.newSite?.address);
+    if (draft && typed) {
+      setRestoredAt(saved!.at);
       setComplaint(draft.complaint ?? '');
       setPicked(draft.picked ?? []);
       if (draft.newClient && 'name' in draft.newClient) setNewClient(draft.newClient);
@@ -105,12 +118,24 @@ export function NewJobForm({
       if (draft.newSite) setNewSite(draft.newSite);
       setMeterIn(draft.meterIn ?? '');
     }
-  }, [preset]);
+  }, [preset, draftKey]);
 
   useEffect(() => {
     if (!restored.current) return;
-    writeDraft(DRAFT_KEY, { complaint, picked, newClient, newAsset, meterIn, newSite });
-  }, [complaint, picked, newClient, newAsset, meterIn, newSite]);
+    writeDraft(draftKey, { complaint, picked, newClient, newAsset, meterIn, newSite });
+  }, [draftKey, complaint, picked, newClient, newAsset, meterIn, newSite]);
+
+  // "Počni ispočetka": an empty form, and the draft is gone.
+  function startOver() {
+    clearDraft(draftKey);
+    setRestoredAt(null);
+    setComplaint('');
+    setPicked([]);
+    setNewClient({ kind: isFleet ? 'company' : 'person', name: '', companyName: '', phone: '', oib: '' });
+    setNewAsset({ assetType: defaultAssetType, identifier: '', make: '', model: '', year: '', vin: '' });
+    setNewSite({ address: '', city: '', kind: 'flat', accessNotes: '' });
+    setMeterIn('');
+  }
 
   useEffect(() => {
     if (client || query.trim().length < 2) {
@@ -222,20 +247,29 @@ export function NewJobForm({
               planId: preset?.planId ?? null,
             }
           : null,
+        appointment: !isField && booking && date ? { start: new Date(`${date}T${time || '08:00'}`).toISOString(), durationMin: 60 } : null,
       });
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
-      clearDraft(DRAFT_KEY);
+      clearDraft(draftKey);
       if (result.data?.warning) toast.warning(result.data.warning);
-      else toast.success(isField && date ? 'Posjet zakazan' : 'Nalog otvoren');
+      else toast.success(isField && date ? 'Posjet zakazan' : !isField && booking && date ? 'Termin zakazan' : 'Nalog otvoren');
       router.replace(`/app/jobs/${result.data!.id}`);
     });
   }
 
   return (
     <div className="space-y-4">
+      {restoredAt ? (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-warn/40 bg-warn/10 px-4 py-3 text-sm">
+          <span className="flex-1">Nastavljate unos započet u {new Date(restoredAt).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}.</span>
+          <button type="button" onClick={startOver} className="font-medium text-accent hover:underline">
+            Počni ispočetka
+          </button>
+        </div>
+      ) : null}
       {field.enabled && field.defaultMode === 'workshop' ? (
         <Segmented
           value={mode}
@@ -420,7 +454,7 @@ export function NewJobForm({
               <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </Field>
             <Field label="Vrijeme">
-              <Input type="time" step={900} value={time} onChange={(e) => setTime(e.target.value)} />
+              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </Field>
             {more ? (
               <>
@@ -453,6 +487,32 @@ export function NewJobForm({
             {!date ? <p className="text-xs text-faint sm:col-span-2">Bez datuma nalog ide u „Nezakazano” u rasporedu.</p> : null}
           </div>
         </Card>
+      ) : null}
+
+      {/* Workshop: the car comes later, on a booked day and hour. */}
+      {!isField ? (
+        booking ? (
+          <Card className="p-4">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold">Termin</h2>
+              <button type="button" onClick={() => setBooking(false)} className="text-sm text-muted hover:text-fg">
+                Bez termina
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Datum">
+                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              </Field>
+              <Field label="Vrijeme">
+                <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              </Field>
+            </div>
+          </Card>
+        ) : (
+          <button type="button" onClick={() => setBooking(true)} className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line py-3 text-sm text-muted hover:text-fg">
+            <CalendarClock className="size-4" /> Zakaži termin za kasnije
+          </button>
+        )
       ) : null}
 
       {/* What to do */}
@@ -526,7 +586,7 @@ export function NewJobForm({
 
       <div className="sticky bottom-20 z-10 lg:bottom-4">
         <Button variant="primary" size="lg" className="w-full shadow-2xl shadow-black/50" disabled={pending} onClick={submit}>
-          {pending ? 'Spremam…' : isField ? (date ? 'Zakaži posjet' : 'Otvori nalog bez termina') : 'Otvori nalog'}
+          {pending ? 'Spremam…' : isField ? (date ? 'Zakaži posjet' : 'Otvori nalog bez termina') : booking && date ? 'Zakaži termin' : 'Otvori nalog'}
         </Button>
       </div>
     </div>

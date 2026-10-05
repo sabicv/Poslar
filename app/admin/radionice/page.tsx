@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { ProductMark } from '@/components/ProductMark';
 import { Badge, Card, EmptyState, Input, PageHeader } from '@/components/ui';
-import { getPlan, type BillingTerm, type PlanId } from '@/config/plans';
+import { getPlan, phoneQuota, type BillingTerm, type PlanId } from '@/config/plans';
 import { accentStyle, getPackage } from '@/config/tenant.config';
 import { formatDate, formatEuro, formatRelative } from '@/lib/format';
 import { loadWorkshops, requireTower, type TowerWorkshop } from '@/lib/tower';
@@ -118,6 +118,7 @@ export default async function TowerWorkshops({ searchParams }: { searchParams: P
                         notes: t.admin_notes,
                         aiScan: w.ai.scanQuota,
                         aiCopilot: w.ai.copilotQuota,
+                        aiPhone: phoneQuota(t.plan, t.ai_quota),
                         monthly: w.monthly,
                         payments: w.payments,
                         demo: w.demo,

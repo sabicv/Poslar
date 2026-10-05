@@ -179,7 +179,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
         </Card>
 
         <Card>
-          <CardHeader title="Po djelatniku"  />
+          <CardHeader title="Po djelatniku" subtitle="Bez PDV-a" />
           {perWorker.size ? (
             <ul className="divide-y divide-line">
               {[...perWorker.entries()]

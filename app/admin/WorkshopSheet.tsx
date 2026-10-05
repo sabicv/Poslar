@@ -8,7 +8,7 @@ import { Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select, Textarea, buttonClass } from '@/components/ui';
 import { copyText } from '@/lib/clipboard';
 import { whatsappLink } from '@/lib/contact';
-import { PLANS, TERM_LABELS, type BillingTerm, type PlanId } from '@/config/plans';
+import { PHONE_PACK, PLANS, TERM_LABELS, type BillingTerm, type PlanId } from '@/config/plans';
 import { PACKAGES, type PackageId } from '@/config/tenant.config';
 import { adminDeleteWorkshop, adminExtendTrial, adminRecordPayment, adminResetPassword, adminSetPackage, adminSetPhoneAgent, adminSetStatus, adminUpdateSubscription } from '@/lib/actions/admin';
 
@@ -24,6 +24,8 @@ export interface WorkshopSheetData {
   notes: string | null;
   aiScan: number;
   aiCopilot: number;
+  // AI phone minutes a month (plan or override, add-on packs included).
+  aiPhone: number;
   monthly: number;
   payments: { id: string; amount: number; months: number; paid_on: string; note: string | null }[];
   // Shared demo workshops are never deleted.
@@ -105,7 +107,7 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState(w.statusNote ?? '');
   const [pack, setPack] = useState(w.pkg);
-  const [sub, setSub] = useState({ plan: w.plan, term: w.term, paidUntil: w.paidUntil ?? '', notes: w.notes ?? '', aiScan: String(w.aiScan), aiCopilot: String(w.aiCopilot) });
+  const [sub, setSub] = useState({ plan: w.plan, term: w.term, paidUntil: w.paidUntil ?? '', notes: w.notes ?? '', aiScan: String(w.aiScan), aiCopilot: String(w.aiCopilot), aiPhone: String(w.aiPhone) });
   const [pay, setPay] = useState({ amount: String(w.monthly), months: '1', note: '' });
   const [confirm, setConfirm] = useState('');
   const router = useRouter();
@@ -205,7 +207,7 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
                 value={sub.plan}
                 onChange={(e) => {
                   const plan = e.target.value as PlanId;
-                  setSub((v) => ({ ...v, plan, aiScan: String(PLANS[plan].ai.scan), aiCopilot: String(PLANS[plan].ai.copilot) }));
+                  setSub((v) => ({ ...v, plan, aiScan: String(PLANS[plan].ai.scan), aiCopilot: String(PLANS[plan].ai.copilot), aiPhone: String(PLANS[plan].phoneMinutes) }));
                 }}
               >
                 {Object.values(PLANS).map((p) => (
@@ -233,6 +235,9 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
             <Field label="Kopilot mjesečno">
               <Input inputMode="numeric" value={sub.aiCopilot} onChange={(e) => setSub((v) => ({ ...v, aiCopilot: digits(e.target.value) }))} />
             </Field>
+            <Field label={`AI tajnik, minuta mjesečno (+${PHONE_PACK.minutes} za ${PHONE_PACK.price} €)`} className="col-span-2">
+              <Input inputMode="numeric" value={sub.aiPhone} onChange={(e) => setSub((v) => ({ ...v, aiPhone: digits(e.target.value) }))} />
+            </Field>
             <Field label="Bilješke (samo Toranj)" className="col-span-2">
               <Textarea rows={3} value={sub.notes} onChange={(e) => setSub((v) => ({ ...v, notes: e.target.value }))} placeholder="npr. dogovor na sajmu, zvati nakon 15 h" />
             </Field>
@@ -241,7 +246,7 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
             className="w-full"
             disabled={pending}
             onClick={() =>
-              run(() => adminUpdateSubscription(w.id, { plan: sub.plan, term: sub.term, paidUntil: sub.paidUntil || null, notes: sub.notes, aiScan: num(sub.aiScan), aiCopilot: num(sub.aiCopilot) }), {
+              run(() => adminUpdateSubscription(w.id, { plan: sub.plan, term: sub.term, paidUntil: sub.paidUntil || null, notes: sub.notes, aiScan: num(sub.aiScan), aiCopilot: num(sub.aiCopilot), aiPhone: num(sub.aiPhone) }), {
                 success: 'Pretplata spremljena',
               })
             }

@@ -2,7 +2,7 @@
 
 import { plural } from '@/lib/format';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { BarChart3, Bell, CalendarDays, ClipboardList, FlaskConical, LogOut, Plus, Repeat, Settings, Users, type LucideIcon } from 'lucide-react';
 import { PRODUCT_ICONS, ProductMark } from '@/components/ProductMark';
@@ -51,6 +51,9 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  // From a day picked in the schedule, a new job opens on that day.
+  const pickedDay = useSearchParams().get('d');
+  const newJobHref = pathname === '/app' && pickedDay && /^\d{4}-\d{2}-\d{2}$/.test(pickedDay) ? `/app/jobs/new?d=${pickedDay}` : '/app/jobs/new';
   const items: NavItem[] = [
     { href: '/app', label: product.field ? 'Raspored' : 'Nalozi', icon: product.field ? CalendarDays : ClipboardList, exact: true, dot: doorCount > 0 ? `Nove prijave: ${doorCount}` : undefined },
     { href: '/app/clients', label: product.clients, icon: Users },
@@ -82,7 +85,7 @@ export function AppShell({
             <span className="block truncate text-xs text-faint">{product.name}</span>
           </span>
         </Link>
-        <Link href="/app/jobs/new" className={buttonClass('primary', 'md', 'mb-4 w-full')}>
+        <Link href={newJobHref} className={buttonClass('primary', 'md', 'mb-4 w-full')}>
           <Plus className="size-4" /> Novi nalog
         </Link>
         <nav className="space-y-0.5">
@@ -148,7 +151,7 @@ export function AppShell({
                 <span className="absolute right-1.5 top-1.5 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-fg">{inboxCount}</span>
               ) : null}
             </Link>
-            <Link href="/app/jobs/new" className={buttonClass('primary', 'md', 'px-3')} aria-label="Novi nalog">
+            <Link href={newJobHref} className={buttonClass('primary', 'md', 'px-3')} aria-label="Novi nalog">
               <Plus className="size-5" />
               <span className="hidden sm:inline">Novi nalog</span>
             </Link>

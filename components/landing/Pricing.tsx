@@ -56,6 +56,7 @@ export function Pricing() {
           );
         })}
       </div>
+      {contract ? <p className="mt-4 rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm">{PRICING.funding}</p> : null}
     </>
   );
 }

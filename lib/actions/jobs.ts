@@ -75,6 +75,11 @@ const newJobSchema = z.object({
     })
     .nullable()
     .optional(),
+  // Workshop: the car is booked for later (a day and hour).
+  appointment: z
+    .object({ start: z.string(), durationMin: z.number().int().min(15).max(720) })
+    .nullable()
+    .optional(),
 });
 
 export type NewJobInput = z.input<typeof newJobSchema>;
@@ -140,8 +145,9 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
     clientId = data.client_id as string;
   }
 
-  const start = f?.scheduledStart ? new Date(f.scheduledStart) : null;
+  const start = f?.scheduledStart ? new Date(f.scheduledStart) : !f && v.appointment ? new Date(v.appointment.start) : null;
   if (start && Number.isNaN(start.getTime())) return fail('Neispravan termin.');
+  const minutes = f?.durationMin ?? v.appointment?.durationMin ?? 60;
   const { data: job, error } = await ctx.supabase
     .from('jobs')
     .insert({
@@ -159,8 +165,9 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
       work_mode: f ? 'field' : 'workshop',
       site_id: siteId,
       scheduled_start: start?.toISOString() ?? null,
-      scheduled_end: start ? new Date(start.getTime() + (f?.durationMin ?? 60) * 60000).toISOString() : null,
-      phase: start ? 'diagnosis' : 'intake',
+      scheduled_end: start ? new Date(start.getTime() + minutes * 60000).toISOString() : null,
+      // A booked field visit is "Zakazano"; a workshop booking waits in Prijem for the car.
+      phase: start && f ? 'diagnosis' : 'intake',
       plan_id: f?.planId ?? null,
     })
     .select('id, number')
@@ -185,7 +192,7 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
 // they are written with the service role even when a worker opens the job
 // (workers can't read or write prices). A hidden template still works for
 // a plan that names it.
-async function insertTemplate(ctx: WorkshopContext, jobId: string, code: string): Promise<ActionResult> {
+async function insertTemplate(ctx: WorkshopContext, jobId: string, code: string, approval: LineApproval = 'approved'): Promise<ActionResult> {
   const [templates, book] = await Promise.all([listTemplates(ctx, { includeHidden: true }), loadPriceBook(ctx.tenant.id)]);
   const template = templates.find((t) => t.code === code);
   if (!template) return fail('Predložak nije pronađen.');
@@ -204,6 +211,7 @@ async function insertTemplate(ctx: WorkshopContext, jobId: string, code: string)
         description: line.description,
         qty: line.qty,
         unit: line.unit,
+        approval,
         source: 'template',
         template_code: template.code,
       }))
@@ -220,13 +228,27 @@ async function insertTemplate(ctx: WorkshopContext, jobId: string, code: string)
     const { error: priceError } = await writer.from('job_line_prices').insert(prices);
     if (priceError) return fail(priceError);
   }
-  await logEvent(ctx, jobId, 'template', `Dodan predložak: ${template.name}`);
+  await logEvent(ctx, jobId, 'template', approval === 'proposed' ? `Predložena stavka iz mjerenja: ${template.name}` : `Dodan predložak: ${template.name}`);
   return { ok: true };
 }
 
 export async function applyTemplate(jobId: string, code: string): Promise<ActionResult> {
   const ctx = await requireWorkshop();
   const result = await insertTemplate(ctx, jobId, code);
+  revalidatePath(jobPath(jobId));
+  return result;
+}
+
+// A worker records a billable measurement (battery test, parasitic drain
+// conclusion, pressure test…) and the matching priced line is proposed on
+// the job — never silently approved, so the owner always confirms what
+// gets charged. Once per job per template: a retest never doubles the
+// line, it just leaves the first proposal for the owner to decide on.
+export async function proposeTemplateLine(jobId: string, code: string): Promise<ActionResult> {
+  const ctx = await requireWorkshop();
+  const { data: existing } = await ctx.supabase.from('job_lines').select('id').eq('job_id', jobId).eq('template_code', code).limit(1);
+  if (existing?.length) return { ok: true };
+  const result = await insertTemplate(ctx, jobId, code, 'proposed');
   revalidatePath(jobPath(jobId));
   return result;
 }

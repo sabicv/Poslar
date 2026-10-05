@@ -3,6 +3,7 @@
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { PHONE_PACK } from '@/config/plans';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { isPlatformAdmin, requireWorkshop } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -103,6 +104,13 @@ export async function requestDeletion(): Promise<ActionResult<{ id: string }>> {
     ? `ZAHTJEV ZA BRISANJE: vlasnik ${who} traži brisanje radionice ${ctx.tenant.name} (poziv na broj ${ctx.tenant.billing_ref}) i svih njezinih podataka.`
     : `ZAHTJEV ZA BRISANJE: radnik ${who} traži brisanje svog računa.`;
   return createTicket(text, '/app/settings');
+}
+
+// "Dodatnih 100 minuta": the tower raises the workshop's monthly minutes.
+export async function requestPhonePack(): Promise<ActionResult<{ id: string }>> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Ovo traži voditelj servisa.');
+  return createTicket(`Želim dodatnih ${PHONE_PACK.minutes} minuta AI tajnika mjesečno (${PHONE_PACK.price} €).`, '/app/settings/telefon');
 }
 
 // "Želim ovaj paket": a request the tower answers (plans change there).

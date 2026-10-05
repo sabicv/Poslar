@@ -239,11 +239,14 @@ export function ScheduleSheet({
   current,
   staff,
   trigger,
+  defaultDate,
 }: {
   jobId: string;
   current: { start: string | null; end: string | null; assignedTo: string | null };
   staff: { id: string; name: string }[];
   trigger?: React.ReactNode;
+  // The day on screen in the schedule, for a job that has no date yet.
+  defaultDate?: string;
 }) {
   const { pending, run } = useAction();
   const [open, setOpen] = useState(false);
@@ -254,7 +257,7 @@ export function ScheduleSheet({
     return { date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`, time: `${pad(d.getHours())}:${pad(d.getMinutes())}` };
   };
   const initial = local(current.start);
-  const [date, setDate] = useState(initial.date);
+  const [date, setDate] = useState(initial.date || defaultDate || '');
   const [clock, setClock] = useState(initial.time);
   const initialMinutes = current.start && current.end ? Math.round((new Date(current.end).getTime() - new Date(current.start).getTime()) / 60000) : 60;
   const [duration, setDuration] = useState<string>(['60', '120', '240', '480'].includes(String(initialMinutes)) ? String(initialMinutes) : '60');
@@ -279,7 +282,7 @@ export function ScheduleSheet({
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
           <Field label="Vrijeme">
-            <Input type="time" step={900} value={clock} onChange={(e) => setClock(e.target.value)} />
+            <Input type="time" value={clock} onChange={(e) => setClock(e.target.value)} />
           </Field>
         </div>
         <Field label="Trajanje">

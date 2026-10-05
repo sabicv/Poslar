@@ -377,6 +377,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                 revalidate={path}
                 fixed={{ job_id: job.id }}
                 label="Mjerenje"
+                proposeTemplate="wheel.alignment"
                 fields={[
                   { name: 'device', label: 'Uređaj', half: true },
                   { name: 'spec_source', label: 'Izvor specifikacija', half: true },

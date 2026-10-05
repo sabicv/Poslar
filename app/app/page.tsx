@@ -38,9 +38,10 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   // Field work: the day schedule is the start page of a field package,
   // and one tap away for a workshop that also goes out.
   const field = hasFieldWork(ctx.pkg, ctx.tenant.enabled_modules);
-  const showSchedule = field && (view === 'dan' || (view !== 'faze' && !q && !f && ctx.pkg.sector === 'field'));
+  // Every trade has the day schedule (a workshop sees its booked cars there).
+  const showSchedule = view === 'dan' || (field && view !== 'faze' && !q && !f && ctx.pkg.sector === 'field');
   // The title already names the current view; the button offers the other one.
-  const viewSwitch = field ? (
+  const viewSwitch = (
     showSchedule ? (
       <Link href="/app?view=faze" className={buttonClass('secondary', 'sm')}>
         <ClipboardList className="size-4" /> Po fazama
@@ -50,14 +51,14 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
         <CalendarDays className="size-4" /> Raspored
       </Link>
     )
-  ) : null;
+  );
   if (showSchedule) {
     return (
       <>
         <PageHeader title="Raspored" action={viewSwitch} />
         {firstSteps}
         {reminderBanner}
-        <FieldSchedule ctx={ctx} day={d} tech={t} />
+        <FieldSchedule ctx={ctx} day={d} tech={t} fieldMode={ctx.pkg.sector === 'field'} />
       </>
     );
   }

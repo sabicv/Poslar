@@ -4,7 +4,7 @@ import { MessageCircle } from 'lucide-react';
 import { Pricing } from '@/components/landing/Pricing';
 import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { ButtonLink } from '@/components/ui';
-import { CTA, FAQ, MAIN, PRICING } from '@/config/landing';
+import { CTA_DEMO, CTA_HEADER, FAQ, MAIN, PRICING, ctaTrial } from '@/config/landing';
 import type { PackageConfig } from '@/config/tenant.config';
 import { supportWhatsApp } from '@/lib/billing';
 import { provider } from '@/lib/legal';
@@ -61,7 +61,7 @@ export function LandingHeader({ product, signedIn, register, tradesHref }: { pro
           )}
           {/* Next to "Otvori aplikaciju" it no longer fits on a phone. */}
           <ButtonLink href={register} size="sm" variant="primary" className={signedIn ? 'hidden sm:inline-flex' : undefined}>
-            {CTA}
+            {CTA_HEADER}
           </ButtonLink>
         </nav>
       </div>
@@ -98,15 +98,31 @@ export function FaqSection() {
   );
 }
 
-export function FinalCall({ register }: { register: string }) {
+// The two ways in: 30 days on real work (the main one) and the demo.
+export type Where = Parameters<typeof ctaTrial>[0];
+export function CtaButtons({ register, where, center = false }: { register: string; where: Where; center?: boolean }) {
+  const demo = `${register}${register.includes('?') ? '&' : '?'}demo=1`;
+  const wrap = 'h-auto min-h-14 whitespace-normal py-3 text-center';
+  return (
+    <div className={cn('flex flex-col gap-3 sm:flex-row sm:flex-wrap', center && 'items-stretch sm:justify-center')}>
+      <ButtonLink href={register} variant="primary" size="lg" className={wrap}>
+        {ctaTrial(where)}
+      </ButtonLink>
+      <ButtonLink href={demo} variant="secondary" size="lg" className={wrap}>
+        {CTA_DEMO}
+      </ButtonLink>
+    </div>
+  );
+}
+
+export function FinalCall({ register, where }: { register: string; where: Where }) {
   const chat = supportWhatsApp(HELLO);
   return (
     <section className="my-10 rounded-3xl border border-line bg-surface px-6 py-12 text-center sm:py-16">
       <h2 className="text-balance font-display text-4xl font-bold tracking-tight sm:text-5xl">{MAIN.finalTitle}</h2>
+      <p className="mx-auto mt-3 max-w-xl text-muted">{MAIN.finalSub}</p>
       <div className="mt-8 flex flex-col items-center gap-4">
-        <ButtonLink href={register} variant="primary" size="lg">
-          {MAIN.finalCta}
-        </ButtonLink>
+        <CtaButtons register={register} where={where} center />
         {chat ? (
           <a href={chat} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline">
             <MessageCircle className="size-4" /> {MAIN.finalAsk}

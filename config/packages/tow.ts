@@ -46,7 +46,7 @@ export const tow: PackageConfig = {
     'Kilometri, ležarina i broj slučaja za asistenciju na jednom mjestu',
   ],
   sector: 'workshop',
-  accent: '#FFB000',
+  accent: '#E3FF00',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },
     asset: { one: 'Vozilo', many: 'Vozila', new: 'Novo vozilo' },

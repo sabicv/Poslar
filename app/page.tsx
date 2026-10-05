@@ -4,12 +4,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Building2, FileCheck2, GraduationCap, PhoneCall, PhoneIncoming, Plus, Smartphone, TreePalm, Upload } from 'lucide-react';
-import { FaqSection, FinalCall, LandingFooter, LandingHeader, PhoneShot, PricingSection, Section, SectionTitle } from '@/components/landing/Parts';
+import { Building2, FileCheck2, GraduationCap, Laptop, PhoneCall, PhoneIncoming, Plus, Smartphone, Tablet, TreePalm, Upload } from 'lucide-react';
+import { CtaButtons, FaqSection, FinalCall, LandingFooter, LandingHeader, PhoneShot, PricingSection, Section, SectionTitle } from '@/components/landing/Parts';
 import { TradeLanding } from '@/components/landing/TradeLanding';
 import { ProductMark } from '@/components/ProductMark';
-import { ButtonLink } from '@/components/ui';
-import { CTA, MAIN, TRADE_LINES, TRADE_PAGES, tradeById } from '@/config/landing';
+import { MAIN, TRADE_LINES, TRADE_PAGES, tradeById } from '@/config/landing';
 import { PACKAGES, TRADE_GROUPS, accentStyle, matchPackageFromHost, type PackageId } from '@/config/tenant.config';
 import { isPlayApp } from '@/lib/play';
 import { getAuth } from '@/lib/session';
@@ -55,9 +54,9 @@ export default async function Home() {
             </p>
             <h1 className="max-w-3xl text-balance font-display text-4xl font-bold leading-[1.02] tracking-tight sm:text-6xl">{MAIN.title}</h1>
             <p className="mt-5 max-w-xl text-base text-muted sm:text-lg">{MAIN.subtitle}</p>
-            <ButtonLink href={register} variant="primary" size="lg" className="mt-8">
-              {CTA}
-            </ButtonLink>
+            <div className="mt-8">
+              <CtaButtons register={register} where="sve" />
+            </div>
             <p className="mt-9 text-sm font-medium">{MAIN.pickLabel}</p>
             <ul className="mt-3 flex flex-wrap gap-2">
               {TRADE_PAGES.map((t) => t.id).map((id) => (
@@ -110,14 +109,41 @@ export default async function Home() {
           </ol>
         </Section>
 
-        {/* Real work, once Vedran adds the photos */}
+        {/* Real work: Vedran's photos (public/landing/foto-N, with a small one for phones) */}
         {photos.length ? (
           <section className="no-scrollbar -mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-14 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0">
-            {photos.map((f) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={f} src={`/landing/${f}`} alt="" loading="lazy" className="aspect-[3/2] w-[80%] shrink-0 snap-center rounded-2xl border border-line object-cover sm:w-full" />
-            ))}
+            {photos.map((f) => {
+              const small = f.replace(/\.(webp|jpg)$/, '-sm.webp');
+              return (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={f}
+                  src={`/landing/${f}`}
+                  srcSet={existsSync(path.join(dir, small)) ? `/landing/${small} 700w, /landing/${f} 1400w` : undefined}
+                  sizes="(min-width: 640px) 33vw, 80vw"
+                  alt=""
+                  loading="lazy"
+                  className="aspect-[3/2] w-[80%] shrink-0 snap-center rounded-2xl border border-line object-cover sm:w-full"
+                />
+              );
+            })}
           </section>
+        ) : null}
+
+        {/* Phone on the road, laptop in the office */}
+        {existsSync(path.join(dir, 'laptop.webp')) ? (
+          <Section className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <SectionTitle title={MAIN.devicesTitle} />
+              <p className="mt-3 max-w-xl text-muted">{MAIN.devicesText}</p>
+              <p className="mt-4 flex items-center gap-3 text-sm text-faint">
+                <Smartphone className="size-5" /> <Tablet className="size-5" /> <Laptop className="size-5" />
+                Android · iPhone · tablet · laptop
+              </p>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/landing/laptop.webp" srcSet="/landing/laptop-sm.webp 700w, /landing/laptop.webp 1400w" sizes="(min-width: 1024px) 55vw, 100vw" alt="TaktiX na laptopu u radionici" loading="lazy" className="w-full rounded-2xl border border-line object-cover" />
+          </Section>
         ) : null}
 
         {/* Sounds familiar? */}
@@ -172,7 +198,7 @@ export default async function Home() {
 
         <PricingSection />
         <FaqSection />
-        <FinalCall register={register} />
+        <FinalCall register={register} where="sve" />
         <LandingFooter />
       </div>
     </div>

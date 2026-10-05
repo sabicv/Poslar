@@ -111,41 +111,6 @@ export default async function SettingsPage() {
             ) : null}
           </Card>
           <Card>
-            <CardHeader title="Pomoć" subtitle="Nešto ne radi ili Vam nešto treba? Javite nam." />
-            <div className="flex flex-wrap items-center gap-2 p-4">
-              <SupportButton />
-              <SupportWhatsApp
-                message={
-                  isDemo
-                    ? `Pozdrav, isprobavam TaktiX demo (${ctx.pkg.product}). `
-                    : `Pozdrav, ovdje ${[ctx.profile.full_name, t.name].filter(Boolean).join(', ')} (br. ${t.billing_ref}). `
-                }
-              />
-              {(tickets ?? []).length ? (
-                <Link href="/app/podrska" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-muted hover:bg-surface2 hover:text-fg">
-                  Moje prijave ({(tickets ?? []).length})
-                  {unread ? <Badge tone="accent">{unread === 1 ? 'novi odgovor' : `${unread} nova odgovora`}</Badge> : null}
-                  <ChevronRight className="size-4" />
-                </Link>
-              ) : null}
-            </div>
-            {videos.length ? (
-              <div className="border-t border-line">
-                <p className="px-4 pt-3 text-xs font-medium text-muted">Video upute</p>
-                <ul className="py-1">
-                  {videos.map((v) => (
-                    <li key={v.id}>
-                      <a href={v.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-surface2">
-                        <PlayCircle className="size-5 shrink-0 text-accent" />
-                        {v.title}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </Card>
-          <Card>
             <CardHeader title="Izgled" />
             <div className="p-4">
               <ThemeToggle />
@@ -256,6 +221,42 @@ export default async function SettingsPage() {
           </div>
         ) : null}
       </div>
+      {/* Help at the bottom of the page, where one looks when stuck (Vedran). */}
+      <Card className="mt-4">
+        <CardHeader title="Pomoć" subtitle="Nešto ne radi ili Vam nešto treba? Javite nam." />
+        <div className="flex flex-wrap items-center gap-2 p-4">
+          <SupportButton />
+          <SupportWhatsApp
+            message={
+              isDemo
+                ? `Pozdrav, isprobavam TaktiX demo (${ctx.pkg.product}). `
+                : `Pozdrav, ovdje ${[ctx.profile.full_name, t.name].filter(Boolean).join(', ')} (br. ${t.billing_ref}). `
+            }
+          />
+          {(tickets ?? []).length ? (
+            <Link href="/app/podrska" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-muted hover:bg-surface2 hover:text-fg">
+              Moje prijave ({(tickets ?? []).length})
+              {unread ? <Badge tone="accent">{unread === 1 ? 'novi odgovor' : `${unread} nova odgovora`}</Badge> : null}
+              <ChevronRight className="size-4" />
+            </Link>
+          ) : null}
+        </div>
+        {videos.length ? (
+          <div className="border-t border-line">
+            <p className="px-4 pt-3 text-xs font-medium text-muted">Video upute</p>
+            <ul className="py-1">
+              {videos.map((v) => (
+                <li key={v.id}>
+                  <a href={v.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-surface2">
+                    <PlayCircle className="size-5 shrink-0 text-accent" />
+                    {v.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </Card>
       <p className="mt-8 flex flex-wrap gap-x-4 gap-y-1 text-xs text-faint">
         {LEGAL_PAGES.map((p) => (
           <Link key={p.href} href={p.href} className="hover:text-fg">

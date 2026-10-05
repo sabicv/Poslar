@@ -201,6 +201,7 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
                   revalidate={path}
                   fixed={{ job_id: job.id }}
                   label="Test"
+                  proposeTemplate="volt.battery"
                   fields={[
                     { name: 'battery_type', label: 'Vrsta', type: 'select', options: opts(BATTERY_TYPE), half: true },
                     { name: 'rest_voltage_v', label: 'Napon mirovanja', type: 'number', suffix: 'V', half: true },
@@ -348,9 +349,11 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
                         title="Zaključak mjerenja"
                         id={session.id as string}
                         revalidate={path}
+                        fixed={{ job_id: job.id }}
                         label="Zaključak"
                         deletable
                         initial={session}
+                        proposeTemplate="volt.drain"
                         fields={[
                           { name: 'culprit_circuit', label: 'Krug / osigurač', half: true },
                           { name: 'culprit_module', label: 'Modul', half: true },

@@ -324,7 +324,8 @@ function luminance([r, g, b]: [number, number, number]): number {
 // Vercel URL) and a visitor who is not signed in.
 // TaktiX: light blue for actions, the logo orange for the mark;
 // products keep their own colours inside the app.
-export const BRAND = { id: 'taktix', name: 'TaktiX', tagline: 'Manje administracije. Više odrađenog posla.', accent: '#6CC5EA', mark: '#FF5722' } as const;
+// accent: the app's light blue; mark and blue: the logo's orange and blue.
+export const BRAND = { id: 'taktix', name: 'TaktiX', tagline: 'Manje administracije. Više odrađenog posla.', accent: '#6CC5EA', mark: '#FC6002', blue: '#2875BC' } as const;
 
 export function brandAccentStyle(): CSSProperties {
   return accentStyle({ accent: BRAND.accent } as PackageConfig);

@@ -12,9 +12,11 @@ export const metadata: Metadata = { title: 'Novi nalog' };
 const CLIENT_FIELDS =
   'id, kind, first_name, last_name, company_name, phone, assets(id, asset_type, identifier, make, model, meter_primary_unit, site_id), sites(id, label, kind, address, city, access_notes)';
 
-export default async function NewJobPage({ searchParams }: { searchParams: Promise<{ asset?: string; plan?: string }> }) {
+export default async function NewJobPage({ searchParams }: { searchParams: Promise<{ asset?: string; plan?: string; d?: string }> }) {
   const ctx = await requireWorkshop();
-  const { asset: assetId, plan: planId } = await searchParams;
+  const { asset: assetId, plan: planId, d } = await searchParams;
+  // Opened from a day in the schedule: that day is the date.
+  const presetDate = d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null;
   const field = hasFieldWork(ctx.pkg, ctx.tenant.enabled_modules);
   const [templates, { data: staff }] = await Promise.all([getJobTemplates(ctx), ctx.supabase.from('profiles').select('id, full_name').order('full_name')]);
 
@@ -59,6 +61,8 @@ export default async function NewJobPage({ searchParams }: { searchParams: Promi
         templates={templates.map((t) => ({ code: t.code, name: t.name }))}
         isFleet={ctx.pkg.id === 'fleet'}
         preset={preset}
+        presetDate={presetDate}
+        draftKey={`draft:new-job:${ctx.tenant.id}:${ctx.user.id}`}
         field={{
           enabled: field,
           defaultMode: ctx.pkg.sector === 'field' ? 'field' : 'workshop',
