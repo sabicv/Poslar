@@ -29,23 +29,30 @@ export function DrainChart({ readings, target }: { readings: { t: number; ma: nu
           cilj {target} mA
         </text>
         <path d={line} fill="none" className="stroke-accent" strokeWidth={2.2} strokeLinejoin="round" />
-        {readings.map((r, i) => (
-          <g key={i}>
-            <circle cx={x(r.t)} cy={y(r.ma)} r={3.2} className={r.ma > target ? 'fill-crit' : 'fill-ok'} />
-            {r.event ? (
-              // Near the edges the label leans inward, so it never covers the
-              // scale on the left ("935" over "Zaključano") or runs off the right.
-              <text
-                x={x(r.t) + (x(r.t) < W * 0.18 ? 6 : x(r.t) > W * 0.82 ? -6 : 0)}
-                y={y(r.ma) < pad.t + 16 ? y(r.ma) + 16 : y(r.ma) - 8}
-                textAnchor={x(r.t) < W * 0.18 ? 'start' : x(r.t) > W * 0.82 ? 'end' : 'middle'}
-                className="fill-muted text-[9px]"
-              >
-                {r.event.slice(0, 14)}
-              </text>
-            ) : null}
-          </g>
-        ))}
+        {readings.map((r, i) => {
+          // Near the edges the label leans inward, so it never covers the
+          // scale on the left ("935" over "Zaključano") or runs off the right.
+          // At the top it sits beside the point, above the line falling away.
+          const px = x(r.t);
+          const py = y(r.ma);
+          const side = px < W * 0.18 ? 1 : px > W * 0.82 ? -1 : 0;
+          const top = py < pad.t + 16;
+          return (
+            <g key={i}>
+              <circle cx={px} cy={py} r={3.2} className={r.ma > target ? 'fill-crit' : 'fill-ok'} />
+              {r.event ? (
+                <text
+                  x={px + (top ? (side === -1 ? -8 : 8) : side * 6)}
+                  y={top ? py + 3 : py - 8}
+                  textAnchor={top ? (side === -1 ? 'end' : 'start') : side === 1 ? 'start' : side === -1 ? 'end' : 'middle'}
+                  className="fill-muted text-[9px]"
+                >
+                  {r.event.slice(0, 14)}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
         <text x={pad.l} y={H - 6} className="fill-faint text-[10px]">
           0 min
         </text>

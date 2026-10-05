@@ -57,8 +57,36 @@ export const MAIN = {
     { q: 'Mušterija prigovara da niste tako dogovorili ili da je cijena neočekivana?', a: 'Svaki rad i cijenu mušterija odobrava unaprijed putem WhatsAppa uz točan zapis vremena i iznosa.' },
     { q: 'Knjigovođa te potkraj mjeseca stalno traži papire i računovodstvene fascikle?', a: 'Jednim klikom pošalji kompletan mjesečni paket sa svim računima i tablicama izravno knjigovođi.' },
   ],
-  extrasLabel: 'I još:',
-  extras: ['Podsjetnici mušterijama za redoviti servis', 'QR prijava na ulazu radionice', 'Unaprijed pripremljeni cjenici i normativi', 'Skeniranje prometne dozvole i pločica uređaja', 'Slanje e-Računa'],
+  // Each one opens with "+": the trouble, then how it goes with TaktiX.
+  extrasTitle: 'I još puno toga',
+  extrasHint: 'Dodirni + i vidi kako to izgleda u praksi.',
+  extras: [
+    {
+      title: 'Podsjetnici mušterijama za redoviti servis',
+      problem: 'Mušterija zaboravi servis. Javi se tek kad nešto stane.',
+      solution: 'TaktiX pamti rok servisa za svako vozilo i uređaj. Svaki tjedan vidiš kome ističe. Jednim dodirom šalješ poruku na WhatsApp. Mušterija se vraća tebi, a ne konkurenciji.',
+    },
+    {
+      title: 'QR prijava na ulazu radionice',
+      problem: 'Ujutro troje ljudi čeka na vratima. Ti pišeš registracije na papirić.',
+      solution: 'Mušterija skenira QR kod na vratima. Sama upiše registraciju, kvar i broj mobitela, ili ih izgovori. Nalog te čeka u Prijemu. Ti ga samo potvrdiš.',
+    },
+    {
+      title: 'Unaprijed pripremljeni cjenici i normativi',
+      problem: 'Za isti posao svaki put smišljaš cijenu. Mušterije dobiju različite iznose.',
+      solution: 'Gotovi predlošci poslova za tvoju struku, sa stavkama i cijenama. Prilagodiš ih jednom, po svom. Na nalogu ih dodaš jednim dodirom. Isti posao uvijek ima istu cijenu.',
+    },
+    {
+      title: 'Skeniranje prometne dozvole i pločica uređaja',
+      problem: 'Prepisuješ VIN od 17 znakova. Jedna greška i stigne krivi dio.',
+      solution: 'Slikaj prometnu dozvolu ili natpisnu pločicu. AI upiše vlasnika, registraciju, VIN, model i godinu. Ti samo provjeriš i spremiš.',
+    },
+    {
+      title: 'Slanje e-Računa',
+      problem: 'Tvrtke od 2026. traže e-Račun. Obični PDF više nije dovoljan.',
+      solution: 'Uz svaki izdani račun TaktiX složi i e-Račun datoteku. Knjigovođa je dobije u mjesečnom paketu. Ništa ne prepisuješ dvaput.',
+    },
+  ],
   tradesTitle: 'Prilagođeno tvojoj struci',
   tradesSubtitle: 'Svaki zanat ima svoje specifične izazove. TaktiX ima rješenje za svaki od njih.',
   finalTitle: 'Isprobaj na prvom sljedećem poslu.',

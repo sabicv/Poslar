@@ -1,10 +1,8 @@
-import { existsSync } from 'node:fs';
-import path from 'node:path';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Building2, FileCheck2, GraduationCap, Laptop, PhoneCall, PhoneIncoming, Plus, Smartphone, Tablet, TreePalm, Upload } from 'lucide-react';
+import { Bell, Building2, FileCheck2, FileCode2, GraduationCap, Laptop, ListChecks, PhoneCall, PhoneIncoming, Plus, QrCode, ScanLine, Smartphone, Tablet, TreePalm, Upload } from 'lucide-react';
 import { CtaButtons, FaqSection, FinalCall, LandingFooter, LandingHeader, PhoneShot, PricingSection, Section, SectionTitle } from '@/components/landing/Parts';
 import { TradeLanding } from '@/components/landing/TradeLanding';
 import { ProductMark } from '@/components/ProductMark';
@@ -22,6 +20,7 @@ export const metadata: Metadata = { description: MAIN.subtitle };
 
 const PILLAR_ICONS = [PhoneCall, FileCheck2, Smartphone];
 const SCENE_ICONS = [PhoneIncoming, TreePalm, GraduationCap, Building2, Upload];
+const EXTRA_ICONS = [Bell, QrCode, ListChecks, ScanLine, FileCode2];
 
 // Trades in the order of the text (Automehaničar first).
 const inPageOrder = (ids: PackageId[]) => TRADE_PAGES.map((t) => t.id).filter((id) => ids.includes(id));
@@ -36,9 +35,6 @@ export default async function Home() {
   if (product) return <TradeLanding trade={tradeById(product.id)} signedIn={Boolean(user)} ownDomain />;
 
   const register = '/register';
-  const dir = path.join(process.cwd(), 'public', 'landing');
-  // Photos from real work (public/landing/foto-1.jpg …), shown once added.
-  const photos = Array.from({ length: 10 }, (_, i) => ['jpg', 'webp'].map((ext) => `foto-${i + 1}.${ext}`).find((f) => existsSync(path.join(dir, f)))).filter(Boolean) as string[];
 
   return (
     <div className="min-h-dvh">
@@ -109,42 +105,31 @@ export default async function Home() {
           </ol>
         </Section>
 
-        {/* Real work: Vedran's photos (public/landing/foto-N, with a small one for phones) */}
-        {photos.length ? (
-          <section className="no-scrollbar -mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-14 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0">
-            {photos.map((f) => {
-              const small = f.replace(/\.(webp|jpg)$/, '-sm.webp');
-              return (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={f}
-                  src={`/landing/${f}`}
-                  srcSet={existsSync(path.join(dir, small)) ? `/landing/${small} 700w, /landing/${f} 1400w` : undefined}
-                  sizes="(min-width: 640px) 33vw, 80vw"
-                  alt=""
-                  loading="lazy"
-                  className="aspect-[3/2] w-[80%] shrink-0 snap-center rounded-2xl border border-line object-cover sm:w-full"
-                />
-              );
-            })}
-          </section>
-        ) : null}
-
-        {/* Phone on the road, laptop in the office */}
-        {existsSync(path.join(dir, 'laptop.webp')) ? (
-          <Section className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-            <div>
-              <SectionTitle title={MAIN.devicesTitle} />
-              <p className="mt-3 max-w-xl text-muted">{MAIN.devicesText}</p>
-              <p className="mt-4 flex items-center gap-3 text-sm text-faint">
-                <Smartphone className="size-5" /> <Tablet className="size-5" /> <Laptop className="size-5" />
-                Android · iPhone · tablet · laptop
-              </p>
+        {/* Phone on the road, laptop in the office: the real app on a big screen */}
+        <Section className="grid items-center gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <SectionTitle title={MAIN.devicesTitle} />
+            <p className="mt-3 max-w-xl text-muted">{MAIN.devicesText}</p>
+            <p className="mt-4 flex items-center gap-3 text-sm text-faint">
+              <Smartphone className="size-5" /> <Tablet className="size-5" /> <Laptop className="size-5" />
+              Android · iPhone · tablet · laptop
+            </p>
+          </div>
+          <div className="px-2 sm:px-6">
+            <div className="rounded-t-2xl border border-b-0 border-line bg-[#0b111c] p-2 pb-0 sm:p-3 sm:pb-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/landing/desktop.webp"
+                srcSet="/landing/desktop-sm.webp 800w, /landing/desktop.webp 1440w"
+                sizes="(min-width: 1024px) 60vw, 100vw"
+                alt="Radni nalog s grafom parazitske potrošnje na laptopu"
+                loading="lazy"
+                className="block aspect-[3/2] w-full rounded-t-lg object-cover object-top"
+              />
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/landing/laptop.webp" srcSet="/landing/laptop-sm.webp 700w, /landing/laptop.webp 1400w" sizes="(min-width: 1024px) 55vw, 100vw" alt="TaktiX na laptopu u radionici" loading="lazy" className="w-full rounded-2xl border border-line object-cover" />
-          </Section>
-        ) : null}
+            <div className="-mx-2 h-3 rounded-b-xl border border-line bg-surface2 sm:-mx-6 sm:h-4" />
+          </div>
+        </Section>
 
         {/* Sounds familiar? */}
         <Section>
@@ -157,14 +142,43 @@ export default async function Home() {
               </li>
             ))}
           </ul>
-          <div className="mt-6 flex flex-wrap items-center gap-2 text-sm">
-            <span className="mr-1 font-medium">{MAIN.extrasLabel}</span>
-            {MAIN.extras.map((e) => (
-              <span key={e} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-muted">
-                <Plus className="size-3.5 text-accent" />
-                {e}
-              </span>
-            ))}
+        </Section>
+
+        {/* And more: each one opens to the trouble and how it goes with TaktiX */}
+        <Section>
+          <div className="mx-auto max-w-3xl">
+            <h2 className="text-balance text-center font-display text-3xl font-bold tracking-tight sm:text-4xl">{MAIN.extrasTitle}</h2>
+            <p className="mt-2 text-center text-muted">{MAIN.extrasHint}</p>
+            <ul className="mt-8 space-y-3">
+              {MAIN.extras.map((e, i) => {
+                const Icon = EXTRA_ICONS[i];
+                return (
+                  <li key={e.title}>
+                    <details className="group rounded-2xl border border-line bg-surface transition-colors open:border-accent/60 hover:border-accent/50">
+                      <summary className="flex cursor-pointer list-none items-center gap-4 p-4 sm:p-5 [&::-webkit-details-marker]:hidden">
+                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent">
+                          <Icon className="size-5" />
+                        </span>
+                        <span className="min-w-0 flex-1 text-base font-semibold leading-snug sm:text-lg">{e.title}</span>
+                        <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-accent/60 text-accent transition-transform group-open:rotate-45 group-open:bg-accent group-open:text-accent-fg">
+                          <Plus className="size-5" />
+                        </span>
+                      </summary>
+                      <div className="grid gap-4 px-4 pb-5 sm:grid-cols-2 sm:px-5 sm:pl-[4.75rem]">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wider text-faint">Problem</p>
+                          <p className="mt-1.5 text-muted">{e.problem}</p>
+                        </div>
+                        <div className="border-l-2 border-accent/70 pl-4">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-accent">U praksi</p>
+                          <p className="mt-1.5">{e.solution}</p>
+                        </div>
+                      </div>
+                    </details>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </Section>
 

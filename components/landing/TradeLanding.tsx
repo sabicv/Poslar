@@ -15,8 +15,6 @@ export function TradeLanding({ trade, signedIn, ownDomain }: { trade: TradePage;
   // Where this trade works, for the words of the main button.
   const where: Where = trade.id === 'tow' ? 'cesta' : trade.id === 'deal' ? 'plac' : pkg.sector === 'field' ? 'teren' : 'radionica';
   const shot = existsSync(path.join(process.cwd(), 'public', 'landing', `${trade.id}-hero.webp`)) ? `/landing/${trade.id}-hero.webp` : null;
-  // A photo from the trade's own work, where there is one (public/landing/<id>-photo).
-  const photo = existsSync(path.join(process.cwd(), 'public', 'landing', `${trade.id}-photo.webp`)) ? trade.id : null;
   // Where this trade's work happens, for the heading of its scene.
   const scene = trade.id === 'deal' ? 'Prizor s placa' : pkg.sector === 'field' || trade.id === 'tow' ? 'Prizor s terena' : TRADE_SECTION.scene;
 
@@ -40,18 +38,6 @@ export function TradeLanding({ trade, signedIn, ownDomain }: { trade: TradePage;
           </div>
           {shot ? <PhoneShot src={shot} alt={`${pkg.product}: radni nalog u aplikaciji`} priority /> : null}
         </section>
-
-        {photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`/landing/${photo}-photo.webp`}
-            srcSet={`/landing/${photo}-photo-sm.webp 700w, /landing/${photo}-photo.webp 1400w`}
-            sizes="(min-width: 1152px) 1100px, 100vw"
-            alt=""
-            loading="lazy"
-            className="mb-14 aspect-[21/9] w-full rounded-2xl border border-line object-cover"
-          />
-        ) : null}
 
         {/* The AI secretary and a scene from the work */}
         <Section>
