@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { fail, type ActionResult } from '@/lib/action-result';
+import { isGuestUser } from '@/lib/guest';
 import { endSampleDay } from '@/lib/sample-day';
 import { getAuth, getWorkshop } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -20,6 +21,8 @@ async function sampleOwner(): Promise<string | null> {
 export async function moveToRealWork(): Promise<ActionResult> {
   const tenantId = await sampleOwner();
   if (!tenantId) return fail('Ovo odlučuje voditelj radionice.');
+  const { user } = await getAuth();
+  if (isGuestUser(user)) return fail('Demo ostaje demo. Za prave poslove otvorite svoju radionicu, 30 dana besplatno.');
   const error = await endSampleDay(createAdminClient(), tenantId);
   if (error) return fail(error);
   revalidatePath('/app', 'layout');
@@ -49,7 +52,8 @@ export async function leaveAfterTrial(values: z.input<typeof feedbackSchema>): P
   const { error } = await admin.from('trial_feedback').insert({
     workshop: t.name,
     owner_name: owner?.full_name ?? null,
-    email: user!.email ?? null,
+    // A demo login has no real address.
+    email: isGuestUser(user) ? null : (user!.email ?? null),
     package: t.package,
     stars: parsed.data.stars,
     body: parsed.data.body || null,

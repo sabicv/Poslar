@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { PHONE_PACK } from '@/config/plans';
 import { fail, type ActionResult } from '@/lib/action-result';
+import { isGuestTenant } from '@/lib/guest';
 import { isPlatformAdmin, requireWorkshop } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -16,6 +17,7 @@ const body = z.string().trim().min(3, 'Napišite što se dogodilo.').max(4000, '
 
 export async function createTicket(text: string, pageUrl: string | null): Promise<ActionResult<{ id: string }>> {
   const ctx = await requireWorkshop();
+  if (isGuestTenant(ctx.tenant)) return fail('Iz demo verzije poruke ne idu podršci. Pitajte nas na WhatsAppu ili otvorite svoju radionicu.');
   const parsed = body.safeParse(text);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite poruku.');
   const admin = createAdminClient();

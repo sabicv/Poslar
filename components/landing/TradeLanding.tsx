@@ -33,7 +33,7 @@ export function TradeLanding({ trade, signedIn, ownDomain }: { trade: TradePage;
             <h1 className="max-w-3xl text-balance font-display text-4xl font-bold leading-[1.02] tracking-tight sm:text-6xl">{trade.title}</h1>
             <p className="mt-5 max-w-xl text-base text-muted sm:text-lg">{trade.subtitle}</p>
             <div className="mt-8">
-              <CtaButtons register={register} where={where} />
+              <CtaButtons register={register} where={where} pkg={trade.id} />
             </div>
           </div>
           {shot ? <PhoneShot src={shot} alt={`${pkg.product}: radni nalog u aplikaciji`} priority /> : null}
@@ -103,7 +103,7 @@ export function TradeLanding({ trade, signedIn, ownDomain }: { trade: TradePage;
 
         <PricingSection />
         <FaqSection />
-        <FinalCall register={register} where={where} />
+        <FinalCall register={register} where={where} pkg={trade.id} />
         <LandingFooter />
       </div>
     </div>

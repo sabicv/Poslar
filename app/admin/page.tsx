@@ -69,6 +69,9 @@ export default async function TowerOverview() {
     }).length;
   }).reverse();
   const weekMax = Math.max(1, ...weeks);
+  // Open demos of visitors (deleted a day after their 24 hours).
+  const guests = all.filter((w) => w.guest);
+  const guestsToday = guests.filter((w) => Date.now() - new Date(w.tenant.created_at).getTime() < DAY).length;
 
   const aiScan = (tokens ?? []).filter((t) => t.kind === 'scan');
   const aiCopilot = (tokens ?? []).filter((t) => t.kind === 'copilot');
@@ -102,7 +105,7 @@ export default async function TowerOverview() {
             ))}
           </div>
           <p className="border-t border-line px-4 py-2.5 text-xs text-faint">
-            Aktivno u zadnjih 7 dana: {active7.length} od {real.length}
+            Aktivno u zadnjih 7 dana: {active7.length} od {real.length} · Otvoreni demo u zadnja 24 sata: {guestsToday}
           </p>
         </Card>
 

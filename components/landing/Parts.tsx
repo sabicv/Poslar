@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { MessageCircle } from 'lucide-react';
+import { DemoSubmit } from '@/components/landing/DemoSubmit';
 import { Pricing } from '@/components/landing/Pricing';
 import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { ButtonLink } from '@/components/ui';
 import { CTA_DEMO, CTA_HEADER, FAQ, MAIN, PRICING, ctaTrial } from '@/config/landing';
-import type { PackageConfig } from '@/config/tenant.config';
+import type { PackageConfig, PackageId } from '@/config/tenant.config';
+import { openDemo } from '@/lib/actions/guest';
 import { supportWhatsApp } from '@/lib/billing';
 import { provider } from '@/lib/legal';
 import { cn } from '@/lib/utils';
@@ -98,31 +100,39 @@ export function FaqSection() {
   );
 }
 
-// The two ways in: 30 days on real work (the main one) and the demo.
+// The two ways in: 30 days on real work (the main one) and the demo. On a
+// trade's page the demo opens in one tap, no sign-in; on the main page the
+// visitor first picks the trade (/isprobaj).
 export type Where = Parameters<typeof ctaTrial>[0];
-export function CtaButtons({ register, where, center = false }: { register: string; where: Where; center?: boolean }) {
-  const demo = `${register}${register.includes('?') ? '&' : '?'}demo=1`;
+export function CtaButtons({ register, where, pkg, center = false }: { register: string; where: Where; pkg?: PackageId; center?: boolean }) {
   const wrap = 'h-auto min-h-14 whitespace-normal py-3 text-center';
   return (
     <div className={cn('flex flex-col gap-3 sm:flex-row sm:flex-wrap', center && 'items-stretch sm:justify-center')}>
       <ButtonLink href={register} variant="primary" size="lg" className={wrap}>
         {ctaTrial(where)}
       </ButtonLink>
-      <ButtonLink href={demo} variant="secondary" size="lg" className={wrap}>
-        {CTA_DEMO}
-      </ButtonLink>
+      {pkg ? (
+        <form action={openDemo}>
+          <input type="hidden" name="paket" value={pkg} />
+          <DemoSubmit className="sm:w-auto">{CTA_DEMO}</DemoSubmit>
+        </form>
+      ) : (
+        <ButtonLink href="/isprobaj" variant="secondary" size="lg" className={wrap}>
+          {CTA_DEMO}
+        </ButtonLink>
+      )}
     </div>
   );
 }
 
-export function FinalCall({ register, where }: { register: string; where: Where }) {
+export function FinalCall({ register, where, pkg }: { register: string; where: Where; pkg?: PackageId }) {
   const chat = supportWhatsApp(HELLO);
   return (
     <section className="my-10 rounded-3xl border border-line bg-surface px-6 py-12 text-center sm:py-16">
       <h2 className="text-balance font-display text-4xl font-bold tracking-tight sm:text-5xl">{MAIN.finalTitle}</h2>
       <p className="mx-auto mt-3 max-w-xl text-muted">{MAIN.finalSub}</p>
       <div className="mt-8 flex flex-col items-center gap-4">
-        <CtaButtons register={register} where={where} center />
+        <CtaButtons register={register} where={where} pkg={pkg} center />
         {chat ? (
           <a href={chat} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline">
             <MessageCircle className="size-4" /> {MAIN.finalAsk}

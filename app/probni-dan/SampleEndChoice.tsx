@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Star, Trash2 } from 'lucide-react';
 import { useAction } from '@/components/client-ui';
-import { Button, Field, Textarea } from '@/components/ui';
+import { Button, ButtonLink, Field, Textarea } from '@/components/ui';
 import { leaveAfterTrial, moveToRealWork } from '@/lib/actions/sample-day';
 import { cn } from '@/lib/utils';
 
 // The two ways on after the 24 hours: the 30 free days on real work, or a
-// review and the trial workshop deleted.
-export function SampleEndChoice() {
+// review and the trial workshop deleted. An open demo (no login of its own
+// to keep) offers a workshop of one's own instead of the 30 days here.
+export function SampleEndChoice({ registerHref }: { registerHref?: string }) {
   const router = useRouter();
   const { pending, run } = useAction();
   const [leaving, setLeaving] = useState(false);
@@ -22,20 +23,31 @@ export function SampleEndChoice() {
     return (
       <div className="space-y-3">
         <div className="rounded-2xl border border-accent/50 bg-accent/10 p-5">
-          <Button
-            variant="primary"
-            size="lg"
-            className="w-full"
-            disabled={pending}
-            onClick={() => run(moveToRealWork, { success: 'Primjeri su uklonjeni. Sretno s pravim poslovima!', onDone: () => router.replace('/app') })}
-          >
-            Krenite 30 dana besplatno <ArrowRight className="size-5" />
-          </Button>
-          <p className="mt-3 text-sm text-muted">Testni primjeri se uklanjaju. Nastavljate raditi s vlastitim radnim nalozima i mušterijama.</p>
+          {registerHref ? (
+            <>
+              <ButtonLink href={registerHref} variant="primary" size="lg" className="h-auto min-h-14 w-full whitespace-normal py-3 text-center">
+                Otvorite svoju radionicu 30 dana besplatno <ArrowRight className="size-5" />
+              </ButtonLink>
+              <p className="mt-3 text-sm text-muted">Kreće prazna, za Vaše prave poslove. Kartica nije potrebna.</p>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full"
+                disabled={pending}
+                onClick={() => run(moveToRealWork, { success: 'Primjeri su uklonjeni. Sretno s pravim poslovima!', onDone: () => router.replace('/app') })}
+              >
+                Krenite 30 dana besplatno <ArrowRight className="size-5" />
+              </Button>
+              <p className="mt-3 text-sm text-muted">Testni primjeri se uklanjaju. Nastavljate raditi s vlastitim radnim nalozima i mušterijama.</p>
+            </>
+          )}
         </div>
         <div className="rounded-2xl border border-line bg-surface p-5">
           <Button size="lg" className="h-auto min-h-14 w-full whitespace-normal py-3 text-center" disabled={pending} onClick={() => setLeaving(true)}>
-            Ukloni podatke i ostavi povratnu informaciju
+            {registerHref ? 'Ostavite ocjenu i obrišite demo' : 'Ukloni podatke i ostavi povratnu informaciju'}
           </Button>
           <p className="mt-3 text-sm text-muted">Napišite nam što Vam nedostaje. Svi probni podaci bit će trajno obrisani.</p>
         </div>
@@ -77,7 +89,7 @@ export function SampleEndChoice() {
         <span>Dopuštam objavu moje recenzije uz naziv radionice.</span>
       </label>
       <Button type="submit" variant="danger" size="lg" className="w-full" disabled={pending || stars === 0}>
-        <Trash2 className="size-4" /> Pošalji i obriši radionicu
+        <Trash2 className="size-4" /> {registerHref ? 'Pošalji i obriši demo' : 'Pošalji i obriši radionicu'}
       </Button>
       <button type="button" onClick={() => setLeaving(false)} className="w-full text-center text-sm text-muted hover:text-fg">
         Natrag

@@ -1,6 +1,8 @@
 import 'server-only';
 import type { PackageId } from '@/config/tenant.config';
+import { GUEST_KEEP_HOURS } from '@/lib/guest';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { deleteWorkshop } from '@/lib/workshop-delete';
 
 // The 24-hour trial ("probni dan"): a new workshop opens as a copy of its
 // trade's sample workshop (uzorak-<package>, made by `npm run db:seed --
@@ -51,6 +53,21 @@ export async function endSampleDay(admin: Admin, tenantId: string): Promise<stri
     .eq('id', tenantId)
     .eq('status', 'trial');
   return patchError?.message ?? null;
+}
+
+// Open demo workshops (lib/guest.ts) past their 24 hours and the review
+// time after, a few at a time so no request waits long. One whose examples
+// never arrived has no clock and goes after a day and a half.
+export async function deleteExpiredGuests(admin: Admin, limit = 5): Promise<number> {
+  const ended = new Date(Date.now() - GUEST_KEEP_HOURS * 3600000).toISOString();
+  const stray = new Date(Date.now() - 36 * 3600000).toISOString();
+  const [{ data: a }, { data: b }] = await Promise.all([
+    admin.from('tenants').select('id').eq('settings->>guest', 'true').lt('sample_until', ended).limit(limit),
+    admin.from('tenants').select('id').eq('settings->>guest', 'true').is('sample_until', null).lt('created_at', stray).limit(limit),
+  ]);
+  let deleted = 0;
+  for (const t of [...(a ?? []), ...(b ?? [])]) if (!(await deleteWorkshop(admin, t.id as string))) deleted++;
+  return deleted;
 }
 
 // Hours left of the 24, rounded up (shown in the banner).

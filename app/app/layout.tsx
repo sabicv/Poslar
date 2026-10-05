@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { Wallet } from 'lucide-react';
 import { AppShell } from '@/components/AppShell';
+import { GuestBanner } from '@/components/onboarding/GuestBanner';
 import { SampleDayBanner } from '@/components/onboarding/SampleDayBanner';
 import { accentStyle } from '@/config/tenant.config';
 import { subscription } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
 import { daysUntil, formatDate } from '@/lib/format';
+import { isGuestTenant } from '@/lib/guest';
 import { isPlayApp } from '@/lib/play';
 import { sampleHoursLeft } from '@/lib/sample-day';
 import { requireWorkshop } from '@/lib/session';
@@ -35,7 +37,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const noticeClass = cn('mb-4 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm', sub.status === 'grace' ? 'border-crit/40 bg-crit/10' : 'border-warn/40 bg-warn/10');
   const noticeIcon = <Wallet className={cn('size-5 shrink-0', sub.status === 'grace' ? 'text-crit' : 'text-warn')} />;
   const notice =
-    sampleHours !== null ? (
+    sampleHours !== null && isGuestTenant(ctx.tenant) ? (
+      <GuestBanner hours={sampleHours} pkg={ctx.pkg.id} />
+    ) : sampleHours !== null ? (
       <SampleDayBanner hours={sampleHours} owner={ctx.isOwner} />
     ) : ctx.isOwner && (sub.status === 'due_soon' || sub.status === 'grace') ? (
       play ? (

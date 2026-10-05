@@ -1,6 +1,7 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { aiCost, aiQuota, getPlan, monthlyPrice } from '@/config/plans';
+import { isGuestTenant } from '@/lib/guest';
 import { allRows } from '@/lib/paged';
 import { isPlatformAdmin } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -15,6 +16,8 @@ export async function requireTower() {
 export interface TowerWorkshop {
   tenant: Tenant;
   demo: boolean;
+  // An open demo of a visitor (lib/guest.ts): counted with the demos, never as business.
+  guest: boolean;
   owner: { name: string; email: string | null; phone: string | null } | null;
   people: number;
   overLimit: boolean;
@@ -70,7 +73,8 @@ export async function loadWorkshops(): Promise<TowerWorkshop[]> {
     const quietSince = last ? (now - new Date(last).getTime()) / DAY : signedUpDaysAgo;
     return {
       tenant: t,
-      demo: (t.settings as { demo?: unknown } | null)?.demo === true,
+      demo: (t.settings as { demo?: unknown } | null)?.demo === true || isGuestTenant(t),
+      guest: isGuestTenant(t),
       owner: ownerRow ? { name: (ownerRow.full_name as string | null) ?? '', email: users.get(ownerRow.id as string) ?? null, phone: (ownerRow.phone as string | null) ?? t.phone } : null,
       people: staff.length,
       overLimit: staff.length - 1 > plan.workers,

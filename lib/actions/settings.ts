@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getPlan } from '@/config/plans';
 import { fail, type ActionResult } from '@/lib/action-result';
+import { isGuestTenant } from '@/lib/guest';
 import { requireWorkshop } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -115,6 +116,7 @@ const staffSchema = z.object({
 export async function createStaff(values: z.input<typeof staffSchema>): Promise<ActionResult> {
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Tim uređuje voditelj servisa.');
+  if (isGuestTenant(ctx.tenant)) return fail('U demo verziji ne dodajete ljude. U svojoj radionici svaki radnik dobiva svoju prijavu.');
   const parsed = staffSchema.safeParse(values);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite podatke.');
   const v = parsed.data;

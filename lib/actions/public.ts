@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { LEGAL_VERSION } from '@/config/legal';
 import { PACKAGE_IDS, type PackageId } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
-import { startSampleDay } from '@/lib/sample-day';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 async function clientIp(): Promise<{ ip: string | null; userAgent: string | null }> {
@@ -41,9 +40,6 @@ const registerSchema = z.object({
   acceptTerms: z.literal(true, { errorMap: () => ({ message: 'Potvrdi uvjete korištenja i ugovor o obradi podataka.' }) }),
   // "Želim primati obavijesti o novim funkcionalnostima" (optional).
   news: z.boolean().optional(),
-  // The demo: the workshop opens full of examples for 24 hours. Without it
-  // the workshop starts empty, on its 30 free days.
-  demo: z.boolean().optional(),
   // The referral code from another workshop's link (its payment reference).
   referral: z.string().trim().regex(/^\d{1,9}$/).optional().or(z.literal('')),
 });
@@ -62,9 +58,10 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
   const ipHash = createHash('sha256').update(`${ip ?? 'unknown'}|${process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''}`).digest('hex').slice(0, 40);
   const hourAgo = new Date(Date.now() - 3600_000).toISOString();
   const dayAgo = new Date(Date.now() - 86400_000).toISOString();
+  // Open demos are counted apart (kind 'guest', lib/actions/guest.ts).
   const [{ count: perIp }, { count: perDay }] = await Promise.all([
-    admin.from('registration_attempts').select('id', { count: 'exact', head: true }).eq('ip_hash', ipHash).gte('created_at', hourAgo),
-    admin.from('registration_attempts').select('id', { count: 'exact', head: true }).gte('created_at', dayAgo),
+    admin.from('registration_attempts').select('id', { count: 'exact', head: true }).eq('kind', 'register').eq('ip_hash', ipHash).gte('created_at', hourAgo),
+    admin.from('registration_attempts').select('id', { count: 'exact', head: true }).eq('kind', 'register').gte('created_at', dayAgo),
   ]);
   if ((perIp ?? 0) >= (Number(process.env.REGISTRATION_PER_HOUR) || 5) || (perDay ?? 0) >= (Number(process.env.REGISTRATION_DAILY_LIMIT) || 100)) {
     return fail(GENERIC_FAILURE);
@@ -120,8 +117,6 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
     if (referrer && referrer.id !== tenantId) patch.referred_by = referrer.id;
   }
   if (tenantId) await admin.from('tenants').update(patch).eq('id', tenantId as string);
-  // The demo: the workshop opens full of examples from its trade.
-  if (tenantId && v.demo) await startSampleDay(admin, tenantId as string, v.package);
   // Attempts are only needed for the hourly and daily limits.
   await admin.from('registration_attempts').delete().lt('created_at', new Date(Date.now() - 30 * 86400_000).toISOString());
   return { ok: true, data: { confirmEmail } };
