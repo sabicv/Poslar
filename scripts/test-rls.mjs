@@ -1,4 +1,4 @@
-// npm run db:test — runs the X-Files migrations on PGlite (in-process Postgres) with minimal Supabase stubs
+// npm run db:test — runs the Poslar migrations on PGlite (in-process Postgres) with minimal Supabase stubs
 // (auth schema, roles, storage) and checks tenant isolation and the
 // owner/worker money split.
 import { PGlite } from '@electric-sql/pglite';
@@ -409,7 +409,7 @@ console.log('\nQR samoprijem');
   check('tokens are unique', n === 1);
 }
 
-// Subscription reference and referrals: written by TaktiX only.
+// Subscription reference and referrals: written by Poslar only.
 console.log('\nPretplata i preporuke');
 {
   const refs = await q(`select billing_ref from public.tenants order by created_at`);
@@ -423,7 +423,7 @@ console.log('\nPretplata i preporuke');
   });
   const [own] = await q(`select settings ? 'demo' as demo from public.tenants where id = $1`, [tA]);
   check('owner cannot mark the workshop as a demo (no billing)', own.demo === false, JSON.stringify(own));
-  // A demo workshop set up by TaktiX keeps the flag when its owner saves settings.
+  // A demo workshop set up by Poslar keeps the flag when its owner saves settings.
   await q(`update public.tenants set settings = settings || '{"demo": true}' where id = $1`, [tB]);
   await as(U.bOwner, async () => {
     await q(`update public.tenants set settings = '{"onboarding_hidden": true}' where id = $1`, [tB]);

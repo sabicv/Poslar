@@ -6,7 +6,7 @@ import { Sheet, useAction } from '@/components/client-ui';
 import { Button } from '@/components/ui';
 import { requestDeletion } from '@/lib/actions/support';
 
-// Asks TaktiX to delete the account: the owner's whole workshop, or a
+// Asks Poslar to delete the account: the owner's whole workshop, or a
 // worker's own account. Carried out from the tower within 30 days.
 export function DeleteAccount({ owner }: { owner: boolean }) {
   const router = useRouter();
@@ -32,7 +32,7 @@ export function DeleteAccount({ owner }: { owner: boolean }) {
         ) : (
           <p>Brišemo Vaš korisnički račun. Nalozi koje ste radili ostaju radionici.</p>
         )}
-        <p>Zahtjev stiže TaktiX podršci. Brisanje obavljamo u roku od 30 dana i javljamo Vam se u Postavke → Pomoć.</p>
+        <p>Zahtjev stiže podršci Poslara. Brisanje obavljamo u roku od 30 dana i javljamo Vam se u Postavke → Pomoć.</p>
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
         <Button

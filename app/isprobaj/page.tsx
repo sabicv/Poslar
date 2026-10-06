@@ -22,7 +22,7 @@ export default async function TryDemoPage({ searchParams }: { searchParams: Prom
   const { user } = await getAuth();
   // A real account on this phone: the demo signs it out, so it asks first.
   const signedInAs = prijavljen === '1' && user && !isGuestUser(user) ? user.email : null;
-  const chat = supportWhatsApp('Pozdrav, ne mogu otvoriti demo TaktiX-a. ');
+  const chat = supportWhatsApp('Pozdrav, ne mogu otvoriti demo Poslara. ');
   const others = picked ? TRADE_GROUPS.map((g) => ({ ...g, packages: g.packages.filter((id) => id !== picked) })).filter((g) => g.packages.length) : TRADE_GROUPS;
 
   return (

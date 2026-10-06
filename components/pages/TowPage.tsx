@@ -14,7 +14,7 @@ type JobRef = {
   asset: { asset_type: never; identifier: string | null; make: string | null; model: string | null } | null;
 };
 
-// Tow Files: calls still on the road, cars on the yard, this month in numbers.
+// Poslar Vučna služba: calls still on the road, cars on the yard, this month in numbers.
 export async function TowPage({ ctx }: { ctx: WorkshopContext }) {
   const monthStart = zagrebMidnight(`${todayInZagreb().slice(0, 7)}-01`).toISOString();
   const jobRef = 'job:jobs(id, number, client:clients(kind, first_name, last_name, company_name, phone), asset:assets(asset_type, identifier, make, model))';

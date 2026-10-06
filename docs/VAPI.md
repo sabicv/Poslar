@@ -1,23 +1,23 @@
-# AI telefon (Vapi)
+# Poslar na telefonu (Vapi)
 
 ## Kako radi
 
 1. Mušterija zove vlasnika na mobitel.
-2. Vlasnik se ne javi, odbije ili je zauzet: mobitel preusmjeri poziv na AI broj radionice.
-3. AI se predstavi kao virtualni asistent radionice. Ako je mušterija u evidenciji, prepozna je
+2. Vlasnik se ne javi, odbije ili je zauzet: mobitel preusmjeri poziv na Poslarov broj radionice.
+3. Javi se Poslar, u ime radionice, i kaže da se javlja automatski. Ako je mušterija u evidenciji, prepozna je
    po broju i zna njezina vozila i otvorene naloge.
-4. AI pita što treba, uzme slobodne termine iz radnog vremena radionice
-   (Postavke → AI telefon) i ponudi dva ili tri.
-5. Kad se dogovore, AI upiše nalog u Prijem: termin, ime, broj, registraciju ili adresu, opis.
-   Na nalogu piše „AI telefon”, a na Nalozima se upali točkica.
+4. Poslar pita što treba, uzme slobodne termine iz radnog vremena radionice
+   (Postavke → Poslar na telefonu) i ponudi dva ili tri.
+5. Kad se dogovore, Poslar upiše nalog u Prijem: termin, ime, broj, registraciju ili adresu, opis.
+   Na nalogu piše „Dogovorio Poslar na telefonu”, a na Nalozima se upali točkica.
 6. Vlasnik otvori nalog i dodirne „Potvrdi termin na WhatsApp”. Ako je Brevo API podešen,
    vlasnik dobije i e-mail „Novi termin”.
-7. Nakon poziva sažetak i cijeli razgovor stoje u Postavke → AI telefon → Zadnji pozivi,
+7. Nakon poziva sažetak i cijeli razgovor stoje u Postavke → Poslar na telefonu → Zadnji pozivi,
    a sažetak i na nalogu.
 
 Vapi i pružatelji glasa naplaćuju po minuti razgovora. Grubo računaj 0,10 do 0,30 $ po minuti
 ukupno; točan iznos vidiš u Vapiju nakon prvih poziva. Toranj pokazuje minute po radionici,
-pa AI telefon možeš naplaćivati kao doplatu.
+pa Poslara na telefonu možeš naplaćivati kao doplatu.
 
 ## 1. Broj telefona
 
@@ -34,8 +34,11 @@ Vapi → Assistants → Create Assistant (Blank).
 
 - **Model:** npr. OpenAI gpt-4o. Probaj i Anthropic Claude; zadrži onaj koji bolje govori.
 - **Transcriber** (razumijevanje govora): onaj koji podržava hrvatski (npr. Azure ili Google, jezik `hr-HR`).
-- **Voice:** Azure `hr-HR-GabrijelaNeural` (ženski) ili `hr-HR-SreckoNeural` (muški),
+- **Voice:** Azure `hr-HR-SreckoNeural` (muški; Poslar je „on”, pa u prošlom vremenu kaže „upisao sam”),
   ili ElevenLabs višejezični glas. Poslušaj par rečenica pa odaberi.
+- **Izgovor imena:** hrvatski glas čita „Poslar” kako piše, s naglaskom na prvom slogu, kao „stolar”.
+  Provjeri probnim razgovorom u Vapiju. Ako ga izgovori krivo, javi: pozdrav i upute mogu ime
+  pisati onako kako glas treba izgovoriti (npr. „Póslar”), a u aplikaciji ostaje „Poslar”.
 - **First Message:** `{{pozdrav}}`
 - **Max duration:** 5 minuta.
 - **Recording:** za početak isključi. Ako ga uključiš, u prvu poruku dodaj „Razgovor se snima.”
@@ -43,14 +46,15 @@ Vapi → Assistants → Create Assistant (Blank).
 **System Prompt** (zalijepi cijelo):
 
 ```
-Ti si virtualni asistent radionice {{radionica}} ({{zanat}}). Javljaš se na telefon kad majstor ne može.
+Ti si Poslar. Javljaš se na telefon radionice {{radionica}} ({{zanat}}) kad majstor ne može.
 Danas je {{danas}}. Radno vrijeme: {{radno_vrijeme}}.
 O pozivatelju: {{pozivatelj}}
 Rezervacije telefonom moguće: {{rezervacije}}.
 
 Kako razgovaraš:
 - Standardni hrvatski jezik, kratke rečenice, ljubazno. Pozivatelju se obraćaš s "Vi".
-- Predstavio si se kao virtualni asistent. Ne glumi čovjeka.
+- Ime ti je Poslar. Ne zovi se asistentom, robotom ni umjetnom inteligencijom.
+- U pozdravu si rekao da se javljaš automatski. Ne glumi čovjeka: ako pitaju, reci da nisi čovjek nego Poslar, program koji prima pozive za majstora.
 - Jedno pitanje odjednom.
 
 Što radiš:
@@ -115,18 +119,18 @@ Zatim ih u asistentu dodaj pod Tools.
    - Server URL `https://TVOJA-DOMENA/api/vapi`, Secret isti kao `VAPI_SERVER_SECRET`
 4. U asistentu (Advanced → Server URL) isto: `https://TVOJA-DOMENA/api/vapi` i Secret,
    a pod Server Messages uključi `end-of-call-report` i `tool-calls`.
-5. Toranj → Radionice → Uredi → **AI telefon**: Vapi ID broja (Phone Numbers → ID) i sam broj
+5. Toranj → Radionice → Uredi → **Poslar na telefonu**: Vapi ID broja (Phone Numbers → ID) i sam broj
    (npr. `+385 1 234 5678`) → Spremi.
-6. Vlasnik u aplikaciji: Postavke → AI telefon → radno vrijeme, trajanje termina, koliko poslova odjednom.
-7. Vlasnik na mobitelu upiše kodove za preusmjeravanje (pišu u Postavke → AI telefon) i nazove ih.
+6. Vlasnik u aplikaciji: Postavke → Poslar na telefonu → radno vrijeme, trajanje termina, koliko poslova odjednom.
+7. Vlasnik na mobitelu upiše kodove za preusmjeravanje (pišu u Postavke → Poslar na telefonu) i nazove ih.
 
 ## 5. Prvi probni poziv
 
 Za probu spoji broj na demo radionicu (npr. Autoelektričar). Nazovi vlasnikov mobitel s drugog broja,
-odbij poziv i razgovaraj s AI-jem. Provjeri:
+odbij poziv i razgovaraj s Poslarom. Provjeri:
 
 - je li te pozdravio imenom radionice i ponudio termine iz radnog vremena;
-- je li se nalog pojavio u Prijemu s oznakom „AI telefon” i terminom;
-- je li poziv sa sažetkom u Postavke → AI telefon → Zadnji pozivi.
+- je li se nalog pojavio u Prijemu s oznakom „Poslar” i terminom;
+- je li poziv sa sažetkom u Postavke → Poslar na telefonu → Zadnji pozivi.
 
 Ako nešto ne radi, u Vapiju otvori Call Logs i pošalji mi što piše (bez ključeva i tajni).

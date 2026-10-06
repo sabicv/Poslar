@@ -4,5 +4,5 @@
 // the app leaves out prices, the payment slip and plan requests; on the
 // web everything stays. The app starts at /app?izvor=play (and Android
 // sends an android-app:// referrer); the middleware then sets this cookie.
-export const PLAY_COOKIE = 'taktix_play';
+export const PLAY_COOKIE = 'poslar_play';
 export const PLAY_START = '/app?izvor=play';

@@ -1,35 +1,14 @@
 // Generates app icons into public/icons:
 //   <id>-192.png, <id>-512.png, <id>-maskable-512.png, <id>-180.png (Apple)
-// TaktiX: the blue metronome with the orange arrow pendulum swinging from
-// the middle of its base, on a dark tile (components/ProductMark.tsx draws
-// the same). Each trade: a dark tile with its glyph glowing in the trade
-// colour (same shapes as the lucide icons in the app). Run: npm run icons
-import { mkdirSync } from 'node:fs';
+// Poslar: the white one-line checkbox mark on a blue tile (the same drawing
+// as public/brand, from scripts/brand-mark.mjs). Each trade: a dark tile
+// with its glyph glowing in the trade colour (same shapes as the lucide
+// icons in the app). Run: npm run icons
+import { mkdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
+import { BLUE, markShapes, poslarMark } from './brand-mark.mjs';
 
-const BRAND_TILE = '#0D172C';
-const BRAND_ORANGE = '#FC6002';
-const BRAND_BLUE = '#2875BC';
-const WEIGHT = 'x="59.84" y="52.76" width="7.2" height="13.6" rx="1.8" transform="rotate(-45 63.44 59.56)"';
-const BRAND_SYMBOL = `<g transform="translate(-1.5 0)">
-  <path d="M50 7L58.5 14.5L77 80H23L41.5 14.5Z" fill="${BRAND_BLUE}"/>
-  <rect x="48" y="20" width="4" height="9" rx="1.2" fill="${BRAND_TILE}"/>
-  <rect x="48" y="32" width="4" height="14" rx="1.2" fill="${BRAND_TILE}"/>
-  <rect x="15" y="82.5" width="70" height="6.5" rx="1.6" fill="${BRAND_BLUE}"/>
-  <rect x="23" y="91" width="11" height="3.2" rx="0.9" fill="#1D5FA6"/>
-  <rect x="66" y="91" width="11" height="3.2" rx="0.9" fill="#1D5FA6"/>
-  <g stroke="${BRAND_TILE}" stroke-linejoin="round" stroke-linecap="round">
-    <path d="M50 73L74.75 48.25" stroke-width="9" fill="none"/>
-    <path d="M82.53 40.47L78.99 53.91L69.09 44.01Z" stroke-width="3.4" fill="${BRAND_TILE}"/>
-    <rect ${WEIGHT} fill="${BRAND_TILE}" stroke-width="3.4"/>
-    <circle cx="50" cy="73" r="3.8" fill="${BRAND_TILE}" stroke-width="3"/>
-  </g>
-  <path d="M50 73L74.75 48.25" stroke="${BRAND_ORANGE}" stroke-width="5" stroke-linecap="round" fill="none"/>
-  <path d="M82.53 40.47L78.99 53.91L69.09 44.01Z" fill="${BRAND_ORANGE}"/>
-  <rect ${WEIGHT} fill="${BRAND_ORANGE}"/>
-  <circle cx="50" cy="73" r="3.6" fill="${BRAND_ORANGE}"/>
-</g>`;
 const TILE = '#0B1220';
 
 const PRODUCTS = {
@@ -93,21 +72,29 @@ function productSvg({ accent, glyph }, size, { maskable = false } = {}) {
 </svg>`;
 }
 
-// TaktiX: the metronome on its dark tile (smaller for maskable).
+// Poslar: the mark on a blue tile, smaller for maskable (Android may cut
+// the icon to a circle, so it stays inside the central safe zone).
 function brandSvg(size, { maskable = false } = {}) {
   const radius = maskable ? 0 : size * 0.22;
-  const scale = ((maskable ? 0.72 : 1) * size) / 100;
-  const shift = (size - 100 * scale) / 2;
+  const m = poslarMark();
+  const [e0, e1] = m.extent;
+  const scale = ((maskable ? 0.54 : 0.66) * size) / (e1 - e0);
+  const shift = (size - (e1 - e0) * scale) / 2 - e0 * scale;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" rx="${radius}" fill="${BRAND_TILE}"/>
-  <g transform="translate(${shift} ${shift}) scale(${scale})">${BRAND_SYMBOL}</g>
+  <rect width="${size}" height="${size}" rx="${radius}" fill="${BLUE}"/>
+  <g transform="translate(${shift} ${shift}) scale(${scale})">${markShapes(m)}</g>
 </svg>`;
 }
 
 const out = path.join(process.cwd(), 'public', 'icons');
 mkdirSync(out, { recursive: true });
 
-const ALL = { taktix: null, ...PRODUCTS };
+// The earlier brands' icons.
+for (const old of ['taktix', 'xfiles']) {
+  for (const suffix of ['192', '512', 'maskable-512', '180']) rmSync(path.join(out, `${old}-${suffix}.png`), { force: true });
+}
+
+const ALL = { poslar: null, ...PRODUCTS };
 for (const [id, product] of Object.entries(ALL)) {
   const draw = (size, opts) => (product ? productSvg(product, size, opts) : brandSvg(size, opts));
   const jobs = [

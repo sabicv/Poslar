@@ -1,4 +1,4 @@
-// Built-in fault-code library for Volt Files, ported from the Šabić
+// Built-in fault-code library for Poslar Autoelektričar, ported from the Šabić
 // workshop app. Workshops add their own codes in volt_dtc_custom, and
 // confirmed causes from their own jobs appear next to these.
 // Local fault-code reference for the diagnostic workbench, tuned for an

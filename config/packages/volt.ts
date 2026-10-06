@@ -3,9 +3,9 @@ import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 export const volt: PackageConfig = {
   id: 'volt',
-  product: 'TaktiX Autoelektričar',
+  product: 'Poslar Autoelektričar',
   short: 'Autoelektričar',
-  domain: 'voltfiles.hr',
+  domain: 'autoelektricar.poslar.hr',
   tagline: 'Autoelektrika, dijagnostika i elektronika',
   pitch: [
     'DTC kodovi s uzrocima i riješenim slučajevima iz tvoje arhive',

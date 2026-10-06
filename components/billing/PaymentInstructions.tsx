@@ -23,14 +23,14 @@ export async function PaymentInstructions({
   if (!to) {
     return (
       <p className="text-sm text-muted">
-        Upute za uplatu dobit ćete od TaktiX podrške{help.phone ? `: ${help.phone}` : ''}
+        Upute za uplatu dobit ćete od podrške Poslara{help.phone ? `: ${help.phone}` : ''}
         {help.email ? `, ${help.email}` : ''}.
       </p>
     );
   }
   const amount = Math.round(monthly * months * 100) / 100;
   const reference = String(workshop.billingRef);
-  const description = `TaktiX pretplata ${months} mj.`;
+  const description = `Poslar pretplata ${months} mj.`;
   const svg = await hub3Svg({ amount, payerName: workshop.name, payerStreet: workshop.address ?? '', payerCity: workshop.city ?? '', reference, description }, to);
   const rows: [string, string][] = [
     ['Iznos', formatEuro(amount)],

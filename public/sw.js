@@ -1,7 +1,7 @@
-// X-Files service worker. Pages always come from the network (work orders
+// Poslar service worker. Pages always come from the network (work orders
 // must never be stale); only when there is no signal does the offline page
 // show. Built assets are immutable, so they are cached on first use.
-const VERSION = 'xfiles-v1';
+const VERSION = 'poslar-v1';
 const OFFLINE_URL = '/offline.html';
 
 self.addEventListener('install', (event) => {

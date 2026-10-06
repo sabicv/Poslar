@@ -103,9 +103,9 @@ const dvi50: InspectionTemplate = {
 
 export const gear: PackageConfig = {
   id: 'gear',
-  product: 'TaktiX Automehaničar',
+  product: 'Poslar Automehaničar',
   short: 'Automehaničar',
-  domain: 'gearfiles.hr',
+  domain: 'automehanicar.poslar.hr',
   tagline: 'Automehanika i opći servis',
   pitch: [
     'Inspekcija u 50 točaka na semaforu, s fotografijom po stavci',

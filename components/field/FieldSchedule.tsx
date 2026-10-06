@@ -138,7 +138,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, 
       {/* The day */}
       {list.length === 0 ? (
         <EmptyState title={day === today ? (fieldMode ? 'Danas nema zakazanih posjeta' : 'Danas nema termina') : fieldMode ? 'Nema zakazanih posjeta' : 'Nema termina'}>
-          {fieldMode ? 'Dodirnite „Zakaži posjet” iznad ili zakažite iz popisa „Nezakazano”.' : 'Dodirnite „Zakaži termin” iznad. Termine upisuje i AI telefon.'}
+          {fieldMode ? 'Dodirnite „Zakaži posjet” iznad ili zakažite iz popisa „Nezakazano”.' : 'Dodirnite „Zakaži termin” iznad. Termine upisuje i Poslar s telefona.'}
         </EmptyState>
       ) : (
         <ol className="space-y-3">
@@ -163,7 +163,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, 
                     ) : null}
                     {!fieldMode && v.source === 'phone' ? (
                       <p className="mt-0.5">
-                        <Badge tone="warn">AI telefon</Badge>
+                        <Badge tone="warn">Poslar</Badge>
                       </p>
                     ) : null}
                     <p className="truncate text-sm text-muted">

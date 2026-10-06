@@ -15,7 +15,7 @@ export interface Plan {
   people: string;
   qr: boolean;
   ai: Record<AiKind, number>;
-  // AI phone (AI tajnik): minutes of calls included each month.
+  // Phone agent (Poslar na telefonu): minutes of calls included each month.
   phoneMinutes: number;
 }
 

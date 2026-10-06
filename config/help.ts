@@ -10,7 +10,7 @@ export interface HelpTopic {
 }
 
 export const HELP_TOPICS: HelpTopic[] = [
-  { id: 'start', title: 'Prvi dan s TaktiX-om', where: 'Pomoć i Prvi koraci' },
+  { id: 'start', title: 'Prvi dan s Poslarom', where: 'Pomoć i Prvi koraci' },
   { id: 'install', title: 'Aplikacija na početnom zaslonu mobitela', where: 'Pomoć' },
   { id: 'new_job', title: 'Novi nalog: izgovorite ili slikajte', where: 'Novi nalog' },
   { id: 'job', title: 'Rad na nalogu: slike, stavke, odobrenje', where: 'Pomoć' },

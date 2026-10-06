@@ -1,16 +1,22 @@
-# X-Files
+# Poslar
 
-Jedna aplikacija za radionice i servise na terenu, sedam proizvoda. Svaka radionica ima točno jedan paket, a paket se prepoznaje po domeni:
+Jedna aplikacija za radionice i servise na terenu, jedanaest zanata. Svaka radionica ima točno jedan paket. Na zajedničkoj adresi (poslar.hr) paket određuje prijavljena radionica, a na poddomeni zanata sama poddomena:
 
-| Paket | Domena | Za koga |
-|---|---|---|
-| **Volt Files** | voltfiles.hr | autoelektrika, dijagnostika, elektronika |
-| **Gear Files** | gearfiles.hr | automehanika i opći servis |
-| **Body Files** | bodyfiles.hr | limarija, lakirnica, procjena štete |
-| **Wheel Files** | wheelfiles.hr | vulkanizeri, geometrija, hotel za gume |
-| **Fleet Files** | fleetfiles.hr | teretni program, građevina, flote |
-| **Moto Files** | motofiles.hr | motocikli, quadovi, nautika |
-| **Air Files** | airfiles.hr | klime, dizalice topline, ventilacija (rad na terenu) |
+| Paket (id) | Naziv | Poddomena | Za koga |
+|---|---|---|---|
+| volt | **Poslar Autoelektričar** | autoelektricar.poslar.hr | autoelektrika, dijagnostika, elektronika |
+| gear | **Poslar Automehaničar** | automehanicar.poslar.hr | automehanika i opći servis |
+| body | **Poslar Limar i lakirer** | limar-lakirer.poslar.hr | limarija, lakirnica, procjena štete |
+| wheel | **Poslar Vulkanizer** | vulkanizer.poslar.hr | vulkanizeri, geometrija, hotel za gume |
+| fleet | **Poslar Kamioni i strojevi** | kamioni-strojevi.poslar.hr | teretni program, građevina, flote |
+| moto | **Poslar Moto** | motocikli.poslar.hr | motocikli, skuteri, quadovi |
+| marine | **Poslar Nautika** | nautika.poslar.hr | jet ski, brodice, vanbrodski i ugradbeni motori |
+| air | **Poslar Klima serviser** | klima-serviser.poslar.hr | klime, dizalice topline, ventilacija (rad na terenu) |
+| aqua | **Poslar Vodoinstalater** | vodoinstalater.poslar.hr | vodoinstalacije, bojleri (rad na terenu) |
+| tow | **Poslar Vučna služba** | vucna-sluzba.poslar.hr | vuča i pomoć na cesti |
+| deal | **Poslar Auto plac** | auto-plac.poslar.hr | prodaja rabljenih vozila |
+
+Logo i ikona: `npm run brand` piše `public/brand/poslar-logo.svg` i `poslar-mark.svg` (font Saira Condensed Bold iz `scripts/assets`), a `npm run icons` ikone aplikacije u `public/icons`.
 
 Zajedničko svima:
 - radni nalog po fazama;
@@ -38,12 +44,12 @@ Potrebno: Node.js 20+ i **novi** Supabase projekt. Ne koristite projekt servisa 
    ```bash
    npm install
    npm run db:migrate   # tablice, sigurnosna pravila (RLS), spremišta za datoteke
-   npm run db:seed      # 7 demo radionica s podacima i fotografijama
+   npm run db:seed      # demo radionice s podacima i fotografijama
    npm run dev
    ```
 4. **Otvaranje:** http://localhost:3000. Za drugi proizvod na istom računalu koristite poddomenu: `http://gear.localhost:3000`, `http://wheel.localhost:3000` itd.
 
-**Jedan račun za testiranje svega:** `demo@demo.xfiles.hr` (lozinka `Demo2026!` ili vaš `DEMO_PASSWORD`). Otvara **Demo centar** sa svih sedam proizvoda: jednim dodirom ulazite kao voditelj ili radnik bilo koje demo radionice. U aplikaciji traka **Demo** na vrhu prebacuje ulogu (voditelj ⇄ radnik) ili vraća u Demo centar. Prebacivanje radi samo između demo računa (oznaka koju postavlja seed).
+**Jedan račun za testiranje svega:** `demo@demo.xfiles.hr` (lozinka `Demo2026!` ili vaš `DEMO_PASSWORD`). Otvara **Demo centar** sa svih jedanaest zanata: jednim dodirom ulazite kao voditelj ili radnik bilo koje demo radionice. U aplikaciji traka **Demo** na vrhu prebacuje ulogu (voditelj ⇄ radnik) ili vraća u Demo centar. Prebacivanje radi samo između demo računa (oznaka koju postavlja seed).
 
 Pojedinačni demo računi, s istom lozinkom:
 - `vlasnik.volt@demo.xfiles.hr`: voditelj servisa (vidi cijene, naplatu, poslovanje);
@@ -71,7 +77,7 @@ Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `moto` i `air`. Seed na kraju 
 
 1. `npx vercel` pa `npx vercel --prod` (regija `dub1` — Dublin, uz bazu u eu-west-1 — je u `vercel.json`).
 2. U Vercelu, Settings → Environment Variables, upišite iste varijable kao u `.env.local`, osim `SUPABASE_DB_URL` i demo varijabli. `NEXT_PUBLIC_APP_URL` postavite na pravu adresu.
-3. Domene: dodajte `voltfiles.hr`, `gearfiles.hr`, `airfiles.hr` i ostale na isti projekt. Aplikacija sama bira proizvod po domeni. Za adrese koje nisu domena proizvoda vrijedi `NEXT_PUBLIC_DEFAULT_PACKAGE`.
+3. Domene: dodajte `poslar.hr` i po želji poddomene zanata (`automehanicar.poslar.hr` …) na isti projekt. Na poddomeni aplikacija sama bira zanat; na `poslar.hr` ga određuje prijavljena radionica.
 4. U Supabaseu, Authentication → URL Configuration, dodajte te domene.
 5. **Prije javne samoregistracije:** u Supabaseu postavite vlastiti SMTP (Authentication → Emails → SMTP, npr. Resend) i uključite *Confirm email*. Zatim u Vercelu postavite `REGISTRATION_EMAIL_CONFIRM=1`. Bez vlastitog SMTP-a Supabase šalje e-mail samo članovima tima, pa potvrda ne bi stigla radionicama.
 

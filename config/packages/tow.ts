@@ -36,9 +36,9 @@ export function storageDays(inAt: string, outAt: string | null, now = new Date()
 
 export const tow: PackageConfig = {
   id: 'tow',
-  product: 'TaktiX Vučna služba',
+  product: 'Poslar Vučna služba',
   short: 'Vučna služba',
-  domain: 'towfiles.hr',
+  domain: 'vucna-sluzba.poslar.hr',
   tagline: 'Vuča vozila i pomoć na cesti',
   pitch: [
     'Poziv, lokacija i navigacija odmah, i u tri ujutro',

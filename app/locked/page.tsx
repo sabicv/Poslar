@@ -34,7 +34,7 @@ const TEXT = {
   },
 };
 
-const PLAY_BODY = 'Svi nalozi, fotografije i mušterije su sačuvani. Za nastavak se javite TaktiX podršci.';
+const PLAY_BODY = 'Svi nalozi, fotografije i mušterije su sačuvani. Za nastavak se javite podršci Poslara.';
 
 export default async function LockedPage({ searchParams }: { searchParams: Promise<{ mj?: string }> }) {
   const state = await getWorkshop();

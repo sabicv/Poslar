@@ -69,9 +69,9 @@ const buyCheck: InspectionTemplate = {
 
 export const deal: PackageConfig = {
   id: 'deal',
-  product: 'TaktiX Auto plac',
+  product: 'Poslar Auto plac',
   short: 'Auto plac',
-  domain: 'dealfiles.hr',
+  domain: 'auto-plac.poslar.hr',
   tagline: 'Otkup, priprema i prodaja rabljenih vozila',
   pitch: [
     'Svako vozilo na placu: dani, troškovi i zarada',

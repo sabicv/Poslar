@@ -11,7 +11,7 @@ const A = ({ href, children }: { href: string; children: React.ReactNode }) => (
 );
 
 // The data processing agreement (GDPR art. 28) between a workshop (the
-// controller of its customers' data) and TaktiX (the processor). Accepted
+// controller of its customers' data) and Poslar (the processor). Accepted
 // at registration together with the terms. A draft for the lawyer.
 export default function ProcessingAgreementPage() {
   return (
@@ -19,7 +19,7 @@ export default function ProcessingAgreementPage() {
       title="Ugovor o obradi podataka"
       intro={
         <p>
-          Ovaj ugovor uređuje obradu osobnih podataka koje radionica unosi u TaktiX, u skladu s člankom 28. Opće uredbe o zaštiti podataka (GDPR). Sklapa se registracijom radionice, zajedno s{' '}
+          Ovaj ugovor uređuje obradu osobnih podataka koje radionica unosi u Poslar, u skladu s člankom 28. Opće uredbe o zaštiti podataka (GDPR). Sklapa se registracijom radionice, zajedno s{' '}
           <A href="/uvjeti">Uvjetima korištenja</A>, i vrijedi dok radionica koristi uslugu.
         </p>
       }
@@ -27,7 +27,7 @@ export default function ProcessingAgreementPage() {
       <Section n={1} title="Stranke">
         <ul>
           <li>
-            <strong>Voditelj obrade:</strong> radionica koja koristi TaktiX (Korisnik).
+            <strong>Voditelj obrade:</strong> radionica koja koristi Poslar (Korisnik).
           </li>
           <li>
             <strong>Izvršitelj obrade:</strong> Pružatelj usluge:
@@ -38,7 +38,7 @@ export default function ProcessingAgreementPage() {
 
       <Section n={2} title="Predmet, svrha i trajanje">
         <p>
-          Izvršitelj obrađuje osobne podatke koje Korisnik i njegovi radnici unesu u TaktiX, samo radi pružanja usluge: pohrana, prikaz i pretraživanje, izrada naloga, ponuda, računa i izvještaja,
+          Izvršitelj obrađuje osobne podatke koje Korisnik i njegovi radnici unesu u Poslar, samo radi pružanja usluge: pohrana, prikaz i pretraživanje, izrada naloga, ponuda, računa i izvještaja,
           priprema poruka mušterijama i čitanje fotografija na zahtjev korisnika. Obrada traje dok traje korištenje usluge, te do brisanja podataka nakon njegova prestanka (točka 6).
         </p>
       </Section>
@@ -51,7 +51,7 @@ export default function ProcessingAgreementPage() {
           <li>Fotografije (mogu prikazivati osobe, registracije ili dokumente), s vremenom i mjestom snimanja.</li>
           <li>Adrese i lokacije rada na terenu, vremena dolaska i odlaska.</li>
           <li>Opisi kvarova i radova, ponude, odobrenja (ime potpisnika, vrijeme, IP adresa i preglednik) i računi.</li>
-          <li>Pozivi AI telefonu, kad ga Korisnik uključi: broj pozivatelja, prijepis i sažetak razgovora, dogovoreni termin.</li>
+          <li>Pozivi koje preuzme Poslar na telefonu (automatsko javljanje uz pomoć umjetne inteligencije), kad ga Korisnik uključi: broj pozivatelja, prijepis i sažetak razgovora, dogovoreni termin.</li>
           <li>Podaci o radnicima Korisnika: ime, telefon, uloga, broj certifikata gdje se vodi, rad na nalozima.</li>
         </ul>
         <p>Posebne kategorije podataka (primjerice podaci o zdravlju) nisu potrebne za uslugu i Korisnik ih ne unosi.</p>
@@ -84,7 +84,7 @@ export default function ProcessingAgreementPage() {
             <strong>Anthropic PBC</strong>, SAD: čitanje fotografija i Kopilot, samo kad ih korisnik pokrene; bez imena, telefona i adrese mušterije u Kopilotu.
           </li>
           <li>
-            <strong>Vapi Inc.</strong>, SAD: AI telefon, samo kad ga Korisnik uključi: broj pozivatelja, razgovor, prijepis i sažetak.
+            <strong>Vapi Inc.</strong>, SAD: Poslar na telefonu, samo kad ga Korisnik uključi: broj pozivatelja, razgovor, prijepis i sažetak.
           </li>
         </ul>
         <p>

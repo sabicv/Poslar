@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       return Response.json({
         assistantId,
         assistantOverrides: {
-          firstMessage: 'Dobar dan, ovdje virtualni asistent. Ovaj broj još nije povezan s radionicom. Pokušajte kasnije.',
+          firstMessage: 'Dobar dan, ovdje Poslar, automatska poruka. Ovaj broj još nije povezan s radionicom. Pokušajte kasnije.',
           variableValues: { radionica: 'radionica', zanat: '', danas: '', radno_vrijeme: '', pozivatelj: '', sto_pitati: '', rezervacije: 'ne', pozdrav: '' },
         },
       });
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
           const to = await ownerEmail(admin, at.tenant.id);
           if (to) {
             const link = `${process.env.NEXT_PUBLIC_APP_URL || (await appOrigin())}/app/jobs/${r.jobId}`;
-            await sendMail(to, `Novi termin: ${r.label}`, `AI telefon je dogovorio termin.\n\nTermin: ${r.label}\nMušterija: ${str(args.ime_prezime) ?? ''}, ${str(args.telefon) ?? caller ?? ''}\nPosao: ${str(args.opis) ?? ''}\n\nNalog #${r.number}: ${link}\nPotvrdite termin mušteriji iz naloga.`);
+            await sendMail(to, `Novi termin: ${r.label}`, `Poslar je na telefonu dogovorio termin.\n\nTermin: ${r.label}\nMušterija: ${str(args.ime_prezime) ?? ''}, ${str(args.telefon) ?? caller ?? ''}\nPosao: ${str(args.opis) ?? ''}\n\nNalog #${r.number}: ${link}\nPotvrdite termin mušteriji iz naloga.`);
           }
         } else {
           results.push({ toolCallId, result: r.message });
@@ -186,9 +186,9 @@ async function warnAboutMinutes(admin: ReturnType<typeof createAdminClient>, ten
   const link = `${appOrigin()}/app/settings/telefon`;
   await sendMail(
     to,
-    level === 100 ? 'AI tajnik: minute za ovaj mjesec su potrošene' : 'AI tajnik: potrošeno 80 % minuta',
+    level === 100 ? 'Poslar na telefonu: minute za ovaj mjesec su potrošene' : 'Poslar na telefonu: potrošeno 80 % minuta',
     level === 100
-      ? `AI tajnik je ovaj mjesec potrošio ${usage.used} od ${usage.quota} minuta. Do kraja mjeseca pozivatelji čuju kratku poruku da ćete ih nazvati.\n\nDodatnih ${PHONE_PACK.minutes} minuta mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
-      : `AI tajnik je ovaj mjesec potrošio ${usage.used} od ${usage.quota} minuta.\n\nDodatnih ${PHONE_PACK.minutes} minuta mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
+      ? `Poslar je ovaj mjesec na telefonu potrošio ${usage.used} od ${usage.quota} minuta. Do kraja mjeseca pozivatelji čuju kratku poruku da ćete ih nazvati.\n\nDodatnih ${PHONE_PACK.minutes} minuta mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
+      : `Poslar je ovaj mjesec na telefonu potrošio ${usage.used} od ${usage.quota} minuta.\n\nDodatnih ${PHONE_PACK.minutes} minuta mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
   );
 }

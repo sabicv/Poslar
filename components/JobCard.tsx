@@ -49,7 +49,7 @@ export function JobCard({ job, pkg, total, showMoney, showPhase = true }: { job:
         {job.source === 'qr' && job.phase === 'intake' ? <Badge tone="accent">S vrata</Badge> : null}
         {job.source === 'phone' && job.phase === 'intake' ? (
           <Badge tone="accent">
-            <Phone className="size-3" /> AI telefon
+            <Phone className="size-3" /> Poslar
           </Badge>
         ) : null}
         {job.scheduled_start && job.phase !== 'collected' ? (

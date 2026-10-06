@@ -40,7 +40,7 @@ function PhoneAgent({ id, phone }: { id: string; phone: WorkshopSheetData['phone
   const [v, setV] = useState({ numberId: phone.numberId, number: phone.number });
   return (
     <section className="space-y-3 border-t border-line pt-4">
-      <p className="font-semibold">AI telefon</p>
+      <p className="font-semibold">Poslar na telefonu</p>
       <p className="text-xs text-muted">
         {phone.numberId ? `Uključen. Ovaj mjesec: ${phone.calls} poziva, ${phone.minutes} min.` : 'Isključen. Upišite broj iz Vapija (docs/VAPI.md).'}
       </p>
@@ -52,8 +52,8 @@ function PhoneAgent({ id, phone }: { id: string; phone: WorkshopSheetData['phone
           <Input value={v.number} onChange={(e) => setV((s) => ({ ...s, number: e.target.value }))} placeholder="+385 1 234 5678" inputMode="tel" />
         </Field>
       </div>
-      <Button className="w-full" disabled={pending} onClick={() => run(() => adminSetPhoneAgent(id, v.numberId, v.number), { success: v.numberId ? 'AI telefon spremljen' : 'AI telefon isključen' })}>
-        Spremi AI telefon
+      <Button className="w-full" disabled={pending} onClick={() => run(() => adminSetPhoneAgent(id, v.numberId, v.number), { success: v.numberId ? 'Poslar na telefonu spremljen' : 'Poslar na telefonu isključen' })}>
+        Spremi broj
       </Button>
     </section>
   );
@@ -64,7 +64,7 @@ function NewPassword({ person }: { person: WorkshopSheetData['staff'][number] })
   const { pending, run } = useAction();
   const [password, setPassword] = useState<string | null>(null);
   const message = (p: string) =>
-    `Pozdrav, nova lozinka za TaktiX: ${p}\nPrijava: ${window.location.origin}/login${person.email ? `\nE-mail: ${person.email}` : ''}\nLozinku možete promijeniti u Postavke → Moj račun → Promijeni lozinku.`;
+    `Pozdrav, nova lozinka za Poslar: ${p}\nPrijava: ${window.location.origin}/login${person.email ? `\nE-mail: ${person.email}` : ''}\nLozinku možete promijeniti u Postavke → Moj račun → Promijeni lozinku.`;
   return (
     <li className="space-y-2 px-3 py-2.5">
       <div className="flex items-center justify-between gap-2">
@@ -235,7 +235,7 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
             <Field label="Kopilot mjesečno">
               <Input inputMode="numeric" value={sub.aiCopilot} onChange={(e) => setSub((v) => ({ ...v, aiCopilot: digits(e.target.value) }))} />
             </Field>
-            <Field label={`AI tajnik, minuta mjesečno (+${PHONE_PACK.minutes} za ${PHONE_PACK.price} €)`} className="col-span-2">
+            <Field label={`Poslar na telefonu, minuta mjesečno (+${PHONE_PACK.minutes} za ${PHONE_PACK.price} €)`} className="col-span-2">
               <Input inputMode="numeric" value={sub.aiPhone} onChange={(e) => setSub((v) => ({ ...v, aiPhone: digits(e.target.value) }))} />
             </Field>
             <Field label="Bilješke (samo Toranj)" className="col-span-2">

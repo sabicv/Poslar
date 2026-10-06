@@ -44,7 +44,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
             <div className="space-y-3 p-4 text-sm">
               {call ? (
                 <p className="text-muted">
-                  <span className="font-medium text-fg">Dogovorio AI telefon.</span> {call.summary ?? ''}
+                  <span className="font-medium text-fg">Dogovorio Poslar na telefonu.</span> {call.summary ?? ''}
                 </p>
               ) : null}
               {confirm ? (
@@ -90,7 +90,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
               <div className="space-y-3 p-4 text-sm">
                 {call ? (
                   <p className="text-muted">
-                    <span className="font-medium text-fg">Dogovorio AI telefon.</span> {call.summary ?? ''}
+                    <span className="font-medium text-fg">Dogovorio Poslar na telefonu.</span> {call.summary ?? ''}
                   </p>
                 ) : null}
                 {confirm ? (

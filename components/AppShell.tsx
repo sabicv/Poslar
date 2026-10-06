@@ -38,7 +38,7 @@ export function AppShell({
   workshop: { name: string; logoUrl: string | null };
   user: { name: string; isOwner: boolean };
   inboxCount: number;
-  // Answers from TaktiX support not yet read: a dot on Postavke.
+  // Answers from Poslar support not yet read: a dot on Postavke.
   supportUnread?: number;
   // New requests from the door QR code: a dot on Nalozi / Raspored.
   doorCount?: number;

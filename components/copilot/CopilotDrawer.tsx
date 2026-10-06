@@ -136,7 +136,7 @@ export function CopilotDrawer({ jobId, enabled }: { jobId: string; enabled: bool
     <Sheet
       open={open}
       onOpenChange={setOpen}
-      title="AI Kopilot"
+      title="Kopilot"
       trigger={
         <Button variant="secondary" className="border-accent/40 bg-accent/10 text-fg hover:bg-accent/20">
           <Sparkles className="size-4 text-accent" /> Kopilot
@@ -145,7 +145,7 @@ export function CopilotDrawer({ jobId, enabled }: { jobId: string; enabled: bool
     >
       {!enabled ? (
         <div className="space-y-2 pb-4 text-sm text-muted">
-          <p>AI Kopilot još nije uključen za ovu instalaciju.</p>
+          <p>Kopilot još nije uključen za ovu instalaciju.</p>
           <p className="text-xs text-faint">Administrator treba upisati ANTHROPIC_API_KEY u postavke poslužitelja.</p>
         </div>
       ) : (

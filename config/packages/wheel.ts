@@ -24,9 +24,9 @@ export const TREAD_LIMITS = {
 
 export const wheel: PackageConfig = {
   id: 'wheel',
-  product: 'TaktiX Vulkanizer',
+  product: 'Poslar Vulkanizer',
   short: 'Vulkanizer',
-  domain: 'wheelfiles.hr',
+  domain: 'vulkanizer.poslar.hr',
   tagline: 'Vulkanizeri, geometrija i hotel za gume',
   pitch: [
     'Hotel za gume: QR naljepnice, sektor–regal–polica–mjesto',

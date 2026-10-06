@@ -144,7 +144,7 @@ export default async function Home() {
           </ul>
         </Section>
 
-        {/* And more: each one opens to the trouble and how it goes with TaktiX */}
+        {/* And more: each one opens to the trouble and how it goes with Poslar */}
         <Section>
           <div className="mx-auto max-w-3xl">
             <h2 className="text-balance text-center font-display text-3xl font-bold tracking-tight sm:text-4xl">{MAIN.extrasTitle}</h2>

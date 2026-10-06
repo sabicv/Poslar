@@ -1,4 +1,4 @@
-# TaktiX: plan rada po stadijima
+# Poslar: plan rada po stadijima
 
 Svaki stadij završava testovima, spremanjem (commit) i porukom Vedranu.
 Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
@@ -10,7 +10,7 @@ Deploy: `npx vercel deploy --prod` iz mape x-files-saas.
 - [x] Bez dugih crtica (—) u tekstovima aplikacije
 - [ ] Večeras: provjera pravog čitanja slika s ključem
 
-## Stadij 2: TaktIX identitet
+## Stadij 2: TaktIX identitet (zamijenjen: Poslar, stadij 13)
 - [x] Ime TaktiX, slogan „Manje administracije. Više odrađenog posla.”
 - [x] Logo po Vedranovom nacrtu: metronom s narančastom strelicom, natpis TaktiX; nova ikona aplikacije (PWA)
 - [x] Glavna boja svijetlo plava, grafitna pozadina, jasni rubovi kartica
@@ -77,10 +77,10 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [ ] (V) FINA demo certifikat za testiranje
    - [ ] Spajanje na odabranog posrednika, test u njihovom testnom okruženju
 2. Naplata pretplate
-   - [x] Postavke → Pretplata: paket, cijena, plaćeno do, AI potrošnja, „Želim ovaj paket”, uplatnica s barkodom za mobilno bankarstvo (IBAN TaktiXa, HR00 i poziv na broj radionice)
+   - [x] Postavke → Pretplata: paket, cijena, plaćeno do, AI potrošnja, „Želim ovaj paket”, uplatnica s barkodom za mobilno bankarstvo (IBAN Poslara, HR00 i poziv na broj radionice)
    - [x] Traka vlasniku 7 dana prije isteka, 7 dana počeka, zatim zaključavanje s uplatnicom; radionica bez „plaćeno do” se ne zaključava; Toranj pokazuje poziv na broj
-   - [ ] (V) U Vercel upisati TAKTIX_IBAN, TAKTIX_PAYEE_NAME, TAKTIX_PAYEE_STREET, TAKTIX_PAYEE_CITY, SUPPORT_PHONE, SUPPORT_EMAIL
-   - [ ] (V) Račune za pretplatu TaktiX izdaje u svom programu dok se ne spoji posrednik; barkod provjeriti skeniranjem u svojoj banci
+   - [ ] (V) U Vercel upisati POSLAR_IBAN, POSLAR_PAYEE_NAME, POSLAR_PAYEE_STREET, POSLAR_PAYEE_CITY, SUPPORT_PHONE, SUPPORT_EMAIL (stari nazivi TAKTIX_* i dalje rade)
+   - [ ] (V) Račune za pretplatu Poslar izdaje u svom programu dok se ne spoji posrednik; barkod provjeriti skeniranjem u svojoj banci
    - [ ] (V) Stripe račun za plaćanje karticom; zatim plaćanje karticom u aplikaciji
 3. Prvi koraci nakon registracije
    - [x] Kartica „Prvi koraci” na Nalozima (samo vlasnik nove radionice): podaci radionice, radnik („Radim sam”), prvi nalog, prvi račun (Deal: prvi otkup); nestaje kad je sve gotovo ili kad je vlasnik zatvori
@@ -88,7 +88,7 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 4. Lijevak u Tornju
    - [x] Pregled → Lijevak: radionice registrirane u zadnjih 90 dana, koliko ih je otvorilo prvi nalog, 10 naloga i više, plaća; postotak od prethodnog koraka
 5. Preporuka
-   - [x] Postavke → „Preporučite TaktiX”: vlastita poveznica, slanje na WhatsApp, koliko se registriralo i koliko plaća
+   - [x] Postavke → „Preporučite Poslar”: vlastita poveznica, slanje na WhatsApp, koliko se registriralo i koliko plaća
    - [x] Registracija preko poveznice pamti tko je preporučio; prva uplata nove radionice (upis u Tornju) daje preporučitelju mjesec gratis, jednom, s bilješkom; Toranj pokazuje „Preporuka: …”
    - [x] Vlasnik ne može sam sebi upisati preporuku ni označiti radionicu kao demo (demo se ne naplaćuje)
 6. WhatsApp za pomoć
@@ -104,7 +104,7 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [x] Poveznice: registracija (kvačica), podnožje početne stranice, Postavke; QR stranica i odobrenje kažu mušteriji tko dobiva podatke
    - [x] Registracija pamti kad su uvjeti prihvaćeni i koju verziju; sažeci IP adresa brišu se nakon 30 dana, riješene greške nakon 12 mjeseci
    - [ ] (V) Pravnik pregleda sva tri teksta prije prodaje (posebno rokove: 12 mjeseci čuvanja, brisanje na zahtjev u 30 dana, obavijest o povredi u 48 sati)
-   - [ ] (V) U Vercel upisati TAKTIX_OIB (i TAKTIX_PAYEE_NAME, ulicu i grad); bez njih stranice pokazuju samo „TaktiX”
+   - [ ] (V) U Vercel upisati POSLAR_OIB (i POSLAR_PAYEE_NAME, ulicu i grad); bez njih stranice pokazuju samo „Poslar”
    - [ ] (V) Prihvatiti ugovore o obradi podataka kod Supabasea, Vercela i Anthropica (u njihovim postavkama)
    - [ ] (V) Jednom mjesečno u Tornju obrisati radionice kojima je pretplata istekla prije više od 12 mjeseci
 9. Google Play
@@ -112,7 +112,7 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [x] Aplikacija otvorena s Playa (start /app?izvor=play) ne pokazuje cijene, uplatnicu ni „Želim paket” (pravila Google naplate); na webu sve ostaje
    - [x] Brisanje računa (Google traži): Postavke → Moj račun → „Zatraži brisanje računa” (zahtjev stiže u Toranj), stranica /brisanje-racuna, u Tornju „Obriši radionicu i sve podatke” uz upis naziva
    - [x] Uputa korak po korak: docs/GOOGLE_PLAY.md (domena, račun, PWABuilder, spajanje, stranica u trgovini, obrazac o podacima, testiranje)
-   - [ ] (V) Domena (npr. taktix.hr) spojena u Vercelu i Supabaseu prije Playa
+   - [ ] (V) Domena poslar.hr spojena u Vercelu i Supabaseu prije Playa
    - [ ] (V) Račun za razvojne programere, paket iz PWABuildera, otisci u Vercel, zatvoreno testiranje s testerima (najmanje 12 kroz 14 dana)
 10. Pred betu (nalazi s Vedranova testiranja)
    - [x] Lozinke: Toranj → Uredi → Ljudi i lozinke → Nova lozinka (s WhatsAppom); Postavke → Promijeni lozinku; prijava → „Zaboravili ste lozinku?” (WhatsApp, a nakon Breva poveznica e-poštom)
@@ -151,7 +151,16 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [x] Novi logo (plavi metronom, narančasta strelica iz sredine), nove boje: Moto plava, Limar narančasta, Kamioni siva, Vučna neon žuta
 - [x] Fotografije na početnoj i stranicama zanata, pravi ekrani u mobitelu i laptopu; „Mobitel na terenu. Laptop u uredu.”
 - [ ] Mjerenje → stavka i za ostale zanate (Vedran bira koje radnje i cijene)
-- [ ] Priprema za fiskalnu blagajnu na kraju dana (popis računa dana za prepisivanje ili izvoz), pa povezivanje s posrednikom kad ga knjigovođa odabere
+- [x] Priprema za fiskalnu blagajnu na kraju dana: Poslovanje → Računi danas (popis i CSV za prepisivanje)
+- [ ] Povezivanje s fiskalnim posrednikom kad ga knjigovođa odabere
+
+## Stadij 13: Poslar (7. 10.)
+- [x] Novo ime Poslar umjesto TaktiX i starih naziva (X-Files, … Files); zanati „Poslar Autoelektričar” …, poddomene <zanat>.poslar.hr
+- [x] Logo: plava pilula, „Poslar” narančasto s bijelim obrubom (Saira Condensed), vlastiti znak kvadratić s kvačicom (jedna bijela linija); ikona aplikacije isti znak na plavom
+- [x] Telefonski agent se javlja kao Poslar („ovdje Poslar … javljam se automatski”), ne kao asistent ni AI; u aplikaciji „Poslar na telefonu”
+- [ ] (V) Domene poslar.hr, .com, .eu i profili na mrežama; prijava žiga (DZIV ili EUIPO)
+- [ ] (V) U Vercelu po želji preimenovati TAKTIX_* u POSLAR_* (stari nazivi rade)
+- [ ] Demo prijava demo@demo.xfiles.hr → nova domena (nakon deploya, uz ponovno punjenje demo radionica)
 
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).

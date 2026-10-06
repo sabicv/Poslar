@@ -71,7 +71,7 @@ export default async function SettingsPage() {
       <PageHeader title="Postavke" />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-4">
-          {/* Only for TaktiX itself: the way into the tower from a workshop account. */}
+          {/* Only for Poslar itself: the way into the tower from a workshop account. */}
           {tower ? (
             <Link href="/admin" className="flex items-center justify-between gap-3 rounded-2xl border border-accent/50 bg-accent/10 px-4 py-3">
               <span>
@@ -148,7 +148,7 @@ export default async function SettingsPage() {
           ) : null}
           {referral ? (
             <Card>
-              <CardHeader title="Preporučite TaktiX" subtitle="Kolega se registrira preko Vaše poveznice. Kad plati prvu pretplatu, Vi dobivate mjesec dana gratis." />
+              <CardHeader title="Preporučite Poslar" subtitle="Kolega se registrira preko Vaše poveznice. Kad plati prvu pretplatu, Vi dobivate mjesec dana gratis." />
               <div className="space-y-3 p-4">
                 <ReferralShare link={referral.link} workshop={t.name} />
               </div>
@@ -180,7 +180,7 @@ export default async function SettingsPage() {
             </Link>
             <Link href="/app/settings/telefon" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
               <span>
-                <span className="block font-semibold">AI telefon</span>
+                <span className="block font-semibold">Poslar na telefonu</span>
                 <span className="block text-sm text-muted">{t.phone_agent_number_id ? 'Uključen · radno vrijeme i pozivi' : 'Javlja se kad Vi ne možete, dogovara termine'}</span>
               </span>
               <ChevronRight className="size-5 text-faint" />
@@ -229,7 +229,7 @@ export default async function SettingsPage() {
           <SupportWhatsApp
             message={
               isDemo
-                ? `Pozdrav, isprobavam TaktiX demo (${ctx.pkg.product}). `
+                ? `Pozdrav, isprobavam demo Poslara (${ctx.pkg.product}). `
                 : `Pozdrav, ovdje ${[ctx.profile.full_name, t.name].filter(Boolean).join(', ')} (br. ${t.billing_ref}). `
             }
           />

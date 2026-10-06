@@ -12,13 +12,19 @@ export interface Provider {
   phone: string | null;
 }
 
+// The company's own settings: POSLAR_<key>, or the name used before the
+// rebrand (TAKTIX_<key>) while Vercel still has that one.
+export function companyEnv(key: 'IBAN' | 'PAYEE_NAME' | 'PAYEE_STREET' | 'PAYEE_CITY' | 'OIB'): string | null {
+  return process.env[`POSLAR_${key}`]?.trim() || process.env[`TAKTIX_${key}`]?.trim() || null;
+}
+
 export function provider(): Provider {
   const env = (key: string) => process.env[key]?.trim() || null;
   return {
-    name: env('TAKTIX_PAYEE_NAME') ?? 'TaktiX',
-    street: env('TAKTIX_PAYEE_STREET'),
-    city: env('TAKTIX_PAYEE_CITY'),
-    oib: env('TAKTIX_OIB'),
+    name: companyEnv('PAYEE_NAME') ?? 'Poslar',
+    street: companyEnv('PAYEE_STREET'),
+    city: companyEnv('PAYEE_CITY'),
+    oib: companyEnv('OIB'),
     email: env('SUPPORT_EMAIL'),
     phone: env('SUPPORT_PHONE'),
   };

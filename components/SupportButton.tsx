@@ -7,7 +7,7 @@ import { DictateButton, Sheet, useAction } from '@/components/client-ui';
 import { Button, Textarea } from '@/components/ui';
 import { createTicket, replyToTicket } from '@/lib/actions/support';
 
-// "Javi problem": one sentence (said or typed) goes to TaktiX with the
+// "Javi problem": one sentence (said or typed) goes to Poslar with the
 // page it came from. The answer arrives in Postavke → Pomoć.
 export function SupportButton({ prefill = '', trigger, after }: { prefill?: string; trigger?: ReactNode; after?: 'podrska' | 'stay' }) {
   const router = useRouter();

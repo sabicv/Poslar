@@ -171,9 +171,9 @@ const heatPump: InspectionTemplate = {
 
 export const air: PackageConfig = {
   id: 'air',
-  product: 'TaktiX Klima serviser',
+  product: 'Poslar Klima serviser',
   short: 'Klima serviser',
-  domain: 'airfiles.hr',
+  domain: 'klima-serviser.poslar.hr',
   tagline: 'Klime, dizalice topline i ventilacija na terenu',
   pitch: [
     'Raspored dana, navigacija i poruka „Na putu” jednim dodirom',

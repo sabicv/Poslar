@@ -1,4 +1,4 @@
-# TaktiX na Google Playu
+# Poslar na Google Playu
 
 Android aplikacija je ista stranica, otvorena preko cijelog ekrana (Trusted Web Activity).
 Kad mijenjamo stranicu, mijenja se i aplikacija. Novu verziju na Play šalješ samo kad
@@ -9,13 +9,13 @@ Pravila Googlea se mijenjaju. Ako nešto u konzoli izgleda drukčije nego ovdje,
 ## 1. Prvo domena
 
 Aplikacija je vezana uz jednu adresu. Kasnija promjena znači novu verziju i novu provjeru.
-Zato prije Playa kupi pravu domenu (npr. taktix.hr) i spoji je:
+Zato prije Playa kupi pravu domenu (poslar.hr) i spoji je:
 
 1. Vercel → projekt x-files → Settings → Domains → Add → upiši domenu.
    Vercel pokaže DNS zapise. Upiši ih kod registrara domene i pričekaj da Vercel pokaže „Valid”.
-2. Vercel → Settings → Environment Variables: `NEXT_PUBLIC_APP_URL` = `https://taktix.hr`.
+2. Vercel → Settings → Environment Variables: `NEXT_PUBLIC_APP_URL` = `https://poslar.hr`.
 3. Supabase → Authentication → URL Configuration:
-   Site URL = `https://taktix.hr`, a u Redirect URLs dodaj `https://taktix.hr/**`.
+   Site URL = `https://poslar.hr`, a u Redirect URLs dodaj `https://poslar.hr/**`.
 4. Pokreni `npx vercel deploy --prod`.
 
 ## 2. Račun za razvojne programere
@@ -29,10 +29,10 @@ Zato prije Playa kupi pravu domenu (npr. taktix.hr) i spoji je:
 
 ## 3. Android paket (PWABuilder, bez programiranja)
 
-1. Otvori pwabuilder.com, upiši `https://taktix.hr` → Start.
+1. Otvori pwabuilder.com, upiši `https://poslar.hr` → Start.
 2. Package For Stores → Android → Generate Package. U opcijama:
-   - Package ID: `hr.taktix.app` (biraš jednom, poslije se ne mijenja)
-   - App name i Launcher name: `TaktiX`
+   - Package ID: `hr.poslar.app` (biraš jednom, poslije se ne mijenja)
+   - App name i Launcher name: `Poslar`
    - Start URL: `/app?izvor=play` (važno: tako aplikacija zna da je s Playa)
    - Theme i background color: `#0F172A`
    - Signing key: Create new
@@ -48,21 +48,21 @@ Tako aplikacija radi preko cijelog ekrana, bez trake preglednika.
 1. U Play konzoli, nakon prvog slanja `.aab`: Test and release → App integrity.
    Tamo su dva otiska (SHA-256): upload key i app signing key.
 2. Vercel → Environment Variables:
-   - `ANDROID_PACKAGE_NAME` = `hr.taktix.app`
+   - `ANDROID_PACKAGE_NAME` = `hr.poslar.app`
    - `ANDROID_SHA256_FINGERPRINTS` = oba otiska, odvojena zarezom
 3. `npx vercel deploy --prod`.
-4. Provjeri: `https://taktix.hr/.well-known/assetlinks.json` mora pokazati naziv paketa i otiske.
+4. Provjeri: `https://poslar.hr/.well-known/assetlinks.json` mora pokazati naziv paketa i otiske.
 
 ## 5. Stranica aplikacije u trgovini
 
-- Naziv: TaktiX. Kratki opis (do 80 znakova), npr.:
+- Naziv: Poslar. Kratki opis (do 80 znakova), npr.:
   „Nalozi, slike i računi za radionicu. Sve iz mobitela.”
-- Ikona 512 × 512: `public/icons/taktix-512.png`.
+- Ikona 512 × 512: `public/icons/poslar-512.png`.
 - Slike ekrana: iz demo radionice (najmanje 2, s mobitela).
 - Grafika 1024 × 500 (feature graphic): logo na tamnoj podlozi.
 - Kategorija: Business (Posao). Besplatna aplikacija.
-- Politika privatnosti: `https://taktix.hr/privatnost`
-- Brisanje računa: `https://taktix.hr/brisanje-racuna`
+- Politika privatnosti: `https://poslar.hr/privatnost`
+- Brisanje računa: `https://poslar.hr/brisanje-racuna`
 - Pristup za recenzente (App access): demo prijava
   `vlasnik.gear@demo.xfiles.hr`, lozinka `Demo2026!`.
 
@@ -82,7 +82,7 @@ Odgovori prema onome što aplikacija stvarno radi:
 Google ne dopušta da aplikacija s Playa prodaje pretplatu mimo Google naplate, niti da
 upućuje na takvo plaćanje. Zato aplikacija otvorena s Playa sama skriva cijene, uplatnicu
 i gumbe „Želim paket”. Pokazuje samo paket i datum do kad vrijedi.
-Na webu (taktix.hr u pregledniku) sve ostaje kao prije.
+Na webu (poslar.hr u pregledniku) sve ostaje kao prije.
 Radionice plaćaju preko weba, kao i sad. U opisu aplikacije ne spominji cijene.
 
 ## 8. Zatvoreno testiranje

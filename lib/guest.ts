@@ -7,7 +7,7 @@ import type { User } from '@supabase/supabase-js';
 // (settings.guest). After the 24 hours the workshop and its logins go.
 
 // Never a real mailbox: nothing is ever sent to these addresses.
-export const GUEST_DOMAIN = 'gost.taktix.invalid';
+export const GUEST_DOMAIN = 'gost.poslar.invalid';
 
 // AI in the demo: enough to try, not enough to use it for real work.
 export const GUEST_AI_QUOTA = { scan: 5, copilot: 5 };

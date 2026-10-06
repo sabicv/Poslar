@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 
 // The pieces both the main page and the trade pages are built from.
 
-export const HELLO = 'Pozdrav, zanima me TaktiX. ';
+export const HELLO = 'Pozdrav, zanima me Poslar. ';
 
 export function SectionTitle({ id, title, subtitle }: { id?: string; title: string; subtitle?: string }) {
   return (
@@ -30,7 +30,7 @@ export function Section({ className, children }: { className?: string; children:
 }
 
 // "Za tvoj zanat · Cijene · Prijava" and the one button. On a trade's own
-// domain the trade's mark replaces the TaktiX logo.
+// domain the trade's mark replaces the Poslar logo.
 export function LandingHeader({ product, signedIn, register, tradesHref }: { product: PackageConfig | null; signedIn: boolean; register: string; tradesHref: string }) {
   return (
     <header className="sticky top-0 z-30 -mx-5 border-b border-transparent bg-bg/90 px-5 pt-safe backdrop-blur">

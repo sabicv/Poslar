@@ -5,7 +5,7 @@ import { useAction } from '@/components/client-ui';
 import { Button } from '@/components/ui';
 import { requestPhonePack } from '@/lib/actions/support';
 
-// Asks TaktiX for more AI phone minutes; the tower raises the monthly
+// Asks Poslar for more AI phone minutes; the tower raises the monthly
 // minutes and the answer comes in Postavke → Pomoć.
 export function PhonePackRequest({ label }: { label: string }) {
   const router = useRouter();

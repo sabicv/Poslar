@@ -16,68 +16,21 @@ export const PRODUCT_ICONS: Record<PackageId, LucideIcon> = {
   deal: CarFront,
 };
 
-// The TaktiX mark, after Vedran's sketch of 2026-10-05: a blue metronome
-// ("takt" is the beat of the work) with its scale, on a base with two
-// feet, and the pendulum as an orange arrow that swings from the middle of
-// the base at 45 degrees, with its weight across the rod, up and out of
-// the body. A thin outline in the tile colour keeps the arrow apart from
-// the body. The app icon (scripts/generate-icons.mjs) draws the same.
-export const BRAND_SYMBOL = {
-  tile: '#0D172C',
-  blue: '#2875BC',
-  blueDark: '#1D5FA6',
-  body: 'M50 7L58.5 14.5L77 80H23L41.5 14.5Z',
-  shaft: 'M50 73L74.75 48.25',
-  head: 'M82.53 40.47L78.99 53.91L69.09 44.01Z',
-  weight: { x: 59.84, y: 52.76, cx: 63.44, cy: 59.56 },
-};
-
-function Symbol({ bg = BRAND_SYMBOL.tile }: { bg?: string }) {
-  const s = BRAND_SYMBOL;
-  const weight = { x: s.weight.x, y: s.weight.y, width: 7.2, height: 13.6, rx: 1.8, transform: `rotate(-45 ${s.weight.cx} ${s.weight.cy})` };
-  return (
-    <g transform="translate(-1.5 0)">
-      <path d={s.body} fill={s.blue} />
-      <rect x="48" y="20" width="4" height="9" rx="1.2" fill={bg} />
-      <rect x="48" y="32" width="4" height="14" rx="1.2" fill={bg} />
-      <rect x="15" y="82.5" width="70" height="6.5" rx="1.6" fill={s.blue} />
-      <rect x="23" y="91" width="11" height="3.2" rx="0.9" fill={s.blueDark} />
-      <rect x="66" y="91" width="11" height="3.2" rx="0.9" fill={s.blueDark} />
-      <g stroke={bg} strokeLinejoin="round" strokeLinecap="round">
-        <path d={s.shaft} strokeWidth="9" fill="none" />
-        <path d={s.head} strokeWidth="3.4" fill={bg} />
-        <rect {...weight} fill={bg} strokeWidth="3.4" />
-        <circle cx="50" cy="73" r="3.8" fill={bg} strokeWidth="3" />
-      </g>
-      <path d={s.shaft} stroke={BRAND.mark} strokeWidth="5" strokeLinecap="round" fill="none" />
-      <path d={s.head} fill={BRAND.mark} />
-      <rect {...weight} fill={BRAND.mark} />
-      <circle cx="50" cy="73" r="3.6" fill={BRAND.mark} />
-    </g>
-  );
-}
-
-// The mark on its dark tile.
+// The Poslar mark: a checkbox drawn as one white line on a blue tile, the
+// job done. The files in public/brand come from scripts/brand.mjs; the app
+// icon (scripts/generate-icons.mjs) draws the same mark.
 export function BrandMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 100" className={cn('size-8 shrink-0', className)} aria-hidden>
-      <rect width="100" height="100" rx="22" fill={BRAND_SYMBOL.tile} />
-      <Symbol />
-    </svg>
-  );
+  return <img src="/brand/poslar-mark.svg" alt="" aria-hidden width={32} height={32} className={cn('size-8 shrink-0', className)} />;
 }
 
-// Mark and name: "Takt" in the mark's blue, "iX" in orange, in a heavy
-// grotesk like the sketch.
+// The logo: a blue pill, "Poslar" in orange with a white outline and the
+// mark at the letters' height.
+const LOGO_RATIO = 364.08 / 135.08;
+const LOGO_HEIGHT = { sm: 32, md: 40, lg: 56 };
+
 export function BrandLogo({ className, size = 'md' }: { className?: string; size?: 'sm' | 'md' | 'lg' }) {
-  return (
-    <span className={cn('inline-flex items-center gap-2.5', className)} aria-label={BRAND.name}>
-      <BrandMark className={size === 'lg' ? 'size-11' : size === 'sm' ? 'size-6' : 'size-8'} />
-      <span aria-hidden className={cn('font-sans font-extrabold leading-none tracking-tight', size === 'lg' ? 'text-3xl' : size === 'sm' ? 'text-base' : 'text-xl')} style={{ color: BRAND.blue }}>
-        Takt<span style={{ color: BRAND.mark }}>iX</span>
-      </span>
-    </span>
-  );
+  const h = LOGO_HEIGHT[size];
+  return <img src="/brand/poslar-logo.svg" alt={BRAND.name} width={Math.round(h * LOGO_RATIO)} height={h} className={cn('block shrink-0', className)} style={{ height: h, width: 'auto' }} />;
 }
 
 // A trade's mark: a dark tile with the glyph glowing in the trade's colour,

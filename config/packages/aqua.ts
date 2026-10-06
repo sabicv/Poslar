@@ -79,9 +79,9 @@ const boilerService: InspectionTemplate = {
 
 export const aqua: PackageConfig = {
   id: 'aqua',
-  product: 'TaktiX Vodoinstalater',
+  product: 'Poslar Vodoinstalater',
   short: 'Vodoinstalater',
-  domain: 'aquafiles.hr',
+  domain: 'vodoinstalater.poslar.hr',
   tagline: 'Vodoinstalacije, bojleri i grijanje na terenu',
   pitch: [
     'Raspored dana, navigacija i poruka „Na putu” jednim dodirom',

@@ -1,10 +1,10 @@
 import { BRAND } from '@/config/tenant.config';
 import { packageForRequest } from '@/lib/package-for-request';
 
-// One manifest per trade: an auto electrician installs "TaktiX
-// Autoelektričar" with its icon, labelled "TaktiX" under the icon. On a
+// One manifest per trade: an auto electrician installs "Poslar
+// Autoelektričar" with its icon, labelled "Poslar" under the icon. On a
 // product domain the domain decides; elsewhere the signed-in workshop does
-// (so it is private), and a visitor who is neither gets the TaktiX brand.
+// (so it is private), and a visitor who is neither gets the Poslar brand.
 export async function GET() {
   const { pkg, byDomain, generic } = await packageForRequest();
   const id = generic ? BRAND.id : pkg.id;

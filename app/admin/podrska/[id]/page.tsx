@@ -37,7 +37,7 @@ export default async function TowerTicket({ params }: { params: Promise<{ id: st
             {messages.map((m) => (
               <li key={m.id} className={cn('max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm', m.from_admin ? 'ml-auto bg-accent/15' : 'bg-surface2')}>
                 <p className="mb-0.5 text-xs text-muted">
-                  {m.from_admin ? 'Vi (TaktiX)' : (who(m.author_id)?.full_name ?? 'Radionica')} · {formatDateTime(m.created_at)}
+                  {m.from_admin ? 'Vi (Poslar)' : (who(m.author_id)?.full_name ?? 'Radionica')} · {formatDateTime(m.created_at)}
                 </p>
                 <p className="whitespace-pre-wrap">{m.body}</p>
               </li>

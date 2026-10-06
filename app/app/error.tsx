@@ -6,7 +6,7 @@ import { SupportButton } from '@/components/SupportButton';
 import { Button } from '@/components/ui';
 
 export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  // TaktiX sees it in the tower even when nobody writes in.
+  // Poslar sees it in the tower even when nobody writes in.
   useEffect(() => reportError(error), [error]);
   return (
     <div className="mx-auto max-w-md py-16 text-center">

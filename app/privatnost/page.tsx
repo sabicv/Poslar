@@ -18,7 +18,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Politika privatnosti"
-      intro={<p>Ovdje piše koje osobne podatke obrađujemo kad koristite TaktiX ili posjetite ovu stranicu, zašto, s kim ih dijelimo, koliko ih čuvamo i koja su Vaša prava.</p>}
+      intro={<p>Ovdje piše koje osobne podatke obrađujemo kad koristite Poslar ili posjetite ovu stranicu, zašto, s kim ih dijelimo, koliko ih čuvamo i koja su Vaša prava.</p>}
     >
       <Section n={1} title="Tko obrađuje podatke">
         <ProviderBlock />
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
             Za podatke <strong>korisnika aplikacije</strong> (vlasnika, voditelja i radnika radionica) i <strong>posjetitelja stranice</strong> mi smo voditelj obrade.
           </li>
           <li>
-            Za podatke <strong>mušterija</strong> koje radionica unosi u TaktiX (imena, telefoni, vozila i uređaji, fotografije, ponude, računi) voditelj obrade je radionica. Mi ih obrađujemo samo
+            Za podatke <strong>mušterija</strong> koje radionica unosi u Poslar (imena, telefoni, vozila i uređaji, fotografije, ponude, računi) voditelj obrade je radionica. Mi ih obrađujemo samo
             po njezinu nalogu, prema <A href="/obrada-podataka">Ugovoru o obradi podataka</A>. Ako ste mušterija, za svoje podatke obratite se radionici.
           </li>
         </ul>
@@ -90,7 +90,7 @@ export default function PrivacyPage() {
             vozila) ili tehnički podaci naloga: vozilo ili uređaj, opis kvara, stavke i nalazi. Ime, telefon i adresu mušterije Kopilotu ne šaljemo.
           </li>
           <li>
-            <strong>Vapi Inc.</strong> (SAD): AI telefon, samo za radionice koje ga uključe. Obrađuje razgovor s pozivateljem: broj s kojeg zove, govor, prijepis i sažetak. Za
+            <strong>Vapi Inc.</strong> (SAD): Poslar na telefonu (automatsko javljanje uz pomoć umjetne inteligencije), samo za radionice koje ga uključe. Obrađuje razgovor s pozivateljem: broj s kojeg zove, govor, prijepis i sažetak. Za
             prepoznavanje i izgovor govora Vapi koristi svoje podizvršitelje.
           </li>
         </ul>

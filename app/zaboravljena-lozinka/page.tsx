@@ -8,7 +8,7 @@ import { ForgotForm } from './ForgotForm';
 export const metadata: Metadata = { title: 'Zaboravljena lozinka' };
 
 // With e-mail switched on (AUTH_EMAIL=1, Brevo through Supabase) a link
-// comes by mail; until then TaktiX support sends a new password on
+// comes by mail; until then Poslar support sends a new password on
 // WhatsApp (Toranj → Radionice → Uredi → Nova lozinka).
 export default async function ForgotPasswordPage({ searchParams }: { searchParams: Promise<{ istekla?: string }> }) {
   const { istekla } = await searchParams;
@@ -30,7 +30,7 @@ export default async function ForgotPasswordPage({ searchParams }: { searchParam
       ) : (
         <>
           <p className="mb-6 mt-1 text-sm text-muted">Javite nam se i poslat ćemo Vam novu lozinku. Napišite e-mail kojim se prijavljujete.</p>
-          <SupportWhatsApp message="Pozdrav, trebam novu lozinku za TaktiX. E-mail kojim se prijavljujem: " label="Zatraži na WhatsAppu" variant="primary" size="lg" className="w-full" />
+          <SupportWhatsApp message="Pozdrav, trebam novu lozinku za Poslar. E-mail kojim se prijavljujem: " label="Zatraži na WhatsAppu" variant="primary" size="lg" className="w-full" />
           {help.email ? <p className="mt-3 text-sm text-muted">Ili pišite na {help.email}.</p> : null}
         </>
       )}

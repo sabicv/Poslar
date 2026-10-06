@@ -20,16 +20,16 @@ export default function TermsPage() {
   return (
     <LegalPage
       title="Uvjeti korištenja"
-      intro={<p>Ovi uvjeti vrijede za korištenje aplikacije TaktiX. Registracijom radionice prihvaćate ove uvjete i Ugovor o obradi podataka.</p>}
+      intro={<p>Ovi uvjeti vrijede za korištenje aplikacije Poslar. Registracijom radionice prihvaćate ove uvjete i Ugovor o obradi podataka.</p>}
     >
       <Section n={1} title="Pružatelj usluge">
         <p>Uslugu pruža (u daljnjem tekstu: Pružatelj):</p>
         <ProviderBlock />
       </Section>
 
-      <Section n={2} title="Što je TaktiX">
+      <Section n={2} title="Što je Poslar">
         <p>
-          TaktiX je web aplikacija za radionice i obrtnike: radni nalozi, fotografije, mušterije, ponude i odobrenja, računi, podsjetnici i izvještaji. Koristi se u pregledniku ili kao aplikacija na
+          Poslar je web aplikacija za radionice i obrtnike: radni nalozi, fotografije, mušterije, ponude i odobrenja, računi, podsjetnici i izvještaji. Koristi se u pregledniku ili kao aplikacija na
           mobitelu.
         </p>
         <p>
@@ -48,7 +48,7 @@ export default function TermsPage() {
 
       <Section n={4} title="Probno razdoblje">
         <p>
-          Nova radionica koristi TaktiX {trialDays} dana bez plaćanja i bez kartice. Nakon toga aplikacija se zaključava dok Korisnik ne uplati pretplatu. Podaci ostaju sačuvani i nakon uplate se
+          Nova radionica koristi Poslar {trialDays} dana bez plaćanja i bez kartice. Nakon toga aplikacija se zaključava dok Korisnik ne uplati pretplatu. Podaci ostaju sačuvani i nakon uplate se
           nastavlja gdje se stalo.
         </p>
       </Section>
@@ -101,7 +101,7 @@ export default function TermsPage() {
 
       <Section n={9} title="Računi i fiskalizacija">
         <p>
-          TaktiX izrađuje račun sa stavkama i e-račun (XML). Aplikacija trenutno ne fiskalizira račune: fiskalni račun Korisnik izdaje svojom blagajnom, a broj fiskalnog računa može upisati na
+          Poslar izrađuje račun sa stavkama i e-račun (XML). Aplikacija trenutno ne fiskalizira račune: fiskalni račun Korisnik izdaje svojom blagajnom, a broj fiskalnog računa može upisati na
           račun u aplikaciji. Korisnik odgovara za ispravnost računa i za svoje porezne obveze.
         </p>
       </Section>

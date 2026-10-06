@@ -36,7 +36,7 @@ const feedbackSchema = z.object({
 });
 
 // "Ukloni podatke i ostavi povratnu informaciju": the review is kept for
-// TaktiX, the workshop and its logins are deleted, the owner signed out.
+// Poslar, the workshop and its logins are deleted, the owner signed out.
 export async function leaveAfterTrial(values: z.input<typeof feedbackSchema>): Promise<ActionResult> {
   const parsed = feedbackSchema.safeParse(values);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite unos.');

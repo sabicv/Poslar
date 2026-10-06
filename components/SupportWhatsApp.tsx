@@ -2,7 +2,7 @@ import { MessageCircle } from 'lucide-react';
 import { buttonClass } from '@/components/ui';
 import { supportWhatsApp } from '@/lib/billing';
 
-// A button that opens WhatsApp to TaktiX support with the message ready.
+// A button that opens WhatsApp to Poslar support with the message ready.
 // Shows nothing while no support number is set (SUPPORT_PHONE).
 export function SupportWhatsApp({
   message,

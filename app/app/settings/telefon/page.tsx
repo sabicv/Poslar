@@ -13,7 +13,10 @@ import { requireOwner } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { CalendarForm } from './CalendarForm';
 
-export const metadata: Metadata = { title: 'AI telefon' };
+export const metadata: Metadata = { title: 'Poslar na telefonu' };
+
+// Vapi writes the two sides as "AI:" and "User:".
+const speakers = (transcript: string) => transcript.replace(/^AI:/gm, 'Poslar:').replace(/^User:/gm, 'Mušterija:');
 
 // The phone agent from the owner's side: is it on, how to forward the
 // calls he does not take, the working hours it books into, and the calls.
@@ -35,15 +38,15 @@ export default async function PhoneAgentPage() {
 
   return (
     <>
-      <PageHeader title="AI telefon" subtitle="Javlja se kad Vi ne možete i dogovara termine" back={<BackLink href="/app/settings">Postavke</BackLink>} />
+      <PageHeader title="Poslar na telefonu" subtitle="Javlja se kad Vi ne možete i dogovara termine" back={<BackLink href="/app/settings">Postavke</BackLink>} />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-4">
           <Card>
-            <CardHeader title={on ? 'Uključen' : 'Nije uključen'} subtitle={on ? `AI broj radionice: ${t.phone_agent_number}` : undefined} />
+            <CardHeader title={on ? 'Uključen' : 'Nije uključen'} subtitle={on ? `Poslarov broj: ${t.phone_agent_number}` : undefined} />
             <div className="space-y-3 p-4 text-sm">
               {on ? (
                 <>
-                  <p>Pozive koje ne preuzmete preusmjerite na AI broj. Na svom mobitelu upišite kod i nazovite ga, kao da zovete broj:</p>
+                  <p>Pozive koje ne preuzmete preusmjerite na Poslarov broj. Na svom mobitelu upišite kod i nazovite ga, kao da zovete broj:</p>
                   <ul className="space-y-2">
                     <li className="rounded-xl bg-surface2 px-3 py-2">
                       Kad se ne javite: <span className="font-mono">**61*{number}#</span>
@@ -58,18 +61,18 @@ export default async function PhoneAgentPage() {
                       Isključiti sve: <span className="font-mono">##002#</span>
                     </li>
                   </ul>
-                  <p className="text-xs text-muted">Preusmjereni poziv operater naplaćuje kao Vaš poziv na taj broj. AI se predstavlja kao virtualni asistent radionice.</p>
+                  <p className="text-xs text-muted">Preusmjereni poziv operater naplaćuje kao Vaš poziv na taj broj. Poslar se javlja u ime radionice i kaže da se javlja automatski.</p>
                 </>
               ) : (
                 <>
-                  <p>Kad ga uključimo, pozive koje ne preuzmete preuzima AI: prepozna mušteriju, ponudi slobodan termin iz Vašeg radnog vremena i upiše nalog u Prijem. Vi samo potvrdite termin porukom.</p>
-                  <SupportWhatsApp message={`Pozdrav, želim AI telefon za radionicu ${t.name}. `} label="Želim AI telefon" variant="primary" />
+                  <p>Kad ga uključimo, pozive koje ne preuzmete preuzima Poslar: prepozna mušteriju, ponudi slobodan termin iz Vašeg radnog vremena i upiše nalog u Prijem. Vi samo potvrdite termin porukom.</p>
+                  <SupportWhatsApp message={`Pozdrav, želim Poslara na telefonu za radionicu ${t.name}. `} label="Želim Poslara na telefonu" variant="primary" />
                 </>
               )}
             </div>
           </Card>
           <Card>
-            <CardHeader title="Minute ovaj mjesec" subtitle={usage.quota ? `${usage.used} od ${usage.quota} minuta` : 'Vaš paket ne uključuje minute AI tajnika'} />
+            <CardHeader title="Minute ovaj mjesec" subtitle={usage.quota ? `${usage.used} od ${usage.quota} minuta` : 'Vaš paket ne uključuje minute Poslara na telefonu'} />
             <div className="space-y-3 p-4 text-sm">
               {usage.quota ? (
                 <div className="h-2 overflow-hidden rounded-full bg-surface2">
@@ -85,7 +88,7 @@ export default async function PhoneAgentPage() {
             </div>
           </Card>
           <Card>
-            <CardHeader title="Radno vrijeme i termini" subtitle="AI nudi samo slobodne termine unutar ovoga" />
+            <CardHeader title="Radno vrijeme i termini" subtitle="Poslar nudi samo slobodne termine unutar ovoga" />
             <div className="p-4">
               <CalendarForm hours={readHours(t.settings)} />
             </div>
@@ -111,7 +114,7 @@ export default async function PhoneAgentPage() {
                   {c.transcript ? (
                     <details className="text-xs text-faint">
                       <summary className="cursor-pointer select-none">Cijeli razgovor</summary>
-                      <p className="mt-2 whitespace-pre-wrap">{c.transcript}</p>
+                      <p className="mt-2 whitespace-pre-wrap">{speakers(c.transcript)}</p>
                     </details>
                   ) : null}
                 </li>
@@ -119,7 +122,7 @@ export default async function PhoneAgentPage() {
             </ul>
           ) : (
             <EmptyState icon={<PhoneForwarded className="size-8" />} title="Još nema poziva">
-              Ovdje se pojavi svaki poziv koji preuzme AI, sa sažetkom.
+              Ovdje se pojavi svaki poziv koji preuzme Poslar, sa sažetkom.
             </EmptyState>
           )}
         </Card>

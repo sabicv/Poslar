@@ -63,9 +63,9 @@ export const PHOTO_ANGLES = [
 
 export const body: PackageConfig = {
   id: 'body',
-  product: 'TaktiX Limar i lakirer',
+  product: 'Poslar Limar i lakirer',
   short: 'Limar i lakirer',
-  domain: 'bodyfiles.hr',
+  domain: 'limar-lakirer.poslar.hr',
   tagline: 'Autolimarija, lakirnica i procjena štete',
   pitch: [
     'Mapa oštećenja: dodir panela, operacija i sati po fazi',

@@ -25,7 +25,7 @@ export default async function SupportPage() {
 
   return (
     <>
-      <PageHeader title="Pomoć" subtitle="Vaše prijave i odgovori TaktiX podrške" back={<BackLink href="/app/settings">Postavke</BackLink>} action={<SupportButton after="stay" />} />
+      <PageHeader title="Pomoć" subtitle="Vaše prijave i odgovori podrške Poslara" back={<BackLink href="/app/settings">Postavke</BackLink>} action={<SupportButton after="stay" />} />
       {rows.length === 0 ? (
         <EmptyState icon={<LifeBuoy className="size-8" />} title="Nema prijava">
           Ako nešto ne radi ili Vam nešto treba, dodirnite „Javi problem”. Odgovor stiže ovdje.
@@ -45,7 +45,7 @@ export default async function SupportPage() {
                   .map((m) => (
                     <li key={m.id} className={cn('max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm', m.from_admin ? 'bg-accent/15' : 'ml-auto bg-surface2')}>
                       <p className="mb-0.5 text-xs text-muted">
-                        {m.from_admin ? 'TaktiX podrška' : m.author_id === ctx.user.id ? 'Vi' : 'Vaš tim'} · {formatDateTime(m.created_at)}
+                        {m.from_admin ? 'Poslar podrška' : m.author_id === ctx.user.id ? 'Vi' : 'Vaš tim'} · {formatDateTime(m.created_at)}
                       </p>
                       <p className="whitespace-pre-wrap">{m.body}</p>
                     </li>

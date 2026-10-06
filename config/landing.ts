@@ -17,10 +17,10 @@ export const CTA_DEMO = 'Isprobaj demo verziju s izmišljenim podacima';
 export const MAIN = {
   eyebrow: 'Operativni sustav za radionice i majstore na terenu',
   title: 'Dok su ti ruke u poslu, pozivi i papiri više ne čekaju.',
-  subtitle: 'AI tajnik preuzima pozive, ugovara termine i priprema radne naloge dok ti radiš. Sve kontroliraš s mobitela: čisto, uredno i bez gubljenja vremena.',
+  subtitle: 'Poslar preuzima pozive, ugovara termine i priprema radne naloge dok ti radiš. Sve kontroliraš s mobitela: čisto, uredno i bez gubljenja vremena.',
   pickLabel: 'Odaberi svoju struku:',
   pillars: [
-    { title: 'AI tajnik', text: 'Odgovara na pozive mušterija i slaže raspored dok si pod autom ili na terenu.' },
+    { title: 'Poslar na telefonu', text: 'Odgovara na pozive mušterija i slaže raspored dok si pod autom ili na terenu.' },
     { title: 'Bez ručne administracije', text: 'Radni nalozi, računi i paketi za knjigovođu nastaju automatski.' },
     { title: 'Potpuna kontrola', text: 'Pregled svih radova, slika i prometa na tvom mobitelu, gdje god se nalazio.' },
   ],
@@ -28,11 +28,11 @@ export const MAIN = {
   scenes: [
     {
       title: 'Telefon zvoni, a ti si pod dizalicom ili u gužvi.',
-      text: 'AI tajnik se javi umjesto tebe, provjeri kalendar, ponudi slobodan termin i otvori radni nalog s registracijom. Ti ga samo potvrdiš kad oslobodiš ruke.',
+      text: 'Poslar se javi umjesto tebe, provjeri kalendar, ponudi slobodan termin i otvori radni nalog s registracijom. Ti ga samo potvrdiš kad oslobodiš ruke.',
     },
     {
       title: 'Na godišnjem si odmoru, a radionica radi bez zastoja.',
-      text: 'S plaže imaš uvid u svaki radni nalog i priloženu fotografiju. AI tajnik raspoređuje pozive, radnici prate zadatke u aplikaciji, a tebi na kraju dana stigne sažeti pregled obavljenog posla i prometa.',
+      text: 'S plaže imaš uvid u svaki radni nalog i priloženu fotografiju. Poslar raspoređuje pozive, radnici prate zadatke u aplikaciji, a tebi na kraju dana stigne sažeti pregled obavljenog posla i prometa.',
     },
     {
       title: 'Šalješ mlađeg radnika na složeniji zahvat.',
@@ -57,14 +57,14 @@ export const MAIN = {
     { q: 'Mušterija prigovara da niste tako dogovorili ili da je cijena neočekivana?', a: 'Svaki rad i cijenu mušterija odobrava unaprijed putem WhatsAppa uz točan zapis vremena i iznosa.' },
     { q: 'Knjigovođa te potkraj mjeseca stalno traži papire i računovodstvene fascikle?', a: 'Jednim klikom pošalji kompletan mjesečni paket sa svim računima i tablicama izravno knjigovođi.' },
   ],
-  // Each one opens with "+": the trouble, then how it goes with TaktiX.
+  // Each one opens with "+": the trouble, then how it goes with Poslar.
   extrasTitle: 'I još puno toga',
   extrasHint: 'Dodirni + i vidi kako to izgleda u praksi.',
   extras: [
     {
       title: 'Podsjetnici mušterijama za redoviti servis',
       problem: 'Mušterija zaboravi servis. Javi se tek kad nešto stane.',
-      solution: 'TaktiX pamti rok servisa za svako vozilo i uređaj. Svaki tjedan vidiš kome ističe. Jednim dodirom šalješ poruku na WhatsApp. Mušterija se vraća tebi, a ne konkurenciji.',
+      solution: 'Poslar pamti rok servisa za svako vozilo i uređaj. Svaki tjedan vidiš kome ističe. Jednim dodirom šalješ poruku na WhatsApp. Mušterija se vraća tebi, a ne konkurenciji.',
     },
     {
       title: 'QR prijava na ulazu radionice',
@@ -84,11 +84,11 @@ export const MAIN = {
     {
       title: 'Slanje e-Računa',
       problem: 'Tvrtke od 2026. traže e-Račun. Obični PDF više nije dovoljan.',
-      solution: 'Uz svaki izdani račun TaktiX složi i e-Račun datoteku. Knjigovođa je dobije u mjesečnom paketu. Ništa ne prepisuješ dvaput.',
+      solution: 'Uz svaki izdani račun Poslar složi i e-Račun datoteku. Knjigovođa je dobije u mjesečnom paketu. Ništa ne prepisuješ dvaput.',
     },
   ],
   tradesTitle: 'Prilagođeno tvojoj struci',
-  tradesSubtitle: 'Svaki zanat ima svoje specifične izazove. TaktiX ima rješenje za svaki od njih.',
+  tradesSubtitle: 'Svaki zanat ima svoje specifične izazove. Poslar ima rješenje za svaki od njih.',
   finalTitle: 'Isprobaj na prvom sljedećem poslu.',
   finalSub: 'Stekni prednost pred konkurencijom i digitaliziraj posao po svojoj mjeri.',
   finalAsk: 'Pitaj nas na WhatsAppu',
@@ -119,9 +119,9 @@ export const PRICING = {
   best: 'Najčešći izbor',
   vat: 'Sve istaknute cijene uključuju PDV.',
   plans: {
-    basic: ['Voditelj i do 2 radnika', 'Radni nalozi, fotodokumentacija i računi', 'Odobrenje ponuda i cijena putem WhatsAppa', 'Automatski paket za knjigovođu', '150 skeniranja i 100 upita Kopilotu mjesečno', 'AI tajnik: uz doplatu, 100 minuta za 25 €'],
-    standard: ['Voditelj i do 5 radnika', 'Sve funkcionalnosti iz Basic paketa', 'QR sustav prijave na ulazu radionice', 'AI tajnik: uključeno 60 minuta razgovora mjesečno', '300 skeniranja i 200 upita Kopilotu mjesečno'],
-    premium: ['Voditelj i do 10 radnika', 'Sve funkcionalnosti iz Standard paketa', 'AI tajnik: uključeno 150 minuta razgovora mjesečno', 'Upravljanje s više poslovnica / radionica', '600 skeniranja i 400 upita Kopilotu mjesečno'],
+    basic: ['Voditelj i do 2 radnika', 'Radni nalozi, fotodokumentacija i računi', 'Odobrenje ponuda i cijena putem WhatsAppa', 'Automatski paket za knjigovođu', '150 skeniranja i 100 upita Kopilotu mjesečno', 'Poslar na telefonu: uz doplatu, 100 minuta za 25 €'],
+    standard: ['Voditelj i do 5 radnika', 'Sve funkcionalnosti iz Basic paketa', 'QR sustav prijave na ulazu radionice', 'Poslar na telefonu: uključeno 60 minuta razgovora mjesečno', '300 skeniranja i 200 upita Kopilotu mjesečno'],
+    premium: ['Voditelj i do 10 radnika', 'Sve funkcionalnosti iz Standard paketa', 'Poslar na telefonu: uključeno 150 minuta razgovora mjesečno', 'Upravljanje s više poslovnica / radionica', '600 skeniranja i 400 upita Kopilotu mjesečno'],
   } as Record<'basic' | 'standard' | 'premium', string[]>,
 };
 
@@ -132,8 +132,8 @@ export const FAQ: { q: string; a: string }[] = [
     a: 'Odmah otvaraš svoju radionicu i 30 dana radiš besplatno na pravim poslovima. Ako želiš prvo razgledati, otvori demo s izmišljenim primjerima iz tvoje struke: traje 24 sata, a nakon toga nastavljaš 30 dana besplatno ili jednostavno odustaješ. Unos bankovne kartice za vrijeme trajanja besplatnog perioda nije potreban.',
   },
   {
-    q: 'Što točno radi AI tajnik?',
-    a: 'AI tajnik preuzima pozive kada se ne stigneš javiti. Predstavi se kao virtualni asistent tvoje radionice, prikupi osnovne informacije od mušterije, ponudi slobodan termin iz tvog kalendara i otvori radni nalog.',
+    q: 'Što točno radi Poslar na telefonu?',
+    a: 'Poslar preuzima pozive kada se ne stigneš javiti. Javi se u ime tvoje radionice, prikupi osnovne informacije od mušterije, ponudi slobodan termin iz tvog kalendara i otvori radni nalog.',
   },
   {
     q: 'Kako prebaciti postojeću bazu klijenata i vozila?',
@@ -169,9 +169,9 @@ export const TRADE_PAGES: TradePage[] = [
     id: 'gear',
     slug: 'automehanicar',
     eyebrow: 'Automehanika i opći servis',
-    title: 'Ti si pod dizalicom. TaktiX preuzima poziv i slaže termin.',
+    title: 'Ti si pod dizalicom. Poslar preuzima poziv i slaže termin.',
     subtitle: 'Pozivi, radni nalozi, servisni planovi i računi. Sve teče glatko dok su ti ruke u poslu.',
-    agent: 'Mušterija zove radi malog servisa. AI tajnik provjerava kalendar, ponudi prvi slobodan termin i otvori nalog s brojem registracije. Na tebi je samo da potvrdiš unos.',
+    agent: 'Mušterija zove radi malog servisa. Poslar provjerava kalendar, ponudi prvi slobodan termin i otvori nalog s brojem registracije. Na tebi je samo da potvrdiš unos.',
     scene: 'Mlađi radnik radi veliki servis. Kopilot ga vodi kroz svaki korak zahvata, dok inspekcija u 50 točaka jamči da nijedan detalj ne ostane nepregledan.',
     pains: [
       { q: 'Koliko je pređeno od zadnje izmjene ulja?', a: 'Servisni plan bilježi kilometre i datume te sam šalje podsjetnik klijentu kad dođe vrijeme za servis.' },
@@ -193,7 +193,7 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Autoelektrika, dijagnostika i elektronika',
     title: 'Greška na autu? Rješenje je već u tvojoj arhivi.',
     subtitle: 'Kodovi grešaka, mjerenja i zahvati na modulima. Sve ostaje zapisano i pretraživo u sekundi.',
-    agent: 'Mušterija zove i objašnjava da auto ujutro teško pali. AI tajnik pita koje se lampice pale na kontrolnoj ploči, bilježi simptome i zakazuje termin za dijagnostiku.',
+    agent: 'Mušterija zove i objašnjava da auto ujutro teško pali. Poslar pita koje se lampice pale na kontrolnoj ploči, bilježi simptome i zakazuje termin za dijagnostiku.',
     scene: 'Radnik dijagnosticira kompleksan kvar. Pred sobom ima očitan DTC kod, popis mogućih uzroka i tvoje ranije riješene slučajeve na tom modelu. Rješava problem bez zvanja i prekidanja tvog rada.',
     pains: [
       { q: 'Koji si specifičan kvar lani riješio na istom modelu vozila?', a: 'Unesi DTC kod u tražilicu i odmah otvori svoje stare bilješke s točnim rješenjem.' },
@@ -215,7 +215,7 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Autolimarija, lakirnica i procjena šteta',
     title: 'Oštećenja, fotografije i zapisnik. Osiguranje dobiva sve na dlanu.',
     subtitle: 'Od zaprimanja do izlaska iz komore. Svaka faza je dokumentirana, a svaki gram boje izbrojan.',
-    agent: 'Klijent zove radi ogrebotine i udubljenja na vratima. AI tajnik prikuplja osnovne podatke o oštećenju i dogovara termin za procjenu štete dok ti nastavljaš rad u radionici.',
+    agent: 'Klijent zove radi ogrebotine i udubljenja na vratima. Poslar prikuplja osnovne podatke o oštećenju i dogovara termin za procjenu štete dok ti nastavljaš rad u radionici.',
     scene: 'Upravljaš radovima u limariji i lakirnici. U svakom trenutku na mobitelu vidiš u kojoj se točno fazi nalazi koje vozilo, od pripreme i kitanja do komore i poliranja.',
     pains: [
       { q: 'Kako dokazati točnu potrošnju i recepturu zamiješane boje?', a: 'Zapisuj šifru boje i točnu recepturu u gramima za svaki radni nalog.' },
@@ -237,7 +237,7 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Vulkanizerske usluge, geometrija kotača i hotel za gume',
     title: 'Prebrodi sezonsku gužvu bez kaosa na telefonu.',
     subtitle: 'Termini, hotel za gume i obavijesti mušterijama. Ti mijenjaš gume, sustav vodi sve ostalo.',
-    agent: 'U listopadu telefon zvoni bez prestanka. Dok ti radiš na dizalici s udarnim odvrtačem, AI tajnik samostalno puni kalendar sat po sat i raspoređuje termine zamjene.',
+    agent: 'U listopadu telefon zvoni bez prestanka. Dok ti radiš na dizalici s udarnim odvrtačem, Poslar samostalno puni kalendar sat po sat i raspoređuje termine zamjene.',
     scene: 'Radnik preuzima set guma iz skladišta. Skenira QR kod s naljepnice i odmah zna točnu lokaciju u hotelu za gume.',
     pains: [
       { q: 'Gubiš vrijeme tražeći gdje su odložene gume određenog klijenta?', a: 'QR naljepnica točno označava regal, policu i poziciju u hotelu za gume.' },
@@ -259,11 +259,11 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Teretni program, građevinska mehanizacija i vozni parkovi',
     title: 'Nijedan rok ne promakne. Ni periodični pregled, ni tahograf.',
     subtitle: 'Motosati, kilometri i zakonske obveze. Potpuna evidencija za tegljače, prikolice, bagere i traktore.',
-    agent: 'Voditelj prijevozne tvrtke zove radi redovnog servisa kamiona. AI tajnik preuzima podatke o vozilu, provjerava raspored i rezervira termin u radionici.',
+    agent: 'Voditelj prijevozne tvrtke zove radi redovnog servisa kamiona. Poslar preuzima podatke o vozilu, provjerava raspored i rezervira termin u radionici.',
     scene: 'Servisna ekipa je na terenu kod radnog stroja. Radni nalog sadrži točnu GPS lokaciju, popis radova i digitalni potpis strojara ili vozača po završetku.',
     pains: [
       { q: 'Kako izbjeći propuste oko atesta, tahografa ili tehničkog pregleda?', a: 'Sustav automatski šalje upozorenja o zakonskim rokovima tjednima unaprijed.' },
-      { q: 'Kako precizno voditi servis kad se dio mehanizacije mjeri u kilometrima, a dio u motosatima?', a: 'TaktiX vodi dvostruku evidenciju i sam izračunava dospijeće servisa „što prije nastupi”.' },
+      { q: 'Kako precizno voditi servis kad se dio mehanizacije mjeri u kilometrima, a dio u motosatima?', a: 'Poslar vodi dvostruku evidenciju i sam izračunava dospijeće servisa „što prije nastupi”.' },
       { q: 'Kamion i prikolica stigli su skupa, ali zahtijevaju odvojenu povijest održavanja?', a: 'Sustav vodi zasebne kartone za vučna i priključna vozila ili radne alate.' },
     ],
     features: [
@@ -281,7 +281,7 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Motocikli, skuteri i quadovi',
     title: 'Sezona kreće naglo. Ti stigneš sve prije prvog sunčanog dana.',
     subtitle: 'Zaprimanje s potpisom, konzervacija za zimu i skladište motocikala. Jedan sustav za cijelu sezonu.',
-    agent: 'Prvi topli dan i telefon zvoni bez prestanka, svi žele dekonzervaciju odjednom. AI tajnik slaže termine po redu i otvara nalog s registracijom dok ti radiš na dizalici.',
+    agent: 'Prvi topli dan i telefon zvoni bez prestanka, svi žele dekonzervaciju odjednom. Poslar slaže termine po redu i otvara nalog s registracijom dok ti radiš na dizalici.',
     scene: 'Preko zime garaža je puna motocikala na čuvanju. Skladišni modul ti točno pokazuje gdje je koji motocikl i u kojoj je fazi konzervacije, bez listanja bilježnice.',
     pains: [
       { q: 'Vlasnik tvrdi da je ogrebotina na oklopu nastala kod tebe tijekom zimovanja?', a: 'Prijemni zapisnik ima fotografije zatečenog stanja i digitalni potpis klijenta pri predaji.' },
@@ -303,7 +303,7 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Plovila, jet-skiji, vanbrodski i unutarnji motori',
     title: 'Zimovanje bez papirnatog kaosa. Proljeće bez stresa.',
     subtitle: 'Zaprimanje s potpisom, konzervacija motora i vođenje zimovnika. Za plovila, jet-skije i vanbrodske motore.',
-    agent: 'S prvim sunčanim danima u ožujku svi klijenti zovu u isto vrijeme radi dekonzervacije. AI tajnik samostalno slaže termine i organizira kalendar radova.',
+    agent: 'S prvim sunčanim danima u ožujku svi klijenti zovu u isto vrijeme radi dekonzervacije. Poslar samostalno slaže termine i organizira kalendar radova.',
     scene: 'Tijekom zimskih mjeseci poslovanje je pod potpunom kontrolom. Skladišni modul točno prikazuje gdje je smješteno koje plovilo i u kojoj je fazi konzervacije.',
     pains: [
       { q: 'Vlasnik tvrdi da je ogrebotina na trupu nastala tijekom zimovanja?', a: 'Prijemni zapisnik sadrži fotografije zatečenog stanja i digitalni potpis klijenta pri predaji.' },
@@ -323,9 +323,9 @@ export const TRADE_PAGES: TradePage[] = [
     id: 'air',
     slug: 'klima-serviser',
     eyebrow: 'Klima uređaji, dizalice topline i ventilacijski sustavi',
-    title: 'Ti montiraš na terenu. AI tajnik puni tvoj dnevni raspored.',
+    title: 'Ti montiraš na terenu. Poslar puni tvoj dnevni raspored.',
     subtitle: 'Raspored rada, evidencija F-plinova i slikovni izvještaji. Sve dostupno s terena.',
-    agent: 'U srpnju na +35 °C telefon zvoni bez prestanka. AI tajnik preuzima pozive, bilježi adresu, provjerava lokacije i ugovara termine prema tvom planu kretanja.',
+    agent: 'U srpnju na +35 °C telefon zvoni bez prestanka. Poslar preuzima pozive, bilježi adresu, provjerava lokacije i ugovara termine prema tvom planu kretanja.',
     scene: 'Više terenskih timova radi na terenu. Svaki monter na mobitelu ima svoj dnevni raspored i navigaciju. Ti iz ureda ili vozila pratiš završene izvještaje sa slikama.',
     pains: [
       { q: 'Koliko je radnog medija dopunjeno u sustav na prošlom servisu?', a: 'Karton opreme automatski bilježi F-plinove i ispitivanja propusnosti uz svaki uređaj.' },
@@ -345,9 +345,9 @@ export const TRADE_PAGES: TradePage[] = [
     id: 'aqua',
     slug: 'vodoinstalater',
     eyebrow: 'Vodoinstalacije, grijanje, bojleri i hitne intervencije',
-    title: 'Curi voda? AI tajnik odmah daje prvu uputu klijentu.',
+    title: 'Curi voda? Poslar odmah daje prvu uputu klijentu.',
     subtitle: 'Hitni pozivi, tlačne probe i servisi bojlera. Potpuna organizacija terenskog rada.',
-    agent: 'Klijent zove u panici zbog puknuća cijevi. AI tajnik ga smireno uputi kako zatvoriti glavni ventil, prikupi adresu i odmah ti otvara nalog za hitnu intervenciju.',
+    agent: 'Klijent zove u panici zbog puknuća cijevi. Poslar ga smireno uputi kako zatvoriti glavni ventil, prikupi adresu i odmah ti otvara nalog za hitnu intervenciju.',
     scene: 'Pomoćnik samostalno izvodi tlačnu probu cjevovoda. Preko aplikacije fotografira manometar i generira službeni zapisnik bez potrebe za naknadnim pisanjem u uredu.',
     pains: [
       { q: 'Zaboraviš kad je na kojem objektu potrebno zamijeniti zaštitnu anodu u bojleru?', a: 'Sustav vodi bazu ugrađenih uređaja i upozorava na dospijeće servisa.' },
@@ -369,7 +369,7 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Vuča vozila, asistencija i pomoć na cesti',
     title: 'Poziv u tri ujutro. Lokacija i navigacija spremni u sekundi.',
     subtitle: 'Brzo preuzimanje lokacije, fotografije pri utovaru, obračun kilometara i vođenje depoa.',
-    agent: 'Dok voziš ili spavaš, AI tajnik preuzima poziv vozača u kvaru, zabilježi točnu GPS lokaciju, marku vozila i broj predmeta asistencije te ti priprema rute za polazak.',
+    agent: 'Dok voziš ili spavaš, Poslar preuzima poziv vozača u kvaru, zabilježi točnu GPS lokaciju, marku vozila i broj predmeta asistencije te ti priprema rute za polazak.',
     scene: 'Noćna smjena odrađuje intervenciju. Vozač vučnog vozila ima sve podatke i fotografije utovarenog vozila na mobitelu, dok ured ima uvid u status intervencije u realnom vremenu.',
     pains: [
       { q: 'Kako se zaštititi od lažnih tvrdnji da je oštećenje na vozilu nastalo tijekom utovara?', a: 'Obavezni foto-zapisnik s vremenskom oznakom prije podizanja na navoz rješava sve prigovore.' },
@@ -391,7 +391,7 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Otkup, priprema i prodaja rabljenih vozila',
     title: 'Svaki auto na placu: dani, uloženi trošak i čista zarada.',
     subtitle: 'Od otkupa do prodaje. Potpuni financijski pregled ulaganja u svako vozilo na lageru.',
-    agent: 'Kupac zove kasno navečer za auto iz oglasa. AI tajnik provjerava je li vozilo slobodno ili rezervirano, daje osnovne informacije i ugovara termin za razgledavanje.',
+    agent: 'Kupac zove kasno navečer za auto iz oglasa. Poslar provjerava je li vozilo slobodno ili rezervirano, daje osnovne informacije i ugovara termin za razgledavanje.',
     scene: 'Vodiš jedan ili više auto placeva. U svakom trenutku na mobitelu vidiš koliko dana pojedini auto stoji na skladištu, koliko je uloženo u njegovu pripremu i kolika je očekivana marža.',
     pains: [
       { q: 'Auto stoji na placu 90 dana, a nemaš točan pregled koliko te do sada koštao?', a: 'Svako vozilo ima svoju karticu u koju ulaze nabavna cijena, svi dijelovi, poliranje i popravci.' },
@@ -413,7 +413,7 @@ export const tradeBySlug = (slug: string) => TRADE_PAGES.find((t) => t.slug === 
 export const tradeById = (id: PackageId) => TRADE_PAGES.find((t) => t.id === id)!;
 
 export const TRADE_SECTION = {
-  agent: 'AI tajnik na djelu',
+  agent: 'Poslar na djelu',
   scene: 'Prizor iz radionice',
   pains: 'Poznate situacije',
   features: 'Ključne mogućnosti',

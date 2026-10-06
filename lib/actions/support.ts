@@ -112,7 +112,7 @@ export async function requestDeletion(): Promise<ActionResult<{ id: string }>> {
 export async function requestPhonePack(): Promise<ActionResult<{ id: string }>> {
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Ovo traži voditelj servisa.');
-  return createTicket(`Želim dodatnih ${PHONE_PACK.minutes} minuta AI tajnika mjesečno (${PHONE_PACK.price} €).`, '/app/settings/telefon');
+  return createTicket(`Želim dodatnih ${PHONE_PACK.minutes} minuta za Poslara na telefonu mjesečno (${PHONE_PACK.price} €).`, '/app/settings/telefon');
 }
 
 // "Želim ovaj paket": a request the tower answers (plans change there).

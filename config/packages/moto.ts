@@ -9,9 +9,9 @@ export const MOTO_ZONES = [
 
 export const moto: PackageConfig = {
   id: 'moto',
-  product: 'TaktiX Moto',
+  product: 'Poslar Moto',
   short: 'Moto',
-  domain: 'motofiles.hr',
+  domain: 'motocikli.poslar.hr',
   tagline: 'Motocikli, skuteri i quadovi',
   pitch: [
     'Zapisnik oklopa i opreme pri prijemu, s potpisom',

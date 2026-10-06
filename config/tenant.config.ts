@@ -1,5 +1,5 @@
 // =====================================================================
-// TaktiX · central tenant configuration
+// Poslar · central tenant configuration
 //
 // One workshop = one package. Everything that differs between Volt,
 // Gear, Body, Wheel, Fleet, Moto, Marine, Air, Aqua, Tow and Deal lives here as typed data: brand and
@@ -281,7 +281,7 @@ export function findInspection(pkg: PackageConfig, code: string): InspectionTemp
   return pkg.inspections.find((t) => t.code === code);
 }
 
-// Product by domain: gearfiles.hr → Gear. Subdomains (gear.localhost,
+// Product by domain: automehanicar.poslar.hr → Gear. Subdomains (gear.localhost,
 // gear.x-files.vercel.app) work too, for testing all of them on one server.
 export function matchPackageFromHost(host: string | null | undefined): PackageConfig | null {
   const h = (host ?? '').toLowerCase().split(':')[0];
@@ -323,10 +323,11 @@ function luminance([r, g, b]: [number, number, number]): number {
 // black and white by contrast.
 // The umbrella brand, for an address that is no product's domain (the
 // Vercel URL) and a visitor who is not signed in.
-// TaktiX: light blue for actions, the logo orange for the mark;
+// Poslar: light blue for actions (dark text on it stays readable),
 // products keep their own colours inside the app.
-// accent: the app's light blue; mark and blue: the logo's orange and blue.
-export const BRAND = { id: 'taktix', name: 'TaktiX', tagline: 'Manje administracije. Više odrađenog posla.', accent: '#6CC5EA', mark: '#FC6002', blue: '#2875BC' } as const;
+// accent: the app's light blue; mark and blue: the logo's orange and blue
+// (public/brand, drawn by scripts/brand.mjs).
+export const BRAND = { id: 'poslar', name: 'Poslar', tagline: 'Manje administracije. Više odrađenog posla.', accent: '#6CC5EA', mark: '#F15A24', blue: '#1CA7DD' } as const;
 
 export function brandAccentStyle(): CSSProperties {
   return accentStyle({ accent: BRAND.accent } as PackageConfig);

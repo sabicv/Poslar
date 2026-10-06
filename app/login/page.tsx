@@ -9,11 +9,11 @@ import { LoginForm } from './LoginForm';
 export const metadata: Metadata = { title: 'Prijava' };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  // A product domain shows its product; any other address the TaktiX brand.
+  // A product domain shows its product; any other address the Poslar brand.
   const pkg = matchPackageFromHost((await headers()).get('host'));
   const { next } = await searchParams;
   const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '/app';
-  const chat = supportWhatsApp('Pozdrav, ne mogu se prijaviti u TaktiX. ');
+  const chat = supportWhatsApp('Pozdrav, ne mogu se prijaviti u Poslar. ');
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-5 pb-safe pt-safe">

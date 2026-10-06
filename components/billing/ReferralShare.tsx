@@ -7,7 +7,7 @@ import { copyText } from '@/lib/clipboard';
 
 // The owner's referral link: copy it or send it on WhatsApp in one tap.
 export function ReferralShare({ link, workshop }: { link: string; workshop: string }) {
-  const message = `Ja vodim radionicu u TaktiX aplikaciji: nalozi, slike i računi iz mobitela. Probaj 30 dana besplatno: ${link}\n\n${workshop}`;
+  const message = `Ja vodim radionicu u aplikaciji Poslar: nalozi, slike i računi iz mobitela. Probaj 30 dana besplatno: ${link}\n\n${workshop}`;
   return (
     <div className="space-y-3">
       <p className="break-all rounded-xl border border-line bg-bg px-3 py-2 font-mono text-xs">{link}</p>

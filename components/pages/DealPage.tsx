@@ -20,7 +20,7 @@ type StockRow = {
   asset: { asset_type: never; identifier: string | null; make: string | null; model: string | null; year: number | null } | null;
 };
 
-// Deal Files: the lot. Oldest car first, because the days standing are
+// Poslar Auto plac: the lot. Oldest car first, because the days standing are
 // what costs a dealer money; the owner also sees what each car earns.
 export async function DealPage({ ctx }: { ctx: WorkshopContext }) {
   const today = todayInZagreb();

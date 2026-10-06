@@ -90,7 +90,7 @@ export async function offerSlots(admin: Admin, at: AgentTenant, preferDay?: stri
 
 export function agentVariables(at: AgentTenant, caller: { text: string; name: string | null }) {
   const field = at.pkg.sector === 'field';
-  const greeting = `Dobar dan, ${at.tenant.name}, ovdje virtualni asistent. Majstor se trenutno ne može javiti.${caller.name ? ` Jeste li Vi ${caller.name}?` : ' Kako Vam mogu pomoći?'}`;
+  const greeting = `Dobar dan, ${at.tenant.name}, ovdje Poslar. Majstor trenutno ne može, pa se javljam automatski.${caller.name ? ` Jeste li Vi ${caller.name}?` : ' Kako Vam mogu pomoći?'}`;
   const today = spokenSlot(new Date()).split(' u ')[0];
   return {
     radionica: at.tenant.name,
@@ -193,7 +193,7 @@ export async function book(
     .select('id, number')
     .single();
   if (error || !job) return { ok: false, message: 'Rezervacija nije spremljena. Zapiši poruku za majstora.' };
-  await admin.from('job_events').insert({ tenant_id, job_id: job.id, event_type: 'created', message: `Termin dogovorio AI telefon: ${slot.label} · ${name}, ${input.phone}` });
+  await admin.from('job_events').insert({ tenant_id, job_id: job.id, event_type: 'created', message: `Termin dogovorio Poslar na telefonu: ${slot.label} · ${name}, ${input.phone}` });
   if (input.callId) {
     const { data: row } = await admin.from('phone_calls').select('id').eq('provider_call_id', input.callId).maybeSingle();
     if (row) await admin.from('phone_calls').update({ job_id: job.id }).eq('id', row.id);

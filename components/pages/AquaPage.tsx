@@ -5,7 +5,7 @@ import type { WorkshopContext } from '@/lib/session';
 import { addMonths, todayInZagreb } from '@/lib/time';
 import { DuePlans } from './DuePlans';
 
-// Aqua Files: service that is due, and water heaters whose anode is old
+// Poslar Vodoinstalater: service that is due, and water heaters whose anode is old
 // enough to offer a service even without a plan.
 export async function AquaPage({ ctx }: { ctx: WorkshopContext }) {
   const today = todayInZagreb();

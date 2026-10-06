@@ -8,7 +8,7 @@ import { dayOf, todayInZagreb, zagrebMidnight } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { DuePlans } from './DuePlans';
 
-// Air Files: recurring service that is due, and the yearly F-gas picture.
+// Poslar Klima serviser: recurring service that is due, and the yearly F-gas picture.
 export async function AirPage({ ctx, year: requestedYear }: { ctx: WorkshopContext; year?: string }) {
   const today = todayInZagreb();
   const year = requestedYear && /^\d{4}$/.test(requestedYear) ? Number(requestedYear) : Number(today.slice(0, 4));

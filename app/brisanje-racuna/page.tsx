@@ -8,10 +8,10 @@ export const metadata: Metadata = { title: 'Brisanje računa' };
 // (Google Play links here from the store listing).
 export default function AccountDeletionPage() {
   return (
-    <LegalPage title="Brisanje računa" intro={<p>Ovdje piše kako zatražiti brisanje računa u aplikaciji TaktiX, što se briše, što se čuva i u kojem roku.</p>}>
+    <LegalPage title="Brisanje računa" intro={<p>Ovdje piše kako zatražiti brisanje računa u aplikaciji Poslar, što se briše, što se čuva i u kojem roku.</p>}>
       <Section n={1} title="U aplikaciji">
         <p>
-          Otvorite <strong>Postavke → Moj račun</strong>, dodirnite <strong>Zatraži brisanje računa</strong> i potvrdite. Zahtjev stiže TaktiX podršci.
+          Otvorite <strong>Postavke → Moj račun</strong>, dodirnite <strong>Zatraži brisanje računa</strong> i potvrdite. Zahtjev stiže podršci Poslara.
         </p>
       </Section>
 
@@ -35,7 +35,7 @@ export default function AccountDeletionPage() {
 
       <Section n={4} title="Što se čuva">
         <ul>
-          <li>Računi i uplate za pretplatu TaktiX-a, onoliko koliko propisuju računovodstveni i porezni propisi.</li>
+          <li>Računi i uplate za pretplatu Poslara, onoliko koliko propisuju računovodstveni i porezni propisi.</li>
           <li>Sažeci IP adresa za zaštitu od zlouporabe najdulje 30 dana, zapisi o greškama najdulje 12 mjeseci.</li>
         </ul>
       </Section>

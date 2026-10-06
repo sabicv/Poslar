@@ -61,7 +61,7 @@ export default async function DoorIntakePage({ params }: { params: Promise<{ tok
           Privatnost
         </a>
       </p>
-      <p className="pb-8 pt-1 text-center text-xs text-faint">Pokreće TaktiX</p>
+      <p className="pb-8 pt-1 text-center text-xs text-faint">Pokreće Poslar</p>
     </main>
   );
 }

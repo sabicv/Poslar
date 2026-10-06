@@ -1,10 +1,11 @@
 import 'server-only';
 import { getPlan, monthlyPrice } from '@/config/plans';
 import { internationalDigits, whatsappLink } from '@/lib/contact';
+import { companyEnv } from '@/lib/legal';
 import { addDays, todayInZagreb } from '@/lib/time';
 import type { Tenant } from '@/types/db';
 
-// Paying the TaktiX subscription by bank transfer: who to pay (set in the
+// Paying the Poslar subscription by bank transfer: who to pay (set in the
 // server environment, never in code), the workshop's own reference, and
 // where the workshop stands. Card payments come later (Stripe).
 
@@ -19,17 +20,17 @@ export interface Payee {
 }
 
 export function payee(): Payee | null {
-  const iban = process.env.TAKTIX_IBAN?.replace(/\s/g, '').toUpperCase();
-  const name = process.env.TAKTIX_PAYEE_NAME?.trim();
+  const iban = companyEnv('IBAN')?.replace(/\s/g, '').toUpperCase();
+  const name = companyEnv('PAYEE_NAME');
   if (!iban || !/^HR\d{19}$/.test(iban) || !name) return null;
-  return { name, street: process.env.TAKTIX_PAYEE_STREET?.trim() ?? '', city: process.env.TAKTIX_PAYEE_CITY?.trim() ?? '', iban };
+  return { name, street: companyEnv('PAYEE_STREET') ?? '', city: companyEnv('PAYEE_CITY') ?? '', iban };
 }
 
 export function support(): { phone: string | null; email: string | null } {
   return { phone: process.env.SUPPORT_PHONE?.trim() || null, email: process.env.SUPPORT_EMAIL?.trim() || null };
 }
 
-// WhatsApp to TaktiX support with the message ready; null while no number
+// WhatsApp to Poslar support with the message ready; null while no number
 // is set (SUPPORT_PHONE), so nothing points to an empty chat.
 export function supportWhatsApp(message: string): string | null {
   const { phone } = support();

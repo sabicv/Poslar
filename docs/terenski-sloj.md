@@ -22,7 +22,7 @@
   - zapisi se čuvaju 5 godina.
 - **Hrvatska:** servisna kartica **SK 1** za opremu s 3 kg ili više plina, te godišnje izvješće o količinama.
 
-**X-Files to računa automatski iz natpisne pločice.** To je naš argument za prodaju. Točne obrasce i rokove radionica potvrđuje prema važećem propisu.
+**Poslar to računa automatski iz natpisne pločice.** To je naš argument za prodaju. Točne obrasce i rokove radionica potvrđuje prema važećem propisu.
 
 ## Odluke — što je ušlo
 
