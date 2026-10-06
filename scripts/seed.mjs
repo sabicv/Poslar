@@ -65,7 +65,7 @@ async function allUsers() {
 
 // Only the demo workshops this script made (exact slug + demo flag),
 // never a real workshop whose name happens to start with "Demo".
-const ALL_PACKAGES = ['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'air', 'aqua', 'tow', 'deal'];
+const ALL_PACKAGES = ['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'marine', 'air', 'aqua', 'tow', 'deal'];
 // `npm run db:seed -- --uzorak` makes the sample workshops instead: the
 // same data under uzorak-<package>, with logins nobody can use. A new
 // workshop's 24-hour trial is a copy of its trade's sample (clone_sample,
@@ -997,58 +997,47 @@ async function seedFleet() {
 }
 
 // ---------------------------------------------------------------------
-// MOTO & MARINE
+// MOTO (motocikli, skuteri, quadovi)
 // ---------------------------------------------------------------------
 async function seedMoto() {
-  const T = await workshop({ pkg: 'moto', name: 'Moto & Marine Barić', city: 'Zadar', address: 'Obala kneza Branimira 8', phone: '+385 23 555 0606', owner: 'Tonći Barić', worker: 'Luka Šarić' });
+  const T = await workshop({ pkg: 'moto', name: 'Moto centar Barić', city: 'Zadar', address: 'Obala kneza Branimira 8', phone: '+385 23 555 0606', owner: 'Tonći Barić', worker: 'Luka Šarić' });
   const areas = [];
   for (let s = 1; s <= 10; s++) areas.push({ tenant_id: T.id, area: 'Hala 1', slot: String(s), kind: 'hall' });
   for (let s = 1; s <= 6; s++) areas.push({ tenant_id: T.id, area: 'Otvoreno', slot: `P${s}`, kind: 'outdoor' });
   const locations = await q(sb.from('moto_storage_locations').insert(areas).select('id, area, slot'));
   const hall = locations.filter((l) => l.area === 'Hala 1').sort((a, b) => Number(a.slot) - Number(b.slot));
-  const outside = locations.filter((l) => l.area === 'Otvoreno');
 
   const c1 = await client(T, { first: 'Frane', last: 'Perica', phone: '+385 91 700 1100', city: 'Zadar' });
   const c2 = await client(T, { first: 'Kristina', last: 'Ivić', phone: '+385 98 700 2200', city: 'Biograd na Moru' });
-  const c3 = await client(T, { first: 'Šime', last: 'Vlahov', phone: '+385 95 700 3300', city: 'Sukošan' });
-  const c4 = await client(T, { first: 'Petra', last: 'Mikulić', phone: '+385 99 700 4400', city: 'Zadar' });
+  const c3 = await client(T, { first: 'Petra', last: 'Mikulić', phone: '+385 99 700 4400', city: 'Zadar' });
   const m1 = await asset(T, c1, { type: 'motorcycle', id: 'ZD-445-FP', make: 'Yamaha', model: 'MT-07', year: 2020, fuel: 'petrol' });
   const m2 = await asset(T, c2, { type: 'motorcycle', id: 'ZD-990-KI', make: 'BMW', model: 'R 1250 GS', year: 2021, fuel: 'petrol' });
-  const boat = await asset(T, c3, { type: 'boat', id: 'ZD-1234', make: 'Jeanneau', model: 'Cap Camarat 6.5 WA', year: 2018, vin: 'FR-JEA65412G718', unit: 'mth' });
-  const engine = await asset(T, c3, { type: 'outboard', id: '6ML-1045872', make: 'Yamaha', model: 'F150 XB', year: 2018, unit: 'mth', parent: boat });
-  const jet = await asset(T, c4, { type: 'jetski', id: 'ZD-JS-77', make: 'Sea-Doo', model: 'GTI SE 170', year: 2022, vin: 'YDV12345L122', unit: 'mth' });
-  await q(sb.from('moto_vessel_details').insert({ asset_id: boat, tenant_id: T.id, vessel_name: 'Galeb', registration_mark: 'ZD-1234', length_m: 6.4, beam_m: 2.54, hull_material: 'grp', home_port: 'Sukošan', berth: 'Marina Dalmacija, gat C-14' }));
-  await q(sb.from('moto_engine_details').insert({ asset_id: engine, tenant_id: T.id, engine_serial: '6ML-1045872', power_hp: 150, stroke: '4T', position: 'single', impeller_replaced_mth: 410, impeller_replaced_date: day(-560) }));
+  const m3 = await asset(T, c3, { type: 'scooter', id: 'ZD-312-SK', make: 'Yamaha', model: 'XMAX 300', year: 2022, fuel: 'petrol' });
 
-  const j1 = await job(T, {
-    client: c3,
-    asset: engine,
-    phase: 'in_progress',
-    d: 2,
-    unit: 'mth',
-    meter: 612.4,
-    complaint: 'Konzervacija (zimovanje)',
-    lines: [
-      { kind: 'package', d: 'Konzervacija vanbrodskog motora', unit: 'paušal', price: 180 },
-      { kind: 'material', d: 'Ulje noge', unit: 'l', price: 22 },
-      { kind: 'material', d: 'Ulje za konzervaciju', price: 15 },
-      { kind: 'part', d: 'Impeler', approval: 'proposed', priority: 'recommended', price: 45 },
-    ],
-  });
-  const ins = await inspection(T, j1.id, 'moto.winterize_outboard', 'Konzervacija, vanbrodski motor', checklistCodes('winterize_outboard', 12).map((c, i) => [c, i < 7 ? 'ok' : i === 7 ? 'warn' : 'not_checked', null, i === 7 ? 'Anoda noge 60% istrošena' : null]), { d: 2 });
-  await q(sb.from('moto_seasonal_protocols').insert({ tenant_id: T.id, job_id: j1.id, kind: 'winterize', inspection_id: ins.id, fuel_stabilized: true, battery_maintained: true, anodes_wear_pct: { noga: 60, trim: 35, trup: 20 } }));
-  await q(sb.from('moto_storage_stays').insert({ tenant_id: T.id, asset_id: boat, location_id: outside[0].id, from_date: day(-2), until_date: day(180) }));
-  await photo(T, j1.id, { label: 'Anoda noge, 60 %', sub: 'Yamaha F150 · preporuka zamjene', tag: 'part_old', hue: 185, customer: true, d: 2 });
-
-  const j2 = await job(T, { client: c1, asset: m1, phase: 'diagnosis', d: 1, meter: 18450, complaint: 'Ne pali, stajao 3 mjeseca' });
-  await conditionReport(T, j2.id, {
+  const j1 = await job(T, { client: c1, asset: m1, phase: 'diagnosis', d: 1, meter: 18450, complaint: 'Ne pali, stajao 3 mjeseca' });
+  await conditionReport(T, j1.id, {
     diagram: 'moto',
     marks: [{ zone: 'Lijevi bočni oklop', code: 'O' }, { zone: 'Ručice kočnice i kvačila', code: 'O' }],
     equipment: [['Kaciga', true], ['Ključ', true], ['Bočni kofer', false], ['Top case', false], ['Punjač / održavač', false]],
     fuel: '1/4',
     d: 1,
   });
-  await photo(T, j2.id, { label: 'Lijevi oklop, ogrebotina', sub: 'Zatečeno stanje pri prijemu', tag: 'fairing', hue: 280, d: 1 });
+  await photo(T, j1.id, { label: 'Lijevi oklop, ogrebotina', sub: 'Zatečeno stanje pri prijemu', tag: 'fairing', hue: 280, d: 1 });
+
+  const j2 = await job(T, {
+    client: c3,
+    asset: m3,
+    phase: 'in_progress',
+    d: 2,
+    meter: 9200,
+    complaint: 'Servis variomata, čudan zvuk pri ubrzanju',
+    lines: [
+      { d: 'Servis variomata', qty: 1.5, price: 45 },
+      { kind: 'part', d: 'Remen variomata', price: 40, approval: 'proposed', priority: 'recommended' },
+      { kind: 'part', d: 'Valjčići (set)', price: 20, approval: 'proposed', priority: 'recommended' },
+    ],
+  });
+  await messages(T, j2.id, 'Remen je ispucan, a valjčići neravnomjerno istrošeni, predlažem oboje.', 'Predloži stranci preko poveznice, cijena je u stavkama.');
 
   await job(T, {
     client: c2,
@@ -1065,10 +1054,53 @@ async function seedMoto() {
     ],
   });
   await q(sb.from('moto_storage_stays').insert({ tenant_id: T.id, asset_id: m2, location_id: hall[3].id, from_date: day(-3), until_date: day(150) }));
-  await q(sb.from('moto_storage_stays').insert({ tenant_id: T.id, asset_id: jet, location_id: hall[0].id, from_date: day(-20), until_date: day(200), battery_checks: [{ at: at(10), v: 12.6 }] }));
-  await job(T, { client: c4, asset: jet, phase: 'collected', paid: true, d: 20, unit: 'mth', meter: 142, complaint: 'Konzervacija (zimovanje)', lines: [{ kind: 'package', d: 'Konzervacija jet-skija', unit: 'paušal', price: 150 }] });
-  await job(T, { client: c3, asset: engine, phase: 'collected', paid: true, d: 190, unit: 'mth', meter: 540, complaint: 'Dekonzervacija', lines: [{ kind: 'package', d: 'Dekonzervacija i test rada', unit: 'paušal', price: 120 }, { kind: 'part', d: 'Anode (komplet)', price: 64 }] });
   await job(T, { client: c1, asset: m1, phase: 'collected', paid: true, d: 140, meter: 16800, complaint: 'Redovni servis', lines: [{ d: 'Zamjena ulja i filtera, pregled', qty: 1, price: 45 }, { kind: 'part', d: 'Filter ulja', price: 14 }] });
+  return { T, links: [] };
+}
+
+// ---------------------------------------------------------------------
+// MARINE (plovila, jet-skiji, vanbrodski i unutarnji motori)
+// ---------------------------------------------------------------------
+async function seedMarine() {
+  const T = await workshop({ pkg: 'marine', name: 'Nautika Barić', city: 'Zadar', address: 'Obala kneza Branimira 8', phone: '+385 23 555 0607', owner: 'Ivo Barić', worker: 'Dino Šarić' });
+  const areas = [];
+  for (let s = 1; s <= 8; s++) areas.push({ tenant_id: T.id, area: 'Hala', slot: String(s), kind: 'hall' });
+  for (let s = 1; s <= 10; s++) areas.push({ tenant_id: T.id, area: 'Zimovnik', slot: `Z${s}`, kind: 'outdoor' });
+  const locations = await q(sb.from('moto_storage_locations').insert(areas).select('id, area, slot'));
+  const hall = locations.filter((l) => l.area === 'Hala').sort((a, b) => Number(a.slot) - Number(b.slot));
+  const outside = locations.filter((l) => l.area === 'Zimovnik');
+
+  const c1 = await client(T, { first: 'Šime', last: 'Vlahov', phone: '+385 95 700 3300', city: 'Sukošan' });
+  const c2 = await client(T, { first: 'Petra', last: 'Jurić', phone: '+385 99 700 4400', city: 'Zadar' });
+  const boat = await asset(T, c1, { type: 'boat', id: 'ZD-1234', make: 'Jeanneau', model: 'Cap Camarat 6.5 WA', year: 2018, vin: 'FR-JEA65412G718', unit: 'mth' });
+  const engine = await asset(T, c1, { type: 'outboard', id: '6ML-1045872', make: 'Yamaha', model: 'F150 XB', year: 2018, unit: 'mth', parent: boat });
+  const jet = await asset(T, c2, { type: 'jetski', id: 'ZD-JS-77', make: 'Sea-Doo', model: 'GTI SE 170', year: 2022, vin: 'YDV12345L122', unit: 'mth' });
+  await q(sb.from('moto_vessel_details').insert({ asset_id: boat, tenant_id: T.id, vessel_name: 'Galeb', registration_mark: 'ZD-1234', length_m: 6.4, beam_m: 2.54, hull_material: 'grp', home_port: 'Sukošan', berth: 'Marina Dalmacija, gat C-14' }));
+  await q(sb.from('moto_engine_details').insert({ asset_id: engine, tenant_id: T.id, engine_serial: '6ML-1045872', power_hp: 150, stroke: '4T', position: 'single', impeller_replaced_mth: 410, impeller_replaced_date: day(-560) }));
+
+  const j1 = await job(T, {
+    client: c1,
+    asset: engine,
+    phase: 'in_progress',
+    d: 2,
+    unit: 'mth',
+    meter: 612.4,
+    complaint: 'Konzervacija (zimovanje)',
+    lines: [
+      { kind: 'package', d: 'Konzervacija vanbrodskog motora', unit: 'paušal', price: 180 },
+      { kind: 'material', d: 'Ulje noge', unit: 'l', price: 22 },
+      { kind: 'material', d: 'Ulje za konzervaciju', price: 15 },
+      { kind: 'part', d: 'Impeler', approval: 'proposed', priority: 'recommended', price: 45 },
+    ],
+  });
+  const ins = await inspection(T, j1.id, 'marine.winterize_outboard', 'Konzervacija, vanbrodski motor', checklistCodes('winterize_outboard', 12).map((c, i) => [c, i < 7 ? 'ok' : i === 7 ? 'warn' : 'not_checked', null, i === 7 ? 'Anoda noge 60% istrošena' : null]), { d: 2 });
+  await q(sb.from('moto_seasonal_protocols').insert({ tenant_id: T.id, job_id: j1.id, kind: 'winterize', inspection_id: ins.id, fuel_stabilized: true, battery_maintained: true, anodes_wear_pct: { noga: 60, trim: 35, trup: 20 } }));
+  await q(sb.from('moto_storage_stays').insert({ tenant_id: T.id, asset_id: boat, location_id: outside[0].id, from_date: day(-2), until_date: day(180) }));
+  await photo(T, j1.id, { label: 'Anoda noge, 60 %', sub: 'Yamaha F150 · preporuka zamjene', tag: 'part_old', hue: 185, customer: true, d: 2 });
+
+  await q(sb.from('moto_storage_stays').insert({ tenant_id: T.id, asset_id: jet, location_id: hall[0].id, from_date: day(-20), until_date: day(200), battery_checks: [{ at: at(10), v: 12.6 }] }));
+  await job(T, { client: c2, asset: jet, phase: 'collected', paid: true, d: 20, unit: 'mth', meter: 142, complaint: 'Konzervacija (zimovanje)', lines: [{ kind: 'package', d: 'Konzervacija jet-skija', unit: 'paušal', price: 150 }] });
+  await job(T, { client: c1, asset: engine, phase: 'collected', paid: true, d: 190, unit: 'mth', meter: 540, complaint: 'Dekonzervacija', lines: [{ kind: 'package', d: 'Dekonzervacija i test rada', unit: 'paušal', price: 120 }, { kind: 'part', d: 'Anode (komplet)', price: 64 }] });
   await messages(T, j1.id, 'Impeler je tvrd i napuknut na jednoj lopatici, mijenjamo?', 'Predloži stranci preko poveznice, cijena je u stavkama.');
   return { T, links: [] };
 }
@@ -1745,13 +1777,29 @@ const AI_BOOKINGS = {
     ],
   },
   moto: {
+    client: { first: 'Dario', last: 'Grgić', phone: '+385 99 410 7721', city: 'Zadar' },
+    asset: { type: 'motorcycle', id: 'ZD-558-RT', make: 'Honda', model: 'CB650R', year: 2021, fuel: 'petrol' },
+    complaint: 'Prvo paljenje nakon zime, baterija prazna, treba veliki servis.',
+    slot: [2, 10, 0, 60],
+    summary: 'Dario Grgić: Honda CB650R ne pali nakon zime, prazna baterija, treba veliki servis prije sezone. Termin prekosutra u 10:00.',
+    talk: [
+      ['AI', 'Dobar dan, Moto centar Barić, ovdje virtualni asistent. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Motor mi ne pali nakon zime, a treba i veliki servis.'],
+      ['AI', 'Koji je model i koliko ima kilometara?'],
+      ['Mušterija', 'Honda CB650R, oko 11 tisuća kilometara.'],
+      ['AI', 'Prvi slobodan termin je prekosutra u 10:00. Odgovara li Vam?'],
+      ['Mušterija', 'Odgovara, dovest ću ga.'],
+      ['AI', 'Upisano: prekosutra u 10:00, baterija i veliki servis na Hondi CB650R. Doviđenja.'],
+    ],
+  },
+  marine: {
     client: { first: 'Mislav', last: 'Grubišić', phone: '+385 99 410 7720', city: 'Zadar' },
     asset: { type: 'outboard', id: '6EN-1032847', make: 'Yamaha', model: 'F100 FETX', year: 2017, unit: 'mth' },
     complaint: 'Konzervacija vanbrodskog motora za zimu i vađenje broda na suho.',
     slot: [2, 9, 0, 120],
     summary: 'Mislav Grubišić: konzervacija Yamahe F100 za zimu i vađenje broda na suho. Brod dovozi prekosutra ujutro. Termin prekosutra u 9:00.',
     talk: [
-      ['AI', 'Dobar dan, Moto & Marine Barić, ovdje virtualni asistent. Kako Vam mogu pomoći?'],
+      ['AI', 'Dobar dan, Nautika Barić, ovdje virtualni asistent. Kako Vam mogu pomoći?'],
       ['Mušterija', 'Trebam konzervaciju motora za zimu i brod na suho.'],
       ['AI', 'Koji je motor i koliko ima radnih sati?'],
       ['Mušterija', 'Yamaha F100, oko 410 sati.'],
@@ -1900,6 +1948,7 @@ for (const [name, fn] of [
   ['Wheel', seedWheel],
   ['Fleet', seedFleet],
   ['Moto', seedMoto],
+  ['Marine', seedMarine],
   ['Air', seedAir],
   ['Aqua', seedAqua],
   ['Tow', seedTow],

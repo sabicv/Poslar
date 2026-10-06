@@ -30,7 +30,9 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
   // A place typed in words has "—" as its slot and is shown by its words alone.
   const locationLabel = new Map((locations ?? []).map((l) => [l.id as string, l.slot === '-' || l.slot === '—' ? (l.area as string) : `${l.area} · ${l.slot}`]));
   const isOutboard = type === 'outboard' || type === 'inboard';
-  const protocolTemplate = (kind: string) => (kind === 'dewinterize' ? 'moto.dewinterize' : isOutboard || BOATS.includes(type) ? 'moto.winterize_outboard' : 'moto.winterize_moto');
+  // Moto and Marine each keep their own template codes (moto.* / marine.*);
+  // which one applies follows the workshop's own package, not the asset.
+  const protocolTemplate = (kind: string) => (ctx.pkg.id === 'marine' ? `marine.${kind === 'dewinterize' ? 'dewinterize' : 'winterize_outboard'}` : `moto.${kind === 'dewinterize' ? 'dewinterize' : 'winterize_moto'}`);
 
   // Core: seasonal protocol and storage. Vessel and engine data with "Više" or once entered.
   const { show, hidden } = foldable(extras);

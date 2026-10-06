@@ -7,41 +7,31 @@ export const MOTO_ZONES = [
   'Ručice kočnice i kvačila', 'Retrovizori', 'Poklopci motora i klizači', 'Papučice', 'Naplatci', 'Koferi',
 ];
 
-export const BOAT_ZONES = [
-  'Pramac', 'Bok lijevi', 'Bok desni', 'Krma', 'Dno / antivegetativ', 'Paluba', 'Ograda', 'Tende i jastuci',
-  'Poklopac motora', 'Noga i propeler', 'Anode', 'Prikolica',
-];
-
 export const moto: PackageConfig = {
   id: 'moto',
-  product: 'TaktiX Moto i nautika',
-  short: 'Moto i nautika',
+  product: 'TaktiX Moto',
+  short: 'Moto',
   domain: 'motofiles.hr',
-  tagline: 'Motocikli, quadovi i nautika',
+  tagline: 'Motocikli, skuteri i quadovi',
   pitch: [
     'Zapisnik oklopa i opreme pri prijemu, s potpisom',
     'Konzervacija i dekonzervacija kao gotovi protokoli',
-    'HIN/CIN, serijski broj motora i motosati po motoru',
+    'VIN, serijski broj motora i stanje kilometara po motociklu',
   ],
   sector: 'workshop',
   accent: '#0AB4FF',
   vocabulary: {
     client: { one: 'Mušterija', many: 'Mušterije', new: 'Nova mušterija', acc: 'mušteriju' },
-    asset: { one: 'Vozilo / plovilo', many: 'Vozila i plovila', new: 'Novo vozilo ili plovilo' },
-    identifier: 'Registracija / oznaka plovila',
+    asset: { one: 'Vozilo', many: 'Vozila', new: 'Novo vozilo' },
+    identifier: 'Registracija',
   },
-  assetTypes: ['motorcycle', 'scooter', 'atv', 'jetski', 'boat', 'outboard', 'inboard'],
+  assetTypes: ['motorcycle', 'scooter', 'atv'],
   defaultAssetType: 'motorcycle',
   phaseLabels: { in_progress: 'Servis / protokol' },
   symptoms: ['Redovni servis', 'Konzervacija (zimovanje)', 'Dekonzervacija', 'Ne pali', 'Gubi snagu', 'Pregrijava se', 'Električni kvar', 'Skladištenje'],
-  photoTags: [
-    ...COMMON_PHOTO_TAGS,
-    { code: 'fairing', label: 'Oklop / plastika' },
-    { code: 'hull', label: 'Trup' },
-    { code: 'equipment', label: 'Oprema' },
-  ],
+  photoTags: [...COMMON_PHOTO_TAGS, { code: 'fairing', label: 'Oklop / plastika' }, { code: 'equipment', label: 'Oprema' }],
   diagram: 'moto',
-  equipment: ['Kaciga', 'Bočni kofer', 'Top case', 'Ključ', 'Daljinski alarma', 'Punjač / održavač', 'Cerada', 'Prsluk za spašavanje', 'Sidro', 'Prekidač za slučaj pada'],
+  equipment: ['Kaciga', 'Bočni kofer', 'Top case', 'Ključ', 'Daljinski alarma', 'Punjač / održavač', 'Cerada', 'Prekidač za slučaj pada'],
   inspections: [
     checklist('moto.winterize_moto', 'Konzervacija motocikla', 'seasonal', 'Zimovanje', [
       'Pranje i sušenje',
@@ -55,30 +45,13 @@ export const moto: PackageConfig = {
       'Cerada',
       'Brojilo zapisano',
     ]),
-    checklist('moto.winterize_outboard', 'Konzervacija vanbrodskog motora', 'seasonal', 'Zimovanje', [
-      'Ispiranje slatkom vodom',
-      'Ulje za konzervaciju u cilindre',
-      'Zamjena ulja motora i filtera (4T)',
-      'Zamjena ulja noge, provjera vode u ulju',
-      'Stabilizator goriva',
-      'Separator vode i filter goriva',
-      'Pregled impelera',
-      'Anode: % istrošenosti',
-      'Podmazivanje mazalica i vratila propelera',
-      'Propeler skinut i pregledan',
-      'Akumulator odspojen i na održavanju',
-      'Unutarnji motor: antifriz u rashladni krug',
-    ]),
     checklist('moto.dewinterize', 'Dekonzervacija', 'seasonal', 'Priprema za sezonu', [
       'Akumulator: napon i test',
-      'Impeler zamijenjen ili pregledan',
-      'Anode zamijenjene po potrebi',
-      'Filteri goriva',
-      'Test rada u bačvi ili vodi, izlaz rashladne vode',
-      'Trim i tilt',
-      'Kontrolne lampice i instrumenti',
-      'Sigurnosna oprema: rokovi valjanosti',
-      'Motocikl: gume, kočnice, lanac, svjetla, probna vožnja',
+      'Tlak i stanje guma',
+      'Kočnice: pločice i tekućina',
+      'Lanac: zategnutost i podmazivanje',
+      'Svjetla i pokazivači',
+      'Probna vožnja',
     ]),
   ],
   templates: [
@@ -101,22 +74,9 @@ export const moto: PackageConfig = {
       inspection: 'moto.winterize_moto',
     },
     {
-      code: 'moto.winterize_outboard',
-      name: 'Konzervacija vanbrodskog motora',
-      lines: [
-        { kind: 'package', description: 'Konzervacija vanbrodskog motora', qty: 1, unit: 'paušal', price: 180 },
-        { kind: 'material', description: 'Ulje noge', qty: 1, unit: 'l', price: 22 },
-        { kind: 'material', description: 'Ulje za konzervaciju', qty: 1, unit: 'kom', price: 15 },
-      ],
-      inspection: 'moto.winterize_outboard',
-    },
-    {
       code: 'moto.dewinterize',
-      name: 'Dekonzervacija',
-      lines: [
-        { kind: 'package', description: 'Dekonzervacija i test rada', qty: 1, unit: 'paušal', price: 120 },
-        { kind: 'part', description: 'Impeler', qty: 1, unit: 'kom', price: 45 },
-      ],
+      name: 'Dekonzervacija motocikla',
+      lines: [{ kind: 'package', description: 'Dekonzervacija i probna vožnja', qty: 1, unit: 'paušal', price: 70 }],
       inspection: 'moto.dewinterize',
     },
     {
@@ -180,36 +140,9 @@ export const moto: PackageConfig = {
         { kind: 'part', description: 'Valjčići (set)', qty: 1, unit: 'kom', price: 20 },
       ],
     },
-    {
-      code: 'moto.outboard_service',
-      name: 'Godišnji servis vanbrodskog motora',
-      lines: [
-        { kind: 'labor', description: 'Godišnji servis vanbrodskog motora', qty: 2, unit: 'h', price: 50 },
-        { kind: 'part', description: 'Impeler', qty: 1, unit: 'kom', price: 35 },
-        { kind: 'part', description: 'Svjećica', qty: 2, unit: 'kom', price: 8 },
-        { kind: 'part', description: 'Anoda', qty: 1, unit: 'kom', price: 25 },
-        { kind: 'material', description: 'Ulje noge', qty: 1, unit: 'l', price: 15 },
-      ],
-    },
-    {
-      code: 'moto.impeller',
-      name: 'Impeler',
-      lines: [
-        { kind: 'labor', description: 'Zamjena impelera rashladne pumpe', qty: 1.2, unit: 'h', price: 50 },
-        { kind: 'part', description: 'Impeler', qty: 1, unit: 'kom', price: 35 },
-      ],
-    },
-    {
-      code: 'moto.antifouling',
-      name: 'Antivegetativna zaštita',
-      lines: [
-        { kind: 'labor', description: 'Pranje, brušenje i antivegetativni premaz', qty: 4, unit: 'h', price: 45 },
-        { kind: 'material', description: 'Antivegetativna boja', qty: 2.5, unit: 'l', price: 50 },
-      ],
-    },
   ],
-  modules: ['condition_report', 'approvals', 'moto_seasonal', 'moto_storage', 'marine'],
+  modules: ['condition_report', 'approvals', 'moto_seasonal', 'moto_storage'],
   optionalModules: ['dvi'],
-  moduleTab: 'Sezona i plovilo',
+  moduleTab: 'Sezona i skladište',
   modulePage: 'Skladište',
 };

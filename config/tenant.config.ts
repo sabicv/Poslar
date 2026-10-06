@@ -2,7 +2,7 @@
 // TaktiX · central tenant configuration
 //
 // One workshop = one package. Everything that differs between Volt,
-// Gear, Body, Wheel, Fleet, Moto, Air, Aqua, Tow and Deal lives here as typed data: brand and
+// Gear, Body, Wheel, Fleet, Moto, Marine, Air, Aqua, Tow and Deal lives here as typed data: brand and
 // accent colour, vocabulary (Mušterija vs Tvrtka, km vs mth), object
 // types, job phase wording, inspection checklists, work templates and
 // which modules are switched on. The database stores only the package
@@ -17,12 +17,13 @@ import { body } from './packages/body';
 import { wheel } from './packages/wheel';
 import { fleet } from './packages/fleet';
 import { moto } from './packages/moto';
+import { marine } from './packages/marine';
 import { air } from './packages/air';
 import { aqua } from './packages/aqua';
 import { tow } from './packages/tow';
 import { deal } from './packages/deal';
 
-export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'moto' | 'air' | 'aqua' | 'tow' | 'deal';
+export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'moto' | 'marine' | 'air' | 'aqua' | 'tow' | 'deal';
 // Where the work happens: the customer brings the object in, or the
 // technician goes to the customer's address.
 export type Sector = 'workshop' | 'field';
@@ -142,7 +143,7 @@ export interface PackageConfig {
   modulePage: string;
 }
 
-export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto, air, aqua, tow, deal };
+export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto, marine, air, aqua, tow, deal };
 export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 
 // Groups so a visitor first says how he works, then picks the trade:
@@ -151,7 +152,7 @@ export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 // the road, or the cars are bought and sold.
 export type TradeGroupId = 'radionica' | 'teren' | 'cesta' | 'prodaja';
 export const TRADE_GROUPS: { id: TradeGroupId; name: string; hint: string; packages: PackageId[] }[] = [
-  { id: 'radionica', name: 'Radionica', hint: 'Posao se vodi iz radionice', packages: ['volt', 'gear', 'body', 'wheel', 'moto', 'fleet'] },
+  { id: 'radionica', name: 'Radionica', hint: 'Posao se vodi iz radionice', packages: ['volt', 'gear', 'body', 'wheel', 'moto', 'marine', 'fleet'] },
   { id: 'teren', name: 'Teren', hint: 'Majstor ide k mušteriji', packages: ['air', 'aqua'] },
   { id: 'cesta', name: 'Cesta', hint: 'Vuča i pomoć na cesti, danju i noću', packages: ['tow'] },
   { id: 'prodaja', name: 'Prodaja', hint: 'Otkup, priprema i prodaja rabljenih vozila', packages: ['deal'] },

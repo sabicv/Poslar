@@ -92,12 +92,21 @@ const MODULE_TABLES: Record<string, ModuleId> = {
   wheel_tires: 'wheel_hotel',
   wheel_rims: 'wheel_hotel',
   wheel_storage_stays: 'wheel_hotel',
+  // moto_* tables belong to Moto (land) by table-name prefix, but Marine
+  // (boats, jet-skis, outboard/inboard engines) shares the same tables:
+  // the split kept one schema, so Marine reaches them through its modules.
+  moto_vessel_details: 'marine',
+  moto_engine_details: 'marine',
+  moto_equipment_items: 'moto_seasonal',
+  moto_seasonal_protocols: 'moto_seasonal',
+  moto_storage_locations: 'moto_storage',
+  moto_storage_stays: 'moto_storage',
 };
 
 function tablePackage(table: string): PackageId | null {
   if (table === 'insurers') return 'body';
   const prefix = table.split('_')[0];
-  return (['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'air', 'aqua', 'tow', 'deal'] as PackageId[]).includes(prefix as PackageId) ? (prefix as PackageId) : null;
+  return (['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'marine', 'air', 'aqua', 'tow', 'deal'] as PackageId[]).includes(prefix as PackageId) ? (prefix as PackageId) : null;
 }
 
 function allowedForWorkshop(ctx: WorkshopContext, table: string): boolean {

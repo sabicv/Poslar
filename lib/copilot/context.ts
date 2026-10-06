@@ -249,7 +249,8 @@ async function packageData(ctx: WorkshopContext, jobId: string, asset: Json & { 
         zastoj: downtime,
       };
     }
-    case 'moto': {
+    case 'moto':
+    case 'marine': {
       const [{ data: engine }, { data: vessel }, { data: protocols }] = await Promise.all([
         s.from('moto_engine_details').select('engine_serial, power_hp, stroke, position, impeller_replaced_mth, impeller_replaced_date').eq('asset_id', asset.id).maybeSingle(),
         s.from('moto_vessel_details').select('length_m, beam_m, hull_material').eq('asset_id', asset.id).maybeSingle(),
