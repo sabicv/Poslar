@@ -81,7 +81,7 @@ export const aqua: PackageConfig = {
   id: 'aqua',
   product: 'Poslar Vodoinstalater',
   short: 'Vodoinstalater',
-  domain: 'vodoinstalater.poslar.hr',
+  domain: 'vodoinstalater.poslar.eu',
   tagline: 'Vodoinstalacije, bojleri i grijanje na terenu',
   pitch: [
     'Raspored dana, navigacija i poruka „Na putu” jednim dodirom',

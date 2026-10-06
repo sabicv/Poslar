@@ -17,7 +17,7 @@ export const fleet: PackageConfig = {
   id: 'fleet',
   product: 'Poslar Kamioni i strojevi',
   short: 'Kamioni i strojevi',
-  domain: 'kamioni-strojevi.poslar.hr',
+  domain: 'kamioni-strojevi.poslar.eu',
   tagline: 'Teretni program, građevina i flote',
   pitch: [
     'Motosati i kilometri, intervali "što prije nastupi"',

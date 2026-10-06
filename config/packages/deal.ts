@@ -71,7 +71,7 @@ export const deal: PackageConfig = {
   id: 'deal',
   product: 'Poslar Auto plac',
   short: 'Auto plac',
-  domain: 'auto-plac.poslar.hr',
+  domain: 'auto-plac.poslar.eu',
   tagline: 'Otkup, priprema i prodaja rabljenih vozila',
   pitch: [
     'Svako vozilo na placu: dani, troškovi i zarada',

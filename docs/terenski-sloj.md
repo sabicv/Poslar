@@ -48,7 +48,7 @@
    - godišnji zbroj po radnoj tvari;
    - popis provjera propuštanja koje dolaze, uključujući kontrolu nakon popravka.
 7. **Kalkulator dopune plina** za duljinu instalacije. Formula je deterministička, a vrijednosti iz uputa proizvođača. AI ne računa brojeve koji idu na račun.
-8. **AI Kopilot** za terenski nalog dobiva i vrstu objekta, uređaj te obveze vezane uz F-plin. Adresu i upute za ulaz ne dobiva, jer mogu sadržavati šifre.
+8. **Pitaj Poslara** (Kopilot) za terenski nalog dobiva i vrstu objekta, uređaj te obveze vezane uz F-plin. Adresu i upute za ulaz ne dobiva, jer mogu sadržavati šifre.
 
 ## Odluke — što je namjerno izostavljeno (jednostavnost)
 

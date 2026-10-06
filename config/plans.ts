@@ -41,7 +41,7 @@ export const PLAN_IDS = Object.keys(PLANS) as PlanId[];
 export const TERM_DISCOUNT = 0.1;
 
 export const TERM_LABELS: Record<BillingTerm, string> = { monthly: 'Mjesečno', '24m': 'Ugovor 24 mjeseca' };
-export const AI_LABELS: Record<AiKind, string> = { scan: 'Slikanje', copilot: 'Kopilot' };
+export const AI_LABELS: Record<AiKind, string> = { scan: 'Slikanje', copilot: 'Pitaj Poslara' };
 
 export function getPlan(id: string | null | undefined): Plan {
   return PLANS[(id as PlanId) ?? 'basic'] ?? PLANS.basic;

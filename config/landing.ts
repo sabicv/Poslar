@@ -36,7 +36,7 @@ export const MAIN = {
     },
     {
       title: 'Šalješ mlađeg radnika na složeniji zahvat.',
-      text: 'Kopilot ga vodi korak po korak kroz kontrolnu listu kako ništa ne bi ostalo preskočeno. Ti na mobitelu odmah vidiš fotografije i rezultat, bez potrebe za stalnim telefonskim provjerama.',
+      text: 'Poslar ga vodi korak po korak kroz kontrolnu listu kako ništa ne bi ostalo preskočeno. Ti na mobitelu odmah vidiš fotografije i rezultat, bez potrebe za stalnim telefonskim provjerama.',
     },
     {
       title: 'Širiš posao i otvaraš novu radionicu.',
@@ -119,9 +119,9 @@ export const PRICING = {
   best: 'Najčešći izbor',
   vat: 'Sve istaknute cijene uključuju PDV.',
   plans: {
-    basic: ['Voditelj i do 2 radnika', 'Radni nalozi, fotodokumentacija i računi', 'Odobrenje ponuda i cijena putem WhatsAppa', 'Automatski paket za knjigovođu', '150 skeniranja i 100 upita Kopilotu mjesečno', 'Poslar na telefonu: uz doplatu, 100 minuta za 25 €'],
-    standard: ['Voditelj i do 5 radnika', 'Sve funkcionalnosti iz Basic paketa', 'QR sustav prijave na ulazu radionice', 'Poslar na telefonu: uključeno 60 minuta razgovora mjesečno', '300 skeniranja i 200 upita Kopilotu mjesečno'],
-    premium: ['Voditelj i do 10 radnika', 'Sve funkcionalnosti iz Standard paketa', 'Poslar na telefonu: uključeno 150 minuta razgovora mjesečno', 'Upravljanje s više poslovnica / radionica', '600 skeniranja i 400 upita Kopilotu mjesečno'],
+    basic: ['Voditelj i do 2 radnika', 'Radni nalozi, fotodokumentacija i računi', 'Odobrenje ponuda i cijena putem WhatsAppa', 'Automatski paket za knjigovođu', '150 skeniranja i 100 pitanja Poslaru mjesečno', 'Poslar na telefonu: uz doplatu, 100 minuta za 25 €'],
+    standard: ['Voditelj i do 5 radnika', 'Sve funkcionalnosti iz Basic paketa', 'QR sustav prijave na ulazu radionice', 'Poslar na telefonu: uključeno 60 minuta razgovora mjesečno', '300 skeniranja i 200 pitanja Poslaru mjesečno'],
+    premium: ['Voditelj i do 10 radnika', 'Sve funkcionalnosti iz Standard paketa', 'Poslar na telefonu: uključeno 150 minuta razgovora mjesečno', 'Upravljanje s više poslovnica / radionica', '600 skeniranja i 400 pitanja Poslaru mjesečno'],
   } as Record<'basic' | 'standard' | 'premium', string[]>,
 };
 
@@ -172,7 +172,7 @@ export const TRADE_PAGES: TradePage[] = [
     title: 'Ti si pod dizalicom. Poslar preuzima poziv i slaže termin.',
     subtitle: 'Pozivi, radni nalozi, servisni planovi i računi. Sve teče glatko dok su ti ruke u poslu.',
     agent: 'Mušterija zove radi malog servisa. Poslar provjerava kalendar, ponudi prvi slobodan termin i otvori nalog s brojem registracije. Na tebi je samo da potvrdiš unos.',
-    scene: 'Mlađi radnik radi veliki servis. Kopilot ga vodi kroz svaki korak zahvata, dok inspekcija u 50 točaka jamči da nijedan detalj ne ostane nepregledan.',
+    scene: 'Mlađi radnik radi veliki servis. Poslar ga vodi kroz svaki korak zahvata, dok inspekcija u 50 točaka jamči da nijedan detalj ne ostane nepregledan.',
     pains: [
       { q: 'Koliko je pređeno od zadnje izmjene ulja?', a: 'Servisni plan bilježi kilometre i datume te sam šalje podsjetnik klijentu kad dođe vrijeme za servis.' },
       { q: 'Mušterija sumnja da je zamjena kočnica bila potrebna?', a: 'Priloži fotografiju potrošenih diskova uz stavku naloga. Klijent odobrava rad jednim klikom na mobitelu.' },

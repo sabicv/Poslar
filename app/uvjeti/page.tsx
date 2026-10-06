@@ -56,7 +56,7 @@ export default function TermsPage() {
       <Section n={5} title="Pretplata i plaćanje">
         <ul>
           <li>
-            Paketi i mjesečne cijene: {plans.map((p) => `${p.name} ${p.price} €`).join(', ')}. Cijene su s PDV-om. Opseg paketa (broj radnika, broj čitanja fotografija i odgovora Kopilota
+            Paketi i mjesečne cijene: {plans.map((p) => `${p.name} ${p.price} €`).join(', ')}. Cijene su s PDV-om. Opseg paketa (broj radnika, broj čitanja fotografija i pitanja Poslaru
             mjesečno, dodatne mogućnosti) navodi se na početnoj stranici i u aplikaciji, u Postavke → Pretplata.
           </li>
           <li>Pretplata se plaća unaprijed, uplatom na račun Pružatelja s pozivom na broj radionice, za jedan ili više mjeseci.</li>
@@ -108,7 +108,7 @@ export default function TermsPage() {
 
       <Section n={10} title="Umjetna inteligencija">
         <p>
-          Čitanje fotografija (Slikanje) i Kopilot rade uz pomoć umjetne inteligencije. Rezultati mogu sadržavati pogreške pa ih Korisnik provjerava prije upotrebe. Kopilot daje prijedloge; ne
+          Čitanje fotografija (Slikanje), odgovori na pitanja (Pitaj Poslara) i javljanje na telefon (Poslar na telefonu) rade uz pomoć umjetne inteligencije. Rezultati mogu sadržavati pogreške pa ih Korisnik provjerava prije upotrebe. Poslar daje prijedloge; ne
           zamjenjuje stručnu prosudbu, upute proizvođača ni propise.
         </p>
       </Section>

@@ -194,14 +194,14 @@ export default async function TowerOverview() {
         </Card>
 
         <Card>
-          <CardHeader title="AI ovaj mjesec" subtitle="Slikanje i Kopilot, procjena troška" />
+          <CardHeader title="AI ovaj mjesec" subtitle="Slikanje i Pitaj Poslara, procjena troška" />
           <div className="grid grid-cols-3 gap-px border-b border-line bg-line">
             <div className="bg-surface p-3">
               <p className="text-xs text-muted">Slikanja</p>
               <p className="text-lg font-semibold tabular">{aiScan.length}</p>
             </div>
             <div className="bg-surface p-3">
-              <p className="text-xs text-muted">Kopilot</p>
+              <p className="text-xs text-muted">Pitaj Poslara</p>
               <p className="text-lg font-semibold tabular">{aiCopilot.length}</p>
             </div>
             <div className="bg-surface p-3">
@@ -215,7 +215,7 @@ export default async function TowerOverview() {
                 <li key={w.tenant.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
                   <span className="min-w-0 flex-1 truncate">{w.tenant.name}</span>
                   <span className="text-xs tabular text-muted">
-                    {w.ai.scan}/{w.ai.scanQuota} slika · {w.ai.copilot}/{w.ai.copilotQuota} kopilot
+                    {w.ai.scan}/{w.ai.scanQuota} slika · {w.ai.copilot}/{w.ai.copilotQuota} pitanja
                   </span>
                   <span className="w-16 text-right text-xs tabular">{formatEuro(w.ai.cost)}</span>
                 </li>

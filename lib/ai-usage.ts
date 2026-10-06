@@ -26,7 +26,7 @@ export async function aiQuotaBlockFor(tenant: QuotaTenant, kind: AiKind): Promis
   if (isGuestTenant(tenant)) {
     return kind === 'scan'
       ? `U demo verziji možete slikati ${limit} puta. U svojoj radionici imate od ${PLANS.basic.ai.scan} do ${PLANS.premium.ai.scan} slikanja mjesečno.`
-      : `U demo verziji Kopilot odgovara na ${limit} poruka. U svojoj radionici ima od ${PLANS.basic.ai.copilot} do ${PLANS.premium.ai.copilot} poruka mjesečno.`;
+      : `U demo verziji Poslar odgovara na ${limit} pitanja. U svojoj radionici imate od ${PLANS.basic.ai.copilot} do ${PLANS.premium.ai.copilot} pitanja mjesečno.`;
   }
   return `${AI_LABELS[kind]}: ovaj mjesec potrošeno je svih ${limit}. Novi mjesec kreće 1. u mjesecu, a za veći paket javite se kroz „Javi problem” u Postavkama.`;
 }

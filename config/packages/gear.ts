@@ -105,7 +105,7 @@ export const gear: PackageConfig = {
   id: 'gear',
   product: 'Poslar Automehaničar',
   short: 'Automehaničar',
-  domain: 'automehanicar.poslar.hr',
+  domain: 'automehanicar.poslar.eu',
   tagline: 'Automehanika i opći servis',
   pitch: [
     'Inspekcija u 50 točaka na semaforu, s fotografijom po stavci',

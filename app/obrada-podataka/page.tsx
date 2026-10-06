@@ -81,7 +81,7 @@ export default function ProcessingAgreementPage() {
             <strong>Vercel Inc.</strong>: poslužitelj aplikacije u Europskoj uniji (Dublin, Irska).
           </li>
           <li>
-            <strong>Anthropic PBC</strong>, SAD: čitanje fotografija i Kopilot, samo kad ih korisnik pokrene; bez imena, telefona i adrese mušterije u Kopilotu.
+            <strong>Anthropic PBC</strong>, SAD: čitanje fotografija i odgovori na pitanja (Pitaj Poslara), samo kad ih korisnik pokrene; bez imena, telefona i adrese mušterije u pitanjima.
           </li>
           <li>
             <strong>Vapi Inc.</strong>, SAD: Poslar na telefonu, samo kad ga Korisnik uključi: broj pozivatelja, razgovor, prijepis i sažetak.

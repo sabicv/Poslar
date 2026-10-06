@@ -11,7 +11,7 @@ export const moto: PackageConfig = {
   id: 'moto',
   product: 'Poslar Moto',
   short: 'Moto',
-  domain: 'motocikli.poslar.hr',
+  domain: 'motocikli.poslar.eu',
   tagline: 'Motocikli, skuteri i quadovi',
   pitch: [
     'Zapisnik oklopa i opreme pri prijemu, s potpisom',

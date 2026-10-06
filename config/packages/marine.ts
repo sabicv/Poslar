@@ -10,7 +10,7 @@ export const marine: PackageConfig = {
   id: 'marine',
   product: 'Poslar Nautika',
   short: 'Nautika',
-  domain: 'nautika.poslar.hr',
+  domain: 'nautika.poslar.eu',
   tagline: 'Plovila, vanbrodski i unutarnji motori',
   pitch: [
     'Zapisnik trupa i opreme pri prijemu, s potpisom',

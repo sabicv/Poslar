@@ -232,7 +232,7 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
             <Field label="Slikanja mjesečno">
               <Input inputMode="numeric" value={sub.aiScan} onChange={(e) => setSub((v) => ({ ...v, aiScan: digits(e.target.value) }))} />
             </Field>
-            <Field label="Kopilot mjesečno">
+            <Field label="Pitaj Poslara mjesečno">
               <Input inputMode="numeric" value={sub.aiCopilot} onChange={(e) => setSub((v) => ({ ...v, aiCopilot: digits(e.target.value) }))} />
             </Field>
             <Field label={`Poslar na telefonu, minuta mjesečno (+${PHONE_PACK.minutes} za ${PHONE_PACK.price} €)`} className="col-span-2">

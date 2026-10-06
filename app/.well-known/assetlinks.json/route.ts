@@ -1,6 +1,6 @@
 // Digital Asset Links: lets the Poslar Android app from Google Play (a
 // Trusted Web Activity) open this site full screen, without the browser
-// bar. Set in Vercel: ANDROID_PACKAGE_NAME (e.g. hr.poslar.app) and
+// bar. Set in Vercel: ANDROID_PACKAGE_NAME (e.g. eu.poslar.app) and
 // ANDROID_SHA256_FINGERPRINTS, comma-separated (the upload key and Google
 // Play's app signing key, both from Play Console → App integrity).
 // Without them the list is empty and the app shows a browser bar.

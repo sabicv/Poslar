@@ -65,7 +65,7 @@ export const body: PackageConfig = {
   id: 'body',
   product: 'Poslar Limar i lakirer',
   short: 'Limar i lakirer',
-  domain: 'limar-lakirer.poslar.hr',
+  domain: 'limar-lakirer.poslar.eu',
   tagline: 'Autolimarija, lakirnica i procjena štete',
   pitch: [
     'Mapa oštećenja: dodir panela, operacija i sati po fazi',

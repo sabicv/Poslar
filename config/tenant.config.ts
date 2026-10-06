@@ -281,7 +281,7 @@ export function findInspection(pkg: PackageConfig, code: string): InspectionTemp
   return pkg.inspections.find((t) => t.code === code);
 }
 
-// Product by domain: automehanicar.poslar.hr → Gear. Subdomains (gear.localhost,
+// Product by domain: automehanicar.poslar.eu → Gear. Subdomains (gear.localhost,
 // gear.x-files.vercel.app) work too, for testing all of them on one server.
 export function matchPackageFromHost(host: string | null | undefined): PackageConfig | null {
   const h = (host ?? '').toLowerCase().split(':')[0];

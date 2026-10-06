@@ -5,7 +5,7 @@ export const volt: PackageConfig = {
   id: 'volt',
   product: 'Poslar Autoelektričar',
   short: 'Autoelektričar',
-  domain: 'autoelektricar.poslar.hr',
+  domain: 'autoelektricar.poslar.eu',
   tagline: 'Autoelektrika, dijagnostika i elektronika',
   pitch: [
     'DTC kodovi s uzrocima i riješenim slučajevima iz tvoje arhive',

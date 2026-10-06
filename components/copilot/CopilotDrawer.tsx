@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, Info, RefreshCw, Sparkles, Square } from 'lucide-react';
+import { ArrowUp, Info, RefreshCw, Square } from 'lucide-react';
 import { DictateButton, Sheet } from '@/components/client-ui';
+import { BrandMark } from '@/components/ProductMark';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { Markdown } from './Markdown';
@@ -25,7 +26,7 @@ async function streamCopilot(body: object, onText: (text: string) => void, signa
   });
   if (!res.ok || !res.body) {
     const data = await res.json().catch(() => null);
-    throw new Error(data?.error ?? 'Kopilot trenutno nije dostupan.');
+    throw new Error(data?.error ?? 'Poslar trenutno ne može odgovoriti.');
   }
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -136,16 +137,16 @@ export function CopilotDrawer({ jobId, enabled }: { jobId: string; enabled: bool
     <Sheet
       open={open}
       onOpenChange={setOpen}
-      title="Kopilot"
+      title="Pitaj Poslara"
       trigger={
         <Button variant="secondary" className="border-accent/40 bg-accent/10 text-fg hover:bg-accent/20">
-          <Sparkles className="size-4 text-accent" /> Kopilot
+          <BrandMark className="size-5" /> Pitaj Poslara
         </Button>
       }
     >
       {!enabled ? (
         <div className="space-y-2 pb-4 text-sm text-muted">
-          <p>Kopilot još nije uključen za ovu instalaciju.</p>
+          <p>Poslar još ne odgovara na pitanja u ovoj instalaciji.</p>
           <p className="text-xs text-faint">Administrator treba upisati ANTHROPIC_API_KEY u postavke poslužitelja.</p>
         </div>
       ) : (
@@ -154,10 +155,10 @@ export function CopilotDrawer({ jobId, enabled }: { jobId: string; enabled: bool
             <section className="rounded-2xl border border-line bg-bg p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
-                  <Sparkles className="size-3.5" /> Uputa za nalog
+                  <BrandMark className="size-4" /> Uputa za nalog
                 </p>
                 <div className="flex items-center gap-1">
-                  <button type="button" onClick={showContext} className="flex size-8 items-center justify-center rounded-lg text-faint hover:bg-surface2 hover:text-fg" aria-label="Podaci koje Kopilot koristi">
+                  <button type="button" onClick={showContext} className="flex size-8 items-center justify-center rounded-lg text-faint hover:bg-surface2 hover:text-fg" aria-label="Podaci koje Poslar koristi">
                     <Info className="size-4" />
                   </button>
                   <button
@@ -198,7 +199,7 @@ export function CopilotDrawer({ jobId, enabled }: { jobId: string; enabled: bool
               )
             )}
             {error ? <p className="rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-sm text-crit">{error}</p> : null}
-            <p className="text-[11px] text-faint">AI može pogriješiti. Vrijednosti označene „tipično, provjeriti” potvrdite u servisnoj dokumentaciji ili na pločici uređaja.</p>
+            <p className="text-[11px] text-faint">Poslar odgovara automatski i može pogriješiti. Vrijednosti označene „tipično, provjeriti” potvrdite u servisnoj dokumentaciji ili na pločici uređaja.</p>
             <div ref={endRef} />
           </div>
 

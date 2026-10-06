@@ -86,8 +86,8 @@ export default function PrivacyPage() {
             <strong>Vercel Inc.</strong>: poslužitelj aplikacije u Europskoj uniji (Dublin, Irska). Datoteke same aplikacije isporučuju se preko njihove globalne mreže.
           </li>
           <li>
-            <strong>Anthropic PBC</strong> (SAD): samo kad korisnik pokrene čitanje fotografije (Slikanje) ili Kopilot. Šalje se ta fotografija (primjerice prometna dozvola, s podacima vlasnika
-            vozila) ili tehnički podaci naloga: vozilo ili uređaj, opis kvara, stavke i nalazi. Ime, telefon i adresu mušterije Kopilotu ne šaljemo.
+            <strong>Anthropic PBC</strong> (SAD): samo kad korisnik pokrene čitanje fotografije (Slikanje) ili postavi pitanje Poslaru (Pitaj Poslara). Šalje se ta fotografija (primjerice prometna dozvola, s podacima vlasnika
+            vozila) ili tehnički podaci naloga: vozilo ili uređaj, opis kvara, stavke i nalazi. Ime, telefon i adresu mušterije uz pitanja ne šaljemo.
           </li>
           <li>
             <strong>Vapi Inc.</strong> (SAD): Poslar na telefonu (automatsko javljanje uz pomoć umjetne inteligencije), samo za radionice koje ga uključe. Obrađuje razgovor s pozivateljem: broj s kojeg zove, govor, prijepis i sažetak. Za

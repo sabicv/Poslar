@@ -1,20 +1,20 @@
 # Poslar
 
-Jedna aplikacija za radionice i servise na terenu, jedanaest zanata. Svaka radionica ima točno jedan paket. Na zajedničkoj adresi (poslar.hr) paket određuje prijavljena radionica, a na poddomeni zanata sama poddomena:
+Jedna aplikacija za radionice i servise na terenu, jedanaest zanata. Svaka radionica ima točno jedan paket. Na zajedničkoj adresi (poslar.eu) paket određuje prijavljena radionica, a na poddomeni zanata sama poddomena:
 
 | Paket (id) | Naziv | Poddomena | Za koga |
 |---|---|---|---|
-| volt | **Poslar Autoelektričar** | autoelektricar.poslar.hr | autoelektrika, dijagnostika, elektronika |
-| gear | **Poslar Automehaničar** | automehanicar.poslar.hr | automehanika i opći servis |
-| body | **Poslar Limar i lakirer** | limar-lakirer.poslar.hr | limarija, lakirnica, procjena štete |
-| wheel | **Poslar Vulkanizer** | vulkanizer.poslar.hr | vulkanizeri, geometrija, hotel za gume |
-| fleet | **Poslar Kamioni i strojevi** | kamioni-strojevi.poslar.hr | teretni program, građevina, flote |
-| moto | **Poslar Moto** | motocikli.poslar.hr | motocikli, skuteri, quadovi |
-| marine | **Poslar Nautika** | nautika.poslar.hr | jet ski, brodice, vanbrodski i ugradbeni motori |
-| air | **Poslar Klima serviser** | klima-serviser.poslar.hr | klime, dizalice topline, ventilacija (rad na terenu) |
-| aqua | **Poslar Vodoinstalater** | vodoinstalater.poslar.hr | vodoinstalacije, bojleri (rad na terenu) |
-| tow | **Poslar Vučna služba** | vucna-sluzba.poslar.hr | vuča i pomoć na cesti |
-| deal | **Poslar Auto plac** | auto-plac.poslar.hr | prodaja rabljenih vozila |
+| volt | **Poslar Autoelektričar** | autoelektricar.poslar.eu | autoelektrika, dijagnostika, elektronika |
+| gear | **Poslar Automehaničar** | automehanicar.poslar.eu | automehanika i opći servis |
+| body | **Poslar Limar i lakirer** | limar-lakirer.poslar.eu | limarija, lakirnica, procjena štete |
+| wheel | **Poslar Vulkanizer** | vulkanizer.poslar.eu | vulkanizeri, geometrija, hotel za gume |
+| fleet | **Poslar Kamioni i strojevi** | kamioni-strojevi.poslar.eu | teretni program, građevina, flote |
+| moto | **Poslar Moto** | motocikli.poslar.eu | motocikli, skuteri, quadovi |
+| marine | **Poslar Nautika** | nautika.poslar.eu | jet ski, brodice, vanbrodski i ugradbeni motori |
+| air | **Poslar Klima serviser** | klima-serviser.poslar.eu | klime, dizalice topline, ventilacija (rad na terenu) |
+| aqua | **Poslar Vodoinstalater** | vodoinstalater.poslar.eu | vodoinstalacije, bojleri (rad na terenu) |
+| tow | **Poslar Vučna služba** | vucna-sluzba.poslar.eu | vuča i pomoć na cesti |
+| deal | **Poslar Auto plac** | auto-plac.poslar.eu | prodaja rabljenih vozila |
 
 Logo i ikona: `npm run brand` piše `public/brand/poslar-logo.svg` i `poslar-mark.svg` (font Saira Condensed Bold iz `scripts/assets`), a `npm run icons` ikone aplikacije u `public/icons`.
 
@@ -77,7 +77,7 @@ Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `moto` i `air`. Seed na kraju 
 
 1. `npx vercel` pa `npx vercel --prod` (regija `dub1` — Dublin, uz bazu u eu-west-1 — je u `vercel.json`).
 2. U Vercelu, Settings → Environment Variables, upišite iste varijable kao u `.env.local`, osim `SUPABASE_DB_URL` i demo varijabli. `NEXT_PUBLIC_APP_URL` postavite na pravu adresu.
-3. Domene: dodajte `poslar.hr` i po želji poddomene zanata (`automehanicar.poslar.hr` …) na isti projekt. Na poddomeni aplikacija sama bira zanat; na `poslar.hr` ga određuje prijavljena radionica.
+3. Domene: dodajte `poslar.eu` i po želji poddomene zanata (`automehanicar.poslar.eu` …) na isti projekt. Na poddomeni aplikacija sama bira zanat; na `poslar.eu` ga određuje prijavljena radionica.
 4. U Supabaseu, Authentication → URL Configuration, dodajte te domene.
 5. **Prije javne samoregistracije:** u Supabaseu postavite vlastiti SMTP (Authentication → Emails → SMTP, npr. Resend) i uključite *Confirm email*. Zatim u Vercelu postavite `REGISTRATION_EMAIL_CONFIRM=1`. Bez vlastitog SMTP-a Supabase šalje e-mail samo članovima tima, pa potvrda ne bi stigla radionicama.
 
@@ -128,10 +128,10 @@ Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `moto` i `air`. Seed na kraju 
   - Servisni planovi: klijent se pojavi na popisu mjesec dana prije roka, uz podsjetnik i gumb „Zakaži”. Kad se nalog završi, plan se sam pomakne za interval.
   - F-plin (Air): t CO₂e, SK 1 i rokovi provjere propuštanja računaju se iz natpisne pločice. Stranica prikazuje i kontrolu u roku mjesec dana nakon popravka, dnevnik s certifikatom servisera i godišnji zbroj po radnoj tvari. Pravila su pomoć; za obrasce vrijedi važeći propis.
 - **Instalacija na mobitel (PWA):** manifest po domeni (ime i ikona proizvoda), service worker sa stranicom za rad bez veze, puni zaslon na Androidu i iPhoneu.
-- **AI Kopilot** (gumb na radnom nalogu):
+- **Pitaj Poslara** (Kopilot, gumb na radnom nalogu):
   - Izrađuje uputu u četiri dijela: dijagnostika, protokol, specifikacije i obvezne fotografije. Uz to odgovara na glasovna ili pisana pitanja.
   - Podaci naloga slažu se na serveru s pravima prijavljenog korisnika. U njima su vozilo ili uređaj, stavke, nalazi, kodovi i podaci radionice poput momenata pritezanja i potvrđenih uzroka iz arhive. Za terenski nalog šalje se i vrsta objekta te obveze vezane uz F-plin.
   - Ime, telefon, OIB i registracija mušterije, adresa i upute za ulaz, kao ni cijene, ne šalju se AI-ju.
   - Ista uputa za nepromijenjen nalog dolazi iz povijesti, odmah i bez novog troška.
   - Dnevni limit po radionici zadaje `AI_DAILY_LIMIT`, a potrošnja se vidi u `/admin`.
-  - Za rad treba `ANTHROPIC_API_KEY`. Bez ključa gumb objašnjava da Kopilot nije uključen.
+  - Za rad treba `ANTHROPIC_API_KEY`. Bez ključa gumb objašnjava da Poslar još ne odgovara na pitanja.

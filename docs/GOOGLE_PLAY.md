@@ -9,14 +9,7 @@ Pravila Googlea se mijenjaju. Ako nešto u konzoli izgleda drukčije nego ovdje,
 ## 1. Prvo domena
 
 Aplikacija je vezana uz jednu adresu. Kasnija promjena znači novu verziju i novu provjeru.
-Zato prije Playa kupi pravu domenu (poslar.hr) i spoji je:
-
-1. Vercel → projekt x-files → Settings → Domains → Add → upiši domenu.
-   Vercel pokaže DNS zapise. Upiši ih kod registrara domene i pričekaj da Vercel pokaže „Valid”.
-2. Vercel → Settings → Environment Variables: `NEXT_PUBLIC_APP_URL` = `https://poslar.hr`.
-3. Supabase → Authentication → URL Configuration:
-   Site URL = `https://poslar.hr`, a u Redirect URLs dodaj `https://poslar.hr/**`.
-4. Pokreni `npx vercel deploy --prod`.
+Zato prije Playa spoji domenu poslar.eu, korak po korak u `docs/DOMENA.md`.
 
 ## 2. Račun za razvojne programere
 
@@ -29,9 +22,9 @@ Zato prije Playa kupi pravu domenu (poslar.hr) i spoji je:
 
 ## 3. Android paket (PWABuilder, bez programiranja)
 
-1. Otvori pwabuilder.com, upiši `https://poslar.hr` → Start.
+1. Otvori pwabuilder.com, upiši `https://poslar.eu` → Start.
 2. Package For Stores → Android → Generate Package. U opcijama:
-   - Package ID: `hr.poslar.app` (biraš jednom, poslije se ne mijenja)
+   - Package ID: `eu.poslar.app` (biraš jednom, poslije se ne mijenja)
    - App name i Launcher name: `Poslar`
    - Start URL: `/app?izvor=play` (važno: tako aplikacija zna da je s Playa)
    - Theme i background color: `#0F172A`
@@ -48,10 +41,10 @@ Tako aplikacija radi preko cijelog ekrana, bez trake preglednika.
 1. U Play konzoli, nakon prvog slanja `.aab`: Test and release → App integrity.
    Tamo su dva otiska (SHA-256): upload key i app signing key.
 2. Vercel → Environment Variables:
-   - `ANDROID_PACKAGE_NAME` = `hr.poslar.app`
+   - `ANDROID_PACKAGE_NAME` = `eu.poslar.app`
    - `ANDROID_SHA256_FINGERPRINTS` = oba otiska, odvojena zarezom
 3. `npx vercel deploy --prod`.
-4. Provjeri: `https://poslar.hr/.well-known/assetlinks.json` mora pokazati naziv paketa i otiske.
+4. Provjeri: `https://poslar.eu/.well-known/assetlinks.json` mora pokazati naziv paketa i otiske.
 
 ## 5. Stranica aplikacije u trgovini
 
@@ -61,8 +54,8 @@ Tako aplikacija radi preko cijelog ekrana, bez trake preglednika.
 - Slike ekrana: iz demo radionice (najmanje 2, s mobitela).
 - Grafika 1024 × 500 (feature graphic): logo na tamnoj podlozi.
 - Kategorija: Business (Posao). Besplatna aplikacija.
-- Politika privatnosti: `https://poslar.hr/privatnost`
-- Brisanje računa: `https://poslar.hr/brisanje-racuna`
+- Politika privatnosti: `https://poslar.eu/privatnost`
+- Brisanje računa: `https://poslar.eu/brisanje-racuna`
 - Pristup za recenzente (App access): demo prijava
   `vlasnik.gear@demo.xfiles.hr`, lozinka `Demo2026!`.
 
@@ -82,7 +75,7 @@ Odgovori prema onome što aplikacija stvarno radi:
 Google ne dopušta da aplikacija s Playa prodaje pretplatu mimo Google naplate, niti da
 upućuje na takvo plaćanje. Zato aplikacija otvorena s Playa sama skriva cijene, uplatnicu
 i gumbe „Želim paket”. Pokazuje samo paket i datum do kad vrijedi.
-Na webu (poslar.hr u pregledniku) sve ostaje kao prije.
+Na webu (poslar.eu u pregledniku) sve ostaje kao prije.
 Radionice plaćaju preko weba, kao i sad. U opisu aplikacije ne spominji cijene.
 
 ## 8. Zatvoreno testiranje

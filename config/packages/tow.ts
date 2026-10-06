@@ -38,7 +38,7 @@ export const tow: PackageConfig = {
   id: 'tow',
   product: 'Poslar Vučna služba',
   short: 'Vučna služba',
-  domain: 'vucna-sluzba.poslar.hr',
+  domain: 'vucna-sluzba.poslar.eu',
   tagline: 'Vuča vozila i pomoć na cesti',
   pitch: [
     'Poziv, lokacija i navigacija odmah, i u tri ujutro',

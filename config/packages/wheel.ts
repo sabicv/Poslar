@@ -26,7 +26,7 @@ export const wheel: PackageConfig = {
   id: 'wheel',
   product: 'Poslar Vulkanizer',
   short: 'Vulkanizer',
-  domain: 'vulkanizer.poslar.hr',
+  domain: 'vulkanizer.poslar.eu',
   tagline: 'Vulkanizeri, geometrija i hotel za gume',
   pitch: [
     'Hotel za gume: QR naljepnice, sektor–regal–polica–mjesto',

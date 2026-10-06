@@ -4,7 +4,7 @@ Aplikacija sama ne šalje e-poštu. Šalje je Supabase (prijava, nova lozinka), 
 pošiljatelj. Dok ovo nije složeno, „Zaboravili ste lozinku?” vodi na WhatsApp, a novu
 lozinku daješ u Tornju (Radionice → Uredi → Ljudi i lozinke → Nova lozinka).
 
-Najbolje je složiti ovo nakon domene, s adresom npr. `podrska@poslar.hr`.
+Najbolje je složiti ovo nakon domene, s adresom npr. `podrska@poslar.eu`.
 Poruke s Gmail adrese preko Breva često završe u neželjenoj pošti ili ne stignu.
 
 ## 1. Brevo
@@ -12,7 +12,7 @@ Poruke s Gmail adrese preko Breva često završe u neželjenoj pošti ili ne sti
 1. brevo.com → besplatan račun (300 poruka dnevno, dovoljno za početak).
 2. Senders, Domains & Dedicated IPs → Domains → dodaj domenu i upiši DNS zapise
    koje Brevo pokaže (kod registrara domene). Pričekaj da piše „Authenticated”.
-3. Senders → dodaj pošiljatelja: ime `Poslar`, adresa `podrska@poslar.hr`.
+3. Senders → dodaj pošiljatelja: ime `Poslar`, adresa `podrska@poslar.eu`.
 4. SMTP & API → SMTP → Generate a new SMTP key. Zapiši:
    server `smtp-relay.brevo.com`, port `587`, login (piše tamo) i ključ.
    Ključ nikome ne šalji i ne lijepi ga u chat.
@@ -20,10 +20,10 @@ Poruke s Gmail adrese preko Breva često završe u neželjenoj pošti ili ne sti
 ## 2. Supabase
 
 1. Authentication → URL Configuration:
-   - Site URL: adresa aplikacije (npr. `https://poslar.hr`)
-   - Redirect URLs: dodaj `https://poslar.hr/**`
+   - Site URL: adresa aplikacije (npr. `https://poslar.eu`)
+   - Redirect URLs: dodaj `https://poslar.eu/**`
 2. Authentication → Emails → SMTP Settings → Enable custom SMTP:
-   - Sender email `podrska@poslar.hr`, sender name `Poslar`
+   - Sender email `podrska@poslar.eu`, sender name `Poslar`
    - Host `smtp-relay.brevo.com`, port `587`
    - Username: login iz Breva, Password: SMTP ključ iz Breva
 3. Authentication → Rate Limits: „emails per hour” podigni npr. na 100.

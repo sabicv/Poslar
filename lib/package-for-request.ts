@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { getPackage, matchPackageFromHost, type PackageConfig } from '@/config/tenant.config';
 import { getWorkshop } from '@/lib/session';
 
-// The product a request belongs to: its domain (klima-serviser.poslar.hr → Klima serviser),
+// The product a request belongs to: its domain (klima-serviser.poslar.eu → Klima serviser),
 // or, on an address that is no product's domain (the Vercel URL, a local
 // network IP), the signed-in person's own workshop — so the app installed
 // from there carries the right name and icon. With neither, the page shows

@@ -4,7 +4,7 @@ import { buildCopilotContext } from '@/lib/copilot/context';
 import { BRIEFING_REQUEST, copilotSystemPrompt } from '@/lib/copilot/prompt';
 import { getWorkshop, type WorkshopContext } from '@/lib/session';
 
-// AI Kopilot endpoint.
+// "Pitaj Poslara" endpoint (the Kopilot).
 //   GET  ?jobId=…[&context=1]  → earlier questions/answers (and, on request,
 //                                 the exact data the assistant sees)
 //   POST { jobId, mode: 'briefing' | 'question', question?, refresh? }
@@ -55,16 +55,16 @@ export async function GET(request: Request) {
 function friendlyError(error: unknown): string {
   const status = (error as { status?: number }).status;
   const message = String((error as { message?: string }).message ?? '');
-  if (status === 401) return 'Kopilot nije ispravno spojen (neispravan API ključ). Javite administratoru.';
+  if (status === 401) return 'Poslar nije ispravno spojen (neispravan API ključ). Javite administratoru.';
   if (/credit balance|billing/i.test(message)) return 'Na AI računu nema kredita. Javite administratoru.';
   if (status === 429 || status === 529) return 'AI servis je trenutno preopterećen. Pokušajte za minutu.';
-  return 'Kopilot trenutno nije dostupan. Pokušajte ponovno.';
+  return 'Poslar trenutno ne može odgovoriti. Pokušajte ponovno.';
 }
 
 export async function POST(request: Request) {
   const ctx = await session();
   if (ctx instanceof Response) return ctx;
-  if (!process.env.ANTHROPIC_API_KEY) return json({ error: 'Kopilot još nije uključen (nedostaje ANTHROPIC_API_KEY).' }, 503);
+  if (!process.env.ANTHROPIC_API_KEY) return json({ error: 'Poslar još ne odgovara na pitanja (nedostaje ANTHROPIC_API_KEY).' }, 503);
 
   let body: { jobId?: string; mode?: string; question?: string; refresh?: boolean };
   try {
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     .select('id', { count: 'exact', head: true })
     .eq('role', 'assistant')
     .gte('created_at', startOfDay.toISOString());
-  if ((count ?? 0) >= DAILY_LIMIT) return json({ error: `Dosegnut je dnevni limit Kopilota za radionicu (${DAILY_LIMIT}). Sutra se obnavlja.` }, 429);
+  if ((count ?? 0) >= DAILY_LIMIT) return json({ error: `Dosegnut je dnevni limit pitanja Poslaru za radionicu (${DAILY_LIMIT}). Sutra se obnavlja.` }, 429);
   const blocked = await aiQuotaBlock(ctx, 'copilot');
   if (blocked) return json({ error: blocked }, 429);
 

@@ -173,7 +173,7 @@ export const air: PackageConfig = {
   id: 'air',
   product: 'Poslar Klima serviser',
   short: 'Klima serviser',
-  domain: 'klima-serviser.poslar.hr',
+  domain: 'klima-serviser.poslar.eu',
   tagline: 'Klime, dizalice topline i ventilacija na terenu',
   pitch: [
     'Raspored dana, navigacija i poruka „Na putu” jednim dodirom',

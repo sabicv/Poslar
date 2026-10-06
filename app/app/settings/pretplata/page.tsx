@@ -71,7 +71,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
                     </span>
                   </div>
                   <p className="text-xs text-muted">
-                    {p.people} · slikanje {p.ai.scan} i Kopilot {p.ai.copilot} mjesečno{p.qr ? ' · QR samoprijem' : ''}
+                    {p.people} · slikanje {p.ai.scan} i {p.ai.copilot} pitanja Poslaru mjesečno{p.qr ? ' · QR samoprijem' : ''}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {p.id !== plan.id ? <PlanRequest plan={p.id} term="monthly" label={`Želim ${p.name}`} /> : null}

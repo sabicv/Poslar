@@ -112,7 +112,7 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
    - [x] Aplikacija otvorena s Playa (start /app?izvor=play) ne pokazuje cijene, uplatnicu ni „Želim paket” (pravila Google naplate); na webu sve ostaje
    - [x] Brisanje računa (Google traži): Postavke → Moj račun → „Zatraži brisanje računa” (zahtjev stiže u Toranj), stranica /brisanje-racuna, u Tornju „Obriši radionicu i sve podatke” uz upis naziva
    - [x] Uputa korak po korak: docs/GOOGLE_PLAY.md (domena, račun, PWABuilder, spajanje, stranica u trgovini, obrazac o podacima, testiranje)
-   - [ ] (V) Domena poslar.hr spojena u Vercelu i Supabaseu prije Playa
+   - [ ] (V) Domena poslar.eu spojena u Vercelu i Supabaseu prije Playa (docs/DOMENA.md)
    - [ ] (V) Račun za razvojne programere, paket iz PWABuildera, otisci u Vercel, zatvoreno testiranje s testerima (najmanje 12 kroz 14 dana)
 10. Pred betu (nalazi s Vedranova testiranja)
    - [x] Lozinke: Toranj → Uredi → Ljudi i lozinke → Nova lozinka (s WhatsAppom); Postavke → Promijeni lozinku; prijava → „Zaboravili ste lozinku?” (WhatsApp, a nakon Breva poveznica e-poštom)
@@ -155,10 +155,12 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [ ] Povezivanje s fiskalnim posrednikom kad ga knjigovođa odabere
 
 ## Stadij 13: Poslar (7. 10.)
-- [x] Novo ime Poslar umjesto TaktiX i starih naziva (X-Files, … Files); zanati „Poslar Autoelektričar” …, poddomene <zanat>.poslar.hr
+- [x] Novo ime Poslar umjesto TaktiX i starih naziva (X-Files, … Files); zanati „Poslar Autoelektričar” …, poddomene <zanat>.poslar.eu
 - [x] Logo: plava pilula, „Poslar” narančasto s bijelim obrubom (Saira Condensed), vlastiti znak kvadratić s kvačicom (jedna bijela linija); ikona aplikacije isti znak na plavom
 - [x] Telefonski agent se javlja kao Poslar („ovdje Poslar … javljam se automatski”), ne kao asistent ni AI; u aplikaciji „Poslar na telefonu”
-- [ ] (V) Domene poslar.hr, .com, .eu i profili na mrežama; prijava žiga (DZIV ili EUIPO)
+- [x] (V) Domena poslar.eu zakupljena (7. 10.)
+- [ ] (V) Spojiti poslar.eu (docs/DOMENA.md); po želji i poslar.hr i .com; profili na mrežama; prijava žiga (DZIV ili EUIPO)
+- [x] Kopilot postaje „Pitaj Poslara”: odgovara Poslar, bez riječi AI i asistent; u pravnim tekstovima piše da radi uz umjetnu inteligenciju
 - [ ] (V) U Vercelu po želji preimenovati TAKTIX_* u POSLAR_* (stari nazivi rade)
 - [ ] Demo prijava demo@demo.xfiles.hr → nova domena (nakon deploya, uz ponovno punjenje demo radionica)
 
