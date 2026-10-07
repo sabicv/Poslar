@@ -15,6 +15,11 @@ export async function intakeUrl(token: string): Promise<string> {
   return `${await appOrigin()}/q/${token}`;
 }
 
+// The public booking page, "Rezerviraj termin" (same token as the door code).
+export async function bookingUrl(token: string): Promise<string> {
+  return `${await appOrigin()}/termin/${token}`;
+}
+
 export async function qrSvg(url: string): Promise<string> {
   return QRCode.toString(url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#0B1120', light: '#FFFFFF' } });
 }

@@ -193,6 +193,16 @@ export async function setIntakeEnabled(enabled: boolean): Promise<ActionResult> 
   return { ok: true };
 }
 
+// "Rezerviraj termin": the public booking page on and off.
+export async function setBookingEnabled(enabled: boolean): Promise<ActionResult> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Rezervacije uključuje voditelj servisa.');
+  const { error } = await ctx.supabase.from('tenants').update({ booking_enabled: enabled }).eq('id', ctx.tenant.id);
+  if (error) return fail(error);
+  revalidatePath('/app/settings/termin');
+  return { ok: true };
+}
+
 export async function rotateIntakeToken(): Promise<ActionResult> {
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Novi kod radi voditelj servisa.');

@@ -20,6 +20,18 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
     ctx.isOwner ? ctx.supabase.from('phone_calls').select('summary, started_at, created_at').eq('job_id', job.id).order('created_at').limit(1) : Promise.resolve({ data: [] }),
   ]);
   const call = (calls ?? [])[0] as { summary: string | null; started_at: string | null; created_at: string } | undefined;
+  // Booked by Poslar on the phone or by the customer on the booking page.
+  const booked = job.source === 'phone' || job.source === 'booking';
+  const bookedNote =
+    job.source === 'booking' ? (
+      <p className="text-muted">
+        <span className="font-medium text-fg">Mušterija je rezervirala preko poveznice.</span> Potvrdite joj termin.
+      </p>
+    ) : call ? (
+      <p className="text-muted">
+        <span className="font-medium text-fg">Dogovorio Poslar na telefonu.</span> {call.summary ?? ''}
+      </p>
+    ) : null;
   // "Potvrdi termin": the appointment to the customer on WhatsApp.
   const confirm =
     job.scheduled_start && job.client.phone
@@ -39,14 +51,10 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
     <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <div className="space-y-4">
         {/* On the field what the caller said comes first, then the visit. */}
-        {field && (call || (confirm && job.source === 'phone')) ? (
+        {field && (bookedNote || (confirm && booked)) ? (
           <Card>
             <div className="space-y-3 p-4 text-sm">
-              {call ? (
-                <p className="text-muted">
-                  <span className="font-medium text-fg">Dogovorio Poslar na telefonu.</span> {call.summary ?? ''}
-                </p>
-              ) : null}
+              {bookedNote}
               {confirm ? (
                 <a href={confirm} target="_blank" rel="noopener noreferrer" className={buttonClass('primary')}>
                   <MessageCircle className="size-4" /> Potvrdi termin na WhatsApp
@@ -79,20 +87,16 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
             </div>
           </Card>
         ) : null}
-        {!field && (job.scheduled_start || job.source === 'phone') ? (
+        {!field && (job.scheduled_start || booked) ? (
           <Card>
             <CardHeader
               title="Termin"
               subtitle={job.scheduled_start ? spokenSlot(new Date(job.scheduled_start)) : 'Još nije zakazano'}
               action={<ScheduleSheet jobId={job.id} current={{ start: job.scheduled_start, end: job.scheduled_end, assignedTo: job.assigned_to }} staff={staffList} />}
             />
-            {confirm || call ? (
+            {confirm || bookedNote ? (
               <div className="space-y-3 p-4 text-sm">
-                {call ? (
-                  <p className="text-muted">
-                    <span className="font-medium text-fg">Dogovorio Poslar na telefonu.</span> {call.summary ?? ''}
-                  </p>
-                ) : null}
+                {bookedNote}
                 {confirm ? (
                   <a href={confirm} target="_blank" rel="noopener noreferrer" className={buttonClass('primary')}>
                     <MessageCircle className="size-4" /> Potvrdi termin na WhatsApp

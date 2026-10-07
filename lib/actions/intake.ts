@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { defaultMeterUnit } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
-import { digitsOf, loadIntake, overLimit, plateKey, senderHash } from '@/lib/intake';
+import { digitsOf, loadIntake, overLimit, plateKey, senderHash, tidyPlate } from '@/lib/intake';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { plateIlike } from '@/lib/utils';
 
@@ -32,13 +32,6 @@ const schema = z.object({
 });
 
 const GENERIC = 'Prijava nije poslana. Pokušajte ponovno za nekoliko minuta ili nazovite radionicu.';
-
-// "st 1234 ab" → "ST-1234-AB", the way plates are written everywhere else.
-function tidyPlate(raw: string): string {
-  const up = raw.toUpperCase().trim();
-  const m = /^([A-ZČĆŽŠĐ]{2})[\s-]*(\d{3,4})[\s-]*([A-ZČĆŽŠĐ]{1,2})$/.exec(up);
-  return m ? `${m[1]}-${m[2]}-${m[3]}` : up;
-}
 
 export async function submitIntake(token: string, values: z.input<typeof schema>): Promise<ActionResult<{ number: number; again: boolean }>> {
   const state = await loadIntake(token);

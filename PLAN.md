@@ -178,8 +178,9 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 
 ## Stadij 15: Izlazak na tržište (7. 10.)
 Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo prije nego nova stranica ide van. Sve stoji dok ne definiramo troškove (7. 10.).
-- [ ] Boje (crna radionica, plavi gumbi u plavoj iz loga, narančaste ikone zanata s narančastim obrubom; svijetla tema s jačim kontrastom), zanati bez imena Poslar, nove cijene
-- [ ] Rezerviraj termin: poveznica radionice, mušterija sama odabere slobodan termin, nalog u Prijem
+- [x] Boje (crna radionica, plavi gumbi u plavoj iz loga, narančaste ikone zanata s narančastim obrubom; svijetla tema s jačim kontrastom), zanati bez imena Poslar, nove cijene
+- [x] Rezerviraj termin (8. 10.): poveznica radionice /termin/…, mušterija sama odabere slobodan termin (prva 3 dana, „Još termina” do 14 dana), nalog u Prijem s oznakom „Rezervirao online”; vlasnik u Postavke → Rezerviraj termin: prekidač, kopiraj, pošalji na WhatsApp, QR; isti kalendar kao Poslar na telefonu; demo posjetitelj može isprobati u svojoj probnoj radionici
+- [ ] (V) Poveznicu staviti u WhatsApp Business automatski odgovor, Google profil i poruku na sekretarici
 - [ ] Više radionica pod jednim vlasnikom (Premium): prebacivanje, zbirni promet
 - [ ] Dnevni sažetak vlasniku e-mailom (završeni nalozi, promet, pozivi, sutrašnji termini)
 - [ ] Uvoz starih papirnatih naloga i računa slikom (AI upiše u povijest vozila)

@@ -40,6 +40,8 @@ export interface Tenant {
   // Door QR self-intake (/q/<intake_token>).
   intake_token: string;
   intake_enabled: boolean;
+  // The public booking page, "Rezerviraj termin" (0029).
+  booking_enabled?: boolean;
   // Poziv na broj (model HR00) for the subscription payment.
   billing_ref: number;
   // Who sent this workshop (referral), and when that one got its free month.

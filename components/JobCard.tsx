@@ -1,12 +1,13 @@
 import Link from 'next/link';
-import { CalendarClock, CalendarDays, Lock, Phone, QrCode, UserRound } from 'lucide-react';
+import { CalendarCheck, CalendarClock, CalendarDays, Lock, Phone, QrCode, UserRound } from 'lucide-react';
 import { Badge, Dot } from '@/components/ui';
 import { PHASE_TONE, phaseLabel, type JobPhase, type PackageConfig } from '@/config/tenant.config';
 import { assetTitle, clientName, daysUntil, formatDate, formatEuro, formatRelative } from '@/lib/format';
 import type { Asset, Client, Job } from '@/types/db';
 
 export type BoardJob = Pick<Job, 'id' | 'number' | 'phase' | 'complaint' | 'is_urgent' | 'promised_at' | 'payment_status' | 'locked_at' | 'updated_at' | 'assigned_to'> & {
-  // 'qr': sent by the customer from the door code; 'phone': booked by the AI phone.
+  // 'qr': sent by the customer from the door code; 'phone': booked by the AI
+  // phone; 'booking': booked by the customer on the "Rezerviraj termin" page.
   source?: string | null;
   scheduled_start?: string | null;
   client: Pick<Client, 'kind' | 'first_name' | 'last_name' | 'company_name'> | null;
@@ -55,6 +56,11 @@ export function JobCard({ job, pkg, total, showMoney, showPhase = true }: { job:
         {job.source === 'phone' && job.phase === 'intake' ? (
           <Badge tone="accent">
             <Phone className="size-3" /> Dogovorio Poslar
+          </Badge>
+        ) : null}
+        {job.source === 'booking' && job.phase === 'intake' ? (
+          <Badge tone="accent">
+            <CalendarCheck className="size-3" /> Rezervirao online
           </Badge>
         ) : null}
         {job.scheduled_start && job.phase !== 'collected' ? (

@@ -63,9 +63,9 @@ export async function senderHash(): Promise<string> {
 
 // Limits against fake or repeated submissions: per sender an hour and a
 // day, and per workshop a day. Counted before the work is done.
-const LIMITS = { submit: { hour: 3, day: 8, workshopDay: 40 }, scan: { hour: 8, day: 20, workshopDay: 120 } } as const;
+const LIMITS = { submit: { hour: 3, day: 8, workshopDay: 40 }, scan: { hour: 8, day: 20, workshopDay: 120 }, booking: { hour: 3, day: 6, workshopDay: 40 } } as const;
 
-export async function overLimit(tenantId: string, ipHash: string, kind: 'submit' | 'scan'): Promise<boolean> {
+export async function overLimit(tenantId: string, ipHash: string, kind: 'submit' | 'scan' | 'booking'): Promise<boolean> {
   const admin = createAdminClient();
   const hourAgo = new Date(Date.now() - 3600_000).toISOString();
   const dayAgo = new Date(Date.now() - 86400_000).toISOString();
@@ -85,3 +85,10 @@ export async function overLimit(tenantId: string, ipHash: string, kind: 'submit'
 
 export const digitsOf = (phone: string) => phone.replace(/\D/g, '').replace(/^00/, '').replace(/^385/, '0');
 export const plateKey = (plate: string) => plate.toUpperCase().replace(/[^A-Z0-9ČĆŽŠĐ]/g, '');
+
+// "st 1234 ab" → "ST-1234-AB", the way plates are written everywhere else.
+export function tidyPlate(raw: string): string {
+  const up = raw.toUpperCase().trim();
+  const m = /^([A-ZČĆŽŠĐ]{2})[\s-]*(\d{3,4})[\s-]*([A-ZČĆŽŠĐ]{1,2})$/.exec(up);
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : up;
+}

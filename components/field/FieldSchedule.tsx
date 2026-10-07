@@ -161,9 +161,9 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, 
                         <MapPin className="size-3.5 shrink-0" /> {[v.site.address, v.site.city].filter(Boolean).join(', ')}
                       </p>
                     ) : null}
-                    {!fieldMode && v.source === 'phone' ? (
+                    {!fieldMode && (v.source === 'phone' || v.source === 'booking') ? (
                       <p className="mt-0.5">
-                        <Badge tone="warn">Poslar</Badge>
+                        <Badge tone="warn">{v.source === 'phone' ? 'Poslar' : 'Online'}</Badge>
                       </p>
                     ) : null}
                     <p className="break-words text-sm text-muted">
