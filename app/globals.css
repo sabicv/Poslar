@@ -2,41 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
-/* "Industrial dark": graphite with a hint of blue instead of black, which
-   glares less on a phone and reads like a tool, not like office software.
-   Page, card, raised part and border are clear steps apart.
+/* Poslar's colours (Vedran, 2026-10-07): only the logo's blue, orange and
+   white, on black. "Crna radionica": a black page, blue buttons with white
+   text, orange for what needs attention (urgent, late, reminders, errors)
+   and for the trade icons. Blue also marks "done" (no green, no red).
+   The light theme (Postavke) is the same on white, with stronger borders
+   and grey text so buttons and icons stand out in the sun.
    Values are RGB triplets for Tailwind's alpha modifiers. */
 :root {
-  --bg: 15 23 42;
-  --surface: 30 41 59;
-  --surface2: 42 56 78;
-  --line: 61 77 102;
-  --fg: 248 250 252;
-  --muted: 160 174 196;
-  --faint: 118 134 158;
-  --ok: 52 211 153;
-  --warn: 251 191 36;
-  --crit: 248 113 113;
-  --accent: 61 155 255;
+  --bg: 10 10 11;
+  --surface: 22 22 24;
+  --surface2: 36 36 40;
+  --line: 58 58 64;
+  --fg: 250 250 248;
+  --muted: 176 176 182;
+  --faint: 126 126 134;
+  --ok: 28 167 221;
+  --warn: 247 154 110;
+  --crit: 241 90 36;
+  --orange: 241 90 36;
+  --accent: 28 167 221;
   --accent-fg: 255 255 255;
   color-scheme: dark;
 }
 
 [data-theme='light'] {
-  --bg: 248 248 250;
+  --bg: 242 244 247;
   --surface: 255 255 255;
-  --surface2: 241 241 244;
-  --line: 226 226 232;
-  --fg: 20 20 24;
-  --muted: 82 82 91;
-  --faint: 120 120 130;
-  --ok: 5 150 105;
-  --warn: 202 111 4;
-  --crit: 220 38 38;
+  --surface2: 228 232 238;
+  --line: 200 207 217;
+  --fg: 10 12 16;
+  --muted: 58 66 78;
+  --faint: 100 110 124;
+  --ok: 10 111 166;
+  --warn: 190 90 30;
+  --crit: 200 55 10;
+  --orange: 232 80 26;
   color-scheme: light;
 }
 
-/* The product accent is set per element (config/tenant.config.ts → accentStyle). */
+/* On white the logo blue is too light for blue words; fills keep it. */
+[data-theme='light'] .text-accent {
+  color: rgb(10 111 166);
+}
+
+/* White letters on the logo blue, bold so they read in the sun. */
+.bg-accent.text-accent-fg {
+  font-weight: 600;
+}
+
+/* The accent is set per element (config/tenant.config.ts → accentStyle);
+   since the Poslar colours it is the same blue for every trade. */
 .accent-scope {
   --accent: var(--accent-dark);
   --accent-fg: var(--accent-fg-dark);

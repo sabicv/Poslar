@@ -309,38 +309,26 @@ export function hexToRgbTriplet(hex: string): string {
   return hexToRgb(hex).join(' ');
 }
 
-function luminance([r, g, b]: [number, number, number]): number {
-  const lin = (c: number) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-}
-
-// Accent variables for an element with the accent-scope class. A light
-// accent (Wheel silver) is darkened for the light theme so accent text
-// stays readable on white, and text on an accent button flips between
-// black and white by contrast.
-// The umbrella brand, for an address that is no product's domain (the
-// Vercel URL) and a visitor who is not signed in.
-// Poslar: light blue for actions (dark text on it stays readable),
-// products keep their own colours inside the app.
-// accent: the app's light blue; mark and blue: the logo's orange and blue
+// The brand. accent: the buttons (the logo's blue, white letters on it,
+// Vedran 2026-10-07); mark and blue: the logo's orange and blue
 // (public/brand, drawn by scripts/brand.mjs).
-export const BRAND = { id: 'poslar', name: 'Poslar', tagline: 'Manje administracije. Više odrađenog posla.', accent: '#6CC5EA', mark: '#F15A24', blue: '#1CA7DD' } as const;
+export const BRAND = { id: 'poslar', name: 'Poslar', tagline: 'Manje administracije. Više odrađenog posla.', accent: '#1CA7DD', mark: '#F15A24', blue: '#1CA7DD' } as const;
 
 export function brandAccentStyle(): CSSProperties {
-  return accentStyle({ accent: BRAND.accent } as PackageConfig);
+  return accentStyle();
 }
 
-export function accentStyle(pkg: PackageConfig): CSSProperties {
-  const rgb = hexToRgb(pkg.accent);
-  const onLight = luminance(rgb) > 0.35 ? (rgb.map((c) => Math.round(c * 0.42)) as [number, number, number]) : rgb;
-  const fg = (c: [number, number, number]) => (luminance(c) > 0.45 ? '10 10 11' : '255 255 255');
+// Accent variables for an element with the accent-scope class. Since the
+// Poslar colours every trade has the same blue (the trades differ by icon
+// and name; pkg.accent stays for the trade icon files only), so the
+// argument is kept for the callers but not read.
+export function accentStyle(pkg?: PackageConfig): CSSProperties {
+  void pkg;
+  const blue = hexToRgb(BRAND.accent).join(' ');
   return {
-    ['--accent-dark' as string]: rgb.join(' '),
-    ['--accent-light' as string]: onLight.join(' '),
-    ['--accent-fg-dark' as string]: fg(rgb),
-    ['--accent-fg-light' as string]: fg(onLight),
+    ['--accent-dark' as string]: blue,
+    ['--accent-light' as string]: blue,
+    ['--accent-fg-dark' as string]: '255 255 255',
+    ['--accent-fg-light' as string]: '255 255 255',
   };
 }

@@ -1,36 +1,21 @@
-'use client';
-
 import { Check } from 'lucide-react';
-import { useState } from 'react';
 import { PRICING } from '@/config/landing';
-import { PLANS, PLAN_IDS, TERM_DISCOUNT } from '@/config/plans';
+import { FOUNDER_MONTHS, FOUNDER_SPOTS, PLANS, PLAN_IDS } from '@/config/plans';
 import { cn } from '@/lib/utils';
 
-// The three plans with a switch between paying month by month and the
-// contract with 10 % off. No button on the cards: the page has its own.
-export function Pricing() {
-  const [contract, setContract] = useState(false);
-  const price = (p: number) => (contract ? Math.round(p * (1 - TERM_DISCOUNT)) : p);
-
+// The three plans. While founder spots are left, the big number is the
+// founder price and the full price stands under it; after that, the full
+// price only. No button on the cards: the page has its own.
+export function Pricing({ spotsLeft }: { spotsLeft: number }) {
+  const founder = spotsLeft > 0;
   return (
     <>
-      <div role="radiogroup" aria-label="Način plaćanja" className="mt-7 inline-flex rounded-xl border border-line bg-surface p-1 text-sm">
-        {[
-          { on: false, label: PRICING.monthly },
-          { on: true, label: PRICING.yearly },
-        ].map((o) => (
-          <button
-            key={o.label}
-            type="button"
-            role="radio"
-            aria-checked={contract === o.on}
-            onClick={() => setContract(o.on)}
-            className={cn('h-10 rounded-lg px-4 font-medium transition-colors', contract === o.on ? 'bg-accent text-accent-fg' : 'text-muted hover:text-fg')}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
+      {founder ? (
+        <p className="mt-7 rounded-2xl border border-accent/50 bg-accent/10 px-4 py-3 text-sm">
+          <span className="font-semibold">{PRICING.founder}:</span> {PRICING.founderNote(FOUNDER_SPOTS, FOUNDER_MONTHS)}{' '}
+          <span className="font-semibold tabular-nums">{PRICING.spotsLeft(spotsLeft, FOUNDER_SPOTS)}</span>
+        </p>
+      ) : null}
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         {PLAN_IDS.map((id) => {
           const plan = PLANS[id];
@@ -41,10 +26,16 @@ export function Pricing() {
                 {plan.name}
                 {best ? <span className="rounded-full bg-accent px-2.5 py-0.5 font-sans text-xs font-semibold text-accent-fg">{PRICING.best}</span> : null}
               </p>
-              <p className="mt-3">
-                <span className="font-display text-5xl font-bold tabular-nums">{price(plan.price)} €</span>
+              {founder ? <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-accent">{PRICING.founder}</p> : null}
+              <p className={founder ? 'mt-1' : 'mt-3'}>
+                <span className="font-display text-5xl font-bold tabular-nums">{founder ? plan.founderPrice : plan.price} €</span>
                 <span className="text-muted"> / mjesečno</span>
               </p>
+              {founder ? (
+                <p className="mt-1 text-sm text-muted">
+                  {PRICING.full} <span className="tabular-nums line-through">{plan.price} €</span>
+                </p>
+              ) : null}
               <ul className="mt-5 flex-1 space-y-2 text-sm">
                 {PRICING.plans[id].map((line, i) => (
                   <li key={line} className={cn('flex gap-2', i === 0 ? 'font-medium' : 'text-muted')}>
@@ -56,7 +47,7 @@ export function Pricing() {
           );
         })}
       </div>
-      {contract ? <p className="mt-4 rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm">{PRICING.funding}</p> : null}
+      <p className="mt-4 text-sm text-muted">{PRICING.funding}</p>
     </>
   );
 }

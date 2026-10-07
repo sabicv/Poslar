@@ -79,7 +79,7 @@ const boilerService: InspectionTemplate = {
 
 export const aqua: PackageConfig = {
   id: 'aqua',
-  product: 'Poslar Vodoinstalater',
+  product: 'Vodoinstalater',
   short: 'Vodoinstalater',
   domain: 'vodoinstalater.poslar.eu',
   tagline: 'Vodoinstalacije, bojleri i grijanje na terenu',

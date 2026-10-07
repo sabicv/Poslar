@@ -33,6 +33,8 @@ export interface Tenant {
   plan: 'basic' | 'standard' | 'premium';
   billing_term: 'monthly' | '24m';
   paid_until: string | null;
+  // The founder price runs until this date (0028); null: full price.
+  founder_until?: string | null;
   admin_notes: string | null;
   ai_quota: Record<string, number> | null;
   // Door QR self-intake (/q/<intake_token>).

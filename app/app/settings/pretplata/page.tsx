@@ -3,9 +3,10 @@ import { redirect } from 'next/navigation';
 import { PaymentInstructions } from '@/components/billing/PaymentInstructions';
 import { PlanRequest } from '@/components/billing/PlanRequest';
 import { BackLink, Badge, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
-import { AI_LABELS, PLANS, TERM_DISCOUNT, TERM_LABELS, aiQuota, getPlan } from '@/config/plans';
+import { AI_LABELS, FOUNDER_MONTHS, FOUNDER_SPOTS, PLANS, TERM_LABELS, aiQuota, getPlan, isFounder } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { subscription } from '@/lib/billing';
+import { founderSpotsLeft } from '@/lib/founder';
 import { formatDate, formatEuro } from '@/lib/format';
 import { isPlayApp } from '@/lib/play';
 import { requireOwner } from '@/lib/session';
@@ -33,10 +34,12 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const plan = getPlan(t.plan);
   const { mj } = await searchParams;
   const months = mj === '6' ? 6 : mj === '12' ? 12 : 1;
-  const [scans, answers, { data: openRequests }] = await Promise.all([
+  const founder = isFounder(t.founder_until);
+  const [scans, answers, { data: openRequests }, spotsLeft] = await Promise.all([
     aiUsageThisMonth(t.id, 'scan'),
     aiUsageThisMonth(t.id, 'copilot'),
     ctx.supabase.from('support_tickets').select('id').eq('status', 'open').limit(1),
+    founder ? Promise.resolve(0) : founderSpotsLeft(),
   ]);
 
   return (
@@ -48,7 +51,11 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
             <CardHeader title={`Paket ${plan.name}`} subtitle={plan.people} action={<Badge tone={STATUS[sub.status].tone}>{STATUS[sub.status].label}</Badge>} />
             <div className="divide-y divide-line px-4">
               <KeyValue label="Cijena">{`${formatEuro(sub.monthly)} mjesečno s PDV-om`}</KeyValue>
-              <KeyValue label="Način plaćanja">{TERM_LABELS[t.billing_term] ?? TERM_LABELS.monthly}</KeyValue>
+              {founder ? (
+                <KeyValue label="Osnivačka cijena do">{formatDate(t.founder_until ?? null)}</KeyValue>
+              ) : (
+                <KeyValue label="Način plaćanja">{TERM_LABELS[t.billing_term] ?? TERM_LABELS.monthly}</KeyValue>
+              )}
               {sub.status === 'trial' ? <KeyValue label="Proba traje do">{formatDate(t.trial_ends_at)}</KeyValue> : null}
               {sub.paidUntil ? <KeyValue label="Plaćeno do">{formatDate(sub.paidUntil)}</KeyValue> : null}
               {sub.status === 'grace' ? <KeyValue label="Zaključava se">{formatDate(sub.lockOn)}</KeyValue> : null}
@@ -58,7 +65,16 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
           </Card>
 
           <Card>
-            <CardHeader title="Paketi" subtitle={`Ugovor na 24 mjeseca: ${Math.round(TERM_DISCOUNT * 100)} % manje`} />
+            <CardHeader
+              title="Paketi"
+              subtitle={
+                founder
+                  ? `Vaša osnivačka cijena vrijedi do ${formatDate(t.founder_until ?? null)}.`
+                  : spotsLeft > 0
+                    ? `Osnivačka cijena za prvih ${FOUNDER_SPOTS} radionica, ${FOUNDER_MONTHS} mjeseca. Još ${spotsLeft} mjesta.`
+                    : 'Cijene s PDV-om'
+              }
+            />
             <ul className="divide-y divide-line">
               {Object.values(PLANS).map((p) => (
                 <li key={p.id} className={cn('space-y-2 px-4 py-3', p.id === plan.id && 'bg-accent/5')}>
@@ -67,16 +83,22 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
                       {p.name} {p.id === plan.id ? <Badge tone="accent">Vaš paket</Badge> : null}
                     </span>
                     <span className="text-sm tabular">
-                      {p.price} € <span className="text-muted">/ mj. · uz 24 mj. {Math.round(p.price * (1 - TERM_DISCOUNT))} €</span>
+                      {founder ? (
+                        <>
+                          {p.founderPrice} € <span className="text-muted">/ mj. · puna <span className="line-through">{p.price} €</span></span>
+                        </>
+                      ) : (
+                        <>
+                          {p.price} € <span className="text-muted">/ mj.</span>
+                        </>
+                      )}
                     </span>
                   </div>
                   <p className="text-xs text-muted">
                     {p.people} · slikanje {p.ai.scan} i {p.ai.copilot} pitanja Poslaru mjesečno{p.qr ? ' · QR samoprijem' : ''}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {p.id !== plan.id ? <PlanRequest plan={p.id} term="monthly" label={`Želim ${p.name}`} /> : null}
-                    <PlanRequest plan={p.id} term="24m" label={`${p.name} na 24 mjeseca`} />
-                  </div>
+                    {p.id !== plan.id ? <PlanRequest plan={p.id} term="monthly" label={`Želim ${p.name}`} /> : null}                  </div>
                 </li>
               ))}
             </ul>

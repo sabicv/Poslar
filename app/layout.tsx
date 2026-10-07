@@ -9,13 +9,15 @@ import { BRAND, accentStyle, brandAccentStyle } from '@/config/tenant.config';
 import { packageForRequest } from '@/lib/package-for-request';
 import './globals.css';
 
+// The tab and the home-screen icon say Poslar for every trade; the trade is
+// in the description.
 export async function generateMetadata(): Promise<Metadata> {
   const { pkg, generic } = await packageForRequest();
-  const name = generic ? BRAND.name : pkg.product;
-  const icon = generic ? BRAND.id : pkg.id;
+  const name = BRAND.name;
+  const icon = BRAND.id;
   return {
     title: { default: name, template: `%s · ${name}` },
-    description: generic ? BRAND.tagline : pkg.tagline,
+    description: generic ? BRAND.tagline : `${pkg.short}: ${pkg.tagline}`,
     applicationName: name,
     manifest: '/manifest.webmanifest',
     appleWebApp: { capable: true, title: name, statusBarStyle: 'black-translucent' },
@@ -28,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const display = Saira_Condensed({ subsets: ['latin', 'latin-ext'], weight: ['600', '700'], variable: '--font-display', display: 'swap' });
 
 export const viewport: Viewport = {
-  themeColor: '#0F172A',
+  themeColor: '#0A0A0B',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',

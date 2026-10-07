@@ -24,7 +24,7 @@ export const TREAD_LIMITS = {
 
 export const wheel: PackageConfig = {
   id: 'wheel',
-  product: 'Poslar Vulkanizer',
+  product: 'Vulkanizer',
   short: 'Vulkanizer',
   domain: 'vulkanizer.poslar.eu',
   tagline: 'Vulkanizeri, geometrija i hotel za gume',

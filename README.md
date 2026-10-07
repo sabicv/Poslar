@@ -4,17 +4,17 @@ Jedna aplikacija za radionice i servise na terenu, jedanaest zanata. Svaka radio
 
 | Paket (id) | Naziv | Poddomena | Za koga |
 |---|---|---|---|
-| volt | **Poslar Autoelektričar** | autoelektricar.poslar.eu | autoelektrika, dijagnostika, elektronika |
-| gear | **Poslar Automehaničar** | automehanicar.poslar.eu | automehanika i opći servis |
-| body | **Poslar Limar i lakirer** | limar-lakirer.poslar.eu | limarija, lakirnica, procjena štete |
-| wheel | **Poslar Vulkanizer** | vulkanizer.poslar.eu | vulkanizeri, geometrija, hotel za gume |
-| fleet | **Poslar Kamioni i strojevi** | kamioni-strojevi.poslar.eu | teretni program, građevina, flote |
-| moto | **Poslar Moto** | motocikli.poslar.eu | motocikli, skuteri, quadovi |
-| marine | **Poslar Nautika** | nautika.poslar.eu | jet ski, brodice, vanbrodski i ugradbeni motori |
-| air | **Poslar Klima serviser** | klima-serviser.poslar.eu | klime, dizalice topline, ventilacija (rad na terenu) |
-| aqua | **Poslar Vodoinstalater** | vodoinstalater.poslar.eu | vodoinstalacije, bojleri (rad na terenu) |
-| tow | **Poslar Vučna služba** | vucna-sluzba.poslar.eu | vuča i pomoć na cesti |
-| deal | **Poslar Auto plac** | auto-plac.poslar.eu | prodaja rabljenih vozila |
+| volt | **Autoelektričar** | autoelektricar.poslar.eu | autoelektrika, dijagnostika, elektronika |
+| gear | **Automehaničar** | automehanicar.poslar.eu | automehanika i opći servis |
+| body | **Limar i lakirer** | limar-lakirer.poslar.eu | limarija, lakirnica, procjena štete |
+| wheel | **Vulkanizer** | vulkanizer.poslar.eu | vulkanizeri, geometrija, hotel za gume |
+| fleet | **Kamioni i strojevi** | kamioni-strojevi.poslar.eu | teretni program, građevina, flote |
+| moto | **Moto** | motocikli.poslar.eu | motocikli, skuteri, quadovi |
+| marine | **Nautika** | nautika.poslar.eu | jet ski, brodice, vanbrodski i ugradbeni motori |
+| air | **Klima serviser** | klima-serviser.poslar.eu | klime, dizalice topline, ventilacija (rad na terenu) |
+| aqua | **Vodoinstalater** | vodoinstalater.poslar.eu | vodoinstalacije, bojleri (rad na terenu) |
+| tow | **Vučna služba** | vucna-sluzba.poslar.eu | vuča i pomoć na cesti |
+| deal | **Auto plac** | auto-plac.poslar.eu | prodaja rabljenih vozila |
 
 Logo i ikona: `npm run brand` piše `public/brand/poslar-logo.svg` i `poslar-mark.svg` (font Saira Condensed Bold iz `scripts/assets`), a `npm run icons` ikone aplikacije u `public/icons`.
 

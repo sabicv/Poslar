@@ -3,7 +3,7 @@ import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 export const volt: PackageConfig = {
   id: 'volt',
-  product: 'Poslar Autoelektričar',
+  product: 'Autoelektričar',
   short: 'Autoelektričar',
   domain: 'autoelektricar.poslar.eu',
   tagline: 'Autoelektrika, dijagnostika i elektronika',

@@ -171,7 +171,7 @@ const heatPump: InspectionTemplate = {
 
 export const air: PackageConfig = {
   id: 'air',
-  product: 'Poslar Klima serviser',
+  product: 'Klima serviser',
   short: 'Klima serviser',
   domain: 'klima-serviser.poslar.eu',
   tagline: 'Klime, dizalice topline i ventilacija na terenu',

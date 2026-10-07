@@ -53,7 +53,7 @@ export default async function LockedPage({ searchParams }: { searchParams: Promi
   const payable = !play && (state.reason === 'trial_ended' || state.reason === 'unpaid') && state.role === 'owner' && state.tenantId;
   // Read on the server: the database hides a locked workshop's row from its
   // own users, and the id comes from this user's own access, not the URL.
-  const { data: tenant } = payable ? await createAdminClient().from('tenants').select('name, address, city, billing_ref, plan, billing_term').eq('id', state.tenantId!).maybeSingle() : { data: null };
+  const { data: tenant } = payable ? await createAdminClient().from('tenants').select('name, address, city, billing_ref, plan, billing_term, founder_until').eq('id', state.tenantId!).maybeSingle() : { data: null };
   const { mj } = await searchParams;
   const months = mj === '6' ? 6 : mj === '12' ? 12 : 1;
 
@@ -71,7 +71,7 @@ export default async function LockedPage({ searchParams }: { searchParams: Promi
           <p className="mb-3 font-medium">Uplata pretplate</p>
           <PaymentInstructions
             workshop={{ name: tenant.name as string, address: (tenant.address as string | null) ?? null, city: (tenant.city as string | null) ?? null, billingRef: tenant.billing_ref as number }}
-            monthly={monthlyPrice(tenant.plan as string, tenant.billing_term as string)}
+            monthly={monthlyPrice(tenant.plan as string, tenant.billing_term as string, tenant.founder_until as string | null)}
             months={months}
             linkBase="/locked"
           />

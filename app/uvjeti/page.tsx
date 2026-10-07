@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LegalPage, ProviderBlock, Section } from '@/components/legal/LegalPage';
-import { PLANS, TERM_DISCOUNT } from '@/config/plans';
+import { FOUNDER_MONTHS, FOUNDER_SPOTS, PLANS } from '@/config/plans';
 import { GRACE_DAYS } from '@/lib/billing';
 
 export const metadata: Metadata = { title: 'Uvjeti korištenja' };
@@ -60,7 +60,10 @@ export default function TermsPage() {
             mjesečno, dodatne mogućnosti) navodi se na početnoj stranici i u aplikaciji, u Postavke → Pretplata.
           </li>
           <li>Pretplata se plaća unaprijed, uplatom na račun Pružatelja s pozivom na broj radionice, za jedan ili više mjeseci.</li>
-          <li>Uz ugovor na 24 mjeseca mjesečna cijena je {Math.round(TERM_DISCOUNT * 100)} % niža. Za takav ugovor vrijede i odredbe ugovora.</li>
+          <li>
+            Prvih {FOUNDER_SPOTS} radionica koje se registriraju plaća osnivačku cijenu ({plans.map((p) => `${p.name} ${p.founderPrice} €`).join(', ')}) kroz {FOUNDER_MONTHS} mjeseca od
+            registracije. Nakon toga vrijedi puna cijena. Pretplata se plaća mjesečno i može se otkazati u svakom trenutku.
+          </li>
           <li>
             Ako uplata ne stigne do isteka plaćenog razdoblja, Korisnik ima još {GRACE_DAYS} dana. Nakon toga aplikacija se zaključava do uplate. Zbog kašnjenja se podaci ne brišu.
           </li>

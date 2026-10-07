@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { LEGAL_VERSION } from '@/config/legal';
 import { PACKAGE_IDS, type PackageId } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
+import { founderUntilForNew } from '@/lib/founder';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 async function clientIp(): Promise<{ ip: string | null; userAgent: string | null }> {
@@ -111,6 +112,9 @@ export async function registerWorkshop(values: z.input<typeof registerSchema>): 
   // The terms and the data processing agreement, accepted with the form;
   // and, sent by another workshop, who it was (for its free month later).
   const patch: Record<string, unknown> = { terms_accepted_at: new Date().toISOString(), terms_version: LEGAL_VERSION };
+  // One of the first 50: the founder price for 24 months.
+  const founderUntil = await founderUntilForNew(admin);
+  if (founderUntil) patch.founder_until = founderUntil;
   if (v.news) patch.news_consent_at = new Date().toISOString();
   if (v.referral) {
     const { data: referrer } = await admin.from('tenants').select('id').eq('billing_ref', Number(v.referral)).maybeSingle();

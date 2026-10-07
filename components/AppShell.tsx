@@ -112,7 +112,7 @@ export function AppShell({
           >
             <Bell className="size-4" />
             Poruke
-            {inboxCount > 0 ? <span className="ml-auto rounded-full bg-accent px-1.5 text-xs font-semibold text-accent-fg">{inboxCount}</span> : null}
+            {inboxCount > 0 ? <span className="ml-auto rounded-full bg-[rgb(var(--orange))] px-1.5 text-xs font-semibold text-white">{inboxCount}</span> : null}
           </Link>
         </nav>
         <div className="mt-auto space-y-3 border-t border-line pt-4">
@@ -148,7 +148,7 @@ export function AppShell({
             <Link href="/app/inbox" className="relative flex size-12 items-center justify-center rounded-xl text-muted hover:bg-surface2" aria-label="Poruke">
               <Bell className="size-5" />
               {inboxCount > 0 ? (
-                <span className="absolute right-1.5 top-1.5 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-fg">{inboxCount}</span>
+                <span className="absolute right-1.5 top-1.5 flex min-w-4 items-center justify-center rounded-full bg-[rgb(var(--orange))] px-1 text-[10px] font-bold text-white">{inboxCount}</span>
               ) : null}
             </Link>
             <Link href={newJobHref} className={buttonClass('primary', 'md', 'px-3')} aria-label="Novi nalog">

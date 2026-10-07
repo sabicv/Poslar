@@ -53,9 +53,9 @@ const days = (from: string, to: string) => Math.round((Date.UTC(+to.slice(0, 4),
 // Where a workshop stands. Only a workshop with a "paid until" date is
 // ever locked for not paying; one without (demo, a deal made by hand)
 // is left alone.
-export function subscription(t: Pick<Tenant, 'status' | 'plan' | 'billing_term' | 'paid_until' | 'trial_ends_at' | 'settings'>, today = todayInZagreb()): Subscription {
+export function subscription(t: Pick<Tenant, 'status' | 'plan' | 'billing_term' | 'paid_until' | 'trial_ends_at' | 'settings' | 'founder_until'>, today = todayInZagreb()): Subscription {
   const plan = getPlan(t.plan);
-  const base = { planName: plan.name, monthly: monthlyPrice(t.plan, t.billing_term), paidUntil: t.paid_until, lockOn: null as string | null, daysLeft: null as number | null };
+  const base = { planName: plan.name, monthly: monthlyPrice(t.plan, t.billing_term, t.founder_until), paidUntil: t.paid_until, lockOn: null as string | null, daysLeft: null as number | null };
   if ((t.settings as { demo?: unknown } | null)?.demo === true) return { ...base, status: 'demo' };
   if (t.status === 'suspended') return { ...base, status: 'suspended' };
   if (t.status === 'trial') {

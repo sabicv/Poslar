@@ -9,6 +9,7 @@ import { CTA_DEMO, CTA_HEADER, FAQ, MAIN, PRICING, ctaTrial } from '@/config/lan
 import { accentStyle, type PackageConfig, type PackageId } from '@/config/tenant.config';
 import { openDemo } from '@/lib/actions/guest';
 import { supportWhatsApp } from '@/lib/billing';
+import { founderSpotsLeft } from '@/lib/founder';
 import { provider } from '@/lib/legal';
 import { cn } from '@/lib/utils';
 
@@ -109,11 +110,13 @@ export function LandingHeader({ product, signedIn, register, tradesHref }: { pro
   );
 }
 
-export function PricingSection() {
+export async function PricingSection() {
+  // Founder spots left, counted live (a deleted workshop frees its spot).
+  const spotsLeft = await founderSpotsLeft();
   return (
     <Section>
       <SectionTitle id="cijene" title={PRICING.title} subtitle={PRICING.subtitle} />
-      <Pricing />
+      <Pricing spotsLeft={spotsLeft} />
       <p className="mt-4 text-sm text-faint">{PRICING.vat}</p>
     </Section>
   );

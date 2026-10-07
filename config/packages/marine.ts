@@ -8,7 +8,7 @@ export const BOAT_ZONES = [
 
 export const marine: PackageConfig = {
   id: 'marine',
-  product: 'Poslar Nautika',
+  product: 'Nautika',
   short: 'Nautika',
   domain: 'nautika.poslar.eu',
   tagline: 'Plovila, vanbrodski i unutarnji motori',

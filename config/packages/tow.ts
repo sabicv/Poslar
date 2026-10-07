@@ -36,7 +36,7 @@ export function storageDays(inAt: string, outAt: string | null, now = new Date()
 
 export const tow: PackageConfig = {
   id: 'tow',
-  product: 'Poslar Vučna služba',
+  product: 'Vučna služba',
   short: 'Vučna služba',
   domain: 'vucna-sluzba.poslar.eu',
   tagline: 'Vuča vozila i pomoć na cesti',

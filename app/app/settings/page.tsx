@@ -120,7 +120,7 @@ export default async function SettingsPage() {
           <Card>
             <CardHeader title="Pretplata" />
             <div className="divide-y divide-line px-4">
-              <KeyValue label="Paket">{ctx.pkg.product}</KeyValue>
+              <KeyValue label="Zanat">{ctx.pkg.product}</KeyValue>
               <KeyValue label="Status">
                 <Badge tone={t.status === 'active' ? 'ok' : t.status === 'trial' ? 'warn' : 'crit'}>{t.status === 'active' ? 'Aktivno' : t.status === 'trial' ? 'Probno razdoblje' : 'Isključeno'}</Badge>
               </KeyValue>
@@ -130,7 +130,7 @@ export default async function SettingsPage() {
                 <KeyValue label="Pretplata">{`${plan.name} · ${plan.people}`}</KeyValue>
               ) : (
                 <>
-                  <KeyValue label="Pretplata">{`${plan.name} · ${plan.people} · ${monthlyPrice(t.plan, t.billing_term)} € mjesečno`}</KeyValue>
+                  <KeyValue label="Pretplata">{`${plan.name} · ${plan.people} · ${monthlyPrice(t.plan, t.billing_term, t.founder_until)} € mjesečno`}</KeyValue>
                   <KeyValue label="Način plaćanja">{TERM_LABELS[t.billing_term] ?? TERM_LABELS.monthly}</KeyValue>
                 </>
               )}

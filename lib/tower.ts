@@ -87,7 +87,7 @@ export async function loadWorkshops(): Promise<TowerWorkshop[]> {
         copilotQuota: aiQuota(t.plan, t.ai_quota, 'copilot'),
         cost: usage.reduce((s, u) => s + aiCost(Number(u.input_tokens), Number(u.output_tokens)), 0),
       },
-      monthly: monthlyPrice(t.plan, t.billing_term),
+      monthly: monthlyPrice(t.plan, t.billing_term, t.founder_until),
       trialLeft,
       overdue: t.status === 'active' && Boolean(t.paid_until && t.paid_until < today),
       // Signed up and gone silent: two weeks without a job (three days for a brand-new one).

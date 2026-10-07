@@ -9,7 +9,7 @@ export const MOTO_ZONES = [
 
 export const moto: PackageConfig = {
   id: 'moto',
-  product: 'Poslar Moto',
+  product: 'Moto',
   short: 'Moto',
   domain: 'motocikli.poslar.eu',
   tagline: 'Motocikli, skuteri i quadovi',

@@ -30,8 +30,8 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   const first = await loadFirstSteps(ctx);
   const firstSteps = first ? <FirstSteps steps={first.steps} sample={first.sample} video={await helpVideo('start')} /> : null;
   const reminderBanner = waiting ? (
-    <Link href="/app/business/podsjetnici" className="mb-4 flex items-center gap-3 rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm">
-      <BellRing className="size-5 shrink-0 text-accent" />
+    <Link href="/app/business/podsjetnici" className="mb-4 flex min-h-12 items-center gap-3 rounded-2xl border border-crit/40 bg-crit/10 px-4 py-3 text-sm">
+      <BellRing className="size-5 shrink-0 text-crit" />
       <span className="flex-1">
         Podsjetnici za poslati: <span className="font-semibold">{waiting}</span>
       </span>

@@ -118,7 +118,7 @@ export default async function Home() {
             </p>
           </div>
           <div className="px-2 sm:px-6">
-            <div className="rounded-t-2xl border border-b-0 border-line bg-[#0b111c] p-2 pb-0 sm:p-3 sm:pb-0">
+            <div className="rounded-t-2xl border border-b-0 border-line bg-bg p-2 pb-0 sm:p-3 sm:pb-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/landing/desktop.webp"

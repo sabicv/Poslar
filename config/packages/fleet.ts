@@ -15,7 +15,7 @@ export const COMPLIANCE_LABELS: Record<string, string> = {
 
 export const fleet: PackageConfig = {
   id: 'fleet',
-  product: 'Poslar Kamioni i strojevi',
+  product: 'Kamioni i strojevi',
   short: 'Kamioni i strojevi',
   domain: 'kamioni-strojevi.poslar.eu',
   tagline: 'Teretni program, građevina i flote',

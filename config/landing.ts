@@ -119,8 +119,11 @@ export const TRADE_LINES: Record<PackageId, string> = {
 export const PRICING = {
   title: 'Košta manje od jednog radnog sata mjesečno.',
   subtitle: 'Kreni odmah: 30 dana besplatno na svojim poslovima. Ili prvo 24 sata isprobaj demo s izmišljenim podacima.',
-  monthly: 'Mjesečno',
-  yearly: 'Ugovor na 24 mjeseca (10 % popusta)',
+  // The founder price (config/plans.ts) instead of a contract discount.
+  founder: 'Osnivačka cijena',
+  founderNote: (spots: number, months: number) => `za prvih ${spots} radionica, zaključana na ${months} mjeseca.`,
+  spotsLeft: (left: number, spots: number) => `Još ${left} od ${spots} mjesta.`,
+  full: 'Puna cijena',
   funding: 'Mogućnost sufinanciranja pretplate iz EU fondova i nacionalnih sredstava.',
   best: 'Najčešći izbor',
   vat: 'Sve istaknute cijene uključuju PDV.',

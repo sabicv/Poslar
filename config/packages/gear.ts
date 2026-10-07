@@ -103,7 +103,7 @@ const dvi50: InspectionTemplate = {
 
 export const gear: PackageConfig = {
   id: 'gear',
-  product: 'Poslar Automehaničar',
+  product: 'Automehaničar',
   short: 'Automehaničar',
   domain: 'automehanicar.poslar.eu',
   tagline: 'Automehanika i opći servis',

@@ -33,14 +33,16 @@ export function BrandLogo({ className, size = 'md' }: { className?: string; size
   return <img src="/brand/poslar-logo.svg" alt={BRAND.name} width={Math.round(h * LOGO_RATIO)} height={h} className={cn('block shrink-0', className)} style={{ height: h, width: 'auto' }} />;
 }
 
-// A trade's mark: a dark tile with the glyph glowing in the trade's colour,
-// like a lamp on an instrument cluster.
+// A trade's mark, in the logo's orange (Vedran, 2026-10-07): on the dark
+// theme an orange glyph with a thin orange ring on a dark tile; on the
+// light theme a solid orange tile with a white glyph, so it shows in the sun.
 export function ProductMark({ id, className }: { id: PackageId; className?: string }) {
   const Icon = PRODUCT_ICONS[id];
   return (
     <span
       className={cn(
-        'inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#0B1220] text-accent ring-1 ring-accent/60 shadow-[0_0_14px_rgb(var(--accent)/0.35)]',
+        'inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface2 text-[rgb(var(--orange))] ring-1 ring-[rgb(var(--orange))]',
+        '[[data-theme=light]_&]:bg-[rgb(var(--orange))] [[data-theme=light]_&]:text-white [[data-theme=light]_&]:ring-0',
         className
       )}
     >

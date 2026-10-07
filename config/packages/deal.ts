@@ -69,7 +69,7 @@ const buyCheck: InspectionTemplate = {
 
 export const deal: PackageConfig = {
   id: 'deal',
-  product: 'Poslar Auto plac',
+  product: 'Auto plac',
   short: 'Auto plac',
   domain: 'auto-plac.poslar.eu',
   tagline: 'Otkup, priprema i prodaja rabljenih vozila',

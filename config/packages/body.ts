@@ -63,7 +63,7 @@ export const PHOTO_ANGLES = [
 
 export const body: PackageConfig = {
   id: 'body',
-  product: 'Poslar Limar i lakirer',
+  product: 'Limar i lakirer',
   short: 'Limar i lakirer',
   domain: 'limar-lakirer.poslar.eu',
   tagline: 'Autolimarija, lakirnica i procjena štete',
