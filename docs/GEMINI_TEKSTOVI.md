@@ -95,10 +95,11 @@ Ovo je dio proizvoda na dan izlaska. Opiši točno ovako kako radi:
 3. **Uvoz starih papirnatih naloga i računa:** fotografiraš papir, Poslar prepozna mušteriju, vozilo, datum,
    radove i iznos te ih upiše u povijest vozila. Uz to uvoz mušterija i vozila iz Excel ili CSV tablice.
    (MAIN.scenes.5, FAQ.4.a)
-4. **Automatske poruke mušterijama:** Poslar sam pošalje SMS u ime radionice (kao pošiljatelj piše naziv radionice):
-   podsjetnik na servis, sezonu guma, zakonski rok, "vozilo je gotovo". U poruci je poveznica na kojoj mušterija
-   sama odabere termin (točka 6). Na SMS se ne može odgovoriti, zato ne piši "odgovori na poruku".
-   Majstor poruku može poslati i jednim dodirom sa svog WhatsAppa.
+4. **Automatske poruke mušterijama na WhatsApp:** Poslar sam pošalje poruku u ime radionice (naziv radionice
+   na početku poruke): podsjetnik na servis, sezonu guma, zakonski rok, "vozilo je gotovo", potvrdu termina.
+   U poruci je poveznica na kojoj mušterija sama odabere termin (točka 6). Mušterija može odgovoriti,
+   a odgovor stiže radionici u aplikaciju. Majstor poruku može poslati i jednim dodirom sa svog WhatsAppa.
+   Ne spominji SMS.
    (npr. TRADE.gear.pains.1.a, TRADE.gear.pains.3.a, TRADE.fleet.pains.1.a, TRADE.body.pains.3.a)
 5. **Paket za knjigovođu:** na kraju mjeseca Poslar ga sam pošalje knjigovođi na e-mail (adresa se upiše jednom).
    Može se i preuzeti jednim dodirom. (MAIN.pains.4.a, FAQ.7.a)
