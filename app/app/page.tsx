@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BellRing, CalendarDays, ChevronRight, ClipboardList, Search } from 'lucide-react';
+import { BellRing, CalendarDays, ChevronRight, ClipboardList, Flame, Search, UserRound } from 'lucide-react';
 import { FieldSchedule } from '@/components/field/FieldSchedule';
 import { JobCard, type BoardJob } from '@/components/JobCard';
 import { EmptyState, Input, PageHeader, buttonClass } from '@/components/ui';
@@ -16,11 +16,15 @@ import { cn, plateIlike, toIlike } from '@/lib/utils';
 const JOB_FIELDS =
   'id, number, phase, complaint, is_urgent, promised_at, payment_status, locked_at, updated_at, assigned_to, source, scheduled_start, client:clients(kind, first_name, last_name, company_name), asset:assets(asset_type, identifier, make, model), assignee:profiles(full_name)';
 
-type Filter = 'active' | 'mine' | 'urgent' | 'unpaid' | 'archive';
+// One segment (all open, being worked on, to collect, closed) and two
+// switches on top of it (urgent, mine).
+type Segment = 'svi' | 'radu' | 'naplata' | 'arhiva';
+const WORKING: JobPhase[] = ['diagnosis', 'awaiting_approval', 'awaiting_parts', 'in_progress', 'quality_check'];
 
-export default async function JobsBoard({ searchParams }: { searchParams: Promise<{ q?: string; f?: string; view?: string; d?: string; t?: string }> }) {
+export default async function JobsBoard({ searchParams }: { searchParams: Promise<{ q?: string; f?: string; view?: string; d?: string; t?: string; hitno?: string; moji?: string }> }) {
   const ctx = await requireWorkshop();
-  const { q = '', f, view, d, t } = await searchParams;
+  const sp = await searchParams;
+  const { q = '', view, d, t } = sp;
   // The owner sees who is waiting for a reminder (tyres, service, deadlines).
   const waiting = ctx.isOwner ? (await loadReminders(ctx)).items.length : 0;
   const first = await loadFirstSteps(ctx);
@@ -39,7 +43,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   // and one tap away for a workshop that also goes out.
   const field = hasFieldWork(ctx.pkg, ctx.tenant.enabled_modules);
   // Every trade has the day schedule (a workshop sees its booked cars there).
-  const showSchedule = view === 'dan' || (field && view !== 'faze' && !q && !f && ctx.pkg.sector === 'field');
+  const showSchedule = view === 'dan' || (field && view !== 'faze' && !q && !sp.f && !sp.hitno && !sp.moji && ctx.pkg.sector === 'field');
   // The title already names the current view; the button offers the other one.
   const viewSwitch = (
     showSchedule ? (
@@ -64,20 +68,27 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   }
   // Deal: the jobs are the dealer's own cost, so there is nothing to collect.
   const billing = !ctx.pkg.internalJobs;
-  const filter: Filter = (['active', 'mine', 'urgent', 'unpaid', 'archive'] as const).includes(f as Filter) && (billing || f !== 'unpaid') ? (f as Filter) : 'active';
+  // Older links (f=active, mine, urgent, unpaid, archive) still land in the right place.
+  const legacy: Record<string, Segment> = { active: 'svi', mine: 'svi', urgent: 'svi', unpaid: 'naplata', archive: 'arhiva' };
+  const asked = (legacy[sp.f ?? ''] ?? sp.f ?? 'svi') as Segment;
+  const segment: Segment = (['svi', 'radu', 'naplata', 'arhiva'] as const).includes(asked) && (asked !== 'naplata' || (billing && ctx.isOwner)) ? asked : 'svi';
+  const urgentOnly = sp.hitno === '1' || sp.f === 'urgent';
+  const mineOnly = sp.moji === '1' || sp.f === 'mine';
   const search = q.trim();
+  const filter = segment;
 
   // The archive in the order jobs were closed (newest first); the rest by
   // the latest change, so what was just touched is on top.
   let query =
-    filter === 'archive'
+    filter === 'arhiva'
       ? ctx.supabase.from('jobs').select(JOB_FIELDS).order('collected_at', { ascending: false, nullsFirst: false }).order('number', { ascending: false })
       : ctx.supabase.from('jobs').select(JOB_FIELDS).order('updated_at', { ascending: false });
-  if (filter === 'archive') query = query.eq('phase', 'collected').limit(100);
-  else if (filter === 'unpaid') query = query.in('phase', ['ready', 'collected']).eq('payment_status', 'unpaid').limit(200);
+  if (filter === 'arhiva') query = query.eq('phase', 'collected').limit(100);
+  else if (filter === 'naplata') query = query.in('phase', ['ready', 'collected']).eq('payment_status', 'unpaid').limit(200);
+  else if (filter === 'radu') query = query.in('phase', WORKING).limit(300);
   else query = query.neq('phase', 'collected').limit(300);
-  if (filter === 'mine') query = query.eq('assigned_to', ctx.user.id);
-  if (filter === 'urgent') query = query.eq('is_urgent', true);
+  if (mineOnly) query = query.eq('assigned_to', ctx.user.id);
+  if (urgentOnly) query = query.eq('is_urgent', true);
 
   if (search) {
     const like = toIlike(search);
@@ -96,8 +107,10 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
     else query = query.or(parts.join(','));
   }
 
-  const { data } = await query;
+  // The counts in the segments and switches, from the open jobs at a glance.
+  const [{ data }, { data: open }] = await Promise.all([query, ctx.supabase.from('jobs').select('phase, is_urgent, assigned_to').neq('phase', 'collected').limit(1000)]);
   const jobs = (data ?? []) as unknown as BoardJob[];
+  const openRows = (open ?? []) as { phase: JobPhase; is_urgent: boolean; assigned_to: string | null }[];
 
   // Money only for the owner: the database returns no totals to workers anyway.
   const totals = new Map<string, number>();
@@ -126,17 +139,25 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   }
 
   const grouped = PHASE_ORDER.map((phase) => ({ phase, jobs: jobs.filter((j) => j.phase === phase) })).filter((g) => g.jobs.length > 0);
-  const openCount = filter === 'active' && !search ? jobs.length : null;
 
-  // Counts live in the filter chips themselves (no separate stat tiles).
-  const urgentCount = filter === 'active' && !search ? jobs.filter((j) => j.is_urgent).length : null;
-  const chips: { id: Filter; label: string; count?: string | null; ownerOnly?: boolean }[] = [
-    { id: 'active', label: 'U radu', count: openCount ? String(openCount) : null },
-    { id: 'mine', label: 'Moji' },
-    { id: 'urgent', label: 'Hitno', count: urgentCount ? String(urgentCount) : null },
-    ...(billing ? [{ id: 'unpaid' as const, label: 'Za naplatu', count: unpaidCount ? formatEuro(unpaidSum) : null, ownerOnly: true }] : []),
-    { id: 'archive', label: 'Arhiva' },
+  // The URL of a segment or switch, keeping the search and the other choices.
+  const link = (next: { f?: Segment; hitno?: boolean; moji?: boolean }) => {
+    const params = new URLSearchParams({ view: 'faze' });
+    const f = next.f ?? segment;
+    if (f !== 'svi') params.set('f', f);
+    if (next.hitno ?? urgentOnly) params.set('hitno', '1');
+    if (next.moji ?? mineOnly) params.set('moji', '1');
+    if (search) params.set('q', search);
+    return `/app?${params.toString()}`;
+  };
+  const segments: { id: Segment; label: string; count: string | null }[] = [
+    { id: 'svi', label: 'Svi', count: String(openRows.length) },
+    { id: 'radu', label: 'U radu', count: String(openRows.filter((r) => WORKING.includes(r.phase)).length) },
+    ...(billing && ctx.isOwner ? [{ id: 'naplata' as const, label: 'Za naplatu', count: unpaidCount ? formatEuro(unpaidSum) : '0' }] : []),
+    { id: 'arhiva', label: 'Arhiva', count: null },
   ];
+  const urgentCount = openRows.filter((r) => r.is_urgent).length;
+  const mineCount = openRows.filter((r) => r.assigned_to === ctx.user.id).length;
 
   return (
     <>
@@ -144,39 +165,51 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
       {firstSteps}
       {reminderBanner}
 
-      <form className="relative mb-4" action="/app">
+      <form className="relative mb-3" action="/app">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
         <Input name="q" defaultValue={search} placeholder={`${ctx.pkg.vocabulary.identifier}, ime, telefon ili broj naloga`} className="pl-9" />
-        {filter !== 'active' ? <input type="hidden" name="f" value={filter} /> : null}
+        <input type="hidden" name="view" value="faze" />
+        {segment !== 'svi' ? <input type="hidden" name="f" value={segment} /> : null}
+        {urgentOnly ? <input type="hidden" name="hitno" value="1" /> : null}
+        {mineOnly ? <input type="hidden" name="moji" value="1" /> : null}
       </form>
 
-      <div className="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        {chips
-          .filter((c) => !c.ownerOnly || ctx.isOwner)
-          .map((chip) => (
-            <Link
-              key={chip.id}
-              href={
-                chip.id === 'active'
-                  ? `/app?view=faze${search ? `&q=${encodeURIComponent(search)}` : ''}`
-                  : chip.id === 'archive' && ctx.isOwner
-                    ? `/app/business/arhiva${search ? `?q=${encodeURIComponent(search)}` : ''}`
-                    : `/app?f=${chip.id}${search ? `&q=${encodeURIComponent(search)}` : ''}`
-              }
-              className={cn(buttonClass(filter === chip.id ? 'primary' : 'secondary', 'sm'), 'shrink-0 rounded-full')}
-            >
-              {chip.label}
-              {chip.count ? <span className={cn('ml-1 tabular', filter === chip.id ? 'opacity-80' : 'text-muted')}>{chip.count}</span> : null}
-            </Link>
-          ))}
+      {/* Which jobs: one segment. */}
+      <nav aria-label="Nalozi" className="mb-2 grid gap-1 rounded-2xl border border-line bg-surface p-1" style={{ gridTemplateColumns: `repeat(${segments.length}, minmax(0, 1fr))` }}>
+        {segments.map((s) => (
+          <Link
+            key={s.id}
+            href={link({ f: s.id })}
+            aria-current={segment === s.id ? 'page' : undefined}
+            className={cn(
+              'flex min-h-14 flex-col items-center justify-center rounded-xl px-1 text-center text-sm leading-tight transition-colors',
+              segment === s.id ? 'bg-accent font-semibold text-accent-fg' : 'text-muted hover:bg-surface2 hover:text-fg'
+            )}
+          >
+            {s.label}
+            {s.count !== null ? <span className={cn('mt-0.5 text-xs tabular', segment === s.id ? 'opacity-80' : 'text-faint')}>{s.count}</span> : null}
+          </Link>
+        ))}
+      </nav>
+
+      {/* On top of it: only urgent, only mine. */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        <Link href={link({ hitno: !urgentOnly })} aria-pressed={urgentOnly} className={cn(buttonClass('secondary', 'sm'), 'rounded-full', urgentOnly && 'border-crit/60 bg-crit/15 text-crit')}>
+          <Flame className="size-4" /> Hitno
+          {urgentCount ? <span className="tabular opacity-80">{urgentCount}</span> : null}
+        </Link>
+        <Link href={link({ moji: !mineOnly })} aria-pressed={mineOnly} className={cn(buttonClass('secondary', 'sm'), 'rounded-full', mineOnly && 'border-accent/60 bg-accent/15 text-fg')}>
+          <UserRound className="size-4" /> Moji nalozi
+          {mineCount ? <span className="tabular opacity-80">{mineCount}</span> : null}
+        </Link>
       </div>
 
       {jobs.length === 0 ? (
         <EmptyState
           icon={<ClipboardList className="size-8" />}
-          title={search ? 'Ništa nije pronađeno' : filter === 'archive' ? 'Arhiva je prazna' : 'Nema naloga'}
+          title={search ? 'Ništa nije pronađeno' : filter === 'arhiva' ? 'Arhiva je prazna' : urgentOnly || mineOnly ? 'Nema takvih naloga' : 'Nema naloga'}
           action={
-            !search && filter === 'active' ? (
+            !search && filter === 'svi' && !urgentOnly && !mineOnly ? (
               <Link href="/app/jobs/new" className={buttonClass('primary')}>
                 Otvori prvi nalog
               </Link>
@@ -185,12 +218,19 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
         >
           {search ? 'Pokušajte s dijelom registracije, prezimenom ili brojem telefona.' : null}
         </EmptyState>
-      ) : filter === 'archive' || filter === 'unpaid' ? (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} pkg={ctx.pkg} total={totals.get(job.id)} showMoney={ctx.isOwner} />
-          ))}
-        </div>
+      ) : filter === 'arhiva' || filter === 'naplata' ? (
+        <>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {jobs.map((job) => (
+              <JobCard key={job.id} job={job} pkg={ctx.pkg} total={totals.get(job.id)} showMoney={ctx.isOwner} />
+            ))}
+          </div>
+          {filter === 'arhiva' && ctx.isOwner ? (
+            <Link href={`/app/business/arhiva${search ? `?q=${encodeURIComponent(search)}` : ''}`} className={cn(buttonClass('secondary'), 'mt-4 w-full')}>
+              Cijela arhiva s razdobljima i iznosima <ChevronRight className="size-4" />
+            </Link>
+          ) : null}
+        </>
       ) : (
         <div className="space-y-8">
           {grouped.map((group) => (

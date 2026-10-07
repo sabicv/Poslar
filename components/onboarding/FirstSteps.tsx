@@ -22,7 +22,7 @@ export function FirstSteps({ steps, sample, video }: { steps: Step[]; sample: bo
         <p className="font-semibold">
           Prvi koraci <span className="text-sm font-normal text-muted">{done} od {steps.length}</span>
         </p>
-        <button type="button" onClick={() => run(() => hideFirstSteps())} disabled={pending} className="flex size-9 items-center justify-center rounded-lg text-muted hover:bg-surface2" aria-label="Sakrij prve korake">
+        <button type="button" onClick={() => run(() => hideFirstSteps())} disabled={pending} className="flex size-12 items-center justify-center rounded-lg text-muted hover:bg-surface2" aria-label="Sakrij prve korake">
           <X className="size-4" />
         </button>
       </div>
@@ -35,7 +35,7 @@ export function FirstSteps({ steps, sample, video }: { steps: Step[]; sample: bo
             {s.done ? <CheckCircle2 className="size-5 shrink-0 text-ok" /> : <Circle className="size-5 shrink-0 text-faint" />}
             <Link href={s.href} className={cn('min-w-0 flex-1', s.done && 'opacity-60')}>
               <span className={cn('block text-sm font-medium', s.done && 'line-through')}>{s.title}</span>
-              <span className="block truncate text-xs text-muted">{s.hint}</span>
+              <span className="block break-words text-xs text-muted">{s.hint}</span>
             </Link>
             {s.id === 'team' && !s.done ? (
               <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => markSolo())}>

@@ -80,7 +80,7 @@ export function Sheet({
           <div className="flex items-center justify-between gap-3 pl-5 pr-2">
             <Drawer.Title className="min-w-0 flex-1 pb-2 pt-3 text-base font-semibold">{title}</Drawer.Title>
             {action}
-            <Drawer.Close className="flex size-11 items-center justify-center rounded-full text-muted hover:bg-surface2 hover:text-fg" aria-label="Zatvori">
+            <Drawer.Close className="flex size-12 items-center justify-center rounded-full text-muted hover:bg-surface2 hover:text-fg" aria-label="Zatvori">
               <X className="size-5" />
             </Drawer.Close>
           </div>
@@ -141,7 +141,7 @@ export function Segmented<T extends string>({
             onClick={() => onChange(option.value)}
             className={cn(
               'flex items-center justify-center rounded-lg px-2 text-sm font-medium transition-colors',
-              size === 'lg' ? 'h-12' : 'h-11 sm:h-9',
+              size === 'lg' ? 'h-14' : 'h-12 sm:h-9',
               active ? SEGMENT_ACTIVE[option.tone ?? 'accent'] : 'text-muted hover:bg-surface2 hover:text-fg'
             )}
           >
@@ -250,9 +250,14 @@ export function DeleteConfirm({
 }
 
 // Appends dictated Croatian speech to a text field. compact: a microphone
-// icon that sits beside a one-line field.
-export function DictateButton({ onText, compact = false }: { onText: (text: string) => void; compact?: boolean }) {
+// icon that sits beside a one-line field. onInterim: the words heard so far,
+// for a field that shows them itself (the button then shows only itself).
+export function DictateButton({ onText, compact = false, onInterim }: { onText: (text: string) => void; compact?: boolean; onInterim?: (text: string) => void }) {
   const { isSupported, isRecording, interimText, toggleRecording } = useSpeechToText({ onFinalText: onText });
+  useEffect(() => {
+    onInterim?.(isRecording ? interimText : '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interimText, isRecording]);
   if (!isSupported) return null;
   if (compact) {
     return (
@@ -260,19 +265,23 @@ export function DictateButton({ onText, compact = false }: { onText: (text: stri
         type="button"
         onClick={toggleRecording}
         aria-label={isRecording ? 'Zaustavi diktiranje' : 'Diktiraj'}
-        className={cn('flex size-11 shrink-0 items-center justify-center rounded-xl border', isRecording ? 'border-crit/40 bg-crit/15 text-crit' : 'border-line text-muted hover:text-fg')}
+        className={cn('flex size-12 shrink-0 items-center justify-center rounded-xl border', isRecording ? 'border-crit/40 bg-crit/15 text-crit' : 'border-line text-muted hover:text-fg')}
       >
         {isRecording ? <MicOff className="size-4" /> : <Mic className="size-4" />}
       </button>
     );
   }
+  const button = (
+    <Button size="sm" variant={isRecording ? 'danger' : 'secondary'} onClick={toggleRecording} aria-label={isRecording ? 'Zaustavi diktiranje' : 'Diktiraj'} className="shrink-0">
+      {isRecording ? <MicOff className="size-4" /> : <Mic className="size-4" />}
+      {isRecording ? 'Stop' : 'Diktiraj'}
+    </Button>
+  );
+  if (onInterim) return button;
   return (
-    <div className="flex items-center gap-2">
-      <Button size="sm" variant={isRecording ? 'danger' : 'ghost'} onClick={toggleRecording} aria-label="Diktiraj">
-        {isRecording ? <MicOff className="size-4" /> : <Mic className="size-4" />}
-        {isRecording ? 'Stop' : 'Diktiraj'}
-      </Button>
-      {interimText ? <span className="truncate text-xs text-faint">{interimText}</span> : null}
+    <div className="flex min-w-0 items-center gap-2">
+      {button}
+      {interimText ? <span className="min-w-0 break-words text-xs text-faint">{interimText}</span> : null}
     </div>
   );
 }
@@ -547,7 +556,10 @@ export function Lightbox({ items, index: startIndex, onClose }: { items: Lightbo
 }
 
 // Saves on blur: text fields on a job save themselves, no "Spremi" button.
+// The label row carries the microphone, so dictating is one tap from the
+// top of the field; under it the words being heard and when it was saved.
 export function AutoSaveTextarea({
+  label,
   initial,
   onSave,
   placeholder,
@@ -555,6 +567,7 @@ export function AutoSaveTextarea({
   disabled,
   dictate = true,
 }: {
+  label?: ReactNode;
   initial: string;
   onSave: (value: string) => Promise<ActionResult>;
   placeholder?: string;
@@ -564,11 +577,19 @@ export function AutoSaveTextarea({
 }) {
   const [value, setValue] = useState(initial);
   const [saved, setSaved] = useState(initial);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [heard, setHeard] = useState('');
   const { pending, run } = useAction();
 
   function save(next = value) {
     if (next === saved) return;
-    run(() => onSave(next), { onDone: () => setSaved(next), quiet: true });
+    run(() => onSave(next), {
+      onDone: () => {
+        setSaved(next);
+        setSavedAt(new Date());
+      },
+      quiet: true,
+    });
   }
 
   // Saved a moment after the last keystroke too, not only on leaving the
@@ -580,8 +601,33 @@ export function AutoSaveTextarea({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, saved, disabled]);
 
+  const status = pending
+    ? 'Spremam…'
+    : value !== saved
+      ? 'Upisujem…'
+      : savedAt
+        ? `Spremljeno u ${savedAt.toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })}`
+        : '';
+  const mic =
+    dictate && !disabled ? (
+      <DictateButton
+        onInterim={setHeard}
+        onText={(text) => {
+          const next = value ? `${value.trimEnd()} ${text}` : text;
+          setValue(next);
+          save(next);
+        }}
+      />
+    ) : null;
+
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
+      {label || mic ? (
+        <div className="flex items-center justify-between gap-3">
+          <span className="min-w-0 text-xs font-medium text-muted">{label}</span>
+          {mic}
+        </div>
+      ) : null}
       <textarea
         value={value}
         rows={rows}
@@ -591,20 +637,14 @@ export function AutoSaveTextarea({
         onBlur={() => save()}
         className="w-full rounded-xl border border-line bg-bg px-3 py-2.5 leading-relaxed text-fg outline-none placeholder:text-faint focus:border-accent disabled:opacity-60"
       />
-      <div className="flex min-h-9 items-center justify-between gap-2">
-        {dictate && !disabled ? (
-          <DictateButton
-            onText={(text) => {
-              const next = value ? `${value.trimEnd()} ${text}` : text;
-              setValue(next);
-              save(next);
-            }}
-          />
-        ) : (
-          <span />
-        )}
-        <span className="text-xs text-faint">{pending ? 'Spremam…' : value !== saved ? 'Upisujem…' : saved !== initial ? 'Spremljeno' : ''}</span>
-      </div>
+      {heard || status ? (
+        <div className="flex items-start justify-between gap-3 text-xs">
+          <span className="min-w-0 break-words text-faint">{heard}</span>
+          <span className="shrink-0 text-faint" aria-live="polite">
+            {status}
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

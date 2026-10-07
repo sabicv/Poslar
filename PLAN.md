@@ -187,9 +187,21 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 - [ ] Kad majstor dodirne „Potvrdi termin”, Poslar sam pošalje potvrdu mušteriji na WhatsApp (odluka 7. 10.)
 - [ ] (V) Meta: business portfolio Poslar, aplikacija s WhatsAppom, Twilio broj potvrđen za WhatsApp, kartica za plaćanje poruka, odobreni predlošci
 - [ ] Paket za knjigovođu sam ode e-mailom na kraju mjeseca
+- [ ] WhatsApp: podsjetnik dan prije termina; obavijest mušteriji kad nalog ili faza proizvodnje krene dalje; slike koje mušterija pošalje stižu na nalog (tekstovi to sada obećavaju)
 - [ ] Plaćanje karticom (Paddle)
 - [ ] Telefon u pakete (pozivi umjesto minuta), zajednički broj po ForwardedFrom, tjedni backup, mjerač prostora
 - [ ] Novi tekstovi iz Geminija (docs/GEMINI_TEKSTOVI.md) uneseni
+
+## Stadij 16: Mobitel na prvom mjestu (Geminijev UI/UX zadatak, 8. 10.)
+- [x] Gumbi, polja i poveznice najmanje 48 px; oznake (badge) ravne, bez ruba, nisu gumbi; imena se ne skraćuju s „…”
+- [x] Nalog: traka faza na vrhu (Prijem, U radu, Gotovo, Preuzeto, „Sada: …”, naplata); kartice kao traka koja se vrti prstom, bez „Više”; donja traka: Faza, „Dalje: …” / „Označi: …” / „Označi plaćeno”, Pitaj Poslara
+- [x] Diktiranje pokraj naslova polja, ispod polja „Spremljeno u 23:20”; „Više polja” unutar kartice
+- [x] Nalozi: Svi, U radu, Za naplatu, Arhiva + prekidači Hitno i Moji nalozi; kartica: „Dogovorio Poslar”, „Termin …”, „Rok …”
+- [x] Proizvodnja (limar): na mobitelu jedna faza, kartice faza s brojem, povlačenje lijevo i desno, „Dalje: …” na svakoj kartici; na računalu sve faze
+- [x] Poslovanje: isto razdoblje na Pregledu i Arhivi (6 izbora), „Izvezi CSV” pokraj pretrage, brojke jedna ispod druge na mobitelu
+- [x] Naslovnica: „Započni 30 dana besplatno”, „Otvori demo bez prijave”, ista boja gumba na svim stranicama, isti blok „Zvuči ti poznato?”, 6 mogućnosti po zanatu (+ Pitaj Poslara), bez usamljene kartice u retku
+- [x] Geminijevi tekstovi, prvi dio (naslovnica, cijene, česta pitanja, 5 zanata), s ispravcima: „Poslar AI asistencija” → „Poslar na telefonu”, „AI očitavanja” → „pitanja Poslaru”, „potvrdan” → „potvrđen”; TRADE.wheel.pains.2.a nije uzet (ne odgovara pitanju)
+- [ ] Ostatak Geminijevih tekstova (ostali zanati)
 
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).

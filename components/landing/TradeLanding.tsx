@@ -1,9 +1,9 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { Check, ClipboardList, PhoneIncoming, Wrench } from 'lucide-react';
-import { CtaButtons, FaqSection, FinalCall, LandingFooter, LandingHeader, PhoneShot, PricingSection, Section, SectionTitle, type Where } from '@/components/landing/Parts';
+import { ClipboardList, PhoneIncoming, Wrench } from 'lucide-react';
+import { CtaButtons, FaqSection, FinalCall, LandingFooter, LandingHeader, PainsGrid, PhoneShot, PricingSection, Section, SectionTitle, type Where } from '@/components/landing/Parts';
 import { ProductMark } from '@/components/ProductMark';
-import { TRADE_SECTION, type TradePage } from '@/config/landing';
+import { COMMON_FEATURE, TRADE_SECTION, type TradePage } from '@/config/landing';
 import { PACKAGES, accentStyle } from '@/config/tenant.config';
 
 // One trade's page: its own headline, the AI secretary and a scene from
@@ -18,8 +18,13 @@ export function TradeLanding({ trade, signedIn, ownDomain }: { trade: TradePage;
   // Where this trade's work happens, for the heading of its scene.
   const scene = trade.id === 'deal' ? 'Prizor s placa' : pkg.sector === 'field' || trade.id === 'tow' ? 'Prizor s terena' : TRADE_SECTION.scene;
 
+  // The buttons keep the one brand colour of the whole site; the trade's own
+  // colour marks only its icon.
+  const tradeColour = accentStyle(pkg);
+  const features = [...trade.features, COMMON_FEATURE];
+
   return (
-    <div className="accent-scope min-h-dvh" style={accentStyle(pkg)}>
+    <div className="min-h-dvh">
       <div className="mx-auto max-w-6xl px-5 pb-safe">
         <LandingHeader product={ownDomain ? pkg : null} signedIn={signedIn} register={register} tradesHref={ownDomain ? '#mogucnosti' : '/#zanati'} />
 
@@ -27,7 +32,9 @@ export function TradeLanding({ trade, signedIn, ownDomain }: { trade: TradePage;
         <section className={shot ? 'grid items-center gap-10 py-12 lg:grid-cols-[1.15fr_0.85fr] lg:py-20' : 'py-12 lg:py-20'}>
           <div>
             <p className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-line bg-surface py-1 pl-1 pr-3 text-xs text-muted">
-              <ProductMark id={pkg.id} className="size-6 rounded-full" />
+              <span className="accent-scope" style={tradeColour}>
+                <ProductMark id={pkg.id} className="size-6 rounded-full" />
+              </span>
               {trade.eyebrow}
             </p>
             <h1 className="max-w-3xl text-balance font-display text-4xl font-bold leading-[1.02] tracking-tight sm:text-6xl">{trade.title}</h1>
@@ -59,27 +66,14 @@ export function TradeLanding({ trade, signedIn, ownDomain }: { trade: TradePage;
           </div>
         </Section>
 
-        {/* Troubles it knows */}
-        <Section>
-          <SectionTitle title={TRADE_SECTION.pains} />
-          <ul className="mt-8 grid gap-4 md:grid-cols-3">
-            {trade.pains.map((p) => (
-              <li key={p.q} className="rounded-2xl border border-line bg-surface p-5">
-                <p className="text-lg font-semibold">{p.q}</p>
-                <p className="mt-3 flex gap-3 text-sm text-muted">
-                  <Check className="mt-0.5 size-5 shrink-0 text-accent" />
-                  {p.a}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </Section>
+        {/* Troubles it knows (the same grid as on the main page) */}
+        <PainsGrid title={TRADE_SECTION.pains} items={trade.pains} />
 
-        {/* What it gets */}
+        {/* What it gets: its own five and "Pitaj Poslara", a full 3 x 2 */}
         <Section>
           <SectionTitle id="mogucnosti" title={TRADE_SECTION.features} />
           <div className="mt-8 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
-            {trade.features.map((f) => (
+            {features.map((f) => (
               <div key={f.title} className="border-l-2 border-accent/70 pl-4">
                 <h3 className="font-semibold">{f.title}</h3>
                 <p className="mt-1 text-sm text-muted">{f.text}</p>

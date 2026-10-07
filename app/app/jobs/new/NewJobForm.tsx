@@ -291,7 +291,7 @@ export function NewJobForm({
               <div className="flex min-w-0 items-center gap-2.5">
                 {client.kind === 'company' ? <Building2 className="size-4 text-accent" /> : <User className="size-4 text-accent" />}
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium">{clientName(client)}</span>
+                  <span className="block break-words text-sm font-medium">{clientName(client)}</span>
                   {client.phone ? <span className="block text-xs text-muted">{client.phone}</span> : null}
                 </span>
               </div>
@@ -328,7 +328,7 @@ export function NewJobForm({
                   {hits.map((hit) => (
                     <button key={hit.id} type="button" onClick={() => pickClient(hit)} className="block w-full border-b border-line px-3 py-2.5 text-left last:border-0 hover:bg-surface2">
                       <span className="block text-sm font-medium">{clientName(hit)}</span>
-                      <span className="block truncate text-xs text-muted">
+                      <span className="block break-words text-xs text-muted">
                         {[hit.phone, ...(isField ? (hit.sites ?? []).map((s) => s.address) : hit.assets.map((a) => a.identifier ?? assetTitle(a)))].filter(Boolean).join(' · ')}
                       </span>
                     </button>
@@ -390,8 +390,8 @@ export function NewJobForm({
                   className={cn('flex items-center justify-between rounded-xl border px-3 py-2.5 text-left', siteId === s.id ? 'border-accent bg-accent/5' : 'border-line hover:border-faint/60')}
                 >
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium">{[s.label, s.address].filter(Boolean).join(' · ')}</span>
-                    <span className="block truncate text-xs text-muted">{[s.city, s.access_notes].filter(Boolean).join(' · ')}</span>
+                    <span className="block break-words text-sm font-medium">{[s.label, s.address].filter(Boolean).join(' · ')}</span>
+                    <span className="block break-words text-xs text-muted">{[s.city, s.access_notes].filter(Boolean).join(' · ')}</span>
                   </span>
                   {siteId === s.id ? <Check className="size-4 text-accent" /> : null}
                 </button>
@@ -614,7 +614,7 @@ function AssetChoice({
           className={cn('flex items-center justify-between rounded-xl border px-3 py-2.5 text-left', assetId === asset.id ? 'border-accent bg-accent/5' : 'border-line hover:border-faint/60')}
         >
           <span className="min-w-0">
-            <span className="block truncate text-sm font-medium">{assetTitle(asset)}</span>
+            <span className="block break-words text-sm font-medium">{assetTitle(asset)}</span>
             <span className="block font-mono text-xs text-muted">{asset.identifier ?? '-'}</span>
           </span>
           {assetId === asset.id ? <Check className="size-4 text-accent" /> : null}

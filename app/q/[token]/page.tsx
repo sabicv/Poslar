@@ -41,8 +41,8 @@ export default async function DoorIntakePage({ params }: { params: Promise<{ tok
           <ProductMark id={t.pkg.id} className="size-11" />
         )}
         <div className="min-w-0">
-          <p className="truncate font-semibold">{t.name}</p>
-          <p className="truncate text-xs text-muted">{[t.address, t.city].filter(Boolean).join(', ')}</p>
+          <p className="break-words font-semibold">{t.name}</p>
+          <p className="break-words text-xs text-muted">{[t.address, t.city].filter(Boolean).join(', ')}</p>
         </div>
       </header>
       <h1 className="font-display text-3xl font-bold leading-tight">{field ? 'Zatražite dolazak' : 'Prijavite kvar bez čekanja'}</h1>

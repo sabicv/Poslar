@@ -234,7 +234,7 @@ export default async function SettingsPage() {
             }
           />
           {(tickets ?? []).length ? (
-            <Link href="/app/podrska" className="inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-muted hover:bg-surface2 hover:text-fg">
+            <Link href="/app/podrska" className="inline-flex h-12 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-muted hover:bg-surface2 hover:text-fg">
               Moje prijave ({(tickets ?? []).length})
               {unread ? <Badge tone="accent">{unread === 1 ? 'novi odgovor' : `${unread} nova odgovora`}</Badge> : null}
               <ChevronRight className="size-4" />

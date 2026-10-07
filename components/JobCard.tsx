@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CalendarClock, Lock, Phone, UserRound } from 'lucide-react';
+import { CalendarClock, CalendarDays, Lock, Phone, QrCode, UserRound } from 'lucide-react';
 import { Badge, Dot } from '@/components/ui';
 import { PHASE_TONE, phaseLabel, type JobPhase, type PackageConfig } from '@/config/tenant.config';
 import { assetTitle, clientName, daysUntil, formatDate, formatEuro, formatRelative } from '@/lib/format';
@@ -32,8 +32,8 @@ export function JobCard({ job, pkg, total, showMoney, showPhase = true }: { job:
             <span className="text-xs text-faint">#{job.number}</span>
             {job.locked_at ? <Lock className="size-3.5 text-faint" /> : null}
           </div>
-          <p className="mt-1.5 truncate text-[15px] font-medium">{assetTitle(job.asset)}</p>
-          <p className="truncate text-sm text-muted">{clientName(job.client)}</p>
+          <p className="mt-1.5 break-words text-[15px] font-medium leading-snug">{assetTitle(job.asset)}</p>
+          <p className="break-words text-sm text-muted">{clientName(job.client)}</p>
         </div>
         {showMoney && total !== undefined ? <span className="shrink-0 text-sm font-medium tabular text-muted">{formatEuro(total)}</span> : null}
       </div>
@@ -45,16 +45,22 @@ export function JobCard({ job, pkg, total, showMoney, showPhase = true }: { job:
             {phaseLabel(pkg, job.phase as JobPhase)}
           </Badge>
         ) : null}
+        {/* Badges only tell; the whole card is the one tap target. */}
         {job.is_urgent ? <Badge tone="crit">Hitno</Badge> : null}
-        {job.source === 'qr' && job.phase === 'intake' ? <Badge tone="accent">S vrata</Badge> : null}
+        {job.source === 'qr' && job.phase === 'intake' ? (
+          <Badge tone="accent">
+            <QrCode className="size-3" /> Prijava s vrata
+          </Badge>
+        ) : null}
         {job.source === 'phone' && job.phase === 'intake' ? (
           <Badge tone="accent">
-            <Phone className="size-3" /> Poslar
+            <Phone className="size-3" /> Dogovorio Poslar
           </Badge>
         ) : null}
         {job.scheduled_start && job.phase !== 'collected' ? (
           <Badge tone="neutral">
-            <CalendarClock className="size-3" />
+            <CalendarDays className="size-3" />
+            Termin{' '}
             {new Date(job.scheduled_start).toLocaleString('hr-HR', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zagreb' })}
           </Badge>
         ) : null}
@@ -62,7 +68,7 @@ export function JobCard({ job, pkg, total, showMoney, showPhase = true }: { job:
         {promised !== null && job.phase !== 'collected' ? (
           <Badge tone={promised < 0 ? 'crit' : promised === 0 ? 'warn' : 'muted'}>
             <CalendarClock className="size-3" />
-            {promised === 0 ? 'Danas' : promised === 1 ? 'Sutra' : formatDate(job.promised_at)}
+            Rok {promised === 0 ? 'danas' : promised === 1 ? 'sutra' : formatDate(job.promised_at)}
           </Badge>
         ) : null}
         {job.assignee?.full_name ? (

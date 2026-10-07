@@ -157,7 +157,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, 
                       <Badge tone={PHASE_TONE[v.phase]}>{phaseLabel(ctx.pkg, v.phase)}</Badge>
                     </p>
                     {v.site ? (
-                      <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted">
+                      <p className="mt-0.5 flex items-center gap-1 break-words text-sm text-muted">
                         <MapPin className="size-3.5 shrink-0" /> {[v.site.address, v.site.city].filter(Boolean).join(', ')}
                       </p>
                     ) : null}
@@ -166,7 +166,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, 
                         <Badge tone="warn">Poslar</Badge>
                       </p>
                     ) : null}
-                    <p className="truncate text-sm text-muted">
+                    <p className="break-words text-sm text-muted">
                       {!fieldMode && v.asset?.identifier ? `${v.asset.identifier} · ` : ''}
                       {assetTitle(v.asset)}
                       {v.complaint ? ` · ${v.complaint}` : ''}
@@ -201,8 +201,8 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, 
             {((unscheduled ?? []) as unknown as Visit[]).map((v) => (
               <li key={v.id} className="flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3">
                 <Link prefetch={false} href={`/app/jobs/${v.id}`} className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{clientName(v.client)}</p>
-                  <p className="truncate text-xs text-muted">
+                  <p className="break-words text-sm font-medium">{clientName(v.client)}</p>
+                  <p className="break-words text-xs text-muted">
                     {[v.site?.address, v.site?.city].filter(Boolean).join(', ') || 'bez adrese'} · {v.complaint ?? assetTitle(v.asset)}
                   </p>
                 </Link>

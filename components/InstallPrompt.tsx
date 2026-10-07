@@ -75,7 +75,7 @@ export function InstallPrompt() {
           </>
         )}
       </div>
-      <button type="button" onClick={close} className="flex size-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-surface2" aria-label="Zatvori">
+      <button type="button" onClick={close} className="flex size-12 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-surface2" aria-label="Zatvori">
         <X className="size-4" />
       </button>
     </div>

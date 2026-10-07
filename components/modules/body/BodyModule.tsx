@@ -1,3 +1,4 @@
+import { BODY_PHASES } from '@/config/production';
 import { Clock, Droplets, FileCheck2, Paintbrush, ScanEye } from 'lucide-react';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
 import { formatDate, formatDateTime, formatNumber } from '@/lib/format';
@@ -11,7 +12,8 @@ const ESTIMATE_STATUS = { draft: 'U izradi', sent: 'Poslano osiguranju', approve
 const LOSS_TYPE = { collision: 'Sudar', parking: 'Parkiranje', hail: 'Tuča', wildlife: 'Divljač', vandalism: 'Vandalizam', other: 'Ostalo' };
 const COAT = { single: 'Jednoslojna', two_stage: 'Dvoslojna (baza + lak)', three_stage: 'Troslojna (perla)' };
 const MATCH = { recipe: 'Receptura', spectro: 'Spektrofotometar', test_panel: 'Probna pločica', tinting: 'Toniranje' };
-const PHASES = { disassembly: 'Rastavljanje', bodywork: 'Limarija', prep: 'Priprema', paint: 'Lakiranje', assembly: 'Sastavljanje', polish: 'Poliranje', quality: 'Kontrola', wash: 'Pranje' } as const;
+// The production stages are shared with the board (config/production.ts).
+const PHASES = BODY_PHASES;
 const ADAS = { front_camera: 'Prednja kamera', radar: 'Radar', parking_sensors: 'Parkirni senzori', surround_cameras: 'Kamere 360°', blind_spot: 'Mrtvi kut' };
 const MATERIAL = { basecoat: 'Baza', clearcoat: 'Lak', primer: 'Temeljna', filler: 'Kit', thinner: 'Razrjeđivač', hardener: 'Otvrdnjivač', abrasive: 'Brusni materijal', masking: 'Maskiranje', other: 'Ostalo' };
 

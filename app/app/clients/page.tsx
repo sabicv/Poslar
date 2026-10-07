@@ -101,9 +101,9 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                   {c.kind === 'company' ? <Building2 className="size-4" /> : <User className="size-4" />}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">{listName(c)}</span>
+                  <span className="block break-words text-sm font-medium">{listName(c)}</span>
                   {c.assets.length ? (
-                    <span className="block truncate text-xs text-muted">
+                    <span className="block break-words text-xs text-muted">
                       {c.assets
                         .slice(0, 3)
                         .map((a) => a.identifier ?? assetTitle(a))

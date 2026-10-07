@@ -1,25 +1,21 @@
 import Link from 'next/link';
 import { KeyRound, Lock, MapPin, Phone } from 'lucide-react';
-import { CopilotDrawer } from '@/components/copilot/CopilotDrawer';
 import { Badge, BackLink } from '@/components/ui';
 import { ASSET_TYPE_LABELS } from '@/config/tenant.config';
 import { assetTitle, clientName, formatDateTime } from '@/lib/format';
 import type { JobWithRefs } from '@/types/db';
 
-// Everything about the job exactly once: the phase lives in the bottom
-// bar, the amount in Stavke, "promised by" in Pregled, client details on
+// Everything about the job exactly once: the phase and the money show in
+// the stepper under the header and change in the bottom bar (with "Pitaj
+// Poslara"), the amount in Stavke, "promised by" in Pregled, client details on
 // the client page (the name here links there), km in Pregled. On a field visit the
 // call and navigation buttons sit in the visit card, so the header only
 // names the address.
-export function JobHeader({ job, backHref, backLabel, copilot, billing = true }: { job: JobWithRefs; backHref: string; backLabel: string; copilot: boolean; billing?: boolean }) {
-  const finished = billing && (job.phase === 'ready' || job.phase === 'collected');
+export function JobHeader({ job, backHref, backLabel }: { job: JobWithRefs; backHref: string; backLabel: string }) {
   const field = job.work_mode === 'field';
   return (
     <header className="mb-4">
-      <div className="flex items-start justify-between gap-3">
-        <BackLink href={backHref}>{backLabel}</BackLink>
-        <CopilotDrawer jobId={job.id} enabled={copilot} />
-      </div>
+      <BackLink href={backHref}>{backLabel}</BackLink>
       <div className="min-w-0">
         <div className="mb-1.5 flex flex-wrap items-center gap-2">
           <span className="text-sm text-faint">Nalog #{job.number}</span>
@@ -29,9 +25,8 @@ export function JobHeader({ job, backHref, backLabel, copilot, billing = true }:
               <Lock className="size-3" /> Zaključano
             </Badge>
           ) : null}
-          {finished ? <Badge tone={job.payment_status === 'paid' ? 'ok' : 'warn'}>{job.payment_status === 'paid' ? 'Plaćeno' : 'Za naplatu'}</Badge> : null}
         </div>
-        <h1 className="line-clamp-2 break-words font-display text-3xl font-bold tracking-tight">
+        <h1 className="break-words font-display text-3xl font-bold leading-tight tracking-tight">
           <Link prefetch={false} href={`/app/assets/${job.asset.id}`} className="hover:underline">
             {assetTitle(job.asset)}
           </Link>
@@ -39,11 +34,12 @@ export function JobHeader({ job, backHref, backLabel, copilot, billing = true }:
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
           {job.asset.identifier ? <span className="rounded-md border border-line bg-surface px-1.5 font-mono text-xs font-semibold text-fg">{job.asset.identifier}</span> : null}
           <span>{ASSET_TYPE_LABELS[job.asset.asset_type]}</span>
-          <Link prefetch={false} href={`/app/clients/${job.client.id}`} className="hover:text-fg hover:underline">
+          {/* 48 px tall to the thumb, but no taller in the line (negative margin). */}
+          <Link prefetch={false} href={`/app/clients/${job.client.id}`} className="-my-3.5 inline-flex min-h-12 items-center hover:text-fg hover:underline">
             {clientName(job.client)}
           </Link>
           {!field && job.client.phone ? (
-            <a href={`tel:${job.client.phone.replace(/\s/g, '')}`} className="inline-flex items-center gap-1 text-accent">
+            <a href={`tel:${job.client.phone.replace(/\s/g, '')}`} className="-my-3.5 inline-flex min-h-12 items-center gap-1 text-accent">
               <Phone className="size-3.5" /> {job.client.phone}
             </a>
           ) : null}
@@ -53,7 +49,7 @@ export function JobHeader({ job, backHref, backLabel, copilot, billing = true }:
           <span>Primljeno {formatDateTime(job.created_at)}</span>
           {job.finished_at ? <span>Gotovo {formatDateTime(job.finished_at)}</span> : null}
           {job.collected_at ? <span>Preuzeto {formatDateTime(job.collected_at)}</span> : null}
-          {finished && job.payment_status === 'paid' && job.paid_at ? <span>Plaćeno {formatDateTime(job.paid_at)}</span> : null}
+          {job.payment_status === 'paid' && job.paid_at ? <span>Plaćeno {formatDateTime(job.paid_at)}</span> : null}
         </p>
         {field && job.site ? (
           <div className="mt-2 space-y-1 text-sm">

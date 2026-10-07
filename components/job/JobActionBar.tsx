@@ -2,13 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, ChevronRight, Lock, LockOpen, Wallet } from 'lucide-react';
+import { Check, ChevronRight, ListChecks, Lock, LockOpen, Wallet } from 'lucide-react';
 import { DeleteConfirm, Sheet, useAction } from '@/components/client-ui';
+import { CopilotDrawer } from '@/components/copilot/CopilotDrawer';
 import { Button } from '@/components/ui';
 import type { JobPhase } from '@/config/tenant.config';
 import { deleteJob, setJobLocked, setJobPaid, setJobPhase } from '@/lib/actions/jobs';
 import { cn } from '@/lib/utils';
 
+// The job's bar at the bottom of the screen, where the thumb is:
+// "Faza" (every phase, payment, lock, delete) on the left, one big button
+// for the next step in the middle, and "Pitaj Poslara" on the right.
 export function JobActionBar({
   jobId,
   phase,
@@ -17,6 +21,7 @@ export function JobActionBar({
   paid,
   locked,
   billing = true,
+  copilot,
 }: {
   jobId: string;
   phase: JobPhase;
@@ -26,29 +31,34 @@ export function JobActionBar({
   locked: boolean;
   // False when the job is the business's own cost (Deal): nothing to collect.
   billing?: boolean;
+  copilot: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const { pending, run } = useAction();
   const index = phases.findIndex((p) => p.id === phase);
-  // "Next" skips the waiting states — they are chosen on purpose, not stepped into.
+  // "Next" skips the waiting states: they are chosen on purpose, not stepped into.
   const next = phases.slice(index + 1).find((p) => p.id !== 'awaiting_approval' && p.id !== 'awaiting_parts');
+  // Said as an action: "Dalje: Dijagnostika", and for the last two "Označi: Gotovo".
+  const nextLabel = next ? `${next.id === 'ready' || next.id === 'collected' ? 'Označi' : 'Dalje'}: ${next.label}` : null;
+  // Collected but not paid: the owner's next step is the money.
+  const markPaid = !next && billing && isOwner && !paid && phase === 'collected';
+  const iconButton = 'flex h-14 w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-line bg-surface2 text-[11px] font-medium text-muted hover:text-fg';
 
   return (
-    <div className="hide-on-type fixed inset-x-0 bottom-16 z-20 border-t border-line bg-bg/90 backdrop-blur-md lg:bottom-0 lg:left-60">
+    <div className="hide-on-type fixed inset-x-0 bottom-16 z-20 border-t border-line bg-bg/95 backdrop-blur-md lg:bottom-0 lg:left-60">
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-6 lg:px-8">
         <Sheet
           open={open}
           onOpenChange={setOpen}
-          title="Nalog"
+          title="Faza naloga"
           trigger={
-            <Button size="lg" className="min-w-0 flex-1 justify-between gap-1 whitespace-normal px-3 text-sm sm:flex-none sm:justify-center sm:px-5">
-              <span className="line-clamp-2 text-left leading-tight">{phases[index]?.label}</span>
-              <ChevronRight className="size-4 shrink-0 rotate-90 text-faint" />
-            </Button>
+            <button type="button" className={iconButton} aria-label={`Faza: ${phases[index]?.label ?? ''}`}>
+              <ListChecks className="size-5" />
+              Faza
+            </button>
           }
         >
-          <p className="mb-2 text-xs font-medium text-muted">Faza</p>
           <div className="grid gap-2">
             {phases.map((p) => (
               <button
@@ -68,18 +78,16 @@ export function JobActionBar({
           </div>
           {isOwner ? (
             <div className="mt-6 grid gap-2 border-t border-line pt-4">
-              {/* Payment and lock live here, not as extra icons on the bar:
-                  the bar keeps two big buttons with full phase names. */}
               {billing ? (
-              <Button
-                size="lg"
-                variant={paid ? 'ok' : 'secondary'}
-                disabled={pending}
-                onClick={() => run(() => setJobPaid(jobId, !paid), { success: paid ? 'Vraćeno na „Za naplatu”' : 'Označeno plaćeno' })}
-                className="justify-start"
-              >
-                <Wallet className="size-5" /> {paid ? 'Plaćeno. Vrati na „Za naplatu”' : 'Označi plaćeno'}
-              </Button>
+                <Button
+                  size="lg"
+                  variant={paid ? 'ok' : 'secondary'}
+                  disabled={pending}
+                  onClick={() => run(() => setJobPaid(jobId, !paid), { success: paid ? 'Vraćeno na „Za naplatu”' : 'Označeno plaćeno' })}
+                  className="justify-start"
+                >
+                  <Wallet className="size-5" /> {paid ? 'Plaćeno. Vrati na „Za naplatu”' : 'Označi plaćeno'}
+                </Button>
               ) : null}
               <Button
                 size="lg"
@@ -101,19 +109,20 @@ export function JobActionBar({
           ) : null}
         </Sheet>
 
-        {next ? (
-          <Button
-            size="lg"
-            variant="primary"
-            disabled={pending}
-            onClick={() => run(() => setJobPhase(jobId, next.id))}
-            className="min-w-0 flex-1 gap-1 whitespace-normal px-3 text-sm sm:flex-none sm:px-5"
-          >
-            <span className="line-clamp-2 text-center leading-tight">{next.label}</span>
-            <ChevronRight className="size-4 shrink-0" />
+        {next && nextLabel ? (
+          <Button size="lg" variant="primary" disabled={pending} onClick={() => run(() => setJobPhase(jobId, next.id))} className="min-w-0 flex-1 gap-1 whitespace-normal px-3 text-base">
+            <span className="text-center leading-tight">{nextLabel}</span>
+            <ChevronRight className="size-5 shrink-0" />
           </Button>
-        ) : null}
+        ) : markPaid ? (
+          <Button size="lg" variant="primary" disabled={pending} onClick={() => run(() => setJobPaid(jobId, true), { success: 'Označeno plaćeno' })} className="min-w-0 flex-1 gap-2 whitespace-normal px-3 text-base">
+            <Wallet className="size-5 shrink-0" /> Označi plaćeno
+          </Button>
+        ) : (
+          <p className="min-w-0 flex-1 px-2 text-center text-sm text-muted">{phases[index]?.label}</p>
+        )}
 
+        <CopilotDrawer jobId={jobId} enabled={copilot} triggerClassName={iconButton} />
       </div>
     </div>
   );

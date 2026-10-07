@@ -30,8 +30,8 @@ export async function AquaPage({ ctx }: { ctx: WorkshopContext }) {
               <li key={r.asset_id}>
                 <Link href={r.asset ? `/app/assets/${r.asset.id}` : '#'} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-surface2">
                   <span className="min-w-0">
-                    <span className="block truncate font-medium">{clientName(r.asset?.client)}</span>
-                    <span className="block truncate text-xs text-muted">{[assetTitle(r.asset), r.asset?.client?.phone].filter(Boolean).join(' · ')}</span>
+                    <span className="block break-words font-medium">{clientName(r.asset?.client)}</span>
+                    <span className="block break-words text-xs text-muted">{[assetTitle(r.asset), r.asset?.client?.phone].filter(Boolean).join(' · ')}</span>
                   </span>
                   <Badge tone="warn">{formatDate(r.anode_changed_on)}</Badge>
                 </Link>

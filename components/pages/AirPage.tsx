@@ -114,8 +114,8 @@ export async function AirPage({ ctx, year: requestedYear }: { ctx: WorkshopConte
                   <li key={device.asset_id as string}>
                     <Link href={asset ? `/app/assets/${asset.id}` : '#'} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-surface2">
                       <span className="min-w-0">
-                        <span className="block truncate font-medium">{clientName(asset?.client)}</span>
-                        <span className="block truncate text-xs text-muted">
+                        <span className="block break-words font-medium">{clientName(asset?.client)}</span>
+                        <span className="block break-words text-xs text-muted">
                           {assetTitle(asset)} · {device.refrigerant as string} {formatNumber(Number(device.charge_kg), 2)} kg · {formatDecimal(duty.tco2e, 2)} t CO₂e · svakih {duty.leakCheckMonths} mj.
                         </span>
                         {afterRepair && <span className="block text-xs text-warn">Kontrola nakon popravka propuštanja, najkasnije mjesec dana od popravka</span>}

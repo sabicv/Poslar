@@ -61,7 +61,7 @@ export default async function RemindersPage() {
                         )}
                         {r.phone ? <span className="text-xs font-normal text-muted">{r.phone}</span> : null}
                       </p>
-                      <p className="truncate text-xs text-muted">{r.asset}</p>
+                      <p className="break-words text-xs text-muted">{r.asset}</p>
                       <p className="text-xs text-faint">{r.reason}</p>
                     </div>
                     <ReminderActions item={{ group: r.group, clientId: r.clientId, assetId: r.assetId, planId: r.planId, title: titles[r.group].title }} phone={r.phone} message={r.message} />

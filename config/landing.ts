@@ -4,20 +4,21 @@
 
 import type { PackageId } from '@/config/tenant.config';
 
-// The main button: straight to real work, 30 days free. Where the work
-// happens decides the words (Vedran, 2026-10-05).
-export const CTA_HEADER = '30 dana besplatno';
+// The main button: straight to real work, 30 days free. Short and the same
+// on every page, so it fits a phone on one line (mobile review, 2026-10-07);
+// 'where' stays for the pages that pass it.
+export const CTA_HEADER = 'Započni besplatno';
 export function ctaTrial(where: 'radionica' | 'teren' | 'cesta' | 'plac' | 'sve'): string {
-  const place = { radionica: 'u radionici', teren: 'na terenu', cesta: 'na cesti', plac: 'na placu', sve: 'u radionici ili na terenu' }[where];
-  return `Isprobaj ${place} 30 dana besplatno`;
+  void where;
+  return 'Započni 30 dana besplatno';
 }
 // The other way in: a demo workshop full of examples, for 24 hours.
-export const CTA_DEMO = 'Isprobaj demo verziju s izmišljenim podacima';
+export const CTA_DEMO = 'Otvori demo bez prijave';
 
 export const MAIN = {
   eyebrow: 'Operativni sustav za radionice i majstore na terenu',
   title: 'Dok su ti ruke u poslu, pozivi i papiri više ne čekaju.',
-  subtitle: 'Poslar preuzima pozive, ugovara termine i priprema radne naloge dok ti radiš. Sve kontroliraš s mobitela: čisto, uredno i bez gubljenja vremena.',
+  subtitle: 'Poslar zaprima pozive, ugovara termine i organizira naloge. Dobivaš potpunu kontrolu nad radionicom i bržu naplatu, bez administracije nakon radnog vremena.',
   pickLabel: 'Odaberi svoju struku:',
   pillars: [
     { title: 'Poslar na telefonu', text: 'Odgovara na pozive mušterija i slaže raspored dok si pod autom ili na terenu.' },
@@ -27,24 +28,24 @@ export const MAIN = {
   scenesTitle: 'Prizori iz tvog radnog tjedna',
   scenes: [
     {
-      title: 'Telefon zvoni, a ti si pod dizalicom ili u gužvi.',
-      text: 'Poslar se javi umjesto tebe, provjeri kalendar, ponudi slobodan termin i otvori radni nalog s registracijom. Ti ga samo potvrdiš kad oslobodiš ruke.',
+      title: 'Rad u punom pogonu, a telefon stalno zvoni.',
+      text: 'Ne prekidaš rad na vozilu. Poslar preuzima poziv i prikuplja simptome. Nalog te čeka. Ti ga samo potvrdiš kad završiš.',
     },
     {
-      title: 'Na godišnjem si odmoru, a radionica radi bez zastoja.',
-      text: 'S plaže imaš uvid u svaki radni nalog i priloženu fotografiju. Poslar raspoređuje pozive, radnici prate zadatke u aplikaciji, a tebi na kraju dana stigne sažeti pregled obavljenog posla i prometa.',
+      title: 'Radno vrijeme je završilo. Vrijeme je za odmor.',
+      text: 'Upiti izvan radnog vremena dobivaju ponudu slobodnih termina. Tvoj mobitel navečer ostaje slobodan za obitelj.',
     },
     {
-      title: 'Šalješ mlađeg radnika na složeniji zahvat.',
-      text: 'Poslar ga vodi korak po korak kroz kontrolnu listu kako ništa ne bi ostalo preskočeno. Ti na mobitelu odmah vidiš fotografije i rezultat, bez potrebe za stalnim telefonskim provjerama.',
+      title: 'Potpuna transparentnost i obostrano povjerenje.',
+      text: 'Fotografiraj zatečeno stanje i dodaj stavke rada. Mušterija odobrava radove preko mobitela. Sve je čisto i dokumentirano.',
     },
     {
-      title: 'Širiš posao i otvaraš novu radionicu.',
-      text: 'Vodi više lokacija s jednog računa. Svaka radionica ima svoje radnike, naloge i financijski pregled, a ti upravljaš cjelinom bez razapinjanja na dva mjesta istovremeno.',
+      title: 'Jednostavan pregled svih poslovnica.',
+      text: 'Prati raspored i promet svih radionica s jednog mjesta. Podaci o radnicima i nalozima dostupni su ti uvijek.',
     },
     {
       title: 'Prelaženje na novi sustav u samo jedno popodne.',
-      text: 'Jednostavno uvezi bazu mušterija iz imenika ili Excela. Stare papirnate naloge i račune samo fotografiraj: AI ih sam prepoznaje i razvrstava u povijest svakog vozila.',
+      text: 'Lako prebaci postojeće naloge i tablice u sustav. AI prepoznaje podatke i slaže ih u digitalnu arhivu.',
     },
   ],
   // Phone first, but a tablet or laptop shows even more (Vedran, 2026-10-05).
@@ -52,39 +53,44 @@ export const MAIN = {
   devicesText: 'Aplikacija je napravljena za mobitel. Na tabletu i laptopu je još preglednija: cijeli nalog, grafovi i raspored na jednom ekranu. Podaci su isti na svim uređajima i odmah usklađeni.',
   painsTitle: 'Zvuči ti poznato?',
   pains: [
-    { q: 'Završavaš radni dan, a tek te čeka pisanje računa?', a: 'Izradi i pošalji čist račun ili ponudu izravno s terena u nekoliko sekundi.' },
-    { q: 'Gubiš vrijeme tražeći što je točno rađeno na vozilu prije godinu dana?', a: 'Unesi registraciju i u sekundi otvori kompletnu povijest svih servisa i ugrađenih dijelova.' },
-    { q: 'Mušterija prigovara da niste tako dogovorili ili da je cijena neočekivana?', a: 'Svaki rad i cijenu mušterija odobrava unaprijed putem WhatsAppa uz točan zapis vremena i iznosa.' },
-    { q: 'Knjigovođa te potkraj mjeseca stalno traži papire i računovodstvene fascikle?', a: 'Jednim klikom pošalji kompletan mjesečni paket sa svim računima i tablicama izravno knjigovođi.' },
+    { q: 'Gubiš vrijeme na pisanje ponuda i računa krajem dana?', a: 'Pripremi dokumentaciju u hodu, tijekom rada. Kad zaključaš radionicu, tvoj je radni dan gotov.' },
+    { q: 'Treba ti brzo povijest prijašnjih servisa na vozilu?', a: 'Upiši registraciju. U sekundi otvori pregled svih prijašnjih radova i dijelova. Bez traženja po arhivama.' },
+    { q: 'Želiš potpunu jasnoću oko iznosa prije početka rada?', a: 'Pošalji ponudu mušteriji na WhatsApp prije početka rada. Obje strane imaju jasan i potvrđen dogovor.' },
+    { q: 'Priprema papira za knjigovodstvo oduzima ti previše vremena?', a: 'Poslar automatski pakira sve račune i e-Račune. Knjigovodstvu šalješ sve jednim klikom na kraju mjeseca.' },
   ],
   // Each one opens with "+": the trouble, then how it goes with Poslar.
   extrasTitle: 'I još puno toga',
   extrasHint: 'Dodirni + i vidi kako to izgleda u praksi.',
   extras: [
     {
-      title: 'Podsjetnici mušterijama za redoviti servis',
-      problem: 'Mušterija zaboravi servis. Javi se tek kad nešto stane.',
-      solution: 'Poslar pamti rok servisa za svako vozilo i uređaj. Svaki tjedan vidiš kome ističe. Jednim dodirom šalješ poruku na WhatsApp. Mušterija se vraća tebi, a ne konkurenciji.',
+      title: 'Automatski podsjetnici mušterijama',
+      problem: 'Prazan hod u rasporedu jer netko zaboravi na termin?',
+      solution: 'Poslar šalje automatske WhatsApp podsjetnike. Mušterije dolaze na vrijeme, a radionica radi bez prekida.',
     },
     {
       title: 'QR prijava na ulazu radionice',
-      problem: 'Ujutro troje ljudi čeka na vratima. Ti pišeš registracije na papirić.',
-      solution: 'Mušterija skenira QR kod na vratima. Sama upiše registraciju, kvar i broj mobitela, ili ih izgovori. Nalog te čeka u Prijemu. Ti ga samo potvrdiš.',
+      problem: 'Jutarnji prijem više vozila stvara gužvu na ulazu?',
+      solution: 'Postavi QR kod na ulazu. Mušterija sama unese podatke o vozilu. Radni nalog te odmah čeka.',
     },
     {
       title: 'Unaprijed pripremljeni cjenici i normativi',
-      problem: 'Za isti posao svaki put smišljaš cijenu. Mušterije dobiju različite iznose.',
-      solution: 'Gotovi predlošci poslova za tvoju struku, sa stavkama i cijenama. Prilagodiš ih jednom, po svom. Na nalogu ih dodaš jednim dodirom. Isti posao uvijek ima istu cijenu.',
+      problem: 'Ponavljaš unos istih normativa za redovne servise?',
+      solution: 'Gotovi šabloni omogućuju izradu naloga u par dodira. Manje tipkanja, brža obrada vozila.',
     },
     {
       title: 'Skeniranje prometne dozvole i pločica uređaja',
-      problem: 'Prepisuješ VIN od 17 znakova. Jedna greška i stigne krivi dio.',
-      solution: 'Slikaj prometnu dozvolu ili natpisnu pločicu. AI upiše vlasnika, registraciju, VIN, model i godinu. Ti samo provjeriš i spremiš.',
+      problem: 'Ručni unos broja šasije oduzima vrijeme i donosi rizik od greške?',
+      solution: 'Fotografiraj prometnu dozvolu. AI sustav sam očita VIN, marku i model te otvori nalog.',
     },
     {
       title: 'Slanje e-Računa',
       problem: 'Tvrtke od 2026. traže e-Račun. Obični PDF više nije dovoljan.',
-      solution: 'Uz svaki izdani račun Poslar složi i e-Račun datoteku. Knjigovođa je dobije u mjesečnom paketu. Ništa ne prepisuješ dvaput.',
+      solution: 'Uz svaki račun automatski se slaže e-Račun. Nema dvostrukog unosa istih podataka.',
+    },
+    {
+      title: 'Mušterije same rezerviraju termin',
+      problem: 'Česti pozivi radi dogovora termina prekidaju te u radu?',
+      solution: 'Stavi link kalendara na Google ili WhatsApp profil. Mušterije same biraju slobodan termin prema tvom rasporedu.',
     },
   ],
   tradesTitle: 'Prilagođeno tvojoj struci',
@@ -119,9 +125,9 @@ export const PRICING = {
   best: 'Najčešći izbor',
   vat: 'Sve istaknute cijene uključuju PDV.',
   plans: {
-    basic: ['Voditelj i do 2 radnika', 'Radni nalozi, fotodokumentacija i računi', 'Odobrenje ponuda i cijena putem WhatsAppa', 'Automatski paket za knjigovođu', '150 skeniranja i 100 pitanja Poslaru mjesečno', 'Poslar na telefonu: uz doplatu, 100 minuta za 25 €'],
-    standard: ['Voditelj i do 5 radnika', 'Sve funkcionalnosti iz Basic paketa', 'QR sustav prijave na ulazu radionice', 'Poslar na telefonu: uključeno 60 minuta razgovora mjesečno', '300 skeniranja i 200 pitanja Poslaru mjesečno'],
-    premium: ['Voditelj i do 10 radnika', 'Sve funkcionalnosti iz Standard paketa', 'Poslar na telefonu: uključeno 150 minuta razgovora mjesečno', 'Upravljanje s više poslovnica / radionica', '600 skeniranja i 400 pitanja Poslaru mjesečno'],
+    basic: ['Voditelj i do 2 radnika', 'Radni nalozi, slike i računi', 'Odobrenje ponuda preko WhatsAppa', 'Automatski paket za knjigovođu', '150 slikanja i 100 pitanja Poslaru', 'Poslar na telefonu (uključeno u paket)'],
+    standard: ['Voditelj i do 5 radnika', 'Sve iz Basic paketa', 'QR prijava mušterija na ulazu', '300 slikanja i 200 pitanja Poslaru', 'Poslar na telefonu (uključeno u paket)'],
+    premium: ['Voditelj i do 10 radnika', 'Sve iz Standard paketa', 'Više radionica na jednom računu', '600 slikanja i 400 pitanja Poslaru', 'Poslar na telefonu (uključeno u paket)'],
   } as Record<'basic' | 'standard' | 'premium', string[]>,
 };
 
@@ -133,7 +139,7 @@ export const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'Što točno radi Poslar na telefonu?',
-    a: 'Poslar preuzima pozive kada se ne stigneš javiti. Javi se u ime tvoje radionice, prikupi osnovne informacije od mušterije, ponudi slobodan termin iz tvog kalendara i otvori radni nalog.',
+    a: 'Umjesto prekidanja posla zbog poziva, Poslar automatski preuzima upit. Prikupi informacije o kvaru, ponudi termin i pripremi nalog za tvoju potvrdu.',
   },
   {
     q: 'Kako prebaciti postojeću bazu klijenata i vozila?',
@@ -147,7 +153,7 @@ export const FAQ: { q: string; a: string }[] = [
   { q: 'Što iz aplikacije dobiva moj knjigovođa?', a: 'Na kraju mjeseca aplikacija generira jedinstveni paket koji sadrži sve izdane račune u strukturiranoj Excel tablici te datoteke spremne za e-Račun.' },
   { q: 'Kako je riješeno pitanje fiskalizacije?', a: 'Fiskalni račun trenutno izdaješ na svojoj blagajni, a u aplikaciju jednostavno upišeš njegov broj radi potpune evidencije po radnom nalogu.' },
   { q: 'Je li za rad potrebna stalna internetska veza?', a: 'Da, potrebna je internetska veza. Sustav je optimiziran tako da troši minimalno podataka i radi stabilno čak i na slabijem mobilnom signalu.' },
-  { q: 'Postoji li ugovorna obveza?', a: 'Ne, ako plaćaš mjesečno: otkazuješ u bilo kojem trenutku, bez otkaznog roka. Uz ugovor na 24 mjeseca dobivaš 10 % popusta. Prije odlaska jednostavnim klikom preuzmeš svu svoju arhivu i podatke.' },
+  { q: 'Postoji li ugovorna obveza?', a: 'Ne. Usluga se plaća mjesečno i otkazuješ je kad god želiš. Svoju kompletnu arhivu preuzimaš jednim klikom.' },
   { q: 'Što ako mi zatreba pomoć pri korištenju?', a: 'Naša podrška dostupna ti je izravno putem WhatsAppa ili telefonskog poziva. Pomažemo ti u podešavanju i radu.' },
 ];
 
@@ -171,12 +177,12 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Automehanika i opći servis',
     title: 'Ti si pod dizalicom. Poslar preuzima poziv i slaže termin.',
     subtitle: 'Pozivi, radni nalozi, servisni planovi i računi. Sve teče glatko dok su ti ruke u poslu.',
-    agent: 'Mušterija zove radi malog servisa. Poslar provjerava kalendar, ponudi prvi slobodan termin i otvori nalog s brojem registracije. Na tebi je samo da potvrdiš unos.',
+    agent: 'Mušterija zove radi redovnog servisa. Poslar prikupi podatke o vozilu, provjeri kalendar i ponudi slobodan termin.',
     scene: 'Mlađi radnik radi veliki servis. Poslar ga vodi kroz svaki korak zahvata, dok inspekcija u 50 točaka jamči da nijedan detalj ne ostane nepregledan.',
     pains: [
       { q: 'Koliko je pređeno od zadnje izmjene ulja?', a: 'Servisni plan bilježi kilometre i datume te sam šalje podsjetnik klijentu kad dođe vrijeme za servis.' },
       { q: 'Mušterija sumnja da je zamjena kočnica bila potrebna?', a: 'Priloži fotografiju potrošenih diskova uz stavku naloga. Klijent odobrava rad jednim klikom na mobitelu.' },
-      { q: 'Zaboraviš javiti mušterijama da se približava sezona izmjene guma?', a: 'Sustav automatski priprema popis klijenata i šalje im poruke s ponudom termina.' },
+      { q: 'Želiš na vrijeme obavijestiti mušterije o nadolazećem servisu ili zamjeni guma?', a: 'Poslar pripremi listu i šalje obavijest s opcijom brze rezervacije termina putem WhatsAppa.' },
     ],
     features: [
       { title: 'Inspekcija u 50 točaka', text: 'Jasne oznake stanja (zeleno, žuto, crveno) uz obaveznu fotografiju oštećenja ili istrošenosti.' },
@@ -193,8 +199,8 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Autoelektrika, dijagnostika i elektronika',
     title: 'Greška na autu? Rješenje je već u tvojoj arhivi.',
     subtitle: 'Kodovi grešaka, mjerenja i zahvati na modulima. Sve ostaje zapisano i pretraživo u sekundi.',
-    agent: 'Mušterija zove i objašnjava da auto ujutro teško pali. Poslar pita koje se lampice pale na kontrolnoj ploči, bilježi simptome i zakazuje termin za dijagnostiku.',
-    scene: 'Radnik dijagnosticira kompleksan kvar. Pred sobom ima očitan DTC kod, popis mogućih uzroka i tvoje ranije riješene slučajeve na tom modelu. Rješava problem bez zvanja i prekidanja tvog rada.',
+    agent: 'Kod kompleksnijih autoelektričnih upita, Poslar prikupi simptome i pripremi nalog prije dolaska vozila u radionicu.',
+    scene: 'Radnik u radionici ima brz pristup bazi prošlih popravaka i opisima grešaka. Popravak teče znatno brže.',
     pains: [
       { q: 'Koji si specifičan kvar lani riješio na istom modelu vozila?', a: 'Unesi DTC kod u tražilicu i odmah otvori svoje stare bilješke s točnim rješenjem.' },
       { q: 'Kako dokazati koliku struju auto vuče dok miruje?', a: 'Modul za mjerenje parazitske potrošnje izbacuje čitljiv grafički prikaz pada struje spreman za mušteriju.' },
@@ -215,12 +221,12 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Autolimarija, lakirnica i procjena šteta',
     title: 'Oštećenja, fotografije i zapisnik. Osiguranje dobiva sve na dlanu.',
     subtitle: 'Od zaprimanja do izlaska iz komore. Svaka faza je dokumentirana, a svaki gram boje izbrojan.',
-    agent: 'Klijent zove radi ogrebotine i udubljenja na vratima. Poslar prikuplja osnovne podatke o oštećenju i dogovara termin za procjenu štete dok ti nastavljaš rad u radionici.',
+    agent: 'Za limarske radove Poslar zaprima upit i fotografije oštećenja unaprijed, omogućujući bržu i točniju procjenu.',
     scene: 'Upravljaš radovima u limariji i lakirnici. U svakom trenutku na mobitelu vidiš u kojoj se točno fazi nalazi koje vozilo, od pripreme i kitanja do komore i poliranja.',
     pains: [
       { q: 'Kako dokazati točnu potrošnju i recepturu zamiješane boje?', a: 'Zapisuj šifru boje i točnu recepturu u gramima za svaki radni nalog.' },
       { q: 'Osiguravajuća kuća traži dodatne dokaze oštećenja prije popravka?', a: 'Izvezi službeni zapisnik s fotografijama „prije, tijekom i poslije” radova u jednom dokumentu.' },
-      { q: 'Mušterija te stalno zove i pita kad je auto spreman za preuzimanje?', a: 'Prati vozilo po fazama rada i automatski obavijesti klijenta čim auto izađe s poliranja.' },
+      { q: 'Želiš pružiti mušterijama točnu informaciju o napretku radova bez čestih poziva?', a: 'Ažuriranjem statusa u aplikaciji (priprema, lakiranje, završeno) Poslar šalje automatsku obavijest mušteriji.' },
     ],
     features: [
       { title: 'Interaktivna mapa oštećenja', text: 'Dodirni oštećeni dio na vizualnom modelu vozila, dodaj operaciju i predviđene radne sate.' },
@@ -237,10 +243,10 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Vulkanizerske usluge, geometrija kotača i hotel za gume',
     title: 'Prebrodi sezonsku gužvu bez kaosa na telefonu.',
     subtitle: 'Termini, hotel za gume i obavijesti mušterijama. Ti mijenjaš gume, sustav vodi sve ostalo.',
-    agent: 'U listopadu telefon zvoni bez prestanka. Dok ti radiš na dizalici s udarnim odvrtačem, Poslar samostalno puni kalendar sat po sat i raspoređuje termine zamjene.',
+    agent: 'U sezonskim gužvama Poslar automatski raspoređuje termine izmjene guma prema stvarnim kapacitetima radionice.',
     scene: 'Radnik preuzima set guma iz skladišta. Skenira QR kod s naljepnice i odmah zna točnu lokaciju u hotelu za gume.',
     pains: [
-      { q: 'Gubiš vrijeme tražeći gdje su odložene gume određenog klijenta?', a: 'QR naljepnica točno označava regal, policu i poziciju u hotelu za gume.' },
+      { q: 'Potrebna ti je brza informacija o točnoj lokaciji pohranjenih guma u skladištu?', a: 'QR naljepnica točno označava regal, policu i poziciju u hotelu za gume.' },
       { q: 'Mušterija tvrdi da su joj gume prošle sezone imale dublju šaru?', a: 'Prijemni zapisnik bilježi dubinu šare u tri točke, DOT broj i zatečeno stanje felgi.' },
       { q: 'Kako na vrijeme obavijestiti sve klijente da rezerviraju termin prije gužve?', a: 'Pošalji grupni sezonski podsjetnik na WhatsApp jednim klikom iz aplikacije.' },
     ],
@@ -259,11 +265,11 @@ export const TRADE_PAGES: TradePage[] = [
     eyebrow: 'Teretni program, građevinska mehanizacija i vozni parkovi',
     title: 'Nijedan rok ne promakne. Ni periodični pregled, ni tahograf.',
     subtitle: 'Motosati, kilometri i zakonske obveze. Potpuna evidencija za tegljače, prikolice, bagere i traktore.',
-    agent: 'Voditelj prijevozne tvrtke zove radi redovnog servisa kamiona. Poslar preuzima podatke o vozilu, provjerava raspored i rezervira termin u radionici.',
+    agent: 'Disponent flote šalje zahtjev za servis tegljača. Poslar zaprima podatke i usklađuje termin prema slobodnim kapacitetima.',
     scene: 'Servisna ekipa je na terenu kod radnog stroja. Radni nalog sadrži točnu GPS lokaciju, popis radova i digitalni potpis strojara ili vozača po završetku.',
     pains: [
       { q: 'Kako izbjeći propuste oko atesta, tahografa ili tehničkog pregleda?', a: 'Sustav automatski šalje upozorenja o zakonskim rokovima tjednima unaprijed.' },
-      { q: 'Kako precizno voditi servis kad se dio mehanizacije mjeri u kilometrima, a dio u motosatima?', a: 'Poslar vodi dvostruku evidenciju i sam izračunava dospijeće servisa „što prije nastupi”.' },
+      { q: 'Kako osigurati redovito održavanje flote prema radnim satima i kilometraži?', a: 'Poslar prati oba parametra i automatski najavljuje nadolazeće servisne intervale za svako vozilo.' },
       { q: 'Kamion i prikolica stigli su skupa, ali zahtijevaju odvojenu povijest održavanja?', a: 'Sustav vodi zasebne kartone za vučna i priključna vozila ili radne alate.' },
     ],
     features: [
@@ -412,10 +418,14 @@ export const TRADE_PAGES: TradePage[] = [
 export const tradeBySlug = (slug: string) => TRADE_PAGES.find((t) => t.slug === slug) ?? null;
 export const tradeById = (id: PackageId) => TRADE_PAGES.find((t) => t.id === id)!;
 
+// Every trade page lists its five features and this one, so the grid is
+// always full (3 x 2 on a computer, 2 x 3 on a tablet).
+export const COMMON_FEATURE = { title: 'Pitaj Poslara', text: 'Na svakom nalogu koraci, specifikacije i upozorenja. Pitaš glasom, Poslar odgovara.' };
+
 export const TRADE_SECTION = {
   agent: 'Poslar na djelu',
   scene: 'Prizor iz radionice',
-  pains: 'Poznate situacije',
+  pains: 'Zvuči ti poznato?',
   features: 'Ključne mogućnosti',
   jobs: 'Gotovi normativi radova',
 };

@@ -54,7 +54,7 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
 
       <h1 className="font-display text-3xl font-bold tracking-tight">Odaberite proizvod i ulogu</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        Jedan račun za svih sedam proizvoda. Voditelj vidi cijene i naplatu, radnik vidi samo posao. Podaci su izmišljeni: slobodno mijenjajte, dodajte i brišite,
+        Jedan račun za svih jedanaest zanata. Voditelj vidi cijene i naplatu, radnik vidi samo posao. Podaci su izmišljeni: slobodno mijenjajte, dodajte i brišite,
         demo se može vratiti na početno stanje. Iz aplikacije se ovamo vraćate preko trake <span className="font-medium text-fg">Demo</span> na vrhu.
       </p>
       {greska ? (
@@ -66,17 +66,17 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
           <h2 className="text-lg font-semibold">{group.name}</h2>
           <p className="text-sm text-muted">{group.hint}</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {group.packages.map((id) => PACKAGES[id]).map((pkg) => {
+            {group.packages.map((id) => PACKAGES[id]).map((pkg, i, all) => {
               const tenant = byPackage.get(pkg.id);
               return (
-                <section key={pkg.id} className="accent-scope rounded-2xl border border-line bg-surface p-4" style={accentStyle(pkg)}>
+                <section key={pkg.id} className={cn('accent-scope rounded-2xl border border-line bg-surface p-4', all.length % 2 === 1 && i === all.length - 1 && 'sm:col-span-2')} style={accentStyle(pkg)}>
                   <div className="flex items-start gap-3">
                     <ProductMark id={pkg.id} className="size-10" />
                     <div className="min-w-0">
                       <h3 className="font-semibold">{pkg.product}</h3>
                       <p className="text-xs text-muted">{pkg.tagline}</p>
                       {tenant ? (
-                        <p className="mt-1 truncate text-xs text-faint">
+                        <p className="mt-1 break-words text-xs text-faint">
                           {tenant.name} · {tenant.city}
                         </p>
                       ) : null}
@@ -101,8 +101,8 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
                                 {label}
                                 {active ? <span className="ml-1.5 text-xs font-normal text-accent">· sada</span> : null}
                               </span>
-                              <span className="block w-full truncate text-xs text-muted">{nameOf(tenant.id, role) ?? hint}</span>
-                              <span className="block w-full truncate text-[11px] text-faint">{hint}</span>
+                              <span className="block w-full break-words text-xs text-muted">{nameOf(tenant.id, role) ?? hint}</span>
+                              <span className="block w-full break-words text-[11px] text-faint">{hint}</span>
                             </button>
                           </form>
                         );

@@ -100,12 +100,12 @@ export async function TowModule({ ctx, job, locked, extras }: ModuleProps) {
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {pickup ? (
-                  <a href={pickup} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 items-center gap-2 rounded-xl border border-line px-3 text-sm font-medium hover:bg-surface2">
+                  <a href={pickup} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-xl border border-line px-3 text-sm font-medium hover:bg-surface2">
                     <Navigation className="size-4 text-accent" /> Navigacija do vozila
                   </a>
                 ) : null}
                 {dropoff ? (
-                  <a href={dropoff} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 items-center gap-2 rounded-xl border border-line px-3 text-sm font-medium hover:bg-surface2">
+                  <a href={dropoff} target="_blank" rel="noopener noreferrer" className="inline-flex h-12 items-center gap-2 rounded-xl border border-line px-3 text-sm font-medium hover:bg-surface2">
                     <MapPin className="size-4 text-accent" /> Navigacija do odredišta
                   </a>
                 ) : null}

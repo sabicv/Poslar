@@ -33,7 +33,7 @@ export default async function TireLabel({ params }: { params: Promise<{ id: stri
           <div className="min-w-0">
             <p className="font-mono text-2xl font-bold">{location || 'bez mjesta'}</p>
             <p className="font-mono text-sm">{(set.asset as { identifier: string | null } | null)?.identifier ?? ''}</p>
-            <p className="truncate text-sm">{clientName(set.client as never)}</p>
+            <p className="break-words text-sm">{clientName(set.client as never)}</p>
           </div>
         </div>
         <div className="mt-3 flex items-center justify-between border-t border-black/20 pt-2 text-xs">

@@ -49,7 +49,7 @@ export default async function PriceListPage() {
         trigger={
           <button type="button" className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-surface2">
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium">{t.name}</span>
+              <span className="block break-words text-sm font-medium">{t.name}</span>
               <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted">
                 {t.lines.length} {t.lines.length === 1 ? 'stavka' : t.lines.length < 5 ? 'stavke' : 'stavki'}
                 {ownPrices(t) ? <Badge tone="accent">Vaše cijene</Badge> : null}

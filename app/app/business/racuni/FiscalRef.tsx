@@ -25,7 +25,7 @@ export function FiscalRef({ jobId, value }: { jobId: string; value: string | nul
         <span className="flex-1">
           U blagajni: <span className="font-medium tabular">{saved}</span>
         </span>
-        <button type="button" onClick={() => setEditing(true)} aria-label="Promijeni broj iz blagajne" className="flex size-9 items-center justify-center rounded-lg text-muted hover:text-fg">
+        <button type="button" onClick={() => setEditing(true)} aria-label="Promijeni broj iz blagajne" className="flex size-12 items-center justify-center rounded-lg text-muted hover:text-fg">
           <Pencil className="size-4" />
         </button>
       </div>

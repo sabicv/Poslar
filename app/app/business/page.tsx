@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { billingFrom } from '@/components/invoice/InvoiceDocument';
+import { PeriodChips, type PeriodKey } from '@/components/business/PeriodChips';
 import { Card, CardHeader, EmptyState, PageHeader, Stat, buttonClass } from '@/components/ui';
 import { zagrebDate } from '@/lib/invoice';
 import { AccountingExport } from './AccountingExport';
@@ -8,38 +9,27 @@ import { BusinessTabs } from './BusinessTabs';
 import { phaseLabel } from '@/config/tenant.config';
 import { assetTitle, clientName, countJobs, formatDecimal, formatEuro, formatRelative } from '@/lib/format';
 import { helpVideo } from '@/lib/help';
+import { PERIODS, periodBounds } from '@/lib/archive';
 import { allRows, inChunks } from '@/lib/paged';
 import { requireOwner } from '@/lib/session';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'Poslovanje' };
 
-const RANGES = {
-  this_month: 'Ovaj mjesec',
-  last_month: 'Prošli mjesec',
-  last_90: 'Zadnjih 90 dana',
-  this_year: 'Ova godina',
-} as const;
-type Range = keyof typeof RANGES;
-
-function bounds(range: Range): [Date, Date] {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  if (range === 'last_month') return [new Date(y, m - 1, 1), new Date(y, m, 1)];
-  if (range === 'last_90') return [new Date(Date.now() - 90 * 86400000), new Date(Date.now() + 86400000)];
-  if (range === 'this_year') return [new Date(y, 0, 1), new Date(y + 1, 0, 1)];
-  return [new Date(y, m, 1), new Date(y, m + 1, 1)];
-}
+// The same periods as Arhiva (components/business/PeriodChips). Older links
+// with ?range= still land on the right one.
+const OLD_RANGES: Record<string, PeriodKey> = { this_month: 'mjesec', last_month: 'prosli', last_90: '90', this_year: 'godina' };
 
 const KIND_LABELS: Record<string, string> = { labor: 'Rad', part: 'Dijelovi', material: 'Materijal', package: 'Paketi', sublet: 'Vanjske usluge', fee: 'Naknade' };
 
 // Owner only (requireOwner redirects workers; the database hides amounts anyway).
-export default async function BusinessPage({ searchParams }: { searchParams: Promise<{ range?: string }> }) {
+export default async function BusinessPage({ searchParams }: { searchParams: Promise<{ r?: string; range?: string }> }) {
   const ctx = await requireOwner();
-  const { range: r } = await searchParams;
-  const range: Range = r && r in RANGES ? (r as Range) : 'this_month';
-  const [from, to] = bounds(range);
+  const sp = await searchParams;
+  const asked = sp.r ?? (sp.range ? OLD_RANGES[sp.range] : undefined);
+  const period: PeriodKey = asked && asked in PERIODS ? (asked as PeriodKey) : 'mjesec';
+  // [from, to) in Zagreb time; null = open ("Sve").
+  const [from, to] = periodBounds({ period, from: null, to: null, paid: 'sve', q: '', limit: 0 });
   const closed = phaseLabel(ctx.pkg, 'collected');
   const sixMonthsAgo = new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1);
 
@@ -48,9 +38,12 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   const db = ctx.supabase;
   // Read a page at a time: a busy workshop passes the API's 1000 rows.
   const [done, unpaid, { data: staff }, history, issued] = await Promise.all([
-    allRows<Row>((a, b) =>
-      db.from('jobs').select('id, created_at, finished_at, collected_at, payment_status, assigned_to').gte('collected_at', from.toISOString()).lt('collected_at', to.toISOString()).order('id').range(a, b)
-    ),
+    allRows<Row>((a, b) => {
+      let q = db.from('jobs').select('id, created_at, finished_at, collected_at, payment_status, assigned_to').not('collected_at', 'is', null);
+      if (from) q = q.gte('collected_at', from);
+      if (to) q = q.lt('collected_at', to);
+      return q.order('id').range(a, b);
+    }),
     allRows<Row>((a, b) =>
       db
         .from('jobs')
@@ -122,21 +115,14 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
     <>
       <PageHeader title="Poslovanje" />
       <BusinessTabs active="pregled" invoices={!ctx.pkg.internalJobs} />
-      <div className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        {(Object.keys(RANGES) as Range[]).map((key) => (
-          <Link key={key} href={`/app/business?range=${key}`} className={cn(buttonClass(range === key ? 'primary' : 'secondary', 'sm'), 'shrink-0 rounded-full')}>
-            {RANGES[key]}
-          </Link>
-        ))}
-      </div>
+      <PeriodChips active={period} href={(key) => (key === 'mjesec' ? '/app/business' : `/app/business?r=${key}`)} />
 
-      {/* The unpaid total heads its own list below instead of a tile of its own. */}
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
+      {/* The unpaid total heads its own list below instead of a tile of its own.
+          Phone: one tile per row, so long amounts never squeeze. */}
+      <div className="mb-5 mt-2 grid gap-3 sm:grid-cols-3">
         <Stat label={`Promet (${closed.toLowerCase()})`} value={formatEuro(revenue)} hint={countJobs(doneIds.length)} />
         <Stat label="Naplaćeno" value={formatEuro(paid)} tone="ok" />
-        <div className="col-span-2 lg:col-span-1">
-          <Stat label="Prosječno trajanje" value={avgLead === null ? '-' : `${formatDecimal(avgLead, 1)} d`} hint="od prijema do gotovog" />
-        </div>
+        <Stat label="Prosječno trajanje" value={avgLead === null ? '-' : `${formatDecimal(avgLead, 1)} d`} hint="od prijema do gotovog" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -208,10 +194,10 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
                   <li key={j.id as string}>
                     <Link prefetch={false} href={`/app/jobs/${j.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-surface2">
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm">
+                        <span className="block break-words text-sm">
                           {clientName(j.client as never)} <span className="text-faint">· #{j.number as number}</span>
                         </span>
-                        <span className="block truncate text-xs text-muted">
+                        <span className="block break-words text-xs text-muted">
                           {assetTitle(j.asset as never)} · gotovo {formatRelative(j.finished_at as string | null)}
                         </span>
                       </span>

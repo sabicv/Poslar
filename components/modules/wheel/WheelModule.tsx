@@ -142,7 +142,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                         fields={setFields}
                         scan={tyreScan}
                         trigger={
-                          <button type="button" className="inline-flex size-9 items-center justify-center rounded-lg text-muted hover:bg-surface2 hover:text-fg" aria-label="Uredi ili obriši set">
+                          <button type="button" className="inline-flex size-12 items-center justify-center rounded-lg text-muted hover:bg-surface2 hover:text-fg" aria-label="Uredi ili obriši set">
                             <Pencil className="size-4" />
                           </button>
                         }

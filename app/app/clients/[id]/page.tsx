@@ -122,7 +122,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
                     {/* Two lines: what was done (and the amount), then when, on what, and where it stands. */}
                     <Link prefetch={false} href={`/app/jobs/${j.id}`} className="block px-4 py-3 hover:bg-surface2">
                       <span className="flex items-baseline justify-between gap-3">
-                        <span className="min-w-0 truncate text-sm">
+                        <span className="min-w-0 break-words text-sm">
                           <span className="text-faint">#{j.number}</span> {j.complaint ?? '-'}
                         </span>
                         {ctx.isOwner && totals.has(j.id) ? <span className="shrink-0 text-sm tabular text-muted">{formatEuro(totals.get(j.id))}</span> : null}

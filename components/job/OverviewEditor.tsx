@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { AutoSaveTextarea, useAction } from '@/components/client-ui';
 import { Card, Field, Input, Select } from '@/components/ui';
 import type { MeterUnit } from '@/config/tenant.config';
@@ -46,31 +47,38 @@ export function OverviewEditor({
   const { run } = useAction();
   const [meterOut, setMeterOut] = useState(job.meter_out?.toString() ?? '');
   const [bay, setBay] = useState(job.bay);
+  // "Više polja" opens the rest right here, in the tab, not in the tab bar.
+  const [more, setMore] = useState(extras);
   const save = (patch: Parameters<typeof updateJob>[1]) => updateJob(job.id, patch);
   const quiet = { quiet: true };
 
-  const showNotes = extras || Boolean(job.diagnosis_notes);
+  const showNotes = more || Boolean(job.diagnosis_notes);
   // A worker picker only matters with more than one person in the workshop.
   const showWorker = !field && (staff.length > 1 || Boolean(job.assigned_to));
-  const showPromised = !field && (extras || Boolean(job.promised_at));
-  const showMeter = meter && (extras || job.meter_out !== null);
-  const showBay = !field && (extras || Boolean(job.bay));
-  const showUrgent = extras || job.is_urgent;
+  const showPromised = !field && (more || Boolean(job.promised_at));
+  const showMeter = meter && (more || job.meter_out !== null);
+  const showBay = !field && (more || Boolean(job.bay));
+  const showUrgent = more || job.is_urgent;
+  // What "Više polja" would open, by name.
+  const folded = [
+    !showNotes && 'Bilješke',
+    !field && !showPromised && 'Obećano do',
+    meter && !showMeter && (job.meter_unit === 'mth' ? 'Motosati' : 'Kilometri'),
+    !field && !showBay && 'Mjesto',
+    !showUrgent && 'Hitno',
+  ].filter(Boolean) as string[];
 
   return (
     <div className="space-y-4">
       <Card className="p-4">
-        <p className="mb-1.5 text-xs font-medium text-muted">Opis kvara</p>
-        <AutoSaveTextarea initial={job.complaint} disabled={locked} onSave={(v) => save({ complaint: v || null })} />
+        <AutoSaveTextarea label="Opis kvara" initial={job.complaint} disabled={locked} onSave={(v) => save({ complaint: v || null })} />
       </Card>
       <Card className="p-4">
-        <p className="mb-1.5 text-xs font-medium text-muted">Obavljeni radovi (vidi stranka)</p>
-        <AutoSaveTextarea initial={job.work_summary} rows={4} disabled={locked} placeholder="Što je napravljeno i preporuke" onSave={(v) => save({ work_summary: v || null })} />
+        <AutoSaveTextarea label="Obavljeni radovi (vidi stranka)" initial={job.work_summary} rows={4} disabled={locked} placeholder="Što je napravljeno i preporuke" onSave={(v) => save({ work_summary: v || null })} />
       </Card>
       {showNotes ? (
         <Card className="p-4">
-          <p className="mb-1.5 text-xs font-medium text-muted">Bilješke (interno, stranka ne vidi)</p>
-          <AutoSaveTextarea initial={job.diagnosis_notes} rows={3} disabled={locked} placeholder="Mjerenja, zaključci, što je provjereno…" onSave={(v) => save({ diagnosis_notes: v || null })} />
+          <AutoSaveTextarea label="Bilješke (interno, stranka ne vidi)" initial={job.diagnosis_notes} rows={3} disabled={locked} placeholder="Mjerenja, zaključci, što je provjereno…" onSave={(v) => save({ diagnosis_notes: v || null })} />
         </Card>
       ) : null}
       {showWorker || showPromised || showMeter || showBay || showUrgent ? (
@@ -120,7 +128,7 @@ export function OverviewEditor({
             </Field>
           ) : null}
           {showUrgent ? (
-            <label className="flex min-h-11 items-center gap-3 text-sm sm:col-span-2">
+            <label className="flex min-h-12 items-center gap-3 text-sm sm:col-span-2">
               <input
                 type="checkbox"
                 defaultChecked={job.is_urgent}
@@ -132,6 +140,16 @@ export function OverviewEditor({
             </label>
           ) : null}
         </Card>
+      ) : null}
+      {folded.length ? (
+        <button
+          type="button"
+          onClick={() => setMore(true)}
+          className="flex min-h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-line px-4 py-3 text-center text-sm text-muted hover:text-fg"
+        >
+          <ChevronDown className="size-4 shrink-0" />
+          Više polja: {folded.join(', ')}
+        </button>
       ) : null}
     </div>
   );

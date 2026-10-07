@@ -56,7 +56,7 @@ export async function DuePlans({ ctx, emptyHint }: { ctx: WorkshopContext; empty
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-sm font-medium">{clientName(plan.client)}</p>
-                        <p className="truncate text-xs text-muted">{[place, assetTitle(plan.asset)].filter(Boolean).join(' · ')}</p>
+                        <p className="break-words text-xs text-muted">{[place, assetTitle(plan.asset)].filter(Boolean).join(' · ')}</p>
                         <p className="text-xs text-faint">
                           {plan.title}
                           {plan.last_reminded_at ? ` · podsjetnik poslan ${formatRelative(plan.last_reminded_at)}` : ''}

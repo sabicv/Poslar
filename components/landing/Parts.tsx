@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { Check, MessageCircle } from 'lucide-react';
 import { DemoSubmit } from '@/components/landing/DemoSubmit';
 import { Pricing } from '@/components/landing/Pricing';
 import { BrandLogo, ProductMark } from '@/components/ProductMark';
 import { ButtonLink } from '@/components/ui';
 import { CTA_DEMO, CTA_HEADER, FAQ, MAIN, PRICING, ctaTrial } from '@/config/landing';
-import type { PackageConfig, PackageId } from '@/config/tenant.config';
+import { accentStyle, type PackageConfig, type PackageId } from '@/config/tenant.config';
 import { openDemo } from '@/lib/actions/guest';
 import { supportWhatsApp } from '@/lib/billing';
 import { provider } from '@/lib/legal';
@@ -29,6 +29,42 @@ export function Section({ className, children }: { className?: string; children:
   return <section className={cn('border-t border-line py-14 sm:py-16', className)}>{children}</section>;
 }
 
+// Card grids without a lonely last card: 2 columns from a tablet, 3 from a
+// computer (on a 6-column grid). A last card alone in its row takes the
+// whole row; two left over in a row of three share it.
+export const FILL_GRID = 'grid gap-3 sm:grid-cols-2 lg:grid-cols-6';
+export function fillCell(index: number, count: number): string {
+  const last = index === count - 1;
+  const lgRest = count % 3;
+  return cn(
+    'lg:col-span-2',
+    count % 2 === 1 && last && 'sm:col-span-2',
+    lgRest === 1 && last && 'lg:col-span-6',
+    lgRest === 2 && index >= count - 2 && 'lg:col-span-3'
+  );
+}
+
+// "Zvuči ti poznato?": the same troubles-and-answers grid on the main page
+// and on every trade page. Three cards sit in a row of three, four in 2 x 2.
+export function PainsGrid({ title, items }: { title: string; items: { q: string; a: string }[] }) {
+  return (
+    <Section>
+      <SectionTitle title={title} />
+      <ul className={cn('mt-8 grid gap-4', items.length % 3 === 0 ? 'md:grid-cols-3' : 'sm:grid-cols-2')}>
+        {items.map((p) => (
+          <li key={p.q} className="rounded-2xl border border-line bg-surface p-5">
+            <p className="text-lg font-semibold leading-snug">{p.q}</p>
+            <p className="mt-3 flex gap-3 text-sm text-muted">
+              <Check className="mt-0.5 size-5 shrink-0 text-accent" />
+              {p.a}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
 // "Za tvoj zanat · Cijene · Prijava" and the one button. On a trade's own
 // domain the trade's mark replaces the Poslar logo.
 export function LandingHeader({ product, signedIn, register, tradesHref }: { product: PackageConfig | null; signedIn: boolean; register: string; tradesHref: string }) {
@@ -38,7 +74,9 @@ export function LandingHeader({ product, signedIn, register, tradesHref }: { pro
         <Link href="/" className="flex min-w-0 items-center gap-2.5">
           {product ? (
             <>
-              <ProductMark id={product.id} />
+              <span className="accent-scope" style={accentStyle(product)}>
+                <ProductMark id={product.id} />
+              </span>
               <span className="truncate font-semibold tracking-tight">{product.product}</span>
             </>
           ) : (

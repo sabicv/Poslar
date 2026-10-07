@@ -59,7 +59,7 @@ export async function GearModule({ ctx, job, locked }: ModuleProps) {
               revalidate={path}
               label="Dobavljač"
               trigger={
-                <button className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface2 px-3 text-sm">
+                <button className="inline-flex h-12 items-center gap-1.5 rounded-lg border border-line bg-surface2 px-3 text-sm">
                   <Truck className="size-4" /> Dobavljač
                 </button>
               }

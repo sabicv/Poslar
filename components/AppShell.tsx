@@ -81,8 +81,8 @@ export function AppShell({
             <ProductMark id={product.id} />
           )}
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold">{workshop.name}</span>
-            <span className="block truncate text-xs text-faint">{product.name}</span>
+            <span className="block break-words text-sm font-semibold leading-tight">{workshop.name}</span>
+            <span className="block break-words text-xs text-faint">{product.name}</span>
           </span>
         </Link>
         <Link href={newJobHref} className={buttonClass('primary', 'md', 'mb-4 w-full')}>
@@ -119,11 +119,11 @@ export function AppShell({
           {trialDaysLeft !== null ? <TrialNote days={trialDaysLeft} linked={!play} /> : null}
           <div className="flex items-center justify-between gap-2 px-2">
             <span className="min-w-0">
-              <span className="block truncate text-sm">{user.name}</span>
+              <span className="block break-words text-sm">{user.name}</span>
               <span className="block text-xs text-faint">{user.isOwner ? 'Voditelj servisa' : 'Radnik'}</span>
             </span>
             <form action={signOut}>
-              <button type="submit" className="flex size-9 items-center justify-center rounded-lg text-muted hover:bg-surface2 hover:text-fg" aria-label="Odjava">
+              <button type="submit" className="flex size-12 items-center justify-center rounded-lg text-muted hover:bg-surface2 hover:text-fg" aria-label="Odjava">
                 <LogOut className="size-4" />
               </button>
             </form>
@@ -136,16 +136,16 @@ export function AppShell({
         <header className="sticky top-0 z-30 border-b border-line bg-bg/85 pt-safe backdrop-blur-md print:hidden lg:hidden">
           {demo ? <DemoBar product={product.id} isOwner={user.isOwner} className="h-11 border-b border-line px-4" /> : null}
           <div className="flex h-14 items-center gap-3 px-4">
-            <Link href="/app" className="flex min-w-0 flex-1 items-center gap-2.5">
+            <Link href="/app" className="flex min-h-12 min-w-0 flex-1 items-center gap-2.5">
               {workshop.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={workshop.logoUrl} alt="" className="size-8 rounded-lg object-contain" />
               ) : (
                 <ProductMark id={product.id} />
               )}
-              <span className="truncate text-sm font-semibold">{workshop.name}</span>
+              <span className="line-clamp-2 text-sm font-semibold leading-tight">{workshop.name}</span>
             </Link>
-            <Link href="/app/inbox" className="relative flex size-11 items-center justify-center rounded-xl text-muted hover:bg-surface2" aria-label="Poruke">
+            <Link href="/app/inbox" className="relative flex size-12 items-center justify-center rounded-xl text-muted hover:bg-surface2" aria-label="Poruke">
               <Bell className="size-5" />
               {inboxCount > 0 ? (
                 <span className="absolute right-1.5 top-1.5 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-fg">{inboxCount}</span>

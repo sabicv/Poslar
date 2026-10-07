@@ -125,7 +125,7 @@ export default async function TillDayPage({ searchParams }: { searchParams: Prom
                       <p className="font-semibold">
                         Račun {invoiceNumberLabel(inv)} <span className="font-normal text-muted">· {formatTime(inv.issuedAt)}</span>
                       </p>
-                      <p className="truncate text-sm text-muted">
+                      <p className="break-words text-sm text-muted">
                         {[clientName(inv.client as never), inv.client.oib ? `OIB ${inv.client.oib}` : null, inv.asset?.identifier ?? (inv.asset ? assetTitle(inv.asset) : null)].filter(Boolean).join(' · ')}
                       </p>
                     </div>

@@ -9,6 +9,7 @@ import { openDemo } from '@/lib/actions/guest';
 import { supportWhatsApp } from '@/lib/billing';
 import { isGuestUser } from '@/lib/guest';
 import { getAuth } from '@/lib/session';
+import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'Isprobaj demo verziju' };
 
@@ -85,14 +86,15 @@ export default async function TryDemoPage({ searchParams }: { searchParams: Prom
         <section key={group.id} className="mt-4">
           <p className="text-sm text-faint">{group.name}</p>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            {group.packages.map((id) => (
-              <form key={id} action={openDemo} className="accent-scope" style={accentStyle(PACKAGES[id])}>
+            {group.packages.map((id, i, all) => (
+              // A last card alone in its row takes the whole row.
+              <form key={id} action={openDemo} className={cn('accent-scope', all.length % 2 === 1 && i === all.length - 1 && 'sm:col-span-2')} style={accentStyle(PACKAGES[id])}>
                 <input type="hidden" name="paket" value={id} />
-                <DemoSubmit variant="tile" className="flex w-full items-center gap-3 rounded-2xl border border-line bg-surface p-3 text-left transition-colors hover:border-accent/70 disabled:opacity-80">
+                <DemoSubmit variant="tile" className="flex h-full min-h-16 w-full items-center gap-3 rounded-2xl border border-line bg-surface p-3 text-left transition-colors hover:border-accent/70 disabled:opacity-80">
                   <ProductMark id={id} className="size-10" />
                   <span className="min-w-0 flex-1">
                     <span className="block font-semibold">{PACKAGES[id].short}</span>
-                    <span className="block truncate text-xs text-muted">{TRADE_LINES[id]}</span>
+                    <span className="block text-xs leading-snug text-muted">{TRADE_LINES[id]}</span>
                   </span>
                   <ArrowRight className="size-4 shrink-0 text-muted" />
                 </DemoSubmit>

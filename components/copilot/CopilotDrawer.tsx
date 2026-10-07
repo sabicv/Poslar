@@ -40,7 +40,9 @@ async function streamCopilot(body: object, onText: (text: string) => void, signa
   return { text, cached: res.headers.get('X-Copilot-Cached') === '1' };
 }
 
-export function CopilotDrawer({ jobId, enabled }: { jobId: string; enabled: boolean }) {
+// triggerClassName: the job's bottom bar gives it a small square with the
+// Poslar mark and "Pitaj" under it, in reach of the thumb.
+export function CopilotDrawer({ jobId, enabled, triggerClassName }: { jobId: string; enabled: boolean; triggerClassName?: string }) {
   const [open, setOpen] = useState(false);
   const [briefing, setBriefing] = useState('');
   const [briefingState, setBriefingState] = useState<'idle' | 'loading' | 'streaming' | 'done' | 'error'>('idle');
@@ -139,9 +141,16 @@ export function CopilotDrawer({ jobId, enabled }: { jobId: string; enabled: bool
       onOpenChange={setOpen}
       title="Pitaj Poslara"
       trigger={
-        <Button variant="secondary" className="border-accent/40 bg-accent/10 text-fg hover:bg-accent/20">
-          <BrandMark className="size-5" /> Pitaj Poslara
-        </Button>
+        triggerClassName ? (
+          <button type="button" className={triggerClassName} aria-label="Pitaj Poslara">
+            <BrandMark className="size-6" />
+            Pitaj
+          </button>
+        ) : (
+          <Button variant="secondary" className="border-accent/40 bg-accent/10 text-fg hover:bg-accent/20">
+            <BrandMark className="size-5" /> Pitaj Poslara
+          </Button>
+        )
       }
     >
       {!enabled ? (
@@ -158,14 +167,14 @@ export function CopilotDrawer({ jobId, enabled }: { jobId: string; enabled: bool
                   <BrandMark className="size-4" /> Uputa za nalog
                 </p>
                 <div className="flex items-center gap-1">
-                  <button type="button" onClick={showContext} className="flex size-8 items-center justify-center rounded-lg text-faint hover:bg-surface2 hover:text-fg" aria-label="Podaci koje Poslar koristi">
+                  <button type="button" onClick={showContext} className="flex size-12 items-center justify-center rounded-lg text-faint hover:bg-surface2 hover:text-fg" aria-label="Podaci koje Poslar koristi">
                     <Info className="size-4" />
                   </button>
                   <button
                     type="button"
                     onClick={() => loadBriefing(true)}
                     disabled={briefingState === 'loading' || briefingState === 'streaming'}
-                    className="flex size-8 items-center justify-center rounded-lg text-faint hover:bg-surface2 hover:text-fg disabled:opacity-40"
+                    className="flex size-12 items-center justify-center rounded-lg text-faint hover:bg-surface2 hover:text-fg disabled:opacity-40"
                     aria-label="Osvježi uputu"
                   >
                     <RefreshCw className={cn('size-4', (briefingState === 'loading' || briefingState === 'streaming') && 'animate-spin')} />

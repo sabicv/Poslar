@@ -2,14 +2,15 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { Bell, Building2, FileCheck2, FileCode2, GraduationCap, Laptop, ListChecks, PhoneCall, PhoneIncoming, Plus, QrCode, ScanLine, Smartphone, Tablet, TreePalm, Upload } from 'lucide-react';
-import { CtaButtons, FaqSection, FinalCall, LandingFooter, LandingHeader, PhoneShot, PricingSection, Section, SectionTitle } from '@/components/landing/Parts';
+import { Bell, Building2, CalendarCheck, FileCheck2, FileCode2, Laptop, ListChecks, Moon, PhoneCall, PhoneIncoming, Plus, QrCode, ScanLine, ShieldCheck, Smartphone, Tablet, Upload } from 'lucide-react';
+import { CtaButtons, FILL_GRID, FaqSection, FinalCall, LandingFooter, LandingHeader, PainsGrid, PhoneShot, PricingSection, Section, SectionTitle, fillCell } from '@/components/landing/Parts';
 import { TradeLanding } from '@/components/landing/TradeLanding';
 import { ProductMark } from '@/components/ProductMark';
 import { MAIN, TRADE_LINES, TRADE_PAGES, tradeById } from '@/config/landing';
 import { PACKAGES, TRADE_GROUPS, accentStyle, matchPackageFromHost, type PackageId } from '@/config/tenant.config';
 import { isPlayApp } from '@/lib/play';
 import { getAuth } from '@/lib/session';
+import { cn } from '@/lib/utils';
 
 // The home page sells the benefits: the AI secretary takes the calls, the
 // paperwork makes itself, and the owner sees everything from the phone.
@@ -19,8 +20,9 @@ import { getAuth } from '@/lib/session';
 export const metadata: Metadata = { description: MAIN.subtitle };
 
 const PILLAR_ICONS = [PhoneCall, FileCheck2, Smartphone];
-const SCENE_ICONS = [PhoneIncoming, TreePalm, GraduationCap, Building2, Upload];
-const EXTRA_ICONS = [Bell, QrCode, ListChecks, ScanLine, FileCode2];
+// Phone while working, the evening off, photos and approvals, every branch, moving in.
+const SCENE_ICONS = [PhoneIncoming, Moon, ShieldCheck, Building2, Upload];
+const EXTRA_ICONS = [Bell, QrCode, ListChecks, ScanLine, FileCode2, CalendarCheck];
 
 // Trades in the order of the text (Automehaničar first).
 const inPageOrder = (ids: PackageId[]) => TRADE_PAGES.map((t) => t.id).filter((id) => ids.includes(id));
@@ -131,18 +133,8 @@ export default async function Home() {
           </div>
         </Section>
 
-        {/* Sounds familiar? */}
-        <Section>
-          <SectionTitle title={MAIN.painsTitle} />
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2">
-            {MAIN.pains.map((p) => (
-              <li key={p.q} className="rounded-2xl border border-line bg-surface p-5">
-                <p className="text-lg font-semibold">{p.q}</p>
-                <p className="mt-3 border-l-2 border-accent/70 pl-3 text-sm text-muted">{p.a}</p>
-              </li>
-            ))}
-          </ul>
-        </Section>
+        {/* Sounds familiar? (the same grid as on the trade pages) */}
+        <PainsGrid title={MAIN.painsTitle} items={MAIN.pains} />
 
         {/* And more: each one opens to the trouble and how it goes with Poslar */}
         <Section>
@@ -189,12 +181,12 @@ export default async function Home() {
             {TRADE_GROUPS.map((g) => (
               <div key={g.id}>
                 <h3 className="font-display text-xl font-bold">{g.name}</h3>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {inPageOrder(g.packages).map((id) => (
+                <div className={cn('mt-3', FILL_GRID)}>
+                  {inPageOrder(g.packages).map((id, i, all) => (
                     <Link
                       key={id}
                       href={`/zanat/${tradeById(id).slug}`}
-                      className="accent-scope group flex items-start gap-3 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-accent/70"
+                      className={cn('accent-scope group flex items-start gap-3 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-accent/70', fillCell(i, all.length))}
                       style={accentStyle(PACKAGES[id])}
                     >
                       <ProductMark id={id} className="size-10" />

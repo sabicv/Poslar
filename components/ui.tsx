@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
-// Server-safe building blocks (no hooks). Tap targets are at least 44 px,
-// "lg" is 56 px for gloved hands.
+// Server-safe building blocks (no hooks). Tap targets are at least 48 px
+// on a phone, "lg" is 56 px for gloved hands.
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'ok';
 type Size = 'sm' | 'md' | 'lg';
@@ -17,9 +17,9 @@ const VARIANTS: Record<Variant, string> = {
 };
 
 const SIZES: Record<Size, string> = {
-  // 44 px on phones (gloves), compact 36 px from the sm breakpoint up.
-  sm: 'h-11 sm:h-9 px-3 text-sm gap-1.5 rounded-lg',
-  md: 'h-11 px-4 text-sm gap-2 rounded-xl',
+  // 48 px on phones (thumbs, gloves), compact 36 px from the sm breakpoint up.
+  sm: 'h-12 sm:h-9 px-3 text-sm gap-1.5 rounded-lg',
+  md: 'h-12 px-4 text-sm gap-2 rounded-xl',
   lg: 'h-14 px-5 text-base gap-2.5 rounded-xl',
 };
 
@@ -79,18 +79,20 @@ export function CardHeader({ title, action, subtitle }: { title: ReactNode; acti
 
 export type Tone = 'neutral' | 'accent' | 'ok' | 'warn' | 'crit' | 'muted';
 
+// A badge only tells (status, date, who): flat, no outline, never a tap
+// target. Anything tappable is a Button, which has a border or a fill.
 const TONES: Record<Tone, string> = {
-  neutral: 'bg-surface2 text-fg border-line',
-  accent: 'bg-accent/15 text-accent border-accent/30',
-  ok: 'bg-ok/12 text-ok border-ok/30',
-  warn: 'bg-warn/12 text-warn border-warn/30',
-  crit: 'bg-crit/12 text-crit border-crit/30',
-  muted: 'bg-transparent text-faint border-line',
+  neutral: 'bg-surface2 text-fg',
+  accent: 'bg-accent/15 text-accent',
+  ok: 'bg-ok/15 text-ok',
+  warn: 'bg-warn/15 text-warn',
+  crit: 'bg-crit/15 text-crit',
+  muted: 'bg-surface2/60 text-muted',
 };
 
 export function Badge({ tone = 'neutral', className, children }: { tone?: Tone; className?: string; children: ReactNode }) {
   return (
-    <span className={cn('inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-md border px-2 text-xs font-medium', TONES[tone], className)}>
+    <span className={cn('pointer-events-none inline-flex h-6 select-none items-center gap-1 whitespace-nowrap rounded-md px-2 text-xs font-medium', TONES[tone], className)}>
       {children}
     </span>
   );
@@ -113,7 +115,7 @@ const fieldBase =
   'w-full rounded-xl border border-line bg-bg px-3 text-fg placeholder:text-faint outline-none transition-colors focus:border-accent disabled:opacity-60';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className, ...props }, ref) {
-  return <input ref={ref} className={cn(fieldBase, 'h-11', className)} {...props} />;
+  return <input ref={ref} className={cn(fieldBase, 'h-12', className)} {...props} />;
 });
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea(
@@ -130,7 +132,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
   return (
     <select
       ref={ref}
-      className={cn(fieldBase, 'h-11 appearance-none pr-9', className)}
+      className={cn(fieldBase, 'h-12 appearance-none pr-9', className)}
       style={{ backgroundImage: CHEVRON, backgroundPosition: 'right 12px center', backgroundRepeat: 'no-repeat', backgroundSize: '16px', ...style }}
       {...props}
     >
@@ -187,7 +189,7 @@ export function PageHeader({ title, subtitle, action, back }: { title: ReactNode
 
 export function BackLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className="mb-2 inline-flex h-8 items-center gap-1 text-sm text-muted hover:text-fg">
+    <Link href={href} className="-ml-2 mb-1 inline-flex h-12 items-center gap-1 rounded-lg px-2 text-sm text-muted hover:text-fg">
       <span aria-hidden>←</span> {children}
     </Link>
   );
