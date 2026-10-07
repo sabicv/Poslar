@@ -169,7 +169,10 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [x] Odluke: Vercel Pro i Supabase Pro s prvom pretplatom; bez Cloudflarea i vlastitog servera; Play, žig i odvjetnik kasnije
 - [x] Telefon: jedan zajednički Twilio broj, radionica po broju koji je preusmjerio poziv; ako proradi, telefon u svim paketima
 - [ ] (V) Računi za potpuni test: domena spojena, Anthropic, e-mail, Twilio Local broj, Vapi, Paddle sandbox
-- [ ] (V) Odluke: cijene (30/50/90 ili 39/69/119 s osnivačkom 29/49/89), uključeni pozivi (100/200/400), poruka kad se potroše, glas
+- [x] Cijene prihvaćene, ali okrugle (Vedran ne želi 39, 49,99): prijedlog 40/70/120, osnivačka 30/50/90 za prvih 50 radionica
+- [ ] (V) Potvrditi: 40/70/120 i osnivačka 30/50/90; ugovor na 24 mj. (−10 %) ostaje ili otpada; uključeni pozivi (100/200/400); poruka kad se potroše; glas
+- [x] Odluka: „Poslar” izlazi iz naziva zanata (Autoelektričar, Automehaničar …); Poslar je krovno ime i AI pomoćnik
+- [ ] (V) Boje: samo plava, narančasta, bijela (i tamna/crna). Prijedlozi A Plava noć, D Kao logo, B Bijeli dan, C Crna radionica (slike na pravim ekranima); boje zanata otpadaju
 - [ ] Probni poziv: stiže li ForwardedFrom s A1, HT i Telemacha
 - [ ] Nakon odluka (kreni): telefon u pakete, „Rezerviraj termin”, tjedni backup i mjerač prostora, tekst naslovnice, zajednički broj, Paddle
 
