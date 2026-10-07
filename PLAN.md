@@ -183,7 +183,9 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 - [ ] Više radionica pod jednim vlasnikom (Premium): prebacivanje, zbirni promet
 - [ ] Dnevni sažetak vlasniku e-mailom (završeni nalozi, promet, pozivi, sutrašnji termini)
 - [ ] Uvoz starih papirnatih naloga i računa slikom (AI upiše u povijest vozila)
-- [ ] (V) ČEKA ODLUKU O TROŠKOVIMA: automatske poruke preko WhatsApp Business (Meta, oko 0,024 $ po poruci, dvosmjerno, isti Poslar broj); SMS otpada (0,14 $, jednosmjerno). Besplatno uvijek: jedan dodir s majstorovog WhatsAppa
+- [ ] Automatske poruke preko WhatsApp Business (Meta Cloud API, odluka 7. 10.): oko 0,024 $ po poruci, dvosmjerno, s istog Poslar broja, bez kvote; bez provjerene tvrtke do 250 mušterija dnevno. SMS otpada. Besplatno uvijek: jedan dodir s majstorovog WhatsAppa
+- [ ] Kad majstor dodirne „Potvrdi termin”, Poslar sam pošalje potvrdu mušteriji na WhatsApp (odluka 7. 10.)
+- [ ] (V) Meta: business portfolio Poslar, aplikacija s WhatsAppom, Twilio broj potvrđen za WhatsApp, kartica za plaćanje poruka, odobreni predlošci
 - [ ] Paket za knjigovođu sam ode e-mailom na kraju mjeseca
 - [ ] Plaćanje karticom (Paddle)
 - [ ] Telefon u pakete (pozivi umjesto minuta), zajednički broj po ForwardedFrom, tjedni backup, mjerač prostora

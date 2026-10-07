@@ -182,6 +182,19 @@ Nakon odluka, u kodu (kad Vedran kaže "kreni"): telefon u pakete s brojem poziv
 "Rezerviraj termin", tjedni backup i mjerač prostora u Tornju, novi tekst naslovnice (na odobrenje),
 zajednički broj prema ForwardedFrom, plaćanje preko Paddlea.
 
+## 11. Poruke mušterijama (odluka 7. 10.)
+
+- SMS otpada: Twilio u Hrvatsku 0,14 $ po poruci, samo jednosmjerno (pošiljatelj je ime, ne može se odgovoriti), a č, ć, š, ž, đ udvostručuju cijenu.
+- **WhatsApp Business (Meta Cloud API):** oko 0,024 $ po poruci (od 1. 10. 2026.), dvosmjerno, s istog zajedničkog Poslar broja.
+  Poruka unutar 24 sata od mušterijine poruke je besplatna. Svaka poruka počinje nazivom radionice.
+- Bez registrirane tvrtke radi, uz ograničenje 250 različitih mušterija dnevno za cijeli broj (oko 50 radionica).
+  S obrtom i provjerom tvrtke ograničenje raste (1.000, 10.000 …).
+- Kvota za poruke ne treba (oko 1 do 4 € po radionici mjesečno); u Uvjetima: slanje za rad radionice, ne za masovno reklamiranje.
+- Automatska potvrda termina kad majstor dodirne „Potvrdi termin”: da (2 centa).
+- Uvijek besplatno: majstor šalje jednim dodirom sa svog WhatsAppa.
+
+Tipično mjesečno po radionici, pozivi (8 c) + poruke (2 c): Basic oko 6,70 €, Standard oko 11 €, Premium oko 17 €.
+
 ## Izvori
 
 - Twilio, hrvatski brojevi i cijene: https://www.twilio.com/en-us/guidelines/hr/regulatory, https://www.twilio.com/en-us/voice/pricing/hr
@@ -190,3 +203,6 @@ zajednički broj prema ForwardedFrom, plaćanje preko Paddlea.
 - Hrvatski programi za autoservis: https://aplikacije.hr/program-za-automehanicare/, https://www.micro-process.hr/auto-servis/, https://www.getserwizz.com/hr/industrije/auto
 - Jobber: https://costbench.com/software/field-service-management/jobber/
 - AI recepcija, cijene: https://report.spegiti.com/industries/auto-repair
+- Twilio SMS Hrvatska: https://www.twilio.com/en-us/sms/pricing/hr, https://www.twilio.com/en-us/guidelines/hr/sms
+- WhatsApp cijene po zemlji: https://formbeep.com/whatsapp-api-pricing/
+- WhatsApp bez provjere tvrtke: https://blueticks.co/blog/whatsapp-api-without-meta-verification
