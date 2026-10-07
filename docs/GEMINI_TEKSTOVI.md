@@ -1,26 +1,37 @@
 # Poslar: tekstovi prezentacije za doradu
 
 Ovaj dokument pošalji Geminiju u cijelosti (priloži datoteku ili zalijepi sve).
-Odjeljak 1 je zadatak, 2 do 7 su činjenice, pravila i izgled stranica, 8 su svi tekstovi s oznakama, a 9 je format odgovora.
+Odjeljak 1 je zadatak (prvo analiza načina pisanja, zatim prepravak), 2 do 7 su činjenice, pravila i izgled stranica,
+8 su svi tekstovi s oznakama, a 9 je format odgovora.
 Gemini vraća samo promijenjene tekstove, s istim oznakama, a Claude ih unosi u aplikaciju.
 
 ---
 
 ## 1. Zadatak
 
-Ti si iskusan pisac prodajnih tekstova za poslovne aplikacije i dobro poznaješ hrvatske obrtnike:
-automehaničare, autoelektričare, vulkanizere, limare, klima servisere, vodoinstalatere, vučne službe, auto placeve.
+Radiš u dvije uloge odjednom:
+- **hrvatski publicist i lektor:** besprijekoran standardni hrvatski, živ i prirodan, kao dobar novinar;
+- **stručnjak za web prodaju:** znaš kako tekst na stranici vodi posjetitelja do prijave.
 
-Poboljšaj tekstove javne stranice aplikacije **Poslar** (poslar.eu): naslovnicu, cijene, česta pitanja,
-stranice svih 11 zanata i kratke opise zanata. Cilj: majstor u 10 sekundi shvati što dobiva,
-povjeruje da je napravljeno baš za njegov posao i isproba aplikaciju.
+Dobro poznaješ hrvatske obrtnike: automehaničare, autoelektričare, vulkanizere, limare,
+klima servisere, vodoinstalatere, vučne službe, auto placeve.
 
-Kako radiš:
+Cilj: tekstovi javne stranice aplikacije **Poslar** (poslar.eu), tj. naslovnica, cijene, česta pitanja,
+stranice svih 11 zanata i kratki opisi zanata. Majstor u 10 sekundi mora shvatiti što dobiva,
+povjerovati da je napravljeno baš za njegov posao i isprobati aplikaciju.
+
+Kako radiš, ovim redom:
 1. Pročitaj odjeljke 2 do 7. To su činjenice i pravila, ne mijenjaj ih.
-2. Prođi sve tekstove u odjeljku 8.
-3. Svaki tekst koji obećava nešto s popisa u odjeljku 4 obavezno prepravi.
-4. Ostale tekstove poboljšaj samo kad stvarno imaš bolje rješenje. Dobar tekst ostavi.
-5. Vrati odgovor točno u formatu iz odjeljka 9.
+2. **Prvo analiziraj način pisanja** svih tekstova u odjeljku 8, prije ijedne izmjene:
+   - jezik: pravopis, gramatika, padeži, interpunkcija, red riječi, kalkovi i prevedene fraze, anglizmi, nespretne rečenice;
+   - stil: ton, duljina rečenica, dosljednost obraćanja s "ti", ponavljanja, prazne fraze, uredski jezik;
+   - prodaja: govori li tekst o koristi za majstora ili samo nabraja funkcije, je li jasno što dobiva,
+     vode li naslovi i gumbi prema prijavi, ima li dokaza i konkretnih slika iz radionice;
+   - dosljednost: isti pojmovi za iste stvari na cijeloj stranici (npr. mušterija, nalog, termin).
+   Popiši uočene pogreške i slabosti, uvijek s oznakom teksta i primjerom.
+3. **Zatim prepravi.** Tekstove o funkcijama iz odjeljka 4 uskladi s opisom, točno kako rade, i opiši ih kao gotove.
+   Svaki tekst s jezičnom pogreškom ispravi. Ostale poboljšaj kad stvarno imaš bolje rješenje; dobar tekst ostavi.
+4. Vrati odgovor točno u formatu iz odjeljka 9.
 
 ---
 
@@ -46,7 +57,7 @@ Kako radiš:
 
 ---
 
-## 3. Što aplikacija stvarno radi (smiješ obećati)
+## 3. Što aplikacija radi
 
 - Radni nalog kroz faze (prijem, dijagnostika, popravak, gotovo, preuzeto), za radionicu i za teren.
 - Diktiranje glasom u svim poljima.
@@ -58,7 +69,7 @@ Kako radiš:
 - Računi; uz svaki račun i e-Račun (XML). Mjesečni paket za knjigovođu: knjiga računa za Excel i svi e-Računi.
 - **Fiskalizacija:** aplikacija sama ne fiskalizira. Fiskalni račun izdaješ na svojoj blagajni, a broj upišeš
   na nalog. "Računi danas" daje popis za prepis u blagajnu.
-- Podsjetnici za servis: aplikacija pamti rokove i svaki tjedan pokaže kome ističe; poruku na WhatsApp šalješ jednim dodirom.
+- Podsjetnici za servis: Poslar pamti rokove svakog vozila i uređaja (vidi i odjeljak 4, automatske poruke).
 - QR samoprijem na vratima radionice (paketi Standard i Premium): mušterija sama upiše ili izgovori registraciju, kvar i broj.
 - Raspored i kalendar termina; rad na terenu: adresa, navigacija (otvara Google Karte), poruka mušteriji "Na putu", izvještaj za klijenta.
 - Mušterije, vozila i uređaji s cijelom poviješću; pretraga po registraciji, imenu, telefonu, broju naloga.
@@ -72,22 +83,34 @@ Kako radiš:
 
 ---
 
-## 4. Što aplikacija još NE radi (ne smiješ obećati)
+## 4. Funkcije s kojima Poslar izlazi na tržište (opiši ih kao gotove)
 
-Ove tvrdnje su sada na stranici i treba ih prepraviti ili maknuti:
+Ovo je dio proizvoda na dan izlaska. Opiši točno ovako kako radi:
 
-1. **Više poslovnica s jednog računa** (MAIN.scenes.4 i PRICING.plans.premium.4): ne postoji. Jedna radionica = jedan račun.
-2. **Dnevni sažetak posla i prometa koji sam stiže vlasniku** (MAIN.scenes.2): ne postoji.
-   Vlasnik sve vidi u aplikaciji kad je otvori.
-3. **AI prepoznaje stare papirnate naloge i račune** (MAIN.scenes.5, FAQ.4.a): ne postoji. Uvoz radi iz Excel ili CSV tablice.
-4. **Aplikacija sama šalje poruke mušterijama** (npr. TRADE.gear.pains.1.a, TRADE.gear.pains.3.a,
-   TRADE.fleet.pains.1.a, TRADE.body.pains.3.a): ne šalje sama. Aplikacija poruku pripremi,
-   majstor je šalje jednim dodirom sa svog WhatsAppa. Piši "jednim dodirom", ne "automatski šalje".
-5. **"Jednim klikom pošalji paket izravno knjigovođi"** (MAIN.pains.4.a): paket se preuzme jednim dodirom,
-   a knjigovođi ga šalješ sam (e-mail, WhatsApp).
-6. **Fiskalizacija** u aplikaciji: ne postoji (vidi odjeljak 3).
-7. **Plaćanje karticom** u aplikaciji: još ne postoji (plaćanje pretplate uplatnicom; kartice uskoro).
-8. **Rad bez interneta:** ne postoji.
+1. **Više radionica pod jednim vlasnikom** (paket Premium): jedan račun, više radionica ili poslovnica.
+   Prebacivanje jednim dodirom; svaka radionica ima svoje radnike i naloge; vlasnik vidi zbirni promet svih.
+   (MAIN.scenes.4, PRICING.plans.premium.4)
+2. **Dnevni sažetak:** svaku večer vlasniku stiže e-mail: završeni nalozi, promet dana, pozivi koje je
+   Poslar preuzeo i termini za sutra. (MAIN.scenes.2)
+3. **Uvoz starih papirnatih naloga i računa:** fotografiraš papir, Poslar prepozna mušteriju, vozilo, datum,
+   radove i iznos te ih upiše u povijest vozila. Uz to uvoz mušterija i vozila iz Excel ili CSV tablice.
+   (MAIN.scenes.5, FAQ.4.a)
+4. **Automatske poruke mušterijama:** Poslar sam pošalje SMS u ime radionice (kao pošiljatelj piše naziv radionice):
+   podsjetnik na servis, sezonu guma, zakonski rok, "vozilo je gotovo". U poruci je poveznica na kojoj mušterija
+   sama odabere termin (točka 6). Na SMS se ne može odgovoriti, zato ne piši "odgovori na poruku".
+   Majstor poruku može poslati i jednim dodirom sa svog WhatsAppa.
+   (npr. TRADE.gear.pains.1.a, TRADE.gear.pains.3.a, TRADE.fleet.pains.1.a, TRADE.body.pains.3.a)
+5. **Paket za knjigovođu:** na kraju mjeseca Poslar ga sam pošalje knjigovođi na e-mail (adresa se upiše jednom).
+   Može se i preuzeti jednim dodirom. (MAIN.pains.4.a, FAQ.7.a)
+6. **Rezerviraj termin:** svaka radionica ima svoju poveznicu na kojoj mušterija sama odabere slobodan termin.
+   Nalog stiže u Prijem, majstor potvrđuje porukom. Poveznicu staviš u WhatsApp, na Google profil, u poruku sekretarice.
+   Za ovo još nema teksta na stranici; ako mu treba mjesto, predloži ga u dijelu A.
+7. **Plaćanje pretplate karticom** (i dalje i uplatnicom).
+8. **Poslar na telefonu** u svim paketima (odjeljak 2 i 5).
+
+Što Poslar ne nudi (ne obećavaj):
+- **Fiskalizaciju u aplikaciji:** fiskalni račun izdaješ na svojoj blagajni (odjeljak 3). FAQ.8 to iskreno kaže, neka tako ostane.
+- **Rad bez interneta** (FAQ.9 to iskreno kaže).
 
 ---
 
@@ -845,12 +868,15 @@ Samo za razumijevanje zanata (u aplikaciji, ne prepravljati):
 
 ## 9. Format odgovora
 
-Odgovori u dva dijela:
+Odgovori u tri dijela:
 
-**Dio A: komentar** (najviše 15 redaka): najvažnije promjene i zašto, te prijedlozi koji nisu tekst
-(npr. novi odjeljak, drugačiji redoslijed). Ne prepravljaj činjenice iz odjeljaka 2 do 5.
+**Dio A: analiza načina pisanja.** Što je dobro, a što ne valja, po skupinama iz koraka 2 (jezik, stil,
+prodaja, dosljednost). Uz svaku pogrešku oznaka teksta i primjer. Na kraju najviše 5 najvažnijih zaključaka.
 
-**Dio B: tekstovi**, u jednom bloku koda, samo promijenjeni tekstovi, svaki u svom retku:
+**Dio B: kako prepravljaš** (najviše 15 redaka): glavne promjene i zašto, te prijedlozi koji nisu tekst
+(npr. novi odjeljak, drugačiji redoslijed, mjesto za "Rezerviraj termin"). Ne prepravljaj činjenice iz odjeljaka 2 do 5.
+
+**Dio C: tekstovi**, u jednom bloku koda, samo promijenjeni tekstovi, svaki u svom retku:
 
 ```
 OZNAKA: novi tekst
@@ -860,9 +886,10 @@ Primjer:
 
 ```
 MAIN.title: Dok si pod autom, Poslar se javlja na telefon.
-TRADE.gear.pains.1.a: Servisni plan pamti kilometre i datume. Podsjetnik šalješ jednim dodirom.
+TRADE.gear.pains.1.a: Servisni plan pamti kilometre i datume. Kad dođe rok, Poslar sam podsjeti mušteriju.
 ```
 
 - Oznake prepiši točno kako pišu, bez navodnika i bez broja znakova.
-- Ne izmišljaj nove oznake. Novi tekst za koji nema oznake opiši u dijelu A.
+- Ne izmišljaj nove oznake. Novi tekst za koji nema oznake opiši u dijelu B.
+- Ako je odgovor predug, stani na kraju cijelog zanata i napiši "NASTAVLJAM". Nastavi kad dobiješ "nastavi".
 - Ako tekst treba maknuti, napiši `OZNAKA: (makni)`.

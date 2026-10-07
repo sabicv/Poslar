@@ -176,5 +176,18 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [ ] Probni poziv: stiže li ForwardedFrom s A1, HT i Telemacha
 - [ ] Nakon odluka (kreni): telefon u pakete, „Rezerviraj termin”, tjedni backup i mjerač prostora, tekst naslovnice, zajednički broj, Paddle
 
+## Stadij 15: Izlazak na tržište (7. 10.)
+Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo prije nego nova stranica ide van.
+- [ ] Boje (crna radionica, plavi gumbi u plavoj iz loga, narančaste ikone zanata s narančastim obrubom; svijetla tema s jačim kontrastom), zanati bez imena Poslar, nove cijene
+- [ ] Rezerviraj termin: poveznica radionice, mušterija sama odabere slobodan termin, nalog u Prijem
+- [ ] Više radionica pod jednim vlasnikom (Premium): prebacivanje, zbirni promet
+- [ ] Dnevni sažetak vlasniku e-mailom (završeni nalozi, promet, pozivi, sutrašnji termini)
+- [ ] Uvoz starih papirnatih naloga i računa slikom (AI upiše u povijest vozila)
+- [ ] Automatski SMS mušterijama u ime radionice (pošiljatelj = naziv radionice, jednosmjerno, s poveznicom za termin); Twilio oko 0,14 $ po poruci, bez kvačica u tekstu; mjesečna kvota po paketu
+- [ ] Paket za knjigovođu sam ode e-mailom na kraju mjeseca
+- [ ] Plaćanje karticom (Paddle)
+- [ ] Telefon u pakete (pozivi umjesto minuta), zajednički broj po ForwardedFrom, tjedni backup, mjerač prostora
+- [ ] Novi tekstovi iz Geminija (docs/GEMINI_TEKSTOVI.md) uneseni
+
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).
