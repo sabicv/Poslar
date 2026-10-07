@@ -164,5 +164,14 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [ ] (V) U Vercelu po želji preimenovati TAKTIX_* u POSLAR_* (stari nazivi rade)
 - [ ] Demo prijava demo@demo.xfiles.hr → nova domena (nakon deploya, uz ponovno punjenje demo radionica)
 
+## Stadij 14: Financije i telefon (u tijeku, 7. 10.)
+- [x] Analiza troškova, poziva i cijena: docs/FINANCIJE.md
+- [x] Odluke: Vercel Pro i Supabase Pro s prvom pretplatom; bez Cloudflarea i vlastitog servera; Play, žig i odvjetnik kasnije
+- [x] Telefon: jedan zajednički Twilio broj, radionica po broju koji je preusmjerio poziv; ako proradi, telefon u svim paketima
+- [ ] (V) Računi za potpuni test: domena spojena, Anthropic, e-mail, Twilio Local broj, Vapi, Paddle sandbox
+- [ ] (V) Odluke: cijene (30/50/90 ili 39/69/119 s osnivačkom 29/49/89), uključeni pozivi (100/200/400), poruka kad se potroše, glas
+- [ ] Probni poziv: stiže li ForwardedFrom s A1, HT i Telemacha
+- [ ] Nakon odluka (kreni): telefon u pakete, „Rezerviraj termin”, tjedni backup i mjerač prostora, tekst naslovnice, zajednički broj, Paddle
+
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).
