@@ -194,7 +194,8 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 - [ ] (V) Meta: račun, broj, 4 predloška i webhook po docs/WHATSAPP.md; u Vercel WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, WHATSAPP_APP_SECRET, WHATSAPP_VERIFY_TOKEN
 - [x] Plaćanje karticom (Paddle) (8. 10.): Pretplata → „Plati karticom” po paketu (osnivačka cijena sama), zaključani ekran „Karticom, odmah otključano”, webhook pomiče „Plaćeno do” i upisuje uplatu u Toranj (jednom), „Kartica i računi” (Paddleov portal); podružnica plaća kroz glavnu; bez ključeva ostaje samo uplatnica. Upute: docs/PADDLE.md
 - [ ] (V) Paddle sandbox po docs/PADDLE.md (proizvod, 6 cijena, ključevi, webhook), probna uplata 4242…, zatim pravi račun
-- [ ] Telefon u pakete (pozivi umjesto minuta), zajednički broj po ForwardedFrom, tjedni backup, mjerač prostora
+- [x] Telefon u pakete (pozivi umjesto minuta: 100/200/400, poziv do 60 s), zajednički broj po ForwardedFrom (vlasnik upiše mobitel koji preusmjerava; poziv bez prepoznate radionice ide u Greške za probni poziv; docs/VAPI.md dio 6), tjedna sigurnosna kopija baze (ZIP u privatnoj mapi, zadnjih 8, preuzimanje u Tornju), mjerač prostora (Toranj → Prostor i kopije) (8. 10.)
+- [ ] (V) Probni poziv na zajednički broj s A1, HT i Telemacha (docs/VAPI.md dio 6); u Vercel POSLAR_PHONE_NUMBER i VAPI_SHARED_NUMBER_ID; na Supabase Pro SUPABASE_PLAN=pro
 - [ ] Novi tekstovi iz Geminija (docs/GEMINI_TEKSTOVI.md) uneseni
 
 ## Stadij 16: Mobitel na prvom mjestu (Geminijev UI/UX zadatak, 8. 10.)

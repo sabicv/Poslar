@@ -1,4 +1,5 @@
 import { sendMonthlyPackages } from '@/lib/accountant';
+import { weeklyBackup } from '@/lib/backup';
 import { daySummary, sendDailySummaries, summaryMail } from '@/lib/daily-summary';
 import { logError } from '@/lib/errors';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -8,8 +9,9 @@ import type { Tenant } from '@/types/db';
 
 // The evening run (vercel.json crons, 17:00 UTC = 19:00 summer, 18:00
 // winter time in Zagreb): the owners' daily summary, the customers'
-// WhatsApp reminders for tomorrow, and on the 2nd of the month the
-// accountants' packages. Vercel sends "Authorization: Bearer
+// WhatsApp reminders for tomorrow, on the 2nd of the month the
+// accountants' packages, and once a week a copy of the database (Toranj →
+// Prostor i kopije). Vercel sends "Authorization: Bearer
 // CRON_SECRET"; without the secret set, nothing runs. For checking one
 // workshop: ?pregled=<id> returns its summary without sending, and
 // ?samo=<id> runs only that workshop's reminders and monthly package.
@@ -34,6 +36,8 @@ export async function GET(request: Request) {
     const summary = await daySummary(admin, data as Tenant, day);
     return Response.json({ quiet: summary.quiet, ...summaryMail(null, day, [summary]) });
   }
+  // ?kopija=1: only the weekly copy of the database, if it is due.
+  if (params.get('kopija') === '1') return Response.json({ backup: await weeklyBackup(admin) });
   const only = params.get('samo');
   if (only) {
     // ?dan=YYYY-MM-DD plays another day for the monthly package.
@@ -47,6 +51,7 @@ export async function GET(request: Request) {
     ['summaries', () => sendDailySummaries(admin)],
     ['reminders', () => sendAppointmentReminders(admin, ...tomorrowBounds())],
     ['accountant', () => sendMonthlyPackages(admin)],
+    ['backup', () => weeklyBackup(admin)],
   ];
   for (const [name, run] of tasks) {
     try {

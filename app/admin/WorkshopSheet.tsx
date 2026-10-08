@@ -24,7 +24,7 @@ export interface WorkshopSheetData {
   notes: string | null;
   aiScan: number;
   aiCopilot: number;
-  // AI phone minutes a month (plan or override, add-on packs included).
+  // Calls Poslar takes a month (plan or override, add-on packs included).
   aiPhone: number;
   monthly: number;
   payments: { id: string; amount: number; months: number; paid_on: string; note: string | null }[];
@@ -207,7 +207,7 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
                 value={sub.plan}
                 onChange={(e) => {
                   const plan = e.target.value as PlanId;
-                  setSub((v) => ({ ...v, plan, aiScan: String(PLANS[plan].ai.scan), aiCopilot: String(PLANS[plan].ai.copilot), aiPhone: String(PLANS[plan].phoneMinutes) }));
+                  setSub((v) => ({ ...v, plan, aiScan: String(PLANS[plan].ai.scan), aiCopilot: String(PLANS[plan].ai.copilot), aiPhone: String(PLANS[plan].phoneCalls) }));
                 }}
               >
                 {Object.values(PLANS).map((p) => (
@@ -235,7 +235,7 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
             <Field label="Pitaj Poslara mjesečno">
               <Input inputMode="numeric" value={sub.aiCopilot} onChange={(e) => setSub((v) => ({ ...v, aiCopilot: digits(e.target.value) }))} />
             </Field>
-            <Field label={`Poslar na telefonu, minuta mjesečno (+${PHONE_PACK.minutes} za ${PHONE_PACK.price} €)`} className="col-span-2">
+            <Field label={`Poslar na telefonu, poziva mjesečno (+${PHONE_PACK.calls} za ${PHONE_PACK.price} €)`} className="col-span-2">
               <Input inputMode="numeric" value={sub.aiPhone} onChange={(e) => setSub((v) => ({ ...v, aiPhone: digits(e.target.value) }))} />
             </Field>
             <Field label="Bilješke (samo Toranj)" className="col-span-2">

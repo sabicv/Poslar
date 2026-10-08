@@ -7,6 +7,8 @@ import { BackLink, Card, CardHeader, EmptyState, PageHeader } from '@/components
 import { PHONE_CALL_MAX_SECONDS, PHONE_PACK } from '@/config/plans';
 import { readHours } from '@/lib/calendar';
 import { formatDateTime } from '@/lib/format';
+import { ForwardFromForm } from '@/components/settings/ForwardFromForm';
+import { sharedNumber } from '@/lib/phone-forward';
 import { phoneUsage } from '@/lib/phone-usage';
 import { isPlayApp } from '@/lib/play';
 import { requireOwner } from '@/lib/session';
@@ -23,8 +25,13 @@ const speakers = (transcript: string) => transcript.replace(/^AI:/gm, 'Poslar:')
 export default async function PhoneAgentPage() {
   const ctx = await requireOwner();
   const t = ctx.tenant;
-  const on = Boolean(t.phone_agent_number_id && t.phone_agent_number);
-  const number = (t.phone_agent_number ?? '').replace(/[^\d+]/g, '');
+  // The workshop's own Vapi number, or the shared Poslar number with the
+  // owner's forwarding mobile saved.
+  const own = Boolean(t.phone_agent_number_id && t.phone_agent_number);
+  const shared = own ? null : sharedNumber();
+  const on = own || Boolean(shared && t.phone_forward_from);
+  const shown = own ? t.phone_agent_number : shared?.number;
+  const number = (shown ?? '').replace(/[^\d+]/g, '');
   const { data: calls } = await ctx.supabase
     .from('phone_calls')
     .select('id, caller, started_at, created_at, duration_s, summary, transcript, job_id, job:jobs(number)')
@@ -32,7 +39,7 @@ export default async function PhoneAgentPage() {
     .limit(20);
   type Call = { id: string; caller: string | null; started_at: string | null; created_at: string; duration_s: number | null; summary: string | null; transcript: string | null; job_id: string | null; job: { number: number } | null };
   const rows = (calls ?? []) as unknown as Call[];
-  // The month's minutes against the quota; the Google Play app shows no prices.
+  // The month's calls against the quota; the Google Play app shows no prices.
   const [usage, play] = await Promise.all([phoneUsage(createAdminClient(), t), isPlayApp()]);
   const pct = usage.pct === null ? 0 : Math.min(100, usage.pct);
 
@@ -42,8 +49,14 @@ export default async function PhoneAgentPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-4">
           <Card>
-            <CardHeader title={on ? 'Uključen' : 'Nije uključen'} subtitle={on ? `Poslarov broj: ${t.phone_agent_number}` : undefined} />
+            <CardHeader title={on ? 'Uključen' : 'Nije uključen'} subtitle={on || shared ? `Poslarov broj: ${shown}` : undefined} />
             <div className="space-y-3 p-4 text-sm">
+              {shared ? (
+                <>
+                  <p>{on ? 'Pozive s ovog mobitela Poslar preuzima u ime Vaše radionice:' : 'Upišite mobitel na koji Vas mušterije zovu. Pozive koje s njega preusmjerite Poslar preuzima u ime Vaše radionice.'}</p>
+                  <ForwardFromForm current={t.phone_forward_from ?? null} />
+                </>
+              ) : null}
               {on ? (
                 <>
                   <p>Pozive koje ne preuzmete preusmjerite na Poslarov broj. Na svom mobitelu upišite kod i nazovite ga, kao da zovete broj:</p>
@@ -63,7 +76,7 @@ export default async function PhoneAgentPage() {
                   </ul>
                   <p className="text-xs text-muted">Preusmjereni poziv operater naplaćuje kao Vaš poziv na taj broj. Poslar se javlja u ime radionice i kaže da se javlja automatski.</p>
                 </>
-              ) : (
+              ) : shared ? null : (
                 <>
                   <p>Kad ga uključimo, pozive koje ne preuzmete preuzima Poslar: prepozna mušteriju, ponudi slobodan termin iz Vašeg radnog vremena i upiše nalog u Prijem. Vi samo potvrdite termin porukom.</p>
                   <SupportWhatsApp message={`Pozdrav, želim Poslara na telefonu za radionicu ${t.name}. `} label="Želim Poslara na telefonu" variant="primary" />
@@ -72,7 +85,7 @@ export default async function PhoneAgentPage() {
             </div>
           </Card>
           <Card>
-            <CardHeader title="Minute ovaj mjesec" subtitle={usage.quota ? `${usage.used} od ${usage.quota} minuta` : 'Vaš paket ne uključuje minute Poslara na telefonu'} />
+            <CardHeader title="Pozivi ovaj mjesec" subtitle={usage.quota ? `${usage.used} od ${usage.quota} poziva` : 'Vaš paket ne uključuje pozive Poslara na telefonu'} />
             <div className="space-y-3 p-4 text-sm">
               {usage.quota ? (
                 <div className="h-2 overflow-hidden rounded-full bg-surface2">
@@ -81,10 +94,10 @@ export default async function PhoneAgentPage() {
               ) : null}
               <p className="text-muted">
                 {usage.quota && usage.used >= usage.quota
-                  ? 'Minute su potrošene. Do kraja mjeseca pozivatelj čuje kratku poruku da ćete ga nazvati.'
-                  : `Jedan poziv traje najviše ${PHONE_CALL_MAX_SECONDS / 60} minute. Na 80 % i 100 % potrošnje dobivate e-mail.`}
+                  ? 'Pozivi za ovaj mjesec su potrošeni. Do kraja mjeseca pozivatelj čuje kratku poruku da ćete ga nazvati.'
+                  : `Jedan poziv traje najviše ${PHONE_CALL_MAX_SECONDS} sekundi. Na 80 % i 100 % potrošnje dobivate e-mail.`}
               </p>
-              {!play ? <PhonePackRequest label={`Dodatnih ${PHONE_PACK.minutes} minuta mjesečno za ${PHONE_PACK.price} €`} /> : null}
+              {!play ? <PhonePackRequest label={`Dodatnih ${PHONE_PACK.calls} poziva mjesečno za ${PHONE_PACK.price} €`} /> : null}
             </div>
           </Card>
           <Card>

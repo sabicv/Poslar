@@ -3,6 +3,8 @@ import { PHONE_CALL_MAX_SECONDS, PHONE_PACK } from '@/config/plans';
 import { appOrigin } from '@/lib/qr';
 import { sendMail } from '@/lib/mail';
 import { agentVariables, book, callerContext, offerSlots, openJobsText, ownerEmail, tenantForNumber } from '@/lib/phone-agent';
+import { logError } from '@/lib/errors';
+import { forwardedFrom } from '@/lib/phone-forward';
 import { phoneUsage } from '@/lib/phone-usage';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { todayInZagreb } from '@/lib/time';
@@ -53,12 +55,16 @@ export async function POST(request: Request) {
   const caller = str(obj(message.customer).number) ?? str(obj(call.customer).number);
   const callId = str(call.id);
   const admin = createAdminClient();
-  const at = await tenantForNumber(admin, numberId);
+  // On the shared Poslar number: the mobile that forwarded the call.
+  const forwarded = forwardedFrom(message);
+  const at = await tenantForNumber(admin, numberId, forwarded);
 
   if (type === 'assistant-request') {
     const assistantId = process.env.VAPI_ASSISTANT_ID?.trim();
     if (!assistantId) return Response.json({ error: 'Asistent nije podešen (VAPI_ASSISTANT_ID).' });
     if (!at) {
+      // For the test call: whether the forwarding number arrived, and where to look.
+      await logError({ source: 'server', message: `Poslar na telefonu: poziv bez radionice (broj ${numberId ?? '-'}, preusmjerio ${forwarded ?? 'nepoznato'})`, url: '/api/vapi', stack: `Polja poziva: ${Object.keys(call).join(', ')}` });
       return Response.json({
         assistantId,
         assistantOverrides: {
@@ -68,7 +74,7 @@ export async function POST(request: Request) {
       });
     }
     const variables = agentVariables(at, await callerContext(admin, at, caller));
-    // The month's minutes are used up: a short message and the call ends,
+    // The month's calls are used up: a short message and the call ends,
     // so a busy month never runs up a bill (the owner was warned by e-mail).
     const usage = await phoneUsage(admin, at.tenant);
     if (usage.used >= usage.quota) {
@@ -171,7 +177,7 @@ export async function POST(request: Request) {
 }
 
 // The owner hears once a month at 80 % and once at 100 % of the AI phone
-// minutes (settings.phone_warned remembers "2026-10:80"), with the add-on.
+// calls (settings.phone_warned remembers "2026-10:80"), with the add-on.
 async function warnAboutMinutes(admin: ReturnType<typeof createAdminClient>, tenant: { id: string; name: string; plan: string | null; ai_quota: unknown; settings: Record<string, unknown> | null }) {
   const usage = await phoneUsage(admin, tenant);
   if (usage.pct === null || usage.pct < 80) return;
@@ -186,9 +192,9 @@ async function warnAboutMinutes(admin: ReturnType<typeof createAdminClient>, ten
   const link = `${appOrigin()}/app/settings/telefon`;
   await sendMail(
     to,
-    level === 100 ? 'Poslar na telefonu: minute za ovaj mjesec su potrošene' : 'Poslar na telefonu: potrošeno 80 % minuta',
+    level === 100 ? 'Poslar na telefonu: pozivi za ovaj mjesec su potrošeni' : 'Poslar na telefonu: potrošeno 80 % poziva',
     level === 100
-      ? `Poslar je ovaj mjesec na telefonu potrošio ${usage.used} od ${usage.quota} minuta. Do kraja mjeseca pozivatelji čuju kratku poruku da ćete ih nazvati.\n\nDodatnih ${PHONE_PACK.minutes} minuta mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
-      : `Poslar je ovaj mjesec na telefonu potrošio ${usage.used} od ${usage.quota} minuta.\n\nDodatnih ${PHONE_PACK.minutes} minuta mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
+      ? `Poslar je ovaj mjesec na telefonu preuzeo ${usage.used} od ${usage.quota} poziva. Do kraja mjeseca pozivatelji čuju kratku poruku da ćete ih nazvati.\n\nDodatnih ${PHONE_PACK.calls} poziva mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
+      : `Poslar je ovaj mjesec na telefonu preuzeo ${usage.used} od ${usage.quota} poziva.\n\nDodatnih ${PHONE_PACK.calls} poziva mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
   );
 }

@@ -124,7 +124,7 @@ export default async function TowerWorkshops({ searchParams }: { searchParams: P
                         payments: w.payments,
                         demo: w.demo,
                         staff: w.staff,
-                        phone: { numberId: t.phone_agent_number_id ?? '', number: t.phone_agent_number ?? '', calls: w.phoneCalls, minutes: w.phoneMinutes },
+                        phone: { numberId: t.phone_agent_number_id ?? '', number: t.phone_agent_number ?? '', calls: w.phoneCalls, minutes: w.phoneCalls },
                       }}
                     />
                   </div>

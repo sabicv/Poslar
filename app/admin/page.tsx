@@ -47,8 +47,9 @@ export default async function TowerOverview() {
     { label: 'Plaćaju', n: cohort.filter((w) => w.tenant.status === 'active').length },
   ];
   const funnelTop = Math.max(1, funnel[0].n);
-  const paying = real.filter((w) => w.tenant.status === 'active');
-  const trial = real.filter((w) => w.tenant.status === 'trial');
+  // A branch is paid through its main workshop: counted once.
+  const paying = real.filter((w) => w.tenant.status === 'active' && w.branchOf === null);
+  const trial = real.filter((w) => w.tenant.status === 'trial' && w.branchOf === null);
   // On the 24-hour trial with examples, or past it and not yet decided.
   const sampleDay = trial.filter((w) => w.tenant.sample_until);
   // Who asked for news about new features (at registration).

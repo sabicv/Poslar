@@ -4,7 +4,10 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { readHours } from '@/lib/calendar';
+import { internationalDigits } from '@/lib/contact';
+import { isGuestTenant } from '@/lib/guest';
 import { requireWorkshop } from '@/lib/session';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const day = z.tuple([time, time]).nullable();
@@ -25,6 +28,27 @@ export async function saveCalendar(values: z.input<typeof hoursSchema>): Promise
   const calendar = readHours({ calendar: parsed.data });
   const settings = { ...((ctx.tenant.settings as Record<string, unknown> | null) ?? {}), calendar };
   const { error } = await ctx.supabase.from('tenants').update({ settings }).eq('id', ctx.tenant.id);
+  if (error) return fail(error);
+  revalidatePath('/app/settings/telefon');
+  return { ok: true };
+}
+
+// Zajednički Poslar broj: the mobile whose unanswered calls the owner
+// forwards. One workshop per mobile; empty switches it off. Saved by the
+// server (not in the owner's column grant) after the check.
+export async function setForwardFrom(phone: string): Promise<ActionResult> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Broj upisuje voditelj servisa.');
+  if (isGuestTenant(ctx.tenant) || (ctx.tenant.settings as { demo?: unknown } | null)?.demo === true) return fail('U demo verziji se broj ne sprema.');
+  const trimmed = phone.trim();
+  const digits = trimmed ? internationalDigits(trimmed) : null;
+  if (trimmed && (!digits || digits.length < 10 || digits.length > 15)) return fail('Upišite broj mobitela, npr. 091 234 5678.');
+  const admin = createAdminClient();
+  if (digits) {
+    const { data: taken } = await admin.from('tenants').select('id').eq('phone_forward_from', digits).neq('id', ctx.tenant.id).maybeSingle();
+    if (taken) return fail('Taj broj već koristi druga radionica. Za svaku radionicu treba svoj mobitel; javite se podršci ako je to greška.');
+  }
+  const { error } = await admin.from('tenants').update({ phone_forward_from: digits }).eq('id', ctx.tenant.id);
   if (error) return fail(error);
   revalidatePath('/app/settings/telefon');
   return { ok: true };

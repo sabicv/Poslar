@@ -108,11 +108,11 @@ export async function requestDeletion(): Promise<ActionResult<{ id: string }>> {
   return createTicket(text, '/app/settings');
 }
 
-// "Dodatnih 100 minuta": the tower raises the workshop's monthly minutes.
+// "Dodatnih 100 poziva": the tower raises the workshop's monthly calls.
 export async function requestPhonePack(): Promise<ActionResult<{ id: string }>> {
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Ovo traži voditelj servisa.');
-  return createTicket(`Želim dodatnih ${PHONE_PACK.minutes} minuta za Poslara na telefonu mjesečno (${PHONE_PACK.price} €).`, '/app/settings/telefon');
+  return createTicket(`Želim dodatnih ${PHONE_PACK.calls} poziva za Poslara na telefonu mjesečno (${PHONE_PACK.price} €).`, '/app/settings/telefon');
 }
 
 // "Želim ovaj paket": a request the tower answers (plans change there).

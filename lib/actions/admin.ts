@@ -122,7 +122,7 @@ export async function adminUpdateSubscription(tenantId: string, values: z.input<
   const quota: Record<string, number> = {};
   if (v.aiScan !== null && v.aiScan !== PLANS[v.plan].ai.scan) quota.scan = v.aiScan;
   if (v.aiCopilot !== null && v.aiCopilot !== PLANS[v.plan].ai.copilot) quota.copilot = v.aiCopilot;
-  if (v.aiPhone !== null && v.aiPhone !== undefined && v.aiPhone !== PLANS[v.plan].phoneMinutes) quota.phone = v.aiPhone;
+  if (v.aiPhone !== null && v.aiPhone !== undefined && v.aiPhone !== PLANS[v.plan].phoneCalls) quota.phone = v.aiPhone;
   const { error } = await createAdminClient()
     .from('tenants')
     .update({ plan: v.plan, billing_term: v.term, paid_until: v.paidUntil, admin_notes: v.notes || null, ai_quota: Object.keys(quota).length ? quota : null })

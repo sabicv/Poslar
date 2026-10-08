@@ -65,7 +65,7 @@ export default async function WorkshopsPage() {
             ) : allowed === 'plan' ? (
               <div className="space-y-3 text-sm">
                 <p className="font-medium">Više radionica dolazi uz paket Premium{play ? '' : ` (${PLANS.premium.price} € mjesečno)`}.</p>
-                <p className="text-muted">Premium pokriva do {MAX_WORKSHOPS} radionice. Radnici, slikanja, pitanja Poslaru i minute na telefonu su zajednički.</p>
+                <p className="text-muted">Premium pokriva do {MAX_WORKSHOPS} radionice. Radnici, slikanja, pitanja Poslaru i pozivi na telefonu su zajednički.</p>
                 {play ? null : (
                   <Link href="/app/settings/pretplata" className={buttonClass('secondary')}>
                     Pretplata

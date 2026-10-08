@@ -19,15 +19,15 @@ export interface Plan {
   people: string;
   qr: boolean;
   ai: Record<AiKind, number>;
-  // Poslar na telefonu, in every plan: minutes a month. A call lasts at
-  // most a minute, so this is also about the number of calls.
-  phoneMinutes: number;
+  // Poslar na telefonu, in every plan: calls a month (a call lasts at
+  // most a minute).
+  phoneCalls: number;
 }
 
 export const PLANS: Record<PlanId, Plan> = {
-  basic: { id: 'basic', name: 'Basic', price: 40, founderPrice: 30, workers: 2, people: 'Voditelj i 2 radnika', qr: false, ai: { scan: 150, copilot: 100 }, phoneMinutes: 100 },
-  standard: { id: 'standard', name: 'Standard', price: 70, founderPrice: 50, workers: 5, people: 'Voditelj i 5 radnika', qr: true, ai: { scan: 300, copilot: 200 }, phoneMinutes: 200 },
-  premium: { id: 'premium', name: 'Premium', price: 120, founderPrice: 90, workers: 10, people: 'Voditelj i 10 radnika', qr: true, ai: { scan: 600, copilot: 400 }, phoneMinutes: 400 },
+  basic: { id: 'basic', name: 'Basic', price: 40, founderPrice: 30, workers: 2, people: 'Voditelj i 2 radnika', qr: false, ai: { scan: 150, copilot: 100 }, phoneCalls: 100 },
+  standard: { id: 'standard', name: 'Standard', price: 70, founderPrice: 50, workers: 5, people: 'Voditelj i 5 radnika', qr: true, ai: { scan: 300, copilot: 200 }, phoneCalls: 200 },
+  premium: { id: 'premium', name: 'Premium', price: 120, founderPrice: 90, workers: 10, people: 'Voditelj i 10 radnika', qr: true, ai: { scan: 600, copilot: 400 }, phoneCalls: 400 },
 };
 
 export const FOUNDER_SPOTS = 50;
@@ -36,14 +36,14 @@ export const FOUNDER_MONTHS = 24;
 // A phone call costs us about 8 cents (Twilio, Vapi, voice), so a call
 // lasts at most a minute (Vedran, 2026-10-07) and extra calls are an
 // add-on: 100 more for 25 € a month (VAT included).
-export const PHONE_PACK = { minutes: 100, price: 25 };
+export const PHONE_PACK = { calls: 100, price: 25 };
 export const PHONE_CALL_MAX_SECONDS = 60;
 
-// Monthly AI phone minutes: the plan's, or the tower's override (which
+// Monthly calls Poslar takes: the plan's, or the tower's override (which
 // includes any add-on packs the workshop pays for).
 export function phoneQuota(plan: string | null | undefined, override: unknown): number {
   const custom = (override as { phone?: unknown } | null)?.phone;
-  return typeof custom === 'number' && custom >= 0 ? custom : getPlan(plan).phoneMinutes;
+  return typeof custom === 'number' && custom >= 0 ? custom : getPlan(plan).phoneCalls;
 }
 export const PLAN_IDS = Object.keys(PLANS) as PlanId[];
 export const TERM_DISCOUNT = 0.1;

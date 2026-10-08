@@ -16,12 +16,18 @@ type Admin = ReturnType<typeof createAdminClient>;
 export type AgentTenant = BookingTenant;
 export { canBook };
 
-export async function tenantForNumber(admin: Admin, numberId: string | null): Promise<AgentTenant | null> {
-  if (!numberId) return null;
-  const { data } = await admin.from('tenants').select('*').eq('phone_agent_number_id', numberId).maybeSingle();
+// The workshop a call is for: its own Vapi number, or on the shared Poslar
+// number the mobile that forwarded the call (lib/phone-forward.ts).
+export async function tenantForNumber(admin: Admin, numberId: string | null, forwardedFrom: string | null = null): Promise<AgentTenant | null> {
+  if (numberId) {
+    const { data } = await admin.from('tenants').select('*').eq('phone_agent_number_id', numberId).maybeSingle();
+    if (data) return { tenant: data as Tenant, pkg: getPackage((data as Tenant).package) };
+  }
+  const shared = process.env.VAPI_SHARED_NUMBER_ID?.trim();
+  if (!forwardedFrom || (shared && numberId && numberId !== shared)) return null;
+  const { data } = await admin.from('tenants').select('*').eq('phone_forward_from', forwardedFrom).maybeSingle();
   if (!data) return null;
-  const tenant = data as Tenant;
-  return { tenant, pkg: getPackage(tenant.package) };
+  return { tenant: data as Tenant, pkg: getPackage((data as Tenant).package) };
 }
 
 

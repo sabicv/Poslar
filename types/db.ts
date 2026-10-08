@@ -48,6 +48,8 @@ export interface Tenant {
   paddle_customer_id?: string | null;
   paddle_subscription_id?: string | null;
   paddle_status?: string | null;
+  // The mobile that forwards calls to the shared Poslar number (0033).
+  phone_forward_from?: string | null;
   // Poziv na broj (model HR00) for the subscription payment.
   billing_ref: number;
   // Who sent this workshop (referral), and when that one got its free month.

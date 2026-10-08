@@ -134,3 +134,21 @@ odbij poziv i razgovaraj s Poslarom. Provjeri:
 - je li poziv sa sažetkom u Postavke → Poslar na telefonu → Zadnji pozivi.
 
 Ako nešto ne radi, u Vapiju otvori Call Logs i pošalji mi što piše (bez ključeva i tajni).
+
+## 6. Zajednički Poslar broj (jedan broj za sve radionice)
+
+Umjesto broja po radionici, sve radionice preusmjeravaju na jedan Poslar broj. Radionica se prepoznaje po mobitelu **koji je preusmjerio** poziv (nikad po onome tko zove). To radi samo ako operater pošalje taj broj (Twilio ga zove ForwardedFrom, u SIP-u je to Diversion).
+
+1. U Vapiju uvezi Poslar broj (kao u koraku 1) i postavi Server URL i Secret kao u koraku 4.3.
+2. Vercel → Environment Variables:
+   - `POSLAR_PHONE_NUMBER`: broj kako ga vlasnici vide, npr. `+385 1 555 0000`
+   - `VAPI_SHARED_NUMBER_ID`: Vapi ID tog broja (Phone Numbers → ID)
+3. `npx vercel deploy --prod`
+4. Vlasnik u aplikaciji: Postavke → Poslar na telefonu → upiše mobitel s kojeg preusmjerava → Spremi. Tada vidi kodove sa zajedničkim brojem.
+5. Probni poziv (A1, HT, Telemach): nazovi taj mobitel s drugog broja i odbij poziv.
+   - Javi li se Poslar imenom radionice: radi.
+   - Javi li se "Ovaj broj još nije povezan s radionicom": operater nije poslao broj. U Tornju → Greške piše "poziv bez radionice" i koja polja je Vapi poslao. Pošalji mi to.
+
+Radionica koja ima svoj broj (Toranj → Radionice → Poslar na telefonu) i dalje radi po svom broju.
+
+Paketi broje **pozive** (Basic 100, Standard 200, Premium 400 mjesečno), a jedan poziv traje najviše 60 sekundi. U asistentu u Vapiju neka u uputama stoji da razgovor bude kratak: kvar, ime, broj, termin, kraj.

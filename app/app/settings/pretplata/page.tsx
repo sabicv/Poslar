@@ -134,7 +134,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
                     </span>
                   </div>
                   <p className="text-xs text-muted">
-                    {p.people} · slikanje {p.ai.scan} i {p.ai.copilot} pitanja Poslaru mjesečno{p.qr ? ' · QR samoprijem' : ''}
+                    {p.people} · slikanje {p.ai.scan} i {p.ai.copilot} pitanja Poslaru mjesečno · {p.phoneCalls} poziva Poslar na telefonu{p.qr ? ' · QR samoprijem' : ''}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {card && !subscribed ? (

@@ -661,5 +661,20 @@ console.log('\nWhatsApp messages');
   check('a new appointment time clears the reminder', (await q(`select reminder_sent_at from public.jobs where id = $1`, [ids.job]))[0].reminder_sent_at === null);
 }
 
+// ---------------------------------------------------------------------
+// Backups: only the server's service role may read whole tables.
+// ---------------------------------------------------------------------
+console.log('\nBackups');
+{
+  const tables = (await q(`select * from public.backup_tables()`)).map((r) => r.backup_tables);
+  check('every table but the attempt counters', tables.includes('jobs') && tables.includes('tenants') && !tables.includes('intake_attempts'), String(tables.length));
+  const [page] = await q(`select public.backup_table('jobs', 0, 2) as rows`);
+  check('a page of a table as JSON', Array.isArray(page.rows) && page.rows.length === 2);
+  check('an unknown table is refused', await fails(() => q(`select public.backup_table('pg_authid')`)));
+  check('an owner cannot dump tables', await fails(() => as(U.aOwner, () => q(`select public.backup_table('jobs')`))));
+  check('an owner cannot see the storage meter', await fails(() => as(U.aOwner, () => q(`select * from public.platform_storage()`))));
+  check('an owner cannot set the forwarding mobile', await fails(() => as(U.aOwner, () => q(`update public.tenants set phone_forward_from = '385911111111' where id = $1`, [tA]))));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

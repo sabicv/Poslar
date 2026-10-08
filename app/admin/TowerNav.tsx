@@ -11,6 +11,7 @@ export function TowerNav({ tickets, errors }: { tickets: number; errors: number 
     { href: '/admin/radionice', label: 'Radionice' },
     { href: '/admin/podrska', label: 'Podrška', count: tickets },
     { href: '/admin/greske', label: 'Greške', count: errors },
+    { href: '/admin/prostor', label: 'Prostor i kopije' },
     { href: '/admin/upute', label: 'Upute' },
   ];
   return (
