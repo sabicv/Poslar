@@ -32,24 +32,19 @@ export async function loadInvoice(db: SupabaseClient, by: { id: string } | { tok
 }
 
 // Every invoice issued in one month (Zagreb time), in number order — for
-// the accountant's export. Owner only: prices come through RLS.
-export async function loadIssuedInvoices(db: SupabaseClient, month: string): Promise<LoadedInvoice[]> {
+// the accountant's export. Owner only: prices come through RLS. With the
+// service role (the monthly e-mail) the workshop must be named: nothing
+// else narrows it to one.
+export async function loadIssuedInvoices(db: SupabaseClient, month: string, tenantId?: string): Promise<LoadedInvoice[]> {
   const [y, m] = month.split('-').map(Number);
   // A day either side, then exact by the Zagreb calendar date.
   const from = new Date(Date.UTC(y, m - 1, 1) - 86400_000).toISOString();
   const to = new Date(Date.UTC(y, m, 1) + 86400_000).toISOString();
-  const jobs = await allRows<JobRow>((a, b) =>
-    db
-      .from('jobs')
-      .select(JOB_FIELDS)
-      .not('invoice_number', 'is', null)
-      .gte('invoice_issued_at', from)
-      .lt('invoice_issued_at', to)
-      .order('invoice_year')
-      .order('invoice_number')
-      .order('id')
-      .range(a, b)
-  );
+  const jobs = await allRows<JobRow>((a, b) => {
+    let q = db.from('jobs').select(JOB_FIELDS).not('invoice_number', 'is', null).gte('invoice_issued_at', from).lt('invoice_issued_at', to);
+    if (tenantId) q = q.eq('tenant_id', tenantId);
+    return q.order('invoice_year').order('invoice_number').order('id').range(a, b);
+  });
   const inMonth = jobs.filter((j) => zagrebDate(j.invoice_issued_at as string).startsWith(month));
   return assemble(db, inMonth);
 }

@@ -13,6 +13,7 @@ import { PERIODS, periodBounds } from '@/lib/archive';
 import { allRows, inChunks } from '@/lib/paged';
 import { requireOwner } from '@/lib/session';
 import { cn } from '@/lib/utils';
+import { accountantOf } from '@/lib/accountant';
 import { groupRevenue } from '@/lib/group-revenue';
 import { myWorkshops } from '@/lib/workshops';
 
@@ -239,7 +240,7 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
           </Card>
         ) : null}
 
-        <AccountingExport perMonth={invoicesPerMonth} today={zagrebDate(new Date().toISOString())} video={await helpVideo('accountant')} />
+        <AccountingExport perMonth={invoicesPerMonth} today={zagrebDate(new Date().toISOString())} video={await helpVideo('accountant')} accountant={accountantOf(ctx.tenant.settings)} />
       </div>
     </>
   );

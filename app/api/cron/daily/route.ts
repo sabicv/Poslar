@@ -1,3 +1,4 @@
+import { sendMonthlyPackages } from '@/lib/accountant';
 import { daySummary, sendDailySummaries, summaryMail } from '@/lib/daily-summary';
 import { logError } from '@/lib/errors';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -6,11 +7,12 @@ import { sendAppointmentReminders } from '@/lib/whatsapp';
 import type { Tenant } from '@/types/db';
 
 // The evening run (vercel.json crons, 17:00 UTC = 19:00 summer, 18:00
-// winter time in Zagreb): the owners' daily summary and the customers'
-// WhatsApp reminders for tomorrow. Vercel sends "Authorization: Bearer
+// winter time in Zagreb): the owners' daily summary, the customers'
+// WhatsApp reminders for tomorrow, and on the 2nd of the month the
+// accountants' packages. Vercel sends "Authorization: Bearer
 // CRON_SECRET"; without the secret set, nothing runs. For checking one
 // workshop: ?pregled=<id> returns its summary without sending, and
-// ?samo=<id> sends only that workshop's reminders.
+// ?samo=<id> runs only that workshop's reminders and monthly package.
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
@@ -33,13 +35,18 @@ export async function GET(request: Request) {
     return Response.json({ quiet: summary.quiet, ...summaryMail(null, day, [summary]) });
   }
   const only = params.get('samo');
-  if (only) return Response.json({ reminders: await sendAppointmentReminders(admin, ...tomorrowBounds(), only) });
+  if (only) {
+    // ?dan=YYYY-MM-DD plays another day for the monthly package.
+    const day = /^\d{4}-\d{2}-\d{2}$/.test(params.get('dan') ?? '') ? params.get('dan')! : undefined;
+    return Response.json({ reminders: await sendAppointmentReminders(admin, ...tomorrowBounds(), only), accountant: await sendMonthlyPackages(admin, day, only) });
+  }
 
   const result: Record<string, unknown> = {};
   // Each task on its own: one failing does not stop the others.
   const tasks: [string, () => Promise<unknown>][] = [
     ['summaries', () => sendDailySummaries(admin)],
     ['reminders', () => sendAppointmentReminders(admin, ...tomorrowBounds())],
+    ['accountant', () => sendMonthlyPackages(admin)],
   ];
   for (const [name, run] of tasks) {
     try {
