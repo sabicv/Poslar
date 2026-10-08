@@ -640,5 +640,26 @@ console.log('\nSeveral workshops, one owner');
   await q(`delete from public.active_workshops`);
 }
 
+// ---------------------------------------------------------------------
+// WhatsApp messages: the owner reads them, nobody writes from the browser.
+// ---------------------------------------------------------------------
+console.log('\nWhatsApp messages');
+{
+  await q(`insert into public.whatsapp_messages (tenant_id, job_id, phone, direction, kind) values ($1, $2, '385911234567', 'out', 'potvrda')`, [tA, ids.job]);
+  await as(U.aOwner, async () => {
+    check('the owner reads the workshop messages', (await q(`select id from public.whatsapp_messages`)).length === 1);
+    check('the owner cannot write one', await fails(() => q(`insert into public.whatsapp_messages (tenant_id, phone, direction, kind) values ($1, '1', 'out', 'x')`, [tA])));
+  });
+  await as(U.aWorker, async () => {
+    check('a worker does not read them', (await q(`select id from public.whatsapp_messages`)).length === 0);
+  });
+  await as(U.bOwner, async () => {
+    check('another workshop does not read them', (await q(`select id from public.whatsapp_messages`)).length === 0);
+  });
+  await q(`update public.jobs set reminder_sent_at = now() where id = $1`, [ids.job]);
+  await q(`update public.jobs set scheduled_start = now() + interval '2 days' where id = $1`, [ids.job]);
+  check('a new appointment time clears the reminder', (await q(`select reminder_sent_at from public.jobs where id = $1`, [ids.job]))[0].reminder_sent_at === null);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

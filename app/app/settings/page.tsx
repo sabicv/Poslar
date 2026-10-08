@@ -189,6 +189,13 @@ export default async function SettingsPage() {
               </span>
               <ChevronRight className="size-5 text-faint" />
             </Link>
+            <Link href="/app/settings/poruke" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
+              <span>
+                <span className="block font-semibold">Poruke mušterijama</span>
+                <span className="block text-sm text-muted">Potvrda termina, podsjetnik, „gotovo” na WhatsApp</span>
+              </span>
+              <ChevronRight className="size-5 text-faint" />
+            </Link>
             <Link href="/app/settings/termin" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
               <span>
                 <span className="block font-semibold">Rezerviraj termin</span>

@@ -1,9 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { after } from 'next/server';
 import { BODY_PHASES, nextBodyPhase } from '@/config/production';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop } from '@/lib/session';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { notifyJob, whatsappReady } from '@/lib/whatsapp';
 
 // "Next stage" from the production board, without opening the job: the
 // stage in progress is closed now and the next one starts with the person
@@ -35,6 +38,8 @@ export async function advanceBodyPhase(jobId: string): Promise<ActionResult<{ ph
     if (next) {
       const { error } = await ctx.supabase.from('body_production_phases').insert({ tenant_id: ctx.tenant.id, job_id: jobId, phase: next, worker_id: ctx.user.id, started_at: now });
       if (error) return fail(error);
+      // The customer follows the repair stage by stage.
+      if (whatsappReady()) after(() => notifyJob(createAdminClient(), jobId, 'stage', { stage: BODY_PHASES[next].toLowerCase(), actorId: ctx.user.id }));
     }
 
     revalidatePath('/app/module');

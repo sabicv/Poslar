@@ -1,8 +1,11 @@
 import Link from 'next/link';
-import { ChevronRight, MessageCircle } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { FieldActions, ScheduleSheet } from '@/components/field/FieldActions';
-import { Card, CardHeader, KeyValue, buttonClass } from '@/components/ui';
+import { Card, CardHeader, KeyValue } from '@/components/ui';
 import { DEVICE_TYPES } from '@/config/tenant.config';
+import { waEnabled } from '@/config/whatsapp';
+import { canMessage, whatsappReady } from '@/lib/whatsapp';
+import { ConfirmAppointment } from './ConfirmAppointment';
 import { spokenSlot } from '@/lib/calendar';
 import { whatsappLink } from '@/lib/contact';
 import { formatDateTime, plural, vocativeHR } from '@/lib/format';
@@ -13,12 +16,18 @@ import { OverviewEditor } from './OverviewEditor';
 // Client and object details are not repeated here: the header names them
 // and links to their pages, where everything about them lives once.
 export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; job: JobWithRefs; extras: boolean }) {
-  const [{ data: staff }, { count: earlier }, { data: calls }] = await Promise.all([
+  const [{ data: staff }, { count: earlier }, { data: calls }, { data: sent }] = await Promise.all([
     ctx.supabase.from('profiles').select('id, full_name, role').order('full_name'),
     ctx.supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('asset_id', job.asset.id).neq('id', job.id),
     // The AI phone call that booked it (the owner sees calls).
     ctx.isOwner ? ctx.supabase.from('phone_calls').select('summary, started_at, created_at').eq('job_id', job.id).order('created_at').limit(1) : Promise.resolve({ data: [] }),
+    // The last confirmation Poslar sent (the owner sees messages).
+    ctx.isOwner && job.scheduled_start
+      ? ctx.supabase.from('whatsapp_messages').select('created_at').eq('job_id', job.id).eq('kind', 'confirm').eq('direction', 'out').neq('status', 'failed').order('created_at', { ascending: false }).limit(1)
+      : Promise.resolve({ data: [] }),
   ]);
+  const confirmedAt = ((sent ?? [])[0] as { created_at: string } | undefined)?.created_at ?? null;
+  const autoConfirm = whatsappReady() && canMessage(ctx.tenant) && waEnabled(ctx.tenant.settings, 'confirm');
   const call = (calls ?? [])[0] as { summary: string | null; started_at: string | null; created_at: string } | undefined;
   // Booked by Poslar on the phone or by the customer on the booking page.
   const booked = job.source === 'phone' || job.source === 'booking';
@@ -55,11 +64,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
           <Card>
             <div className="space-y-3 p-4 text-sm">
               {bookedNote}
-              {confirm ? (
-                <a href={confirm} target="_blank" rel="noopener noreferrer" className={buttonClass('primary')}>
-                  <MessageCircle className="size-4" /> Potvrdi termin na WhatsApp
-                </a>
-              ) : null}
+              {confirm ? <ConfirmAppointment jobId={job.id} auto={autoConfirm} link={confirm} sentAt={confirmedAt} /> : null}
             </div>
           </Card>
         ) : null}
@@ -97,11 +102,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
             {confirm || bookedNote ? (
               <div className="space-y-3 p-4 text-sm">
                 {bookedNote}
-                {confirm ? (
-                  <a href={confirm} target="_blank" rel="noopener noreferrer" className={buttonClass('primary')}>
-                    <MessageCircle className="size-4" /> Potvrdi termin na WhatsApp
-                  </a>
-                ) : null}
+                {confirm ? <ConfirmAppointment jobId={job.id} auto={autoConfirm} link={confirm} sentAt={confirmedAt} /> : null}
               </div>
             ) : null}
           </Card>

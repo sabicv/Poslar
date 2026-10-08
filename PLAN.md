@@ -187,10 +187,11 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 - [x] Uvoz starih papirnatih naloga i računa slikom (8. 10.): Mušterije → Uvoz → „Stari nalozi i računi na papiru?”; više slika odjednom, Poslar pročita i rukom pisano (mušterija, registracija, datum, km, posao, stavke), kune preračuna po 7,53450; vlasnik provjeri i spremi: nalog ide u povijest kao preuzet i plaćen, sa slikom papira, bez broja računa; troši jedno slikanje po papiru
 - [ ] (V) Za čitanje slika i papira treba ANTHROPIC_API_KEY u Vercelu (s kreditom)
 - [ ] Automatske poruke preko WhatsApp Business (Meta Cloud API, odluka 7. 10.): oko 0,024 $ po poruci, dvosmjerno, s istog Poslar broja, bez kvote; bez provjerene tvrtke do 250 mušterija dnevno. SMS otpada. Besplatno uvijek: jedan dodir s majstorovog WhatsAppa
-- [ ] Kad majstor dodirne „Potvrdi termin”, Poslar sam pošalje potvrdu mušteriji na WhatsApp (odluka 7. 10.)
+- [x] Kad majstor dodirne „Potvrdi termin”, Poslar sam pošalje potvrdu mušteriji na WhatsApp (8. 10.): uz to podsjetnik navečer prije termina (jednom; nov termin, nov podsjetnik), „posao je gotov” kad nalog prijeđe u Gotovo (radionice), faze popravka za limare; odgovori i slike mušterije stižu u nalog; Postavke → Poruke mušterijama (svaka poruka uklj./isklj.); demo i primjeri nikad ne šalju; bez ključeva sve ostaje kao prije (jedan dodir s majstorovog WhatsAppa). Upute: docs/WHATSAPP.md
 - [ ] (V) Meta: business portfolio Poslar, aplikacija s WhatsAppom, Twilio broj potvrđen za WhatsApp, kartica za plaćanje poruka, odobreni predlošci
 - [ ] Paket za knjigovođu sam ode e-mailom na kraju mjeseca
-- [ ] WhatsApp: podsjetnik dan prije termina; obavijest mušteriji kad nalog ili faza proizvodnje krene dalje; slike koje mušterija pošalje stižu na nalog (tekstovi to sada obećavaju)
+- [x] WhatsApp: podsjetnik dan prije termina; obavijest mušteriji kad nalog ili faza proizvodnje krene dalje; slike koje mušterija pošalje stižu na nalog (8. 10., vidi gore)
+- [ ] (V) Meta: račun, broj, 4 predloška i webhook po docs/WHATSAPP.md; u Vercel WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, WHATSAPP_APP_SECRET, WHATSAPP_VERIFY_TOKEN
 - [ ] Plaćanje karticom (Paddle)
 - [ ] Telefon u pakete (pozivi umjesto minuta), zajednički broj po ForwardedFrom, tjedni backup, mjerač prostora
 - [ ] Novi tekstovi iz Geminija (docs/GEMINI_TEKSTOVI.md) uneseni

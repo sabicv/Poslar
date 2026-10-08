@@ -2,12 +2,14 @@
 
 import { plural } from '@/lib/format';
 import { revalidatePath } from 'next/cache';
+import { after } from 'next/server';
 import { z } from 'zod';
 import { DEVICE_TYPES, PACKAGES, PHASE_ORDER, defaultMeterUnit, phaseLabel, type AssetType, type JobPhase, type LineKind } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop, type WorkshopContext } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getInspectionTemplates, linePrice, listTemplates, loadPriceBook } from '@/lib/templates';
+import { notifyJob, whatsappReady } from '@/lib/whatsapp';
 import type { InspectionStatus, LineApproval, LinePriority } from '@/types/db';
 
 const jobPath = (id: string) => `/app/jobs/${id}`;
@@ -289,7 +291,7 @@ export async function updateJob(jobId: string, patch: z.input<typeof jobPatchSch
 export async function setJobPhase(jobId: string, phase: JobPhase): Promise<ActionResult> {
   const ctx = await requireWorkshop();
   if (!PHASE_ORDER.includes(phase)) return fail('Nepoznata faza.');
-  const { data: job } = await ctx.supabase.from('jobs').select('finished_at, collected_at, locked_at').eq('id', jobId).single();
+  const { data: job } = await ctx.supabase.from('jobs').select('phase, finished_at, collected_at, locked_at').eq('id', jobId).single();
   if (!job) return fail('Nalog nije pronađen.');
   const now = new Date().toISOString();
   const patch: Record<string, unknown> = { phase };
@@ -300,6 +302,11 @@ export async function setJobPhase(jobId: string, phase: JobPhase): Promise<Actio
   const { error } = await ctx.supabase.from('jobs').update(patch).eq('id', jobId);
   if (error) return fail(error);
   await logEvent(ctx, jobId, 'phase', `${phaseLabel(ctx.pkg, phase)} · ${actorName(ctx)}`, { phase });
+  // In the workshop the customer hears it is ready (after the answer, so
+  // the tap stays fast). On the field the customer was there.
+  if (phase === 'ready' && job.phase !== 'ready' && ctx.pkg.sector !== 'field' && whatsappReady()) {
+    after(() => notifyJob(createAdminClient(), jobId, 'ready', { actorId: ctx.user.id }));
+  }
   revalidatePath(jobPath(jobId));
   revalidatePath('/app');
   return { ok: true };
