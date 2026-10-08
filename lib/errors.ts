@@ -45,7 +45,7 @@ export async function logError(report: ErrorReport): Promise<void> {
     }
     const admin = createAdminClient();
     if (userId && !tenantId) {
-      const { data } = await admin.from('profiles').select('tenant_id').eq('id', userId).maybeSingle();
+      const { data } = await admin.from('profiles').select('tenant_id').eq('id', userId).order('created_at').limit(1).maybeSingle();
       tenantId = (data?.tenant_id as string | undefined) ?? null;
     }
     await admin.rpc('log_app_error', {

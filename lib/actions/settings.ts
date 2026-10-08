@@ -7,6 +7,7 @@ import { fail, type ActionResult } from '@/lib/action-result';
 import { isGuestTenant } from '@/lib/guest';
 import { requireWorkshop } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { groupTenantIds } from '@/lib/workshops';
 
 const text = (max = 200) => z.string().trim().max(max).nullable().optional().transform((v) => (v ? v : null));
 
@@ -120,13 +121,15 @@ export async function createStaff(values: z.input<typeof staffSchema>): Promise<
   const parsed = staffSchema.safeParse(values);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite podatke.');
   const v = parsed.data;
-  // The plan sets how many people work in the app besides the owner.
+  // The plan sets how many people work in the app besides the owner, in
+  // all of the owner's workshops together.
   const plan = getPlan(ctx.tenant.plan);
-  const { count } = await ctx.supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('tenant_id', ctx.tenant.id);
-  if ((count ?? 1) - 1 >= plan.workers) {
-    return fail(`Paket ${plan.name} ima mjesta za ${plan.workers} radnika uz voditelja. Za više ljudi javite se kroz „Javi problem”.`);
-  }
   const admin = createAdminClient();
+  const group = await groupTenantIds(admin, ctx.tenant);
+  const { data: people } = await admin.from('profiles').select('id').in('tenant_id', group);
+  if (new Set((people ?? []).map((p) => p.id as string).filter((id) => id !== ctx.user.id)).size >= plan.workers) {
+    return fail(`Paket ${plan.name} ima mjesta za ${plan.workers} radnika uz voditelja${group.length > 1 ? ', u svim radionicama zajedno' : ''}. Za više ljudi javite se kroz „Javi problem”.`);
+  }
   const { data: created, error } = await admin.auth.admin.createUser({
     email: v.email,
     password: v.password,
@@ -155,9 +158,9 @@ async function staffOfMyWorkshop(userId: string) {
 }
 
 export async function setStaffRole(userId: string, role: 'owner' | 'worker'): Promise<ActionResult> {
-  const { error } = await staffOfMyWorkshop(userId);
+  const { ctx, error } = await staffOfMyWorkshop(userId);
   if (error) return fail(error);
-  const { error: updateError } = await createAdminClient().from('profiles').update({ role }).eq('id', userId);
+  const { error: updateError } = await createAdminClient().from('profiles').update({ role }).eq('id', userId).eq('tenant_id', ctx.tenant.id);
   if (updateError) return fail(updateError);
   revalidatePath('/app/settings');
   return { ok: true };
@@ -173,9 +176,14 @@ export async function resetStaffPassword(userId: string, password: string): Prom
 }
 
 export async function removeStaff(userId: string): Promise<ActionResult> {
-  const { error } = await staffOfMyWorkshop(userId);
+  const { ctx, error } = await staffOfMyWorkshop(userId);
   if (error) return fail(error);
-  const { error: deleteError } = await createAdminClient().auth.admin.deleteUser(userId);
+  const admin = createAdminClient();
+  // Someone who also works in another workshop keeps the login there.
+  const { count } = await admin.from('profiles').select('id', { count: 'exact', head: true }).eq('id', userId).neq('tenant_id', ctx.tenant.id);
+  const { error: deleteError } = count
+    ? await admin.from('profiles').delete().eq('id', userId).eq('tenant_id', ctx.tenant.id)
+    : await admin.auth.admin.deleteUser(userId);
   if (deleteError) return fail(deleteError);
   revalidatePath('/app/settings');
   return { ok: true };

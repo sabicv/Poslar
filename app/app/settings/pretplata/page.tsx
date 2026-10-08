@@ -2,14 +2,16 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { PaymentInstructions } from '@/components/billing/PaymentInstructions';
 import { PlanRequest } from '@/components/billing/PlanRequest';
-import { BackLink, Badge, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
+import { BackLink, Badge, Card, CardHeader, KeyValue, PageHeader, buttonClass } from '@/components/ui';
 import { AI_LABELS, FOUNDER_MONTHS, FOUNDER_SPOTS, PLANS, TERM_LABELS, aiQuota, getPlan, isFounder } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { subscription } from '@/lib/billing';
 import { founderSpotsLeft } from '@/lib/founder';
 import { formatDate, formatEuro } from '@/lib/format';
 import { isPlayApp } from '@/lib/play';
+import { switchWorkshop } from '@/lib/actions/workshops';
 import { requireOwner } from '@/lib/session';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'Pretplata' };
@@ -36,11 +38,39 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const months = mj === '6' ? 6 : mj === '12' ? 12 : 1;
   const founder = isFounder(t.founder_until);
   const [scans, answers, { data: openRequests }, spotsLeft] = await Promise.all([
-    aiUsageThisMonth(t.id, 'scan'),
-    aiUsageThisMonth(t.id, 'copilot'),
+    aiUsageThisMonth(t, 'scan'),
+    aiUsageThisMonth(t, 'copilot'),
     ctx.supabase.from('support_tickets').select('id').eq('status', 'open').limit(1),
     founder ? Promise.resolve(0) : founderSpotsLeft(),
   ]);
+
+  // A branch is paid through the main workshop: no slip of its own.
+  if (t.main_tenant_id) {
+    const { data: main } = await createAdminClient().from('tenants').select('id, name').eq('id', t.main_tenant_id).single();
+    return (
+      <>
+        <PageHeader title="Pretplata" back={<BackLink href="/app/settings">Postavke</BackLink>} />
+        <Card className="max-w-xl">
+          <CardHeader title={`Paket ${plan.name}`} subtitle="Plaća se kroz glavnu radionicu" action={<Badge tone={STATUS[sub.status].tone}>{STATUS[sub.status].label}</Badge>} />
+          <div className="divide-y divide-line px-4">
+            <KeyValue label="Glavna radionica">{main?.name ?? ''}</KeyValue>
+            {sub.status === 'trial' ? <KeyValue label="Proba traje do">{formatDate(t.trial_ends_at)}</KeyValue> : null}
+            {sub.paidUntil ? <KeyValue label="Plaćeno do">{formatDate(sub.paidUntil)}</KeyValue> : null}
+            <KeyValue label={`${AI_LABELS.scan} ovaj mjesec, sve radionice`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>
+            <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec, sve radionice`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
+          </div>
+          {main ? (
+            <form action={switchWorkshop} className="border-t border-line p-4">
+              <input type="hidden" name="tenant" value={main.id} />
+              <button type="submit" className={buttonClass('secondary')}>
+                Otvori {main.name}
+              </button>
+            </form>
+          ) : null}
+        </Card>
+      </>
+    );
+  }
 
   return (
     <>
@@ -59,8 +89,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
               {sub.status === 'trial' ? <KeyValue label="Proba traje do">{formatDate(t.trial_ends_at)}</KeyValue> : null}
               {sub.paidUntil ? <KeyValue label="Plaćeno do">{formatDate(sub.paidUntil)}</KeyValue> : null}
               {sub.status === 'grace' ? <KeyValue label="Zaključava se">{formatDate(sub.lockOn)}</KeyValue> : null}
-              <KeyValue label={`${AI_LABELS.scan} ovaj mjesec`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>
-              <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
+              <KeyValue label={`${AI_LABELS.scan} ovaj mjesec`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>              <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
             </div>
           </Card>
 

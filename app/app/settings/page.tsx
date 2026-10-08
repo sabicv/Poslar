@@ -19,6 +19,7 @@ import { formatDate } from '@/lib/format';
 import { appOrigin } from '@/lib/qr';
 import { isPlatformAdmin, requireWorkshop } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { myWorkshops } from '@/lib/workshops';
 import type { Profile } from '@/types/db';
 import { billingFrom } from '@/components/invoice/InvoiceDocument';
 import { BillingForm, LogoUpload, ModuleToggles, ProfileForm, TeamManager, ThemeToggle, WorkshopForm } from './SettingsForms';
@@ -49,14 +50,15 @@ async function loadReferral(tenantId: string, billingRef: number) {
 export default async function SettingsPage() {
   const ctx = await requireWorkshop();
   const t = ctx.tenant;
-  const [{ data: staff }, { data: tickets }, scans, answers, tower, links, play] = await Promise.all([
+  const [{ data: staff }, { data: tickets }, scans, answers, tower, links, play, workshops] = await Promise.all([
     ctx.isOwner ? ctx.supabase.from('profiles').select('*').order('created_at') : Promise.resolve({ data: [] }),
     ctx.supabase.from('support_tickets').select('id, tenant_unread'),
-    ctx.isOwner ? aiUsageThisMonth(t.id, 'scan') : Promise.resolve(0),
-    ctx.isOwner ? aiUsageThisMonth(t.id, 'copilot') : Promise.resolve(0),
+    ctx.isOwner ? aiUsageThisMonth(t, 'scan') : Promise.resolve(0),
+    ctx.isOwner ? aiUsageThisMonth(t, 'copilot') : Promise.resolve(0),
     isPlatformAdmin(),
     loadHelpVideos(),
     isPlayApp(),
+    myWorkshops(ctx),
   ]);
   // How-to videos that have a link; a worker skips the owner's screens.
   const videos = HELP_TOPICS.filter((h) => links[h.id] && (ctx.isOwner || !h.owner)).map((h) => ({ ...h, url: links[h.id] }));
@@ -171,6 +173,13 @@ export default async function SettingsPage() {
                 <WorkshopForm tenant={{ name: t.name, oib: t.oib ?? '', phone: t.phone ?? '', email: t.email ?? '', address: t.address ?? '', city: t.city ?? '' }} />
               </div>
             </Card>
+            <Link href="/app/settings/radionice" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
+              <span>
+                <span className="block font-semibold">Radionice</span>
+                <span className="block text-sm text-muted">{workshops.length > 1 ? `${workshops.length} radionice · prebacivanje i nova radionica` : 'Druga i treća radionica uz Premium'}</span>
+              </span>
+              <ChevronRight className="size-5 text-faint" />
+            </Link>
             <Link href="/app/settings/qr" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
               <span>
                 <span className="block font-semibold">QR samoprijem</span>

@@ -587,5 +587,58 @@ console.log('\nProbni dan');
   check('an owner cannot read the reviews', await fails(() => as(T.owner, () => q(`select * from public.trial_feedback`))));
 }
 
+// ---------------------------------------------------------------------
+// Više radionica: owner A also runs a branch; one is open at a time.
+// ---------------------------------------------------------------------
+console.log('\nSeveral workshops, one owner');
+{
+  const W2 = '77777777-7777-4777-8777-777777777777';
+  await q(`insert into auth.users (id, email) values ($1, 'w2@x')`, [W2]);
+  await q(`update public.tenants set status = 'active' where id = $1`, [tA]);
+  const [{ register_workshop: tA2 }] = await q(`select public.register_workshop($1, 'Ana', 'Ana Gume', 'wheel')`, [U.aOwner]);
+  await q(`update public.tenants set main_tenant_id = $1 where id = $2`, [tA, tA2]);
+  await q(`insert into public.profiles (id, tenant_id, full_name, role) values ($1, $2, 'Iva', 'worker')`, [W2, tA2]);
+  check('an owner can have a profile in a second workshop', (await q(`select count(*)::int as n from public.profiles where id = $1`, [U.aOwner]))[0].n === 2);
+  await as(U.aOwner, async () => {
+    check('without a choice the first workshop is open', (await q(`select public.auth_tenant_id() as t`))[0].t === tA);
+    check('the job of the first workshop is visible', (await q(`select id from public.jobs where id = $1`, [ids.job])).length === 1);
+    const people = await q(`select id from public.profiles`);
+    check('the staff list shows the owner once', people.filter((p) => p.id === U.aOwner).length === 1, JSON.stringify(people));
+    check('the branch worker is not in the list', !people.some((p) => p.id === W2));
+    check('cannot pick the open workshop alone', await fails(() => q(`insert into public.active_workshops (user_id, tenant_id) values ($1, $2)`, [U.aOwner, tA2])));
+    check('cannot attach a workshop to another', await fails(() => q(`update public.tenants set main_tenant_id = null where id = $1`, [tA])));
+  });
+  await q(`insert into public.active_workshops (user_id, tenant_id) values ($1, $2)`, [U.aOwner, tA2]);
+  const made = await as(U.aOwner, async () => {
+    check('after switching the branch is open', (await q(`select public.auth_tenant_id() as t`))[0].t === tA2);
+    check("the first workshop's job is gone from view", (await q(`select id from public.jobs where id = $1`, [ids.job])).length === 0);
+    check('still the owner there', (await q(`select public.is_owner() as o`))[0].o === true);
+    const [acc] = await q(`select * from public.my_workshop_access()`);
+    check('the access row names the branch', acc?.tenant_id === tA2 && acc?.name === 'Ana Gume', JSON.stringify(acc));
+    check('the branch worker is in the list now', (await q(`select id from public.profiles where id = $1`, [W2])).length === 1);
+    const [c] = await q(`insert into public.clients (tenant_id, first_name, last_name) values ($1,'Gumi','Kupac') returning id`, [tA2]);
+    check('cannot write into the first workshop from the branch', await fails(() => q(`insert into public.clients (tenant_id, first_name, last_name) values ($1,'X','Y')`, [tA])));
+    return c.id;
+  });
+  check('the branch customer is in the branch', (await q(`select tenant_id from public.clients where id = $1`, [made]))[0].tenant_id === tA2);
+  await as(W2, async () => {
+    check('the branch worker sees only the branch', (await q(`select public.auth_tenant_id() as t`))[0].t === tA2 && (await q(`select id from public.jobs where id = $1`, [ids.job])).length === 0);
+  });
+  // A pointer to a workshop one does not belong to changes nothing.
+  await q(`insert into public.active_workshops (user_id, tenant_id) values ($1, $2)`, [U.aWorker, tB]);
+  await as(U.aWorker, async () => {
+    check('a worker pointed elsewhere stays in their workshop', (await q(`select public.auth_tenant_id() as t`))[0].t === tA);
+  });
+  await q(`update public.tenants set plan = 'premium', paid_until = '2027-01-31' where id = $1`, [tA]);
+  const [br] = await q(`select plan, status, paid_until::text as paid from public.tenants where id = $1`, [tA2]);
+  check("the branch follows the main workshop's subscription", br.plan === 'premium' && br.status === 'active' && br.paid === '2027-01-31', JSON.stringify(br));
+  await q(`update public.tenants set status = 'suspended' where id = $1`, [tA]);
+  await as(U.aOwner, async () => {
+    check('main suspended: the branch locks too', (await q(`select public.auth_tenant_id() as t`))[0].t === null);
+  });
+  await q(`update public.tenants set status = 'active' where id = $1`, [tA]);
+  await q(`delete from public.active_workshops`);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

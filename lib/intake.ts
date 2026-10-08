@@ -19,6 +19,7 @@ export interface IntakeTenant {
   logo_url: string | null;
   plan: string | null;
   ai_quota: unknown;
+  main_tenant_id: string | null;
   pkg: PackageConfig;
 }
 
@@ -33,7 +34,7 @@ export async function loadIntake(token: string): Promise<IntakeState> {
   if (!/^[0-9a-f-]{36}$/i.test(token)) return { kind: 'missing' };
   const { data: t } = await createAdminClient()
     .from('tenants')
-    .select('id, name, phone, address, city, logo_url, package, plan, status, trial_ends_at, settings, intake_enabled, ai_quota')
+    .select('id, name, phone, address, city, logo_url, package, plan, status, trial_ends_at, settings, intake_enabled, ai_quota, main_tenant_id')
     .eq('intake_token', token)
     .maybeSingle();
   if (!t) return { kind: 'missing' };
@@ -50,6 +51,7 @@ export async function loadIntake(token: string): Promise<IntakeState> {
       logo_url: (t.logo_url as string | null) ?? null,
       plan: (t.plan as string | null) ?? null,
       ai_quota: t.ai_quota,
+      main_tenant_id: (t.main_tenant_id as string | null) ?? null,
       pkg: getPackage(t.package as string),
     },
   };

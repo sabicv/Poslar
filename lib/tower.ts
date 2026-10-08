@@ -31,6 +31,8 @@ export interface TowerWorkshop {
   payments: { id: string; amount: number; months: number; paid_on: string; note: string | null }[];
   // The workshop whose link it signed up through.
   referredBy: string | null;
+  // A branch: the main workshop's name (it pays; the branch adds nothing to revenue).
+  branchOf: string | null;
   // Everyone with a login, owner first (for "Nova lozinka").
   staff: { id: string; name: string; role: string; email: string | null; phone: string | null }[];
   // AI phone this month: calls and minutes (Vapi bills by the minute).
@@ -87,13 +89,14 @@ export async function loadWorkshops(): Promise<TowerWorkshop[]> {
         copilotQuota: aiQuota(t.plan, t.ai_quota, 'copilot'),
         cost: usage.reduce((s, u) => s + aiCost(Number(u.input_tokens), Number(u.output_tokens)), 0),
       },
-      monthly: monthlyPrice(t.plan, t.billing_term, t.founder_until),
+      monthly: t.main_tenant_id ? 0 : monthlyPrice(t.plan, t.billing_term, t.founder_until),
       trialLeft,
-      overdue: t.status === 'active' && Boolean(t.paid_until && t.paid_until < today),
+      overdue: !t.main_tenant_id && t.status === 'active' && Boolean(t.paid_until && t.paid_until < today),
       // Signed up and gone silent: two weeks without a job (three days for a brand-new one).
       quiet: t.status !== 'suspended' && (last ? quietSince > 14 : signedUpDaysAgo > 3),
       payments: payments.filter((p) => p.tenant_id === t.id).map((p) => ({ id: p.id as string, amount: Number(p.amount), months: p.months as number, paid_on: p.paid_on as string, note: (p.note as string | null) ?? null })),
       referredBy: t.referred_by ? (names.get(t.referred_by) ?? null) : null,
+      branchOf: t.main_tenant_id ? (names.get(t.main_tenant_id) ?? '') : null,
       phoneCalls: calls.filter((c) => c.tenant_id === t.id).length,
       phoneMinutes: Math.round(calls.filter((c) => c.tenant_id === t.id).reduce((s, c) => s + Number(c.duration_s ?? 0), 0) / 60),
       staff: [...staff]

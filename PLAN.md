@@ -181,7 +181,7 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 - [x] Boje (crna radionica, plavi gumbi u plavoj iz loga, narančaste ikone zanata s narančastim obrubom; svijetla tema s jačim kontrastom), zanati bez imena Poslar, nove cijene
 - [x] Rezerviraj termin (8. 10.): poveznica radionice /termin/…, mušterija sama odabere slobodan termin (prva 3 dana, „Još termina” do 14 dana), nalog u Prijem s oznakom „Rezervirao online”; vlasnik u Postavke → Rezerviraj termin: prekidač, kopiraj, pošalji na WhatsApp, QR; isti kalendar kao Poslar na telefonu; demo posjetitelj može isprobati u svojoj probnoj radionici
 - [ ] (V) Poveznicu staviti u WhatsApp Business automatski odgovor, Google profil i poruku na sekretarici
-- [ ] Više radionica pod jednim vlasnikom (Premium): prebacivanje, zbirni promet
+- [x] Više radionica pod jednim vlasnikom (8. 10.): Premium pokriva do 3 radionice (Vedranova odluka), radnici, slikanja, pitanja i minute zajednički; Postavke → Radionice (dodaj, otvori), prebacivanje dodirom na naziv na vrhu, Poslovanje → „Sve radionice”; podružnica plaća kroz glavnu (pretplata se kopira, Toranj je ne broji u prihod); svaka radionica svoje naloge, mušterije, račune i radnike
 - [ ] Dnevni sažetak vlasniku e-mailom (završeni nalozi, promet, pozivi, sutrašnji termini)
 - [ ] Uvoz starih papirnatih naloga i računa slikom (AI upiše u povijest vozila)
 - [ ] Automatske poruke preko WhatsApp Business (Meta Cloud API, odluka 7. 10.): oko 0,024 $ po poruci, dvosmjerno, s istog Poslar broja, bez kvote; bez provjerene tvrtke do 250 mušterija dnevno. SMS otpada. Besplatno uvijek: jedan dodir s majstorovog WhatsAppa
@@ -203,6 +203,18 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 - [x] Naslovnica: „Započni 30 dana besplatno”, „Otvori demo bez prijave”, ista boja gumba na svim stranicama, isti blok „Zvuči ti poznato?”, 6 mogućnosti po zanatu (+ Pitaj Poslara), bez usamljene kartice u retku
 - [x] Geminijevi tekstovi, prvi dio (naslovnica, cijene, česta pitanja, 5 zanata), s ispravcima: „Poslar AI asistencija” → „Poslar na telefonu”, „AI očitavanja” → „pitanja Poslaru”, „potvrdan” → „potvrđen”; TRADE.wheel.pains.2.a nije uzet (ne odgovara pitanju)
 - [ ] Ostatak Geminijevih tekstova (ostali zanati)
+
+## Stadij 17: Novi zanati (odluka 8. 10., iza stadija 15)
+Novi zanat koji stane u radionicu ili teren je opis: kvarovi, predlošci s cijenama, check-liste s mjerenjima, ikona, tekst stranice, demo podaci. Oko jedan dan po zanatu, plus tekstovi za Geminija.
+- [ ] Auto kozmetika i poliranje (radionica): registracija, slike prije i poslije, paketi, rezervacija termina
+- [ ] Električar (teren): zapisnik mjerenja instalacije (izolacija, petlja, RCD), solari
+- [ ] Servis kućanskih aparata (radionica i teren): uređaj sa serijskim brojem
+- [ ] Bravar, hitno otvaranje vrata (teren): noćni i vikend dodatak, Poslar na telefonu
+- [ ] Tjedni posjeti na adresi (servisni plan danas najmanje mjesečno)
+- [ ] Održavanje bazena (teren, tjedno): mjerenja pH i klora
+- [ ] Čišćenje apartmana i ureda (teren, tjedno): smjene između gostiju
+- [ ] Kasnije, manje tržište: deratizacija, dimnjačar, garažna vrata, majstor za sve, okućnice i vrtovi, održavanje objekata
+- [ ] Kasnije, poseban modul: gradnja i adaptacije (ponuda po m², radovi danima, avansi, situacije)
 
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).

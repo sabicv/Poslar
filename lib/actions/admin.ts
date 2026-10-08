@@ -57,10 +57,17 @@ export async function adminCreateWorkshop(values: z.input<typeof createSchema>):
   return { ok: true };
 }
 
+// A branch is billed through its main workshop (0030): the subscription
+// is changed there, and the branches follow.
+async function payer(tenantId: string): Promise<string> {
+  const { data } = await createAdminClient().from('tenants').select('main_tenant_id').eq('id', tenantId).maybeSingle();
+  return (data?.main_tenant_id as string | null) ?? tenantId;
+}
+
 export async function adminSetStatus(tenantId: string, status: 'trial' | 'active' | 'suspended', note: string | null): Promise<ActionResult> {
   const denied = await guard();
   if (denied) return denied;
-  const { error } = await createAdminClient().from('tenants').update({ status, status_note: note?.trim() || null }).eq('id', tenantId);
+  const { error } = await createAdminClient().from('tenants').update({ status, status_note: note?.trim() || null }).eq('id', await payer(tenantId));
   if (error) return fail(error);
   revalidatePath('/admin', 'layout');
   return { ok: true };
@@ -70,10 +77,11 @@ export async function adminExtendTrial(tenantId: string, days: number): Promise<
   const denied = await guard();
   if (denied) return denied;
   const admin = createAdminClient();
-  const { data } = await admin.from('tenants').select('trial_ends_at').eq('id', tenantId).single();
+  const target = await payer(tenantId);
+  const { data } = await admin.from('tenants').select('trial_ends_at').eq('id', target).single();
   const base = data?.trial_ends_at && new Date(data.trial_ends_at) > new Date() ? new Date(data.trial_ends_at) : new Date();
   base.setDate(base.getDate() + days);
-  const { error } = await admin.from('tenants').update({ status: 'trial', trial_ends_at: base.toISOString() }).eq('id', tenantId);
+  const { error } = await admin.from('tenants').update({ status: 'trial', trial_ends_at: base.toISOString() }).eq('id', target);
   if (error) return fail(error);
   revalidatePath('/admin', 'layout');
   return { ok: true };
@@ -117,7 +125,7 @@ export async function adminUpdateSubscription(tenantId: string, values: z.input<
   const { error } = await createAdminClient()
     .from('tenants')
     .update({ plan: v.plan, billing_term: v.term, paid_until: v.paidUntil, admin_notes: v.notes || null, ai_quota: Object.keys(quota).length ? quota : null })
-    .eq('id', tenantId);
+    .eq('id', await payer(tenantId));
   if (error) return fail(error);
   revalidatePath('/admin', 'layout');
   return { ok: true };
@@ -130,6 +138,7 @@ export async function adminRecordPayment(tenantId: string, amount: number, month
   if (denied) return denied;
   if (!(amount >= 0) || !Number.isInteger(months) || months < 1 || months > 36) return fail('Upišite iznos i broj mjeseci (1 do 36).');
   const admin = createAdminClient();
+  tenantId = await payer(tenantId);
   const { data: tenant } = await admin.from('tenants').select('paid_until').eq('id', tenantId).single();
   const today = new Date().toISOString().slice(0, 10);
   const from = tenant?.paid_until && tenant.paid_until > today ? new Date(`${tenant.paid_until}T12:00:00Z`) : new Date(`${today}T12:00:00Z`);
@@ -208,7 +217,7 @@ export async function adminResetPassword(userId: string): Promise<ActionResult<{
   if (!/^[0-9a-f-]{36}$/i.test(userId)) return fail('Neispravna osoba.');
   const admin = createAdminClient();
   const [{ data: person }, { data: tower }] = await Promise.all([
-    admin.from('profiles').select('tenant_id, tenant:tenants(settings)').eq('id', userId).maybeSingle(),
+    admin.from('profiles').select('tenant_id, tenant:tenants(settings)').eq('id', userId).order('created_at').limit(1).maybeSingle(),
     admin.from('platform_admins').select('user_id').eq('user_id', userId).maybeSingle(),
   ]);
   if (!person) return fail('Osoba nije pronađena.');

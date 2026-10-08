@@ -3,6 +3,7 @@ import { PLANS, phoneQuota } from '@/config/plans';
 import { allRows } from '@/lib/paged';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { todayInZagreb, zagrebMidnight } from '@/lib/time';
+import { groupTenantIds } from '@/lib/workshops';
 
 type Admin = ReturnType<typeof createAdminClient>;
 
@@ -13,7 +14,7 @@ export interface PhoneUsage {
   pct: number | null;
 }
 
-type QuotaTenant = { id: string; plan: string | null; ai_quota: unknown; status?: string | null; settings?: unknown };
+type QuotaTenant = { id: string; plan: string | null; ai_quota: unknown; status?: string | null; settings?: unknown; main_tenant_id?: string | null };
 
 // The month's AI phone minutes: the plan's, or the tower's override (add-on
 // packs included). A workshop on trial or a demo gets at least Standard's,
@@ -27,11 +28,12 @@ export function effectivePhoneQuota(t: QuotaTenant): number {
 }
 
 // AI phone minutes this calendar month (Zagreb), the month's total rounded
-// up, against the workshop's quota.
+// up, against the workshop's quota. An owner's workshops share it.
 export async function phoneUsage(admin: Admin, tenant: QuotaTenant): Promise<PhoneUsage> {
   const monthStart = zagrebMidnight(`${todayInZagreb().slice(0, 7)}-01`).toISOString();
+  const ids = await groupTenantIds(admin, tenant);
   const calls = await allRows<{ duration_s: number | null }>((a, b) =>
-    admin.from('phone_calls').select('duration_s').eq('tenant_id', tenant.id).gte('created_at', monthStart).order('id').range(a, b)
+    admin.from('phone_calls').select('duration_s').in('tenant_id', ids).gte('created_at', monthStart).order('id').range(a, b)
   );
   const seconds = calls.reduce((s, c) => s + Number(c.duration_s ?? 0), 0);
   const used = Math.ceil(seconds / 60);

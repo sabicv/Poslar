@@ -20,15 +20,22 @@ async function removeFolder(admin: Admin, bucket: string, prefix: string, depth 
   }
 }
 
-// A whole workshop: files first, then the workshop (its rows go with it),
-// then its people's logins; a tower account keeps its login. The caller
-// decides whether this workshop may go.
+// A whole workshop: files first, then the workshop (its rows go with it;
+// a main workshop takes its branches along), then its people's logins.
+// A tower account keeps its login, and so does anyone who still belongs
+// to another workshop. The caller decides whether this workshop may go.
 export async function deleteWorkshop(admin: Admin, tenantId: string): Promise<string | null> {
-  const [{ data: people }, { data: tower }] = await Promise.all([admin.from('profiles').select('id').eq('tenant_id', tenantId), admin.from('platform_admins').select('user_id')]);
+  const { data: branches } = await admin.from('tenants').select('id').eq('main_tenant_id', tenantId);
+  const going = [tenantId, ...(branches ?? []).map((b) => b.id as string)];
+  const [{ data: people }, { data: tower }] = await Promise.all([admin.from('profiles').select('id').in('tenant_id', going), admin.from('platform_admins').select('user_id')]);
   const keep = new Set((tower ?? []).map((r) => r.user_id as string));
-  for (const bucket of ['job-files', 'branding']) await removeFolder(admin, bucket, tenantId);
+  for (const id of going) for (const bucket of ['job-files', 'branding']) await removeFolder(admin, bucket, id);
   const { error } = await admin.from('tenants').delete().eq('id', tenantId);
   if (error) return error.message;
-  for (const p of people ?? []) if (!keep.has(p.id as string)) await admin.auth.admin.deleteUser(p.id as string);
+  for (const id of new Set((people ?? []).map((p) => p.id as string))) {
+    if (keep.has(id)) continue;
+    const { count } = await admin.from('profiles').select('id', { count: 'exact', head: true }).eq('id', id);
+    if (!count) await admin.auth.admin.deleteUser(id);
+  }
   return null;
 }

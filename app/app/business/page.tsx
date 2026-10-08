@@ -13,6 +13,8 @@ import { PERIODS, periodBounds } from '@/lib/archive';
 import { allRows, inChunks } from '@/lib/paged';
 import { requireOwner } from '@/lib/session';
 import { cn } from '@/lib/utils';
+import { groupRevenue } from '@/lib/group-revenue';
+import { myWorkshops } from '@/lib/workshops';
 
 export const metadata: Metadata = { title: 'Poslovanje' };
 
@@ -110,6 +112,9 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
     if (m) m.value += gross.get(j.id as string) ?? 0;
   }
   const maxMonth = Math.max(1, ...months.map((m) => m.value));
+  // Zbirni promet: an owner of several workshops sees them side by side.
+  const own = await myWorkshops(ctx);
+  const group = own.length > 1 ? await groupRevenue(own, from, to) : [];
 
   return (
     <>
@@ -124,6 +129,26 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
         <Stat label="Naplaćeno" value={formatEuro(paid)} tone="ok" />
         <Stat label="Prosječno trajanje" value={avgLead === null ? '-' : `${formatDecimal(avgLead, 1)} d`} hint="od prijema do gotovog" />
       </div>
+
+      {group.length ? (
+        <Card className="mb-4">
+          <CardHeader title="Sve radionice" subtitle={`${PERIODS[period]} · s PDV-om`} action={<span className="text-sm font-semibold tabular">{formatEuro(group.reduce((s, w) => s + w.revenue, 0))}</span>} />
+          <ul className="divide-y divide-line">
+            {group.map((w) => (
+              <li key={w.id} className={cn('flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3 text-sm', w.active && 'bg-accent/5')}>
+                <span className="min-w-0 break-words font-medium">
+                  {w.name}
+                  {w.active ? <span className="font-normal text-faint"> · otvorena</span> : null}
+                </span>
+                <span className="tabular text-muted">
+                  {countJobs(w.jobs)} · <span className="text-fg">{formatEuro(w.revenue)}</span>
+                  {w.outstanding > 0 ? <span className="text-warn"> · za naplatu {formatEuro(w.outstanding)}</span> : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

@@ -4,23 +4,27 @@ import { isGuestTenant } from '@/lib/guest';
 import type { WorkshopContext } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { zagrebMidnight, todayInZagreb } from '@/lib/time';
+import { groupTenantIds } from '@/lib/workshops';
 
 function monthStart(): string {
   return zagrebMidnight(`${todayInZagreb().slice(0, 7)}-01`).toISOString();
 }
 
-type QuotaTenant = { id: string; plan: string | null; ai_quota: unknown; settings?: unknown };
+type QuotaTenant = { id: string; plan: string | null; ai_quota: unknown; settings?: unknown; main_tenant_id?: string | null };
 
-// How much of this month's quota is used (all of the workshop's people together).
-export async function aiUsageThisMonth(tenantId: string, kind: AiKind): Promise<number> {
-  const { count } = await createAdminClient().from('ai_usage').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('kind', kind).gte('created_at', monthStart());
+// How much of this month's quota is used (all of the workshop's people
+// together, and all of an owner's workshops together).
+export async function aiUsageThisMonth(tenant: { id: string; main_tenant_id?: string | null }, kind: AiKind): Promise<number> {
+  const admin = createAdminClient();
+  const ids = await groupTenantIds(admin, tenant);
+  const { count } = await admin.from('ai_usage').select('id', { count: 'exact', head: true }).in('tenant_id', ids).eq('kind', kind).gte('created_at', monthStart());
   return count ?? 0;
 }
 
 // Null when there is room; otherwise the sentence to show.
 export async function aiQuotaBlockFor(tenant: QuotaTenant, kind: AiKind): Promise<string | null> {
   const limit = aiQuota(tenant.plan, tenant.ai_quota, kind);
-  const used = await aiUsageThisMonth(tenant.id, kind);
+  const used = await aiUsageThisMonth(tenant, kind);
   if (used < limit) return null;
   // The open demo: a taste, and what a workshop of one's own gets.
   if (isGuestTenant(tenant)) {

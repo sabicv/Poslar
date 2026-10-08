@@ -3,7 +3,7 @@ import { Wallet } from 'lucide-react';
 import { AppShell } from '@/components/AppShell';
 import { GuestBanner } from '@/components/onboarding/GuestBanner';
 import { SampleDayBanner } from '@/components/onboarding/SampleDayBanner';
-import { accentStyle } from '@/config/tenant.config';
+import { accentStyle, getPackage } from '@/config/tenant.config';
 import { subscription } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
 import { daysUntil, formatDate } from '@/lib/format';
@@ -12,6 +12,7 @@ import { isPlayApp } from '@/lib/play';
 import { sampleHoursLeft } from '@/lib/sample-day';
 import { requireWorkshop } from '@/lib/session';
 import { cn } from '@/lib/utils';
+import { myWorkshops } from '@/lib/workshops';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireWorkshop();
@@ -19,11 +20,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // Open tasks for a worker, open help requests for the owner.
   let inbox = ctx.supabase.from('job_messages').select('id', { count: 'exact', head: true }).eq('status', 'open').neq('sender_id', ctx.user.id);
   inbox = ctx.isOwner ? inbox.or(`receiver_id.eq.${ctx.user.id},kind.eq.help`) : inbox.eq('receiver_id', ctx.user.id);
-  const [{ count }, { count: supportUnread }, { count: doorCount }] = await Promise.all([
+  const [{ count }, { count: supportUnread }, { count: doorCount }, workshops] = await Promise.all([
     inbox,
     ctx.supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('tenant_unread', true),
-    // Requests from the door QR code and the AI phone still waiting in Prijem.
-    ctx.supabase.from('jobs').select('id', { count: 'exact', head: true }).in('source', ['qr', 'phone']).eq('phase', 'intake'),
+    // Requests from the door QR code, the AI phone and the booking page still waiting in Prijem.
+    ctx.supabase.from('jobs').select('id', { count: 'exact', head: true }).in('source', ['qr', 'phone', 'booking']).eq('phase', 'intake'),
+    myWorkshops(ctx),
   ]);
 
   // During the 24-hour trial on examples the banner counts hours instead.
@@ -77,6 +79,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         play={play}
         demo={isDemoUser(ctx.user)}
         notice={notice}
+        workshops={workshops.map((w) => ({ id: w.id, name: w.name, package: w.package, product: getPackage(w.package).product, city: w.city, active: w.active }))}
       >
         {children}
       </AppShell>

@@ -7,6 +7,7 @@ import { InstallPrompt } from '@/components/InstallPrompt';
 import { BarChart3, Bell, CalendarDays, ClipboardList, FlaskConical, LogOut, Plus, Repeat, Settings, Users, type LucideIcon } from 'lucide-react';
 import { PRODUCT_ICONS, ProductMark } from '@/components/ProductMark';
 import { buttonClass } from '@/components/ui';
+import { WorkshopSwitch, type SwitchWorkshop } from '@/components/WorkshopSwitch';
 import type { PackageId } from '@/config/tenant.config';
 import { signOut } from '@/lib/actions/auth';
 import { openDemoSeat } from '@/lib/actions/demo';
@@ -32,8 +33,11 @@ export function AppShell({
   play = false,
   demo,
   notice,
+  workshops = [],
   children,
 }: {
+  // An owner of several workshops switches between them from the name.
+  workshops?: SwitchWorkshop[];
   product: { id: PackageId; name: string; clients: string; modulePage: string; field: boolean };
   workshop: { name: string; logoUrl: string | null };
   user: { name: string; isOwner: boolean };
@@ -67,24 +71,35 @@ export function AppShell({
   // page (job tabs) sit right under it: --shell-top.
   const showTrial = trialDaysLeft !== null && trialDaysLeft <= 7;
   const headerRem = 3.5 + (demo ? 2.75 : 0) + (showTrial ? 2.75 : 0);
+  const mark = workshop.logoUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={workshop.logoUrl} alt="" className="size-8 rounded-lg object-contain" />
+  ) : (
+    <ProductMark id={product.id} />
+  );
 
   return (
     <div className="lg:flex" style={{ '--shell-top': `calc(${headerRem}rem + env(safe-area-inset-top))` } as React.CSSProperties}>
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh print:!hidden w-60 shrink-0 flex-col border-r border-line bg-surface/40 px-3 py-4 lg:flex">
         {demo ? <DemoBar product={product.id} isOwner={user.isOwner} className="mb-4 flex-wrap rounded-xl border border-line px-2 py-1.5" /> : null}
-        <Link href="/app" className="mb-6 flex items-center gap-2.5 px-2">
-          {workshop.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={workshop.logoUrl} alt="" className="size-8 rounded-lg object-contain" />
-          ) : (
-            <ProductMark id={product.id} />
-          )}
-          <span className="min-w-0">
-            <span className="block break-words text-sm font-semibold leading-tight">{workshop.name}</span>
-            <span className="block break-words text-xs text-faint">{product.name}</span>
-          </span>
-        </Link>
+        {workshops.length > 1 ? (
+          <WorkshopSwitch workshops={workshops} className="mb-6 flex min-h-12 w-full items-center gap-2.5 rounded-xl px-2 hover:bg-surface2/60">
+            {mark}
+            <span className="min-w-0 flex-1">
+              <span className="block break-words text-sm font-semibold leading-tight">{workshop.name}</span>
+              <span className="block break-words text-xs text-faint">{product.name}</span>
+            </span>
+          </WorkshopSwitch>
+        ) : (
+          <Link href="/app" className="mb-6 flex items-center gap-2.5 px-2">
+            {mark}
+            <span className="min-w-0">
+              <span className="block break-words text-sm font-semibold leading-tight">{workshop.name}</span>
+              <span className="block break-words text-xs text-faint">{product.name}</span>
+            </span>
+          </Link>
+        )}
         <Link href={newJobHref} className={buttonClass('primary', 'md', 'mb-4 w-full')}>
           <Plus className="size-4" /> Novi nalog
         </Link>
@@ -136,15 +151,17 @@ export function AppShell({
         <header className="sticky top-0 z-30 border-b border-line bg-bg/85 pt-safe backdrop-blur-md print:hidden lg:hidden">
           {demo ? <DemoBar product={product.id} isOwner={user.isOwner} className="h-11 border-b border-line px-4" /> : null}
           <div className="flex h-14 items-center gap-3 px-4">
-            <Link href="/app" className="flex min-h-12 min-w-0 flex-1 items-center gap-2.5">
-              {workshop.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={workshop.logoUrl} alt="" className="size-8 rounded-lg object-contain" />
-              ) : (
-                <ProductMark id={product.id} />
-              )}
-              <span className="line-clamp-2 text-sm font-semibold leading-tight">{workshop.name}</span>
-            </Link>
+            {workshops.length > 1 ? (
+              <WorkshopSwitch workshops={workshops} className="flex min-h-12 min-w-0 flex-1 items-center gap-2.5">
+                {mark}
+                <span className="line-clamp-2 min-w-0 text-sm font-semibold leading-tight">{workshop.name}</span>
+              </WorkshopSwitch>
+            ) : (
+              <Link href="/app" className="flex min-h-12 min-w-0 flex-1 items-center gap-2.5">
+                {mark}
+                <span className="line-clamp-2 text-sm font-semibold leading-tight">{workshop.name}</span>
+              </Link>
+            )}
             <Link href="/app/inbox" className="relative flex size-12 items-center justify-center rounded-xl text-muted hover:bg-surface2" aria-label="Poruke">
               <Bell className="size-5" />
               {inboxCount > 0 ? (
