@@ -170,11 +170,10 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [x] Telefon: jedan zajednički Twilio broj, radionica po broju koji je preusmjerio poziv; ako proradi, telefon u svim paketima
 - [ ] (V) Računi za potpuni test: domena spojena, Anthropic, e-mail, Twilio Local broj, Vapi, Paddle sandbox
 - [x] Cijene prihvaćene, ali okrugle (Vedran ne želi 39, 49,99): prijedlog 40/70/120, osnivačka 30/50/90 za prvih 50 radionica
-- [ ] (V) Potvrditi: 40/70/120 i osnivačka 30/50/90; ugovor na 24 mj. (−10 %) ostaje ili otpada; uključeni pozivi (100/200/400); poruka kad se potroše; glas
+- [x] Potvrđeno (7. i 8. 10.): 40/70/120 i osnivačka 30/50/90 za prvih 50 radionica, 24 mjeseca; bez popusta za ugovor; uključeni pozivi 100/200/400 (stadij 15); e-mail na 80 % i 100 %; glas: preporuka muški (Srećko, docs/VAPI.md), odluka kod postavljanja Vapija
 - [x] Odluka: „Poslar” izlazi iz naziva zanata (Autoelektričar, Automehaničar …); Poslar je krovno ime i AI pomoćnik
-- [ ] (V) Boje: samo plava, narančasta, bijela (i tamna/crna). Prijedlozi A Plava noć, D Kao logo, B Bijeli dan, C Crna radionica (slike na pravim ekranima); boje zanata otpadaju
-- [ ] Probni poziv: stiže li ForwardedFrom s A1, HT i Telemacha
-- [ ] Nakon odluka (kreni): telefon u pakete, „Rezerviraj termin”, tjedni backup i mjerač prostora, tekst naslovnice, zajednički broj, Paddle
+- [x] Boje: Crna radionica, plavi gumbi iz loga, narančaste ikone zanata; svijetla tema s jačim kontrastom (provedeno u stadiju 15)
+- [x] Nakon odluka (kreni): telefon u pakete, „Rezerviraj termin”, tjedni backup i mjerač prostora, zajednički broj, Paddle (sve u stadiju 15; probni poziv i tekstovi naslovnice ondje)
 
 ## Stadij 15: Izlazak na tržište (7. 10.)
 Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo prije nego nova stranica ide van. Sve stoji dok ne definiramo troškove (7. 10.).
@@ -186,9 +185,8 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 - [ ] (V) U Vercelu dodati CRON_SECRET (bilo koji dugi niz znakova); bez njega se dnevni zadaci ne pokreću. Brevo ključ (BREVO_API_KEY, MAIL_FROM) mora biti postavljen
 - [x] Uvoz starih papirnatih naloga i računa slikom (8. 10.): Mušterije → Uvoz → „Stari nalozi i računi na papiru?”; više slika odjednom, Poslar pročita i rukom pisano (mušterija, registracija, datum, km, posao, stavke), kune preračuna po 7,53450; vlasnik provjeri i spremi: nalog ide u povijest kao preuzet i plaćen, sa slikom papira, bez broja računa; troši jedno slikanje po papiru
 - [ ] (V) Za čitanje slika i papira treba ANTHROPIC_API_KEY u Vercelu (s kreditom)
-- [ ] Automatske poruke preko WhatsApp Business (Meta Cloud API, odluka 7. 10.): oko 0,024 $ po poruci, dvosmjerno, s istog Poslar broja, bez kvote; bez provjerene tvrtke do 250 mušterija dnevno. SMS otpada. Besplatno uvijek: jedan dodir s majstorovog WhatsAppa
+- [x] Automatske poruke preko WhatsApp Business (Meta Cloud API, odluka 7. 10., kod gotov 8. 10.): oko 0,024 $ po poruci, dvosmjerno, s istog Poslar broja, bez kvote; bez provjerene tvrtke do 250 mušterija dnevno. SMS otpada. Besplatno uvijek: jedan dodir s majstorovog WhatsAppa
 - [x] Kad majstor dodirne „Potvrdi termin”, Poslar sam pošalje potvrdu mušteriji na WhatsApp (8. 10.): uz to podsjetnik navečer prije termina (jednom; nov termin, nov podsjetnik), „posao je gotov” kad nalog prijeđe u Gotovo (radionice), faze popravka za limare; odgovori i slike mušterije stižu u nalog; Postavke → Poruke mušterijama (svaka poruka uklj./isklj.); demo i primjeri nikad ne šalju; bez ključeva sve ostaje kao prije (jedan dodir s majstorovog WhatsAppa). Upute: docs/WHATSAPP.md
-- [ ] (V) Meta: business portfolio Poslar, aplikacija s WhatsAppom, Twilio broj potvrđen za WhatsApp, kartica za plaćanje poruka, odobreni predlošci
 - [x] Paket za knjigovođu sam ode e-mailom (8. 10.): Poslovanje → Za knjigovođu: e-mail knjigovođe, „Pošalji knjigovođi” za odabrani mjesec, i sam svakog 2. u mjesecu za prošli mjesec (jednom); ZIP s knjigom računa (CSV) i e-Računima (XML), odgovor knjigovođe ide radionici
 - [x] WhatsApp: podsjetnik dan prije termina; obavijest mušteriji kad nalog ili faza proizvodnje krene dalje; slike koje mušterija pošalje stižu na nalog (8. 10., vidi gore)
 - [ ] (V) Meta: račun, broj, 4 predloška i webhook po docs/WHATSAPP.md; u Vercel WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, WHATSAPP_APP_SECRET, WHATSAPP_VERIFY_TOKEN
