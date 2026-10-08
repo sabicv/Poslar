@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { Lock } from 'lucide-react';
+import { CardCheckout } from '@/components/billing/CardCheckout';
 import { PaymentInstructions } from '@/components/billing/PaymentInstructions';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { Button } from '@/components/ui';
-import { monthlyPrice } from '@/config/plans';
+import { isFounder, monthlyPrice, type PlanId } from '@/config/plans';
+import { paddleConfig } from '@/lib/paddle';
 import { signOut } from '@/lib/actions/auth';
 import { support } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
@@ -53,7 +55,14 @@ export default async function LockedPage({ searchParams }: { searchParams: Promi
   const payable = !play && (state.reason === 'trial_ended' || state.reason === 'unpaid') && state.role === 'owner' && state.tenantId;
   // Read on the server: the database hides a locked workshop's row from its
   // own users, and the id comes from this user's own access, not the URL.
-  const { data: tenant } = payable ? await createAdminClient().from('tenants').select('name, address, city, billing_ref, plan, billing_term, founder_until').eq('id', state.tenantId!).maybeSingle() : { data: null };
+  // A branch is paid through its main workshop: that one's slip and card.
+  const fields = 'id, name, address, city, billing_ref, plan, billing_term, founder_until, main_tenant_id';
+  const admin = createAdminClient();
+  let { data: tenant } = payable ? await admin.from('tenants').select(fields).eq('id', state.tenantId!).maybeSingle() : { data: null };
+  if (tenant?.main_tenant_id) tenant = (await admin.from('tenants').select(fields).eq('id', tenant.main_tenant_id as string).maybeSingle()).data;
+  const cfg = paddleConfig();
+  const plan = (tenant?.plan as PlanId | undefined) ?? 'basic';
+  const priceId = cfg && tenant ? (isFounder(tenant.founder_until as string | null) && cfg.prices[plan].founder) || cfg.prices[plan].full : null;
   const { mj } = await searchParams;
   const months = mj === '6' ? 6 : mj === '12' ? 12 : 1;
 
@@ -68,7 +77,13 @@ export default async function LockedPage({ searchParams }: { searchParams: Promi
       {state.reason !== 'no_workshop' && state.role === 'worker' ? <p className="mt-3 text-sm text-muted">Obavijestite voditelja servisa.</p> : null}
       {tenant ? (
         <section className="mt-6 rounded-2xl border border-line bg-surface p-4">
-          <p className="mb-3 font-medium">Uplata pretplate</p>
+          {cfg && priceId ? (
+            <div className="mb-4 space-y-2 border-b border-line pb-4">
+              <p className="font-medium">Karticom, odmah otključano</p>
+              <CardCheckout config={{ clientToken: cfg.clientToken, environment: cfg.environment }} priceId={priceId} tenantId={tenant.id as string} email={state.user.email ?? null} />
+            </div>
+          ) : null}
+          <p className="mb-3 font-medium">{cfg ? 'Ili općom uplatnicom' : 'Uplata pretplate'}</p>
           <PaymentInstructions
             workshop={{ name: tenant.name as string, address: (tenant.address as string | null) ?? null, city: (tenant.city as string | null) ?? null, billingRef: tenant.billing_ref as number }}
             monthly={monthlyPrice(tenant.plan as string, tenant.billing_term as string, tenant.founder_until as string | null)}

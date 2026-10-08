@@ -192,7 +192,8 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 - [x] Paket za knjigovođu sam ode e-mailom (8. 10.): Poslovanje → Za knjigovođu: e-mail knjigovođe, „Pošalji knjigovođi” za odabrani mjesec, i sam svakog 2. u mjesecu za prošli mjesec (jednom); ZIP s knjigom računa (CSV) i e-Računima (XML), odgovor knjigovođe ide radionici
 - [x] WhatsApp: podsjetnik dan prije termina; obavijest mušteriji kad nalog ili faza proizvodnje krene dalje; slike koje mušterija pošalje stižu na nalog (8. 10., vidi gore)
 - [ ] (V) Meta: račun, broj, 4 predloška i webhook po docs/WHATSAPP.md; u Vercel WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, WHATSAPP_APP_SECRET, WHATSAPP_VERIFY_TOKEN
-- [ ] Plaćanje karticom (Paddle)
+- [x] Plaćanje karticom (Paddle) (8. 10.): Pretplata → „Plati karticom” po paketu (osnivačka cijena sama), zaključani ekran „Karticom, odmah otključano”, webhook pomiče „Plaćeno do” i upisuje uplatu u Toranj (jednom), „Kartica i računi” (Paddleov portal); podružnica plaća kroz glavnu; bez ključeva ostaje samo uplatnica. Upute: docs/PADDLE.md
+- [ ] (V) Paddle sandbox po docs/PADDLE.md (proizvod, 6 cijena, ključevi, webhook), probna uplata 4242…, zatim pravi račun
 - [ ] Telefon u pakete (pozivi umjesto minuta), zajednički broj po ForwardedFrom, tjedni backup, mjerač prostora
 - [ ] Novi tekstovi iz Geminija (docs/GEMINI_TEKSTOVI.md) uneseni
 

@@ -44,6 +44,10 @@ export interface Tenant {
   booking_enabled?: boolean;
   // A branch: the owner's main workshop, which pays for it (0030).
   main_tenant_id?: string | null;
+  // Paying by card through Paddle (0032). Server only.
+  paddle_customer_id?: string | null;
+  paddle_subscription_id?: string | null;
+  paddle_status?: string | null;
   // Poziv na broj (model HR00) for the subscription payment.
   billing_ref: number;
   // Who sent this workshop (referral), and when that one got its free month.

@@ -9,7 +9,11 @@ import { subscription } from '@/lib/billing';
 import { founderSpotsLeft } from '@/lib/founder';
 import { formatDate, formatEuro } from '@/lib/format';
 import { isPlayApp } from '@/lib/play';
+import { CardCheckout } from '@/components/billing/CardCheckout';
+import { openCardPortal } from '@/lib/actions/paddle';
 import { switchWorkshop } from '@/lib/actions/workshops';
+import { isGuestTenant } from '@/lib/guest';
+import { paddleConfig } from '@/lib/paddle';
 import { requireOwner } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { cn } from '@/lib/utils';
@@ -27,14 +31,18 @@ const STATUS: Record<string, { label: string; tone: 'ok' | 'warn' | 'crit' | 'mu
   suspended: { label: 'Isključena', tone: 'crit' },
 };
 
-export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<{ mj?: string }> }) {
+export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<{ mj?: string; kartica?: string }> }) {
   const ctx = await requireOwner();
   // Plans, prices and the payment slip are web only (config/play.ts).
   if (await isPlayApp()) redirect('/app/settings');
   const t = ctx.tenant;
   const sub = subscription(t);
   const plan = getPlan(t.plan);
-  const { mj } = await searchParams;
+  const { mj, kartica } = await searchParams;
+  // Card payments (Paddle), once the keys are set; never for the demos.
+  const cfg = paddleConfig();
+  const card = cfg && sub.status !== 'demo' && !isGuestTenant(t) && !t.sample_until ? { clientToken: cfg.clientToken, environment: cfg.environment } : null;
+  const subscribed = Boolean(t.paddle_subscription_id && ['active', 'trialing', 'past_due'].includes(t.paddle_status ?? ''));
   const months = mj === '6' ? 6 : mj === '12' ? 12 : 1;
   const founder = isFounder(t.founder_until);
   const [scans, answers, { data: openRequests }, spotsLeft] = await Promise.all([
@@ -89,7 +97,9 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
               {sub.status === 'trial' ? <KeyValue label="Proba traje do">{formatDate(t.trial_ends_at)}</KeyValue> : null}
               {sub.paidUntil ? <KeyValue label="Plaćeno do">{formatDate(sub.paidUntil)}</KeyValue> : null}
               {sub.status === 'grace' ? <KeyValue label="Zaključava se">{formatDate(sub.lockOn)}</KeyValue> : null}
-              <KeyValue label={`${AI_LABELS.scan} ovaj mjesec`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>              <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
+              {subscribed ? <KeyValue label="Plaćanje">Karticom, obnavlja se samo</KeyValue> : null}
+              <KeyValue label={`${AI_LABELS.scan} ovaj mjesec`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>
+              <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
             </div>
           </Card>
 
@@ -127,7 +137,19 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
                     {p.people} · slikanje {p.ai.scan} i {p.ai.copilot} pitanja Poslaru mjesečno{p.qr ? ' · QR samoprijem' : ''}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {p.id !== plan.id ? <PlanRequest plan={p.id} term="monthly" label={`Želim ${p.name}`} /> : null}                  </div>
+                    {card && !subscribed ? (
+                      <CardCheckout
+                        config={card}
+                        priceId={(founder && cfg!.prices[p.id].founder) || cfg!.prices[p.id].full}
+                        tenantId={t.id}
+                        email={ctx.user.email ?? null}
+                        label={p.id === plan.id ? 'Plati karticom' : `${p.name} karticom`}
+                        variant={p.id === plan.id ? 'primary' : 'secondary'}
+                      />
+                    ) : p.id !== plan.id ? (
+                      <PlanRequest plan={p.id} term="monthly" label={`Želim ${p.name}`} />
+                    ) : null}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -135,9 +157,29 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
           </Card>
         </div>
 
-        {sub.status !== 'demo' ? (
+        {subscribed ? (
+          <Card className="h-fit">
+            <CardHeader title="Plaćanje karticom" subtitle="Pretplata se obnavlja svaki mjesec" action={<Badge tone={t.paddle_status === 'past_due' ? 'crit' : 'ok'}>{t.paddle_status === 'past_due' ? 'Kartica odbijena' : 'Aktivno'}</Badge>} />
+            <div className="space-y-3 p-4 text-sm">
+              <p className="text-muted">Račun za svaku uplatu stiže e-mailom od Paddlea, našeg partnera za naplatu. Karticu mijenjate i račune preuzimate ovdje:</p>
+              <form action={openCardPortal}>
+                <button type="submit" className={buttonClass('secondary')}>
+                  Kartica i računi
+                </button>
+              </form>
+              {kartica === 'greska' ? <p className="text-crit">Stranica za karticu se trenutno ne otvara. Pokušajte za minutu.</p> : null}
+            </div>
+          </Card>
+        ) : sub.status !== 'demo' ? (
           <Card>
-            <CardHeader title="Uplata" subtitle="Općom uplatnicom ili u aplikaciji banke" />
+            <CardHeader title="Uplata" subtitle={card ? 'Karticom ili općom uplatnicom' : 'Općom uplatnicom ili u aplikaciji banke'} />
+            {card ? (
+              <div className="space-y-2 border-b border-line p-4 text-sm">
+                <p className="font-medium">Karticom: pretplata se sama obnavlja svaki mjesec.</p>
+                <CardCheckout config={card} priceId={(founder && cfg!.prices[plan.id].founder) || cfg!.prices[plan.id].full} tenantId={t.id} email={ctx.user.email ?? null} />
+                <p className="text-xs text-faint">Plaćanje vodi Paddle, naš partner za naplatu. Podatke kartice Poslar nikad ne vidi.</p>
+              </div>
+            ) : null}
             <div className="p-4">
               <PaymentInstructions
                 workshop={{ name: t.name, address: t.address, city: t.city, billingRef: t.billing_ref }}
