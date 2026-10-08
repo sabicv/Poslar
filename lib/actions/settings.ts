@@ -7,6 +7,9 @@ import { fail, type ActionResult } from '@/lib/action-result';
 import { isGuestTenant } from '@/lib/guest';
 import { requireWorkshop } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { daySummary, summaryMail } from '@/lib/daily-summary';
+import { sendMail } from '@/lib/mail';
+import { todayInZagreb } from '@/lib/time';
 import { groupTenantIds } from '@/lib/workshops';
 
 const text = (max = 200) => z.string().trim().max(max).nullable().optional().transform((v) => (v ? v : null));
@@ -199,6 +202,35 @@ export async function setIntakeEnabled(enabled: boolean): Promise<ActionResult> 
   if (error) return fail(error);
   revalidatePath('/app/settings/qr');
   return { ok: true };
+}
+
+// Dnevni sažetak: the evening e-mail on and off for this workshop.
+export async function setDailyEmail(enabled: boolean): Promise<ActionResult> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Sažetak uključuje voditelj servisa.');
+  const settings = { ...((ctx.tenant.settings as Record<string, unknown> | null) ?? {}), daily_email: enabled };
+  const { error } = await ctx.supabase.from('tenants').update({ settings }).eq('id', ctx.tenant.id);
+  if (error) return fail(error);
+  revalidatePath('/app/settings');
+  return { ok: true };
+}
+
+// Today's summary now, to the owner's own address (at most every 10 minutes).
+export async function sendTestSummary(): Promise<ActionResult<{ to: string }>> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Sažetak šalje voditelj servisa.');
+  if (isGuestTenant(ctx.tenant)) return fail('U demo verziji e-mail se ne šalje.');
+  const email = ctx.user.email;
+  if (!email) return fail('Vaš račun nema e-mail adresu.');
+  const settings = (ctx.tenant.settings as Record<string, unknown> | null) ?? {};
+  const last = typeof settings.daily_test_at === 'string' ? Date.parse(settings.daily_test_at) : 0;
+  if (Date.now() - last < 10 * 60000) return fail('Probni sažetak je upravo poslan. Pokušajte za nekoliko minuta.');
+  const day = todayInZagreb();
+  const summary = await daySummary(createAdminClient(), ctx.tenant, day);
+  const mail = summaryMail(ctx.profile.full_name, day, [summary]);
+  if (!(await sendMail(email, mail.subject, mail.text))) return fail('E-mail se trenutno ne može poslati. Javite se kroz „Javi problem”.');
+  await ctx.supabase.from('tenants').update({ settings: { ...settings, daily_test_at: new Date().toISOString() } }).eq('id', ctx.tenant.id);
+  return { ok: true, data: { to: email } };
 }
 
 // "Rezerviraj termin": the public booking page on and off.

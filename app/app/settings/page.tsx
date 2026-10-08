@@ -5,6 +5,7 @@ import { VideoChip } from '@/components/help/VideoChip';
 import { SupportButton } from '@/components/SupportButton';
 import { ReferralShare } from '@/components/billing/ReferralShare';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
+import { DailySummaryControls } from '@/components/settings/DailySummaryControls';
 import { DeleteAccount } from '@/components/settings/DeleteAccount';
 import { Badge, Button, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
 import { HELP_TOPICS } from '@/config/help';
@@ -19,6 +20,7 @@ import { formatDate } from '@/lib/format';
 import { appOrigin } from '@/lib/qr';
 import { isPlatformAdmin, requireWorkshop } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isGuestTenant } from '@/lib/guest';
 import { myWorkshops } from '@/lib/workshops';
 import type { Profile } from '@/types/db';
 import { billingFrom } from '@/components/invoice/InvoiceDocument';
@@ -220,6 +222,12 @@ export default async function SettingsPage() {
                 />
               </div>
             </Card>
+            {!isDemo && !isGuestTenant(t) ? (
+              <Card>
+                <CardHeader title="Dnevni sažetak" subtitle={`Svaku večer na ${ctx.user.email ?? 'Vaš e-mail'}`} />
+                <DailySummaryControls enabled={(t.settings as { daily_email?: unknown } | null)?.daily_email !== false} />
+              </Card>
+            ) : null}
             <Card>
               <CardHeader title="Tim" subtitle="Radnici vide naloge, ali ne i iznose, naplatu ni poslovanje" action={<VideoChip href={links.team} />} />
               <div className="p-4">
