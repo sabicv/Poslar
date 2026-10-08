@@ -28,7 +28,7 @@ function useScanEnabled(): boolean | null {
 }
 
 // Shrinks a phone photo to a size that reads well and uploads fast.
-async function toJpeg(file: File, max = 1800): Promise<string> {
+export async function toJpeg(file: File, max = 1800): Promise<string> {
   const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement('canvas');

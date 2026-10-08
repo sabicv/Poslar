@@ -35,21 +35,39 @@ Vrati JSON (null ako nema ili nije čitljivo):
  "load_index": indeks nosivosti (npr. "91"), "speed_index": indeks brzine (npr. "V"),
  "dot_week": tjedan proizvodnje iz DOT oznake (prve dvije od zadnje 4 znamenke), "dot_year": godina proizvodnje kao četveroznamenkasti broj,
  "season": "winter" ako piše M+S sa simbolom planine/pahulje ili je zimska, "summer" ako je ljetna, "all_season" za cjelogodišnju, inače null}`,
+  // An old paper job card or invoice, to bring the workshop's history in
+  // (Uvoz s papira). Often handwritten.
+  papir: `Na slici je stari papirnati radni nalog, račun ili ponuda iz radionice (često pisan rukom).
+Pročitaj i vrati JSON (null ako nema ili nije čitljivo):
+{"document": "nalog", "racun" ili "ponuda",
+ "number": broj dokumenta kako piše,
+ "date": datum dokumenta kao "YYYY-MM-DD",
+ "client": {"first_name": ime, "last_name": prezime, "company_name": naziv ako je tvrtka ili obrt, "phone": telefon, "oib": OIB (11 znamenki), "address": ulica i broj, "city": mjesto},
+ "asset": {"identifier": registarska oznaka u obliku "ZG-1234-AB" ili oznaka/serijski broj uređaja, "make": marka, "model": model, "vin": broj šasije (17 znakova), "year": godište kao broj},
+ "meter": kilometraža ili radni sati kao broj,
+ "work": kratak opis kvara i obavljenog posla, hrvatskim jezikom, kako piše,
+ "lines": [{"description": stavka, "kind": "labor" za rad, "part" za dio, "material" za potrošni materijal, "fee" za naknadu, "qty": količina kao broj, "unit": "h", "kom", "l" ili kako piše, "price": jedinična cijena bez PDV-a kao broj}],
+ "total": ukupan iznos za platiti kao broj,
+ "currency": "EUR" ili "HRK"}
+Iznose u kunama ne preračunavaj, samo upiši "currency": "HRK".`,
 };
+
+// A whole paper document has more to say than a nameplate.
+const MAX_TOKENS: Record<string, number> = { papir: 3000 };
 
 export type ScanOutcome = { status: number; body: Record<string, unknown> };
 
-export function parseScanRequest(body: { kind?: string; image?: string }): { prompt: string; mediaType: string; data: string } | ScanOutcome {
+export function parseScanRequest(body: { kind?: string; image?: string }): { prompt: string; mediaType: string; data: string; maxTokens: number } | ScanOutcome {
   const prompt = SCAN_PROMPTS[body.kind ?? ''];
   const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(body.image ?? '');
   if (!prompt || !match) return { status: 400, body: { error: 'Neispravna slika.' } };
   if (match[2].length > 7_000_000) return { status: 413, body: { error: 'Slika je prevelika.' } };
-  return { prompt, mediaType: match[1], data: match[2] };
+  return { prompt, mediaType: match[1], data: match[2], maxTokens: MAX_TOKENS[body.kind ?? ''] ?? 800 };
 }
 
 // onUsage runs as soon as the model has answered: the photo was read and paid for.
 export async function readPhoto(
-  req: { prompt: string; mediaType: string; data: string },
+  req: { prompt: string; mediaType: string; data: string; maxTokens?: number },
   onUsage: (usage: { model: string; input: number; output: number }) => Promise<void>
 ): Promise<ScanOutcome> {
   if (!process.env.ANTHROPIC_API_KEY) return { status: 503, body: { error: 'Čitanje slika još nije uključeno.' } };
@@ -57,7 +75,7 @@ export async function readPhoto(
     const client = new Anthropic();
     const message = await client.messages.create({
       model: MODEL,
-      max_tokens: 800,
+      max_tokens: req.maxTokens ?? 800,
       messages: [
         {
           role: 'user',
