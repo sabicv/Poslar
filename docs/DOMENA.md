@@ -38,10 +38,6 @@ Radiš jednom. Traje 15 minuta, plus čekanje da DNS proradi.
 - Poddomene zanata (`automehanicar.poslar.eu` …) nisu potrebne. Ako ih jednom dodaš
   u Vercel, aplikacija ih sama prepozna i pokaže taj zanat.
 
-## Kasnije: e-mail podrska@poslar.eu
+## E-mail podrska@poslar.eu
 
-1. Kod registrara uključi prosljeđivanje (forwarding) s `podrska@poslar.eu` na svoj e-mail, ako ga nudi.
-2. Brevo → Senders, Domains & Dedicated IPs → Domains → Add → `poslar.eu`.
-   Brevo pokaže DNS zapise (SPF, DKIM, DMARC). Upiši ih kod registrara.
-3. Dalje po `docs/EMAIL_BREVO.md`, s adresom `podrska@poslar.eu`.
-4. Vercel: `SUPPORT_EMAIL` = `podrska@poslar.eu` (pokazuje se na naslovnici i u Pomoći).
+Sandučić, Brevo i DNS zapisi kod Spaceshipa: `docs/EMAIL_BREVO.md`.

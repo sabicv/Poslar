@@ -56,16 +56,16 @@ export const MAIN = {
     { q: 'Gubiš vrijeme na pisanje ponuda i računa krajem dana?', a: 'Pripremi dokumentaciju u hodu, tijekom rada. Kad zaključaš radionicu, tvoj je radni dan gotov.' },
     { q: 'Treba ti brzo povijest prijašnjih servisa na vozilu?', a: 'Upiši registraciju. U sekundi otvori pregled svih prijašnjih radova i dijelova. Bez traženja po arhivama.' },
     { q: 'Želiš potpunu jasnoću oko iznosa prije početka rada?', a: 'Pošalji ponudu mušteriji na WhatsApp prije početka rada. Obje strane imaju jasan i potvrđen dogovor.' },
-    { q: 'Priprema papira za knjigovodstvo oduzima ti previše vremena?', a: 'Poslar automatski pakira sve račune i e-Račune. Knjigovodstvu šalješ sve jednim klikom na kraju mjeseca.' },
+    { q: 'Priprema papira za knjigovodstvo oduzima ti previše vremena?', a: 'Poslar sam složi knjigu računa i svaki račun kao e-Račun (XML). Knjigovodstvu šalješ sve jednim klikom na kraju mjeseca.' },
   ],
   // Each one opens with "+": the trouble, then how it goes with Poslar.
   extrasTitle: 'I još puno toga',
   extrasHint: 'Dodirni + i vidi kako to izgleda u praksi.',
   extras: [
     {
-      title: 'Automatski podsjetnici mušterijama',
+      title: 'Podsjetnici mušterijama',
       problem: 'Prazan hod u rasporedu jer netko zaboravi na termin?',
-      solution: 'Poslar šalje automatske WhatsApp podsjetnike. Mušterije dolaze na vrijeme, a radionica radi bez prekida.',
+      solution: 'Poslar pripremi podsjetnik na termin, a ti ga jednim dodirom pošalješ na WhatsApp. Mušterije dolaze na vrijeme, a radionica radi bez prekida.',
     },
     {
       title: 'QR prijava na ulazu radionice',
@@ -83,9 +83,9 @@ export const MAIN = {
       solution: 'Fotografiraj prometnu dozvolu. AI sustav sam očita VIN, marku i model te otvori nalog.',
     },
     {
-      title: 'Slanje e-Računa',
+      title: 'e-Račun uz svaki račun',
       problem: 'Tvrtke od 2026. traže e-Račun. Obični PDF više nije dovoljan.',
-      solution: 'Uz svaki račun automatski se slaže e-Račun. Nema dvostrukog unosa istih podataka.',
+      solution: 'Uz svaki račun Poslar složi e-Račun (XML) za tvoj servis za e-Račune ili knjigovođu. Nema dvostrukog unosa istih podataka.',
     },
     {
       title: 'Mušterije same rezerviraju termin',
@@ -189,7 +189,7 @@ export const TRADE_PAGES: TradePage[] = [
     pains: [
       { q: 'Koliko je pređeno od zadnje izmjene ulja?', a: 'Servisni plan bilježi kilometre i datume te sam šalje podsjetnik klijentu kad dođe vrijeme za servis.' },
       { q: 'Mušterija sumnja da je zamjena kočnica bila potrebna?', a: 'Priloži fotografiju potrošenih diskova uz stavku naloga. Klijent odobrava rad jednim klikom na mobitelu.' },
-      { q: 'Želiš na vrijeme obavijestiti mušterije o nadolazećem servisu ili zamjeni guma?', a: 'Poslar pripremi listu i šalje obavijest s opcijom brze rezervacije termina putem WhatsAppa.' },
+      { q: 'Želiš na vrijeme obavijestiti mušterije o nadolazećem servisu ili zamjeni guma?', a: 'Poslar pripremi listu onih kojima servis dospijeva, a obavijest s poveznicom za termin šalješ na WhatsApp jednim dodirom.' },
     ],
     features: [
       { title: 'Inspekcija u 50 točaka', text: 'Jasne oznake stanja (zeleno, žuto, crveno) uz obaveznu fotografiju oštećenja ili istrošenosti.' },
@@ -255,13 +255,13 @@ export const TRADE_PAGES: TradePage[] = [
     pains: [
       { q: 'Potrebna ti je brza informacija o točnoj lokaciji pohranjenih guma u skladištu?', a: 'QR naljepnica točno označava regal, policu i poziciju u hotelu za gume.' },
       { q: 'Mušterija tvrdi da su joj gume prošle sezone imale dublju šaru?', a: 'Prijemni zapisnik bilježi dubinu šare u tri točke, DOT broj i zatečeno stanje felgi.' },
-      { q: 'Kako na vrijeme obavijestiti sve klijente da rezerviraju termin prije gužve?', a: 'Pošalji grupni sezonski podsjetnik na WhatsApp jednim klikom iz aplikacije.' },
+      { q: 'Kako na vrijeme obavijestiti sve klijente da rezerviraju termin prije gužve?', a: 'Poslar složi popis mušterija čije gume čuvaš, a podsjetnik s poveznicom za termin svakome šalješ na WhatsApp jednim dodirom.' },
     ],
     features: [
       { title: 'Hotel za gume', text: 'Sustav označavanja QR kodovima uz točan raspored (sektor, regal, polica, mjesto).' },
       { title: 'Karton stanja guma', text: 'Unos dubine šare u 3 točke, DOT oznake i pregled oštećenja naplataka.' },
       { title: 'Geometrija kotača', text: 'Pohrana parametara prije i poslije podešavanja te evidencija momenta pritezanja (Nm).' },
-      { title: 'Sezonske SMS/WhatsApp kampanje', text: 'Automatizirano slanje obavijesti pred početak ljetne ili zimske sezone.' },
+      { title: 'Sezonski podsjetnici', text: 'Popis mušterija i pripremljena poruka za WhatsApp ili SMS pred ljetnu ili zimsku sezonu.' },
       { title: 'Mobilni vulkanizer', text: 'Nalozi i evidencija radova na terenu ili za vozne parkove tvrtki.' },
     ],
     jobs: ['Sezonska zamjena guma', 'Balansiranje 4 kotača', 'Krpanje gume (čep/zakrpa)', 'Geometrija kotača (optika)', 'Čuvanje guma u hotelu (sezona)', 'Montaža 4 nove gume', 'Programiranje TPMS senzora', 'Zamjena ventila'],
@@ -342,14 +342,14 @@ export const TRADE_PAGES: TradePage[] = [
     scene: 'Više terenskih timova radi na terenu. Svaki monter na mobitelu ima svoj dnevni raspored i navigaciju. Ti iz ureda ili vozila pratiš završene izvještaje sa slikama.',
     pains: [
       { q: 'Koliko je radnog medija dopunjeno u sustav na prošlom servisu?', a: 'Karton opreme automatski bilježi F-plinove i ispitivanja propusnosti uz svaki uređaj.' },
-      { q: 'Vlasnik objekta nije bio prisutan tijekom radova i traži dokaz?', a: 'Slikovni izvještaj sa satnicom i GPS lokacijom šalje se izravno na njegov e-mail ili WhatsApp.' },
+      { q: 'Vlasnik objekta nije bio prisutan tijekom radova i traži dokaz?', a: 'Slikovni izvještaj sa satnicom i GPS lokacijom šalješ mu poveznicom na WhatsApp ili e-mail.' },
       { q: 'Ne stigneš ručno voditi evidenciju o dospijeću godišnjih servisa?', a: 'Sustav sam prepoznaje objekte kojima se bliži rok servisa i priprema podsjetnike.' },
     ],
     features: [
       { title: 'Pametni dnevni raspored', text: 'Ugrađena navigacija i slanje automatske obavijesti klijentu „Na putu sam” jednim klikom.' },
       { title: 'Terenski slikovni izvještaj', text: 'Izrada izvještaja s fotografijama prije i poslije čišćenja ili ugradnje.' },
       { title: 'Evidencija F-plinova', text: 'Vođenje baze radnih medija i evidencije provjere zabrtvljenosti.' },
-      { title: 'Automatski godišnji podsjetnici', text: 'Pravovremeno obavještavanje klijenata o redovitom servisu.' },
+      { title: 'Godišnji podsjetnici', text: 'Poslar pokaže kome dospijeva redoviti servis, a poruku mu šalješ jednim dodirom.' },
       { title: 'Podrška za kompleksne sustave', text: 'Kartoni za split sustave, multi-split, dizalice topline i rekuperatore.' },
     ],
     jobs: ['Redoviti godišnji servis klime', 'Montaža split sustava do 3,5 kW', 'Dopuna rashladnog medija R32', 'Tlačna proba i provjera propusnosti', 'Dubinsko kemijsko čišćenje i dezinfekcija', 'Dijagnostika i servis dizalice topline', 'Servis multi-split sustava', 'Čišćenje i servis rekuperatora'],

@@ -222,5 +222,21 @@ Novi zanat koji stane u radionicu ili teren je opis: kvarovi, predlošci s cijen
 - [ ] Kasnije, manje tržište: deratizacija, dimnjačar, garažna vrata, majstor za sve, okućnice i vrtovi, održavanje objekata
 - [ ] Kasnije, poseban modul: gradnja i adaptacije (ponuda po m², radovi danima, avansi, situacije)
 
+## Stadij 18: Hrvatsko tržište i fiskalizacija (odluka 9. 10.)
+Tri odvojena toka: Vedranova prodaja Poslara (Paddle), računi radionica njihovim mušterijama (F1 i F2), Vedranov porezni status.
+- [x] Uvjeti: Paddle kao preprodavatelj, otkazivanje, tko odgovara za naplatu, a tko za aplikaciju; uplatnica samo kad je upisan POSLAR_IBAN
+- [x] Privatnost i ugovor o obradi: Brevo, Paddle (samostalni voditelj), Meta kad su WhatsApp obavijesti uključene
+- [x] Naslovnica bez prevelikih obećanja: podsjetnici i sezonske poruke jednim dodirom, e-Račun (XML) umjesto „slanja e-Računa”
+- [x] Postavke → Izvoz podataka: sve tablice radionice (CSV i JSON) i popis fotografija s poveznicama na 7 dana
+- [x] docs/EMAIL_BREVO.md za Spaceship: sandučić (Zoho, Spacemail ili prosljeđivanje), Brevo, jedan SPF i DMARC
+- [ ] (V) Knjigovođa: fizička osoba, obrt ili j.d.o.o. (odgovornost proizvođača programa za fiskalizaciju), Paddleove isplate i samoizdani računi. Dotad bez POSLAR_IBAN u Vercelu
+- [ ] (V) E-pošta po docs/EMAIL_BREVO.md, zatim BREVO_API_KEY, MAIL_FROM, SUPPORT_EMAIL i AUTH_EMAIL u Vercelu
+- [ ] (V) Posrednik s API-jem za F1 i F2 (s popisa Porezne uprave): cijena, testno okruženje, primanje e-Računa, ovlaštenje u FiskAplikaciji
+- [ ] KPD šifre na stavkama, predlošcima i cjeniku (prijedlog po zanatu, voditelj mijenja)
+- [ ] Čarobnjak za fiskalne podatke radionice: OIB, PDV, poslovni prostor, naplatni uređaj, operater, certifikat
+- [ ] Račun kao zaseban dokument sa stanjem (nacrt, poslan, fiskaliziran, odbijen, storniran), storno i ponovno slanje bez dvostrukog broja
+- [ ] Paddle: obavijest koja stigne izvan redoslijeda ne vraća stariju pretplatu
+- [ ] Na naslovnici provjeriti ostale tvrdnje „automatski” (vulkanizer: raspoređivanje termina; kamioni: upozorenja o rokovima)
+
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).

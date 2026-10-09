@@ -217,6 +217,13 @@ export default async function SettingsPage() {
               </span>
               <ChevronRight className="size-5 text-faint" />
             </Link>
+            <Link href="/app/settings/izvoz" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
+              <span>
+                <span className="block font-semibold">Izvoz podataka</span>
+                <span className="block text-sm text-muted">Sve mušterije, nalozi, računi i fotografije u jednoj datoteci</span>
+              </span>
+              <ChevronRight className="size-5 text-faint" />
+            </Link>
             <Card>
               <CardHeader title="Račun" subtitle="Pojavljuje se na računu za stranku" />
               <div className="p-4">

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui';
 import { isFounder, monthlyPrice, type PlanId } from '@/config/plans';
 import { paddleConfig } from '@/lib/paddle';
 import { signOut } from '@/lib/actions/auth';
-import { support } from '@/lib/billing';
+import { payee, support } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
 import { formatDate } from '@/lib/format';
 import { isPlayApp } from '@/lib/play';
@@ -63,6 +63,7 @@ export default async function LockedPage({ searchParams }: { searchParams: Promi
   const cfg = paddleConfig();
   const plan = (tenant?.plan as PlanId | undefined) ?? 'basic';
   const priceId = cfg && tenant ? (isFounder(tenant.founder_until as string | null) && cfg.prices[plan].founder) || cfg.prices[plan].full : null;
+  const slip = payee() !== null;
   const { mj } = await searchParams;
   const months = mj === '6' ? 6 : mj === '12' ? 12 : 1;
 
@@ -83,13 +84,17 @@ export default async function LockedPage({ searchParams }: { searchParams: Promi
               <CardCheckout config={{ clientToken: cfg.clientToken, environment: cfg.environment }} priceId={priceId} tenantId={tenant.id as string} email={state.user.email ?? null} />
             </div>
           ) : null}
-          <p className="mb-3 font-medium">{cfg ? 'Ili općom uplatnicom' : 'Uplata pretplate'}</p>
-          <PaymentInstructions
-            workshop={{ name: tenant.name as string, address: (tenant.address as string | null) ?? null, city: (tenant.city as string | null) ?? null, billingRef: tenant.billing_ref as number }}
-            monthly={monthlyPrice(tenant.plan as string, tenant.billing_term as string, tenant.founder_until as string | null)}
-            months={months}
-            linkBase="/locked"
-          />
+          {slip || !priceId ? (
+            <>
+              <p className="mb-3 font-medium">{priceId ? 'Ili općom uplatnicom' : 'Uplata pretplate'}</p>
+              <PaymentInstructions
+                workshop={{ name: tenant.name as string, address: (tenant.address as string | null) ?? null, city: (tenant.city as string | null) ?? null, billingRef: tenant.billing_ref as number }}
+                monthly={monthlyPrice(tenant.plan as string, tenant.billing_term as string, tenant.founder_until as string | null)}
+                months={months}
+                linkBase="/locked"
+              />
+            </>
+          ) : null}
         </section>
       ) : null}
       {contact ? <p className="mt-6 rounded-xl border border-line bg-surface px-4 py-3 text-sm">Podrška: {contact}</p> : null}

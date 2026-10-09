@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LegalPage, ProviderBlock, Section } from '@/components/legal/LegalPage';
+import { whatsappReady } from '@/lib/whatsapp';
 
 export const metadata: Metadata = { title: 'Ugovor o obradi podataka' };
 
@@ -14,6 +15,7 @@ const A = ({ href, children }: { href: string; children: React.ReactNode }) => (
 // controller of its customers' data) and Poslar (the processor). Accepted
 // at registration together with the terms. A draft for the lawyer.
 export default function ProcessingAgreementPage() {
+  const whatsapp = whatsappReady();
   return (
     <LegalPage
       title="Ugovor o obradi podataka"
@@ -86,6 +88,15 @@ export default function ProcessingAgreementPage() {
           <li>
             <strong>Vapi Inc.</strong>, SAD: Poslar na telefonu, samo kad ga Korisnik uključi: broj pozivatelja, razgovor, prijepis i sažetak.
           </li>
+          <li>
+            <strong>Sendinblue SAS (Brevo)</strong>, Francuska: e-pošta iz aplikacije (nova lozinka, obavijesti voditelju).
+          </li>
+          {whatsapp ? (
+            <li>
+              <strong>Meta Platforms Ireland Ltd</strong> (WhatsApp Business): obavijesti mušterijama o nalogu i podsjetnici na termin, samo kad ih Korisnik uključi: broj mušterije i sadržaj
+              obavijesti.
+            </li>
+          ) : null}
         </ul>
         <p>
           Izvršitelj s podizvršiteljima ima ugovore s jednakim obvezama zaštite. Prijenos izvan Europskog gospodarskog prostora temelji se na standardnim ugovornim klauzulama Europske komisije.
@@ -96,7 +107,7 @@ export default function ProcessingAgreementPage() {
       <Section n={6} title="Kraj obrade">
         <p>
           Nakon prestanka korištenja izvršitelj čuva podatke 12 mjeseci, kako bi se Korisnik mogao vratiti, a zatim ih briše. Na zahtjev Korisnika briše ih ranije, u roku od 30 dana. Prije
-          brisanja Korisnik može preuzeti svoje podatke (računi, popis naloga). Podaci koje izvršitelj mora čuvati po zakonu čuvaju se samo za tu svrhu.
+          brisanja Korisnik može preuzeti sve svoje podatke (Postavke → Izvoz podataka). Podaci koje izvršitelj mora čuvati po zakonu čuvaju se samo za tu svrhu.
         </p>
       </Section>
 

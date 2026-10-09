@@ -5,7 +5,7 @@ import { PlanRequest } from '@/components/billing/PlanRequest';
 import { BackLink, Badge, Card, CardHeader, KeyValue, PageHeader, buttonClass } from '@/components/ui';
 import { AI_LABELS, FOUNDER_MONTHS, FOUNDER_SPOTS, PLANS, TERM_LABELS, aiQuota, getPlan, isFounder } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
-import { subscription } from '@/lib/billing';
+import { payee, subscription } from '@/lib/billing';
 import { founderSpotsLeft } from '@/lib/founder';
 import { formatDate, formatEuro } from '@/lib/format';
 import { isPlayApp } from '@/lib/play';
@@ -42,6 +42,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   // Card payments (Paddle), once the keys are set; never for the demos.
   const cfg = paddleConfig();
   const card = cfg && sub.status !== 'demo' && !isGuestTenant(t) && !t.sample_until ? { clientToken: cfg.clientToken, environment: cfg.environment } : null;
+  const slip = payee() !== null;
   const subscribed = Boolean(t.paddle_subscription_id && ['active', 'trialing', 'past_due'].includes(t.paddle_status ?? ''));
   const months = mj === '6' ? 6 : mj === '12' ? 12 : 1;
   const founder = isFounder(t.founder_until);
@@ -172,22 +173,24 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
           </Card>
         ) : sub.status !== 'demo' ? (
           <Card>
-            <CardHeader title="Uplata" subtitle={card ? 'Karticom ili općom uplatnicom' : 'Općom uplatnicom ili u aplikaciji banke'} />
+            <CardHeader title="Uplata" subtitle={card ? (slip ? 'Karticom ili općom uplatnicom' : 'Karticom') : 'Općom uplatnicom ili u aplikaciji banke'} />
             {card ? (
-              <div className="space-y-2 border-b border-line p-4 text-sm">
+              <div className={cn('space-y-2 p-4 text-sm', slip && 'border-b border-line')}>
                 <p className="font-medium">Karticom: pretplata se sama obnavlja svaki mjesec.</p>
                 <CardCheckout config={card} priceId={(founder && cfg!.prices[plan.id].founder) || cfg!.prices[plan.id].full} tenantId={t.id} email={ctx.user.email ?? null} />
                 <p className="text-xs text-faint">Plaćanje vodi Paddle, naš partner za naplatu. Podatke kartice Poslar nikad ne vidi.</p>
               </div>
             ) : null}
-            <div className="p-4">
-              <PaymentInstructions
-                workshop={{ name: t.name, address: t.address, city: t.city, billingRef: t.billing_ref }}
-                monthly={sub.monthly}
-                months={months}
-                linkBase="/app/settings/pretplata"
-              />
-            </div>
+            {slip || !card ? (
+              <div className="p-4">
+                <PaymentInstructions
+                  workshop={{ name: t.name, address: t.address, city: t.city, billingRef: t.billing_ref }}
+                  monthly={sub.monthly}
+                  months={months}
+                  linkBase="/app/settings/pretplata"
+                />
+              </div>
+            ) : null}
           </Card>
         ) : (
           <Card>

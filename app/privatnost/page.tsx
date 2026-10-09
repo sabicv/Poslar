@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LegalPage, ProviderBlock, Section } from '@/components/legal/LegalPage';
+import { whatsappReady } from '@/lib/whatsapp';
 
 export const metadata: Metadata = { title: 'Politika privatnosti' };
 
@@ -15,6 +16,7 @@ const A = ({ href, children }: { href: string; children: React.ReactNode }) => (
 // someone uses photo reading or the Kopilot, no tracking cookies. A draft
 // to be reviewed by a lawyer before the paid launch.
 export default function PrivacyPage() {
+  const whatsapp = whatsappReady();
   return (
     <LegalPage
       title="Politika privatnosti"
@@ -46,7 +48,7 @@ export default function PrivacyPage() {
             <strong>Radionica:</strong> naziv, OIB, adresa, telefon, e-adresa, IBAN, logotip, oznake poslovnog prostora i naplatnog uređaja.
           </li>
           <li>
-            <strong>Pretplata:</strong> paket, uplate (iznos i datum), poziv na broj, preporuke.
+            <strong>Pretplata:</strong> paket, uplate (iznos i datum), poziv na broj, preporuke, a kod plaćanja karticom oznake pretplate i transakcije koje šalje Paddle (bez podataka kartice).
           </li>
           <li>
             <strong>Rad u aplikaciji:</strong> tko je otvorio ili uredio nalog i kada. Kod rada na terenu i vučne službe spremamo lokaciju mobitela u trenutku kad radnik dodirne korak (primjerice
@@ -93,13 +95,28 @@ export default function PrivacyPage() {
             <strong>Vapi Inc.</strong> (SAD): Poslar na telefonu (automatsko javljanje uz pomoć umjetne inteligencije), samo za radionice koje ga uključe. Obrađuje razgovor s pozivateljem: broj s kojeg zove, govor, prijepis i sažetak. Za
             prepoznavanje i izgovor govora Vapi koristi svoje podizvršitelje.
           </li>
+          <li>
+            <strong>Sendinblue SAS (Brevo)</strong> (Francuska): slanje e-pošte iz aplikacije (nova lozinka, obavijesti voditelju o pretplati i potrošnji). Šalje se e-adresa primatelja i sadržaj
+            poruke.
+          </li>
+          {whatsapp ? (
+            <li>
+              <strong>Meta Platforms Ireland Ltd</strong> (WhatsApp Business): obavijesti mušterijama o nalogu i podsjetnici na termin, samo za radionice koje ih uključe. Šalje se broj mušterije, ime
+              radionice i sadržaj obavijesti.
+            </li>
+          ) : null}
         </ul>
+        <p>
+          Plaćanje pretplate karticom vodi <strong>Paddle.com Market Ltd</strong> (Ujedinjeno Kraljevstvo), preprodavatelj Poslara. Paddle je za podatke o plaćanju (ime, e-adresa, kartica, adresa
+          za račun) samostalni voditelj obrade, prema svojoj politici privatnosti. Podatke kartice mi nikad ne vidimo.
+        </p>
         <p>
           S izvršiteljima obrade imamo ugovore o obradi podataka. Gdje podaci odlaze izvan Europskog gospodarskog prostora, prijenos se temelji na standardnim ugovornim klauzulama Europske
           komisije.
         </p>
         <p>
-          WhatsApp, SMS i navigacija: aplikacija samo otvara te aplikacije na Vašem mobitelu s pripremljenom porukom ili adresom. Mi te poruke ne šaljemo i ne čitamo.
+          WhatsApp, SMS i navigacija: kad radnik dodirne „Pošalji”, aplikacija samo otvara te aplikacije na mobitelu s pripremljenom porukom ili adresom. Te poruke mi ne šaljemo i ne čitamo.
+          {whatsapp ? ' Iznimka su WhatsApp obavijesti koje radionica sama uključi: njih šalje Poslar, preko Mete, kako piše gore.' : ''}
         </p>
       </Section>
 

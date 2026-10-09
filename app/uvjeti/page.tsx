@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LegalPage, ProviderBlock, Section } from '@/components/legal/LegalPage';
 import { FOUNDER_MONTHS, FOUNDER_SPOTS, PLANS } from '@/config/plans';
-import { GRACE_DAYS } from '@/lib/billing';
+import { GRACE_DAYS, payee } from '@/lib/billing';
+import { whatsappReady } from '@/lib/whatsapp';
 
 export const metadata: Metadata = { title: 'Uvjeti korištenja' };
 
@@ -17,6 +18,8 @@ const A = ({ href, children }: { href: string; children: React.ReactNode }) => (
 export default function TermsPage() {
   const trialDays = Number(process.env.TRIAL_DAYS ?? 30) || 30;
   const plans = Object.values(PLANS);
+  const slip = payee() !== null;
+  const whatsapp = whatsappReady();
   return (
     <LegalPage
       title="Uvjeti korištenja"
@@ -59,7 +62,17 @@ export default function TermsPage() {
             Paketi i mjesečne cijene: {plans.map((p) => `${p.name} ${p.price} €`).join(', ')}. Cijene su s PDV-om. Opseg paketa (broj radnika, broj čitanja fotografija i pitanja Poslaru
             mjesečno, dodatne mogućnosti) navodi se na početnoj stranici i u aplikaciji, u Postavke → Pretplata.
           </li>
-          <li>Pretplata se plaća unaprijed, uplatom na račun Pružatelja s pozivom na broj radionice, za jedan ili više mjeseci.</li>
+          <li>
+            Pretplata se plaća unaprijed, karticom preko Paddlea (Paddle.com Market Ltd). Paddle je preprodavatelj (Merchant of Record) za narudžbe Poslara: naplaćuje pretplatu, obračunava PDV i
+            izdaje račun. Za samo plaćanje vrijede i Paddleovi uvjeti za kupce. Pretplata karticom obnavlja se svaki mjesec dok je Korisnik ne otkaže.
+          </li>
+          {slip ? <li>Pretplata se može platiti i uplatom na račun Pružatelja s pozivom na broj radionice, za jedan ili više mjeseci.</li> : null}
+          <li>
+            Pretplatu karticom Korisnik otkazuje sam, u Postavke → Pretplata → Kartica i računi. Otkazana pretplata vrijedi do kraja plaćenog razdoblja i sljedeća naplata se ne radi.
+          </li>
+          <li>
+            Za pitanja o naplati, kartici i Paddleovim računima Korisnik se obraća Paddleu (paddle.net). Za rad aplikacije i podršku odgovara Pružatelj.
+          </li>
           <li>
             Prvih {FOUNDER_SPOTS} radionica koje se registriraju plaća osnivačku cijenu ({plans.map((p) => `${p.name} ${p.founderPrice} €`).join(', ')}) kroz {FOUNDER_MONTHS} mjeseca od
             registracije. Nakon toga vrijedi puna cijena. Pretplata se plaća mjesečno i može se otkazati u svakom trenutku.
@@ -80,7 +93,10 @@ export default function TermsPage() {
 
       <Section n={7} title="Prestanak korištenja">
         <ul>
-          <li>Korisnik bez ugovornog razdoblja može prestati koristiti uslugu kad želi. Uplaćeni iznos za započeto razdoblje ne vraća se.</li>
+          <li>
+            Korisnik bez ugovornog razdoblja može prestati koristiti uslugu kad želi. Uplaćeni iznos za započeto razdoblje ne vraća se, osim kad povrat propisuje zakon ili ga Paddle odobri po
+            svojim uvjetima za kupce.
+          </li>
           <li>Pružatelj može isključiti pristup zbog neplaćanja ili zbog teškog ili ponovljenog kršenja ovih uvjeta. O tome obavještava Korisnika.</li>
         </ul>
       </Section>
@@ -91,7 +107,10 @@ export default function TermsPage() {
             Podaci koje Korisnik unese (mušterije, nalozi, fotografije, računi) pripadaju Korisniku. Pružatelj ih obrađuje samo radi pružanja usluge, prema{' '}
             <A href="/obrada-podataka">Ugovoru o obradi podataka</A>.
           </li>
-          <li>Korisnik u svakom trenutku može preuzeti izdane račune (paket za knjigovođu) i popis zatvorenih naloga (Arhiva, tablica za Excel).</li>
+          <li>
+            Korisnik u svakom trenutku može preuzeti sve podatke radionice (Postavke → Izvoz podataka: mušterije, vozila i uređaji, nalozi, stavke, ponude, računi, pozivi i fotografije), izdane
+            račune (paket za knjigovođu) i popis zatvorenih naloga (Arhiva, tablica za Excel).
+          </li>
           <li>
             Nakon prestanka korištenja podaci se čuvaju 12 mjeseci, kako bi se Korisnik mogao vratiti, a zatim se brišu. Na zahtjev Korisnika brišu se ranije, u roku od 30 dana.
           </li>
@@ -118,7 +137,9 @@ export default function TermsPage() {
 
       <Section n={11} title="Poruke mušterijama">
         <p>
-          Aplikacija priprema poruke (WhatsApp, SMS) koje Korisnik šalje sa svog mobitela. Korisnik odgovara za njihov sadržaj i za to da mušterijama smije slati obavijesti i podsjetnike.
+          Aplikacija priprema poruke (WhatsApp, SMS) koje Korisnik šalje sa svog mobitela.
+          {whatsapp ? ' Kad Korisnik uključi WhatsApp obavijesti, Poslar sam šalje mušterijama obavijesti o nalogu i podsjetnike na termin, s broja Poslara.' : ''} Korisnik odgovara za
+          sadržaj poruka i za to da mušterijama smije slati obavijesti i podsjetnike.
         </p>
       </Section>
 
