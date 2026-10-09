@@ -36,7 +36,7 @@ export default async function ModulePage({ searchParams }: { searchParams: Promi
       {ctx.pkg.id === 'aqua' ? <AquaPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'tow' ? <TowPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'deal' ? <DealPage ctx={ctx} /> : null}
-      {['detail', 'electric', 'appliance', 'locksmith'].includes(ctx.pkg.id) ? <GenericPage ctx={ctx} /> : null}
+      {['detail', 'electric', 'appliance', 'locksmith', 'pool', 'clean'].includes(ctx.pkg.id) ? <GenericPage ctx={ctx} /> : null}
     </>
   );
 }

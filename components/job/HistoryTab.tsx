@@ -21,7 +21,7 @@ export async function HistoryTab({ ctx, job }: { ctx: WorkshopContext; job: JobW
           </li>
         ))}
       </ol>
-      <p className="border-t border-line px-4 py-2.5 text-xs text-faint">Dnevnik naloga se ne može mijenjati ni brisati.</p>
+      <p className="border-t border-line px-4 py-2.5 text-xs text-faint">Ovaj popis se ne može mijenjati ni brisati.</p>
     </Card>
   );
 }

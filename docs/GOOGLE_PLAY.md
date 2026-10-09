@@ -57,7 +57,7 @@ Tako aplikacija radi preko cijelog ekrana, bez trake preglednika.
 - Politika privatnosti: `https://poslar.eu/privatnost`
 - Brisanje računa: `https://poslar.eu/brisanje-racuna`
 - Pristup za recenzente (App access): demo prijava
-  `vlasnik.gear@demo.xfiles.hr`, lozinka `Demo2026!`.
+  `vlasnik.gear@demo.poslar.eu`, lozinka `Demo2026!`.
 
 ## 6. Sigurnost podataka (Data safety obrazac)
 

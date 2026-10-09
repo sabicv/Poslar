@@ -32,7 +32,7 @@ export async function loadFirstSteps(ctx: WorkshopContext): Promise<{ steps: Fir
     { id: 'job', title: 'Prvi nalog', hint: 'Izgovorite kvar ili slikajte prometnu', href: '/app/jobs/new', done: (jobs ?? 0) > 0 },
     own
       ? { id: 'invoice', title: 'Prvi otkup', hint: 'Na nalogu, kartica „Otkup i prodaja”', href: '/app', done: (stock ?? 0) > 0 }
-      : { id: 'invoice', title: 'Prvi račun', hint: 'Na nalogu: Stavke, pa Račun', href: '/app', done: (invoices ?? 0) > 0 },
+      : { id: 'invoice', title: 'Prvi račun', hint: 'Na nalogu: Radovi i cijena, pa Račun', href: '/app', done: (invoices ?? 0) > 0 },
   ];
   if (steps.every((x) => x.done)) return null;
   return { steps, sample: (sample ?? 0) > 0 };

@@ -20,6 +20,8 @@ export const KPD_BY_PACKAGE: Record<PackageId, string> = {
   electric: '432110',
   appliance: '952200',
   locksmith: '257200',
+  pool: '812900',
+  clean: '812100',
 };
 
 export const KPD_LABELS: Record<string, string> = {
@@ -34,6 +36,8 @@ export const KPD_LABELS: Record<string, string> = {
   '451101': 'Prodaja motornih vozila',
   '952200': 'Popravak kućanskih aparata',
   '257200': 'Brave i okovi',
+  '812900': 'Ostale usluge čišćenja',
+  '812100': 'Opće čišćenje zgrada',
 };
 
 export function defaultKpd(pkg: PackageId): string {

@@ -184,7 +184,7 @@ export async function createJob(input: NewJobInput): Promise<ActionResult<{ id: 
 
   // The job exists either way; a template that fails is reported, not hidden.
   const template = v.templateCode ? await insertTemplate(ctx, job.id, v.templateCode) : null;
-  const warning = template && !template.ok ? `Nalog je otvoren, ali predložak nije dodan (${template.error}). Dodajte ga u kartici Stavke.` : undefined;
+  const warning = template && !template.ok ? `Nalog je otvoren, ali predložak nije dodan (${template.error}). Dodajte ga u kartici Radovi i cijena.` : undefined;
 
   revalidatePath('/app');
   return { ok: true, data: { id: job.id as string, warning } };
@@ -500,7 +500,15 @@ export async function completeInspection(jobId: string, inspectionId: string, do
   const ctx = await requireWorkshop();
   const { error } = await ctx.supabase.from('inspections').update({ completed_at: done ? new Date().toISOString() : null }).eq('id', inspectionId);
   if (error) return fail(error);
-  if (done) await logEvent(ctx, jobId, 'inspection', `Inspekcija završena · ${actorName(ctx)}`);
+  if (done) {
+    await logEvent(ctx, jobId, 'inspection', `Inspekcija završena · ${actorName(ctx)}`);
+    const { data: row } = await ctx.supabase.from('inspections').select('template_code').eq('id', inspectionId).single();
+    const code = ctx.pkg.inspections.find((t) => t.code === row?.template_code)?.proposeTemplate;
+    if (code) {
+      const { data: existing } = await ctx.supabase.from('job_lines').select('id').eq('job_id', jobId).eq('template_code', code).limit(1);
+      if (!existing?.length) await insertTemplate(ctx, jobId, code, 'proposed');
+    }
+  }
   revalidatePath(jobPath(jobId));
   return { ok: true };
 }

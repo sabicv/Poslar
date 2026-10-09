@@ -7,7 +7,7 @@ import type { ModuleProps } from './ModuleTab';
 import { PlanCard } from './PlanCard';
 
 // Trades without tables of their own (Auto kozmetika, Električar, Kućanski
-// aparati, Bravar): the earlier work on this object and the recurring
+// aparati, Bravar, Bazeni, Apartmani): the earlier work on this object and the recurring
 // service the trade offers (pkg.plan).
 export async function GenericModule({ ctx, job }: ModuleProps) {
   const s = ctx.supabase;

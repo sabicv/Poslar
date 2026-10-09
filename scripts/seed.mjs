@@ -1,13 +1,13 @@
 // npm run db:seed — creates one demo workshop per package (Volt, Gear,
 // Body, Wheel, Fleet, Moto, Marine, Air, Aqua, Tow, Deal, Detail, Electric,
-// Appliance, Locksmith), each with an owner and a worker account,
+// Appliance, Locksmith, Pool, Clean), each with an owner and a worker account,
 // customers, vehicles/machines/boats, work orders in every phase with
 // priced lines, inspections, condition reports, package records (tyre
 // hotel, DTC findings, paint recipes, field jobs, seasonal protocols) and
 // generated placeholder photos with thumbnails.
 //
 // Safe to re-run: every demo-* workshop and its files are deleted first;
-// the @demo.xfiles.hr accounts are kept and reset, so a tester stays
+// the @demo.poslar.eu accounts are kept and reset, so a tester stays
 // signed in. Needs the service role key.
 import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -28,7 +28,7 @@ if (!URL || !KEY) {
 }
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 const PASSWORD = process.env.DEMO_PASSWORD || 'Demo2026!';
-const DOMAIN = 'demo.xfiles.hr';
+const DOMAIN = 'demo.poslar.eu';
 const sb = createClient(URL, KEY, { auth: { autoRefreshToken: false, persistSession: false } });
 
 // ---------------------------------------------------------------------
@@ -66,7 +66,7 @@ async function allUsers() {
 
 // Only the demo workshops this script made (exact slug + demo flag),
 // never a real workshop whose name happens to start with "Demo".
-const ALL_PACKAGES = ['volt', 'gear', 'body', 'wheel', 'fleet', 'machine', 'moto', 'marine', 'air', 'aqua', 'tow', 'deal', 'detail', 'electric', 'appliance', 'locksmith'];
+const ALL_PACKAGES = ['volt', 'gear', 'body', 'wheel', 'fleet', 'machine', 'moto', 'marine', 'air', 'aqua', 'tow', 'deal', 'detail', 'electric', 'appliance', 'locksmith', 'pool', 'clean'];
 // `npm run db:seed -- --uzorak` makes the sample workshops instead: the
 // same data under uzorak-<package>, with logins nobody can use. A new
 // workshop's 24-hour trial is a copy of its trade's sample (clone_sample,
@@ -2021,6 +2021,98 @@ async function seedLocksmith() {
 }
 
 // ---------------------------------------------------------------------
+// Poslar Bazeni: weekly pool service in Zadar
+// ---------------------------------------------------------------------
+async function seedPool() {
+  const T = await workshop({ pkg: 'pool', name: 'Bazeni Jadran', city: 'Zadar', address: 'Ulica Kneza Branimira 8', phone: '+385 23 555 1515', owner: 'Luka Šimunić', worker: 'Ivan Ćurković' });
+  const obj = (clientId, siteId, a) => asset(T, clientId, { ...a, site: siteId, unit: 'mth' });
+
+  const c1 = await client(T, { first: 'Maja', last: 'Kovač', phone: '+385 91 816 1100', city: 'Zadar' });
+  const s1 = await fieldSite(T, c1, { kind: 'house', address: 'Put Dikla 18', city: 'Zadar', postal_code: '23000', access_notes: 'Vrata u okućnici, šifra 1941. Strojarnica lijevo od kuće.', lat: 44.1194, lng: 15.2422 });
+  const p1 = await obj(c1, s1, { type: 'swimming_pool', id: 'Bazen u vrtu', make: 'Astral', model: '8 × 4 m, pješčani filter' });
+
+  const c2 = await client(T, { company: 'Villa Lavanda', first: 'Petra', last: 'Marin', phone: '+385 98 816 2200', city: 'Nin', oib: '55667788990' });
+  const s2 = await fieldSite(T, c2, { kind: 'house', label: 'Villa Lavanda', address: 'Zrinsko-Frankopanska 4', city: 'Nin', access_notes: 'Ključ kod susjeda, kuća 6.' });
+  const p2 = await obj(c2, s2, { type: 'swimming_pool', id: 'Bazen vile', make: 'Hayward', model: 'Overflow 10 × 5' });
+
+  const j1 = await job(T, {
+    client: c1,
+    asset: p1,
+    phase: 'collected',
+    paid: true,
+    d: 2,
+    assigned: 'owner',
+    complaint: 'Tjedni servis, voda malo mutna',
+    summary: 'pH 7.5, slobodni klor 0.4 mg/l. Dodan šok klor, ispran filter. Voda bistra na odlasku.',
+    source: 'phone',
+    lines: [{ kind: 'package', d: 'Tjedni servis: mjerenje, kemija, čišćenje skimmera i pregled filtera', unit: 'paušal', price: 45 }],
+    extra: { work_mode: 'field', site_id: s1, departed_at: zagrebAt(-2, 8, 10), arrived_at: zagrebAt(-2, 8, 28), left_at: zagrebAt(-2, 9, 20), finished_at: zagrebAt(-2, 9, 20) },
+  });
+  await inspection(T, j1.id, 'pool.water', 'Mjerenje vode', [['a01', 'ok', 7.5], ['a02', 'warn', 0.4, 'Ispod 0,5'], ['a03', 'ok', 0.2], ['a04', 'ok', 40], ['a05', 'ok', 24], ['a06', 'warn', null, 'Blago mutna'], ['b01', 'ok'], ['b02', 'ok'], ['b03', 'ok'], ['b04', 'ok'], ['b05', 'ok']], { completed: true, d: 2, units: { a01: '', a02: 'mg/l', a03: 'mg/l', a04: 'mg/l', a05: '°C' } });
+  await photo(T, j1.id, { label: 'Voda prije šoka', sub: 'Put Dikla 18', tag: 'water', hue: 190, customer: true, d: 2, when: zagrebAt(-2, 8, 30) });
+
+  await job(T, {
+    client: c2,
+    asset: p2,
+    phase: 'diagnosis',
+    d: 0,
+    complaint: 'Otvaranje sezone, plahta još na bazenu',
+    source: 'phone',
+    lines: [{ kind: 'package', d: 'Otvaranje bazena: čišćenje, spajanje, start kemija', unit: 'paušal', price: 180 }],
+    extra: { work_mode: 'field', site_id: s2, scheduled_start: zagrebAt(1, 9), scheduled_end: zagrebAt(1, 12) },
+  });
+
+  await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, client_id: c1, site_id: s1, asset_id: p1, title: 'Tjedni obilazak', interval_months: 1, next_due_date: day(5), template_code: 'pool.weekly' }));
+  return { T, links: [] };
+}
+
+// ---------------------------------------------------------------------
+// Poslar Apartmani: turnover cleaning in Dubrovnik
+// ---------------------------------------------------------------------
+async function seedClean() {
+  const T = await workshop({ pkg: 'clean', name: 'Čisto Jadran', city: 'Dubrovnik', address: 'Put Republike 5', phone: '+385 20 555 1616', owner: 'Ana Puljić', worker: 'Ivana Mandić' });
+  const unit = (clientId, siteId, a) => asset(T, clientId, { ...a, site: siteId, unit: 'mth' });
+
+  const c1 = await client(T, { company: 'Apartmani Pile', first: 'Marko', last: 'Režić', phone: '+385 91 817 1100', city: 'Dubrovnik', oib: '33445566778' });
+  const s1 = await fieldSite(T, c1, { kind: 'apartment', label: 'Apartman 2', address: 'Ulica od Puča 12', city: 'Dubrovnik', postal_code: '20000', access_notes: '2. kat, ključ u sefu, šifra 2015.', lat: 42.6403, lng: 18.1084 });
+  const u1 = await unit(c1, s1, { type: 'apartment_unit', id: 'Apartman 2', model: 'Studio, 2 osobe' });
+
+  const c2 = await client(T, { company: 'Ured Stradun', first: 'Tea', last: 'Katić', phone: '+385 98 817 2200', city: 'Dubrovnik', oib: '44556677889' });
+  const s2 = await fieldSite(T, c2, { kind: 'office', label: 'Ured 1. kat', address: 'Pred Dvorom 3', city: 'Dubrovnik', access_notes: 'Zvono Katić, lift.' });
+  const u2 = await unit(c2, s2, { type: 'office_unit', id: 'Ured 1. kat', model: '4 stola, kuhinjica' });
+
+  const j1 = await job(T, {
+    client: c1,
+    asset: u1,
+    phase: 'collected',
+    paid: true,
+    d: 1,
+    assigned: 'worker',
+    complaint: 'Smjena: odjava 10:00, novi gosti 15:00',
+    summary: 'Studio očišćen, posteljina zamijenjena. Jedna čaša napukla — slika na nalogu.',
+    source: 'phone',
+    lines: [{ kind: 'package', d: 'Čišćenje apartmana između gostiju (kreveti, kupaonica, kuhinja, podovi)', unit: 'paušal', price: 55 }],
+    extra: { work_mode: 'field', site_id: s1, departed_at: zagrebAt(-1, 10, 15), arrived_at: zagrebAt(-1, 10, 28), left_at: zagrebAt(-1, 12, 5), finished_at: zagrebAt(-1, 12, 5) },
+  });
+  await inspection(T, j1.id, 'clean.turnover', 'Smjena između gostiju', [['a01', 'ok'], ['a02', 'ok'], ['a03', 'ok'], ['a04', 'ok'], ['a05', 'ok'], ['a06', 'ok'], ['b01', 'warn', null, 'Napukla čaša'], ['b02', 'ok'], ['b03', 'ok'], ['b04', 'ok'], ['b05', 'ok']], { completed: true, d: 1 });
+  await photo(T, j1.id, { label: 'Gotov studio', sub: 'Apartman 2', tag: 'after', hue: 40, customer: true, d: 1, when: zagrebAt(-1, 12, 0) });
+
+  await job(T, {
+    client: c2,
+    asset: u2,
+    phase: 'diagnosis',
+    d: 0,
+    complaint: 'Redovno čišćenje ureda, petkom',
+    source: 'phone',
+    lines: [{ kind: 'package', d: 'Redovno čišćenje ureda', unit: 'paušal', price: 40 }],
+    extra: { work_mode: 'field', site_id: s2, scheduled_start: zagrebAt(0, 16), scheduled_end: zagrebAt(0, 17, 30) },
+  });
+
+  await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, client_id: c2, site_id: s2, asset_id: u2, title: 'Redovno čišćenje', interval_months: 1, next_due_date: day(3), template_code: 'clean.office' }));
+  return { T, links: [] };
+}
+
+// ---------------------------------------------------------------------
 // The AI phone at work: in every trade one call the owner missed, taken
 // by the AI secretary, ended as a job in Prijem with its slot, the call
 // summary and the conversation (the scenes on the trade pages).
@@ -2270,6 +2362,38 @@ const AI_BOOKINGS = {
       ['Poslar', 'Upisano: hitni izlazak, majstor stiže oko 23:30. Javit će Vam se kad krene. Doviđenja.'],
     ],
   },
+  pool: {
+    client: { first: 'Ivana', last: 'Barić', phone: '+385 95 816 3305', city: 'Zadar' },
+    site: { kind: 'house', address: 'Ulica dr. Franje Tuđmana 9', city: 'Zadar', postal_code: '23000', access_notes: 'Bazen iza kuće, vrata otključana.', lat: 44.1198, lng: 15.2315 },
+    asset: { type: 'swimming_pool', id: 'Bazen u vrtu', model: '8 × 4 m' },
+    complaint: 'Voda zeleni, gosti dolaze u petak.',
+    slot: [1, 9, 0, 90],
+    summary: 'Ivana Barić: voda u bazenu zeleni, gosti u petak. Ulica dr. Franje Tuđmana 9, Zadar. Termin sutra u 9:00, šok kloriranje.',
+    talk: [
+      ['Poslar', 'Dobar dan, Bazeni Jadran, ovdje Poslar. Majstor je na drugom bazenu, pa se javljam automatski. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Bazen mi je zelen, a gosti mi dolaze u petak.'],
+      ['Poslar', 'To je alga, treba šok i usis. Koja je adresa i koliki je bazen?'],
+      ['Mušterija', 'Tuđmanova 9, osam na četiri metra.'],
+      ['Poslar', 'Upisano: sutra u 9:00, šok kloriranje na Tuđmanovoj 9. Majstor će Vam javiti kad krene. Doviđenja.'],
+    ],
+  },
+  clean: {
+    client: { first: 'Luka', last: 'Grgić', phone: '+385 91 817 4406', city: 'Dubrovnik' },
+    site: { kind: 'apartment', address: 'Između polača 7', city: 'Dubrovnik', postal_code: '20000', access_notes: '1. kat, sef za ključ, šifra 0704.', lat: 42.6411, lng: 18.1102 },
+    asset: { type: 'apartment_unit', id: 'Apartman A', model: 'Dvosobni, 4 osobe' },
+    complaint: 'Gosti otišli ranije, smjena danas do 14:00.',
+    urgent: true,
+    slot: [0, 11, 0, 120],
+    called: [0, 10, 20],
+    summary: 'Luka Grgić: gosti otišli ranije, treba smjena do 14:00. Između polača 7, 1. kat, sef 0704. Dolazak u 11:00.',
+    talk: [
+      ['Poslar', 'Dobar dan, Čisto Jadran, ovdje Poslar. Ana je u drugom apartmanu, pa se javljam automatski. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Gosti su otišli ranije, trebam čišćenje do dva, novi dolaze.'],
+      ['Poslar', 'Koji apartman i imate li ključ spreman?'],
+      ['Mušterija', 'Apartman A, Između polača 7. Ključ je u sefu, šifra 0704.'],
+      ['Poslar', 'Upisano: dolazak u 11:00, smjena apartmana A. Javit ćemo se kad krenemo. Doviđenja.'],
+    ],
+  },
 };
 
 async function aiBooking(T, b) {
@@ -2367,6 +2491,8 @@ for (const [name, fn] of [
   ['Electric', seedElectric],
   ['Appliance', seedAppliance],
   ['Locksmith', seedLocksmith],
+  ['Pool', seedPool],
+  ['Clean', seedClean],
 ].filter(([name]) => !ONLY.length || ONLY.includes(name.toLowerCase()))) {
   process.stdout.write(`  ${name}… `);
   const result = await fn();

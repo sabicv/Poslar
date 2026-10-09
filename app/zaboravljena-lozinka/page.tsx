@@ -24,7 +24,7 @@ export default async function ForgotPasswordPage({ searchParams }: { searchParam
       {istekla ? <p className="mt-3 rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">Poveznica je istekla ili je već iskorištena. Zatražite novu.</p> : null}
       {byEmail ? (
         <>
-          <p className="mb-6 mt-1 text-sm text-muted">Upišite e-mail kojim se prijavljujete. Poslat ćemo Vam poveznicu za novu lozinku.</p>
+          <p className="mb-6 mt-1 text-sm text-muted">Upišite e-mail kojim se prijavljujete. Poveznica ide samo na taj račun, i samo ako postoji.</p>
           <ForgotForm />
         </>
       ) : (

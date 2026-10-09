@@ -77,6 +77,7 @@ const serviceSplit: InspectionTemplate = {
   code: 'air.service_split',
   name: 'Godišnji servis klima uređaja',
   purpose: 'dvi',
+  proposeTemplate: 'air.service_one',
   sections: [
     {
       title: 'A · Unutarnja jedinica',
@@ -145,6 +146,7 @@ const heatPump: InspectionTemplate = {
   code: 'air.heat_pump',
   name: 'Servis dizalice topline',
   purpose: 'dvi',
+  proposeTemplate: 'air.heat_pump_service',
   sections: [
     {
       title: 'Hidraulika',
@@ -220,7 +222,7 @@ export const air: PackageConfig = {
       'Izmjenjivač vanjske jedinice',
       'Kompresor i cijevi u vanjskoj jedinici',
       'Vidljivi tragovi ulja na instalaciji',
-    ]),
+    ], 'air.leak_check'),
   ],
   templates: [
     {

@@ -23,6 +23,9 @@ export interface InvoiceData {
   year: number | null;
   issuedAt: string | null;
   fiscalRef: string | null;
+  status: InvoiceStatus;
+  sentAt: string | null;
+  voidedAt: string | null;
   // Fiscal marks, set when the invoice is issued.
   paymentMethod: PaymentMethod | null;
   premises: string | null;
@@ -38,6 +41,16 @@ export interface InvoiceData {
 
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'other';
 export const PAYMENT_METHODS: Record<PaymentMethod, string> = { cash: 'Gotovina', card: 'Kartica', transfer: 'Transakcijski račun', other: 'Ostalo' };
+
+export type InvoiceStatus = 'draft' | 'issued' | 'sent' | 'fiscalized' | 'rejected' | 'voided';
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  draft: 'Nacrt',
+  issued: 'Izdan',
+  sent: 'Poslan',
+  fiscalized: 'Fiskaliziran',
+  rejected: 'Blagajna odbila',
+  voided: 'Storniran',
+};
 
 // "12/PP1/1" once the workshop has its premises and device marks, else "12/2026".
 export function invoiceNumberLabel(d: { number: number | null; year: number | null; premises: string | null; device: string | null }): string | null {
@@ -80,12 +93,17 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
   const totals = invoiceTotals(data.lines, billing.vatRegistered);
   // Before issuing the page is a preview; the number comes with "Izdaj račun".
   const label = invoiceNumberLabel(data);
-  const title = label ? `Račun br. ${label}` : 'Račun (još nije izdan)';
+  const title = data.status === 'voided' && label ? `Storno računa br. ${label}` : label ? `Račun br. ${label}` : 'Račun (još nije izdan)';
   const reference = data.number ? `${data.number}-${data.year}` : null;
   const client = data.client;
 
   return (
-    <article className="invoice mx-auto w-full max-w-[210mm] rounded-2xl bg-white p-6 text-[13px] leading-relaxed text-neutral-900 shadow-sm print:rounded-none print:p-0 print:shadow-none sm:p-10">
+    <article className="invoice relative mx-auto w-full max-w-[210mm] overflow-hidden rounded-2xl bg-white p-6 text-[13px] leading-relaxed text-neutral-900 shadow-sm print:rounded-none print:p-0 print:shadow-none sm:p-10">
+      {data.status === 'voided' ? (
+        <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-6xl font-bold uppercase tracking-widest text-red-600/20 print:text-red-600/30" aria-hidden>
+          <span className="-rotate-12">Storno</span>
+        </p>
+      ) : null}
       <header className="flex flex-wrap items-start justify-between gap-6 border-b border-neutral-200 pb-5">
         <div className="min-w-0">
           {w.logoUrl ? (
@@ -184,9 +202,10 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
         ) : null}
         {!billing.vatRegistered ? <p>PDV nije obračunat temeljem čl. 90. Zakona o PDV-u (obveznik nije u sustavu PDV-a).</p> : null}
         {billing.note ? <p>{billing.note}</p> : null}
+        {data.status === 'voided' ? <p>Ovaj je račun storniran{data.voidedAt ? ` ${formatDate(data.voidedAt)}` : ''}.</p> : null}
         {data.fiscalRef ? (
           <p>Fiskalizirani račun iz blagajne br. {data.fiscalRef}.</p>
-        ) : data.paymentMethod === 'cash' || data.paymentMethod === 'card' || !data.paymentMethod ? (
+        ) : data.status !== 'voided' && (data.paymentMethod === 'cash' || data.paymentMethod === 'card' || !data.paymentMethod) ? (
           <p>Fiskalizirani račun izdaje se u blagajni obrta.</p>
         ) : null}
       </footer>

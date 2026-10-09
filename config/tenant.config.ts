@@ -3,7 +3,7 @@
 //
 // One workshop = one package. Everything that differs between Volt,
 // Gear, Body, Wheel, Fleet, Machine, Moto, Marine, Air, Aqua, Tow, Deal,
-// Detail, Electric, Appliance and Locksmith lives here as typed data: brand and
+// Detail, Electric, Appliance, Locksmith, Pool and Clean lives here as typed data: brand and
 // accent colour, vocabulary (Mušterija vs Tvrtka, km vs mth), object
 // types, job phase wording, inspection checklists, work templates and
 // which modules are switched on. The database stores only the package
@@ -28,8 +28,10 @@ import { detail } from './packages/detail';
 import { electric } from './packages/electric';
 import { appliance } from './packages/appliance';
 import { locksmith } from './packages/locksmith';
+import { pool } from './packages/pool';
+import { clean } from './packages/clean';
 
-export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'machine' | 'moto' | 'marine' | 'air' | 'aqua' | 'tow' | 'deal' | 'detail' | 'electric' | 'appliance' | 'locksmith';
+export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'machine' | 'moto' | 'marine' | 'air' | 'aqua' | 'tow' | 'deal' | 'detail' | 'electric' | 'appliance' | 'locksmith' | 'pool' | 'clean';
 // Where the work happens: the customer brings the object in, or the
 // technician goes to the customer's address.
 export type Sector = 'workshop' | 'field';
@@ -51,7 +53,9 @@ export type AssetType =
   | 'water_heater' | 'gas_boiler' | 'plumbing' | 'drainage' | 'heating' | 'pump'
   | 'electrical' | 'switchboard' | 'solar_pv' | 'ev_charger'
   | 'washer' | 'dishwasher' | 'fridge' | 'oven' | 'dryer' | 'coffee_machine' | 'small_appliance'
-  | 'door_lock' | 'safe';
+  | 'door_lock' | 'safe'
+  | 'swimming_pool' | 'pool_plant'
+  | 'apartment_unit' | 'holiday_unit' | 'office_unit';
 
 export type ModuleId =
   | 'dvi'
@@ -103,6 +107,10 @@ export interface InspectionTemplate {
   name: string;
   purpose: 'dvi' | 'checklist' | 'driver_check' | 'seasonal';
   sections: InspectionSection[];
+  // After the worker finishes this measurement, propose this priced
+  // template on the job (once). Same idea as a battery test proposing
+  // volt.battery — the owner still confirms the charge.
+  proposeTemplate?: string;
 }
 
 export interface TemplateLine {
@@ -157,7 +165,7 @@ export interface PackageConfig {
   plan?: { title: string; template: string; months: number; hint: string };
 }
 
-export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, machine, moto, marine, air, aqua, tow, deal, detail, electric, appliance, locksmith };
+export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, machine, moto, marine, air, aqua, tow, deal, detail, electric, appliance, locksmith, pool, clean };
 export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 
 // Groups so a visitor first says how he works, then picks the trade:
@@ -167,7 +175,7 @@ export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 export type TradeGroupId = 'radionica' | 'teren' | 'cesta' | 'prodaja';
 export const TRADE_GROUPS: { id: TradeGroupId; name: string; hint: string; packages: PackageId[] }[] = [
   { id: 'radionica', name: 'Radionica', hint: 'Posao se vodi iz radionice', packages: ['volt', 'gear', 'body', 'wheel', 'detail', 'moto', 'marine', 'fleet', 'machine'] },
-  { id: 'teren', name: 'Teren', hint: 'Majstor ide k mušteriji', packages: ['air', 'aqua', 'electric', 'appliance', 'locksmith'] },
+  { id: 'teren', name: 'Teren', hint: 'Majstor ide k mušteriji', packages: ['air', 'aqua', 'electric', 'appliance', 'locksmith', 'pool', 'clean'] },
   { id: 'cesta', name: 'Cesta', hint: 'Vuča i pomoć na cesti, danju i noću', packages: ['tow'] },
   { id: 'prodaja', name: 'Prodaja', hint: 'Otkup, priprema i prodaja rabljenih vozila', packages: ['deal'] },
 ];
@@ -254,6 +262,11 @@ export const ASSET_TYPE_LABELS: Record<AssetType, string> = {
   small_appliance: 'Mali kućanski aparat',
   door_lock: 'Vrata i brava',
   safe: 'Sef',
+  swimming_pool: 'Bazen',
+  pool_plant: 'Strojarnica bazena',
+  apartment_unit: 'Apartman',
+  holiday_unit: 'Kuća za odmor',
+  office_unit: 'Ured',
 };
 
 export const CLIMATE_TYPES: AssetType[] = ['ac_split', 'ac_multi', 'ac_ducted', 'ac_vrf', 'heat_pump', 'ventilation', 'chiller'];
@@ -261,8 +274,10 @@ export const WATER_TYPES: AssetType[] = ['water_heater', 'gas_boiler', 'plumbing
 export const ELECTRIC_TYPES: AssetType[] = ['electrical', 'switchboard', 'solar_pv', 'ev_charger'];
 export const APPLIANCE_TYPES: AssetType[] = ['washer', 'dishwasher', 'fridge', 'oven', 'dryer', 'coffee_machine', 'small_appliance'];
 export const LOCK_TYPES: AssetType[] = ['door_lock', 'safe'];
+export const POOL_TYPES: AssetType[] = ['swimming_pool', 'pool_plant'];
+export const CLEAN_TYPES: AssetType[] = ['apartment_unit', 'holiday_unit', 'office_unit'];
 // Not a vehicle: no plate, no kilometres, a serial number instead of a VIN.
-export const DEVICE_TYPES: AssetType[] = [...CLIMATE_TYPES, ...WATER_TYPES, ...ELECTRIC_TYPES, ...APPLIANCE_TYPES, ...LOCK_TYPES];
+export const DEVICE_TYPES: AssetType[] = [...CLIMATE_TYPES, ...WATER_TYPES, ...ELECTRIC_TYPES, ...APPLIANCE_TYPES, ...LOCK_TYPES, ...POOL_TYPES, ...CLEAN_TYPES];
 const MTH_TYPES: AssetType[] = ['machine', 'tractor', 'implement', 'jetski', 'boat', 'outboard', 'inboard', ...DEVICE_TYPES];
 
 export function defaultMeterUnit(type: AssetType): MeterUnit {
@@ -274,6 +289,8 @@ export function identifierLabel(type: AssetType): string {
   if (type === 'outboard' || type === 'inboard') return 'Serijski broj motora';
   if (type === 'machine' || type === 'implement') return 'Serijski broj';
   if (LOCK_TYPES.includes(type)) return 'Oznaka (ulaz, kat, stan)';
+  if (POOL_TYPES.includes(type)) return 'Oznaka (adresa, villa, hotel)';
+  if (CLEAN_TYPES.includes(type)) return 'Oznaka (apartman, ured)';
   if (type === 'electrical' || type === 'switchboard') return 'Oznaka (npr. stan, kuća, lokal)';
   if (DEVICE_TYPES.includes(type)) return 'Oznaka uređaja';
   return 'Registracija';

@@ -11,8 +11,22 @@ import { deleteJob, setJobLocked, setJobPaid, setJobPhase } from '@/lib/actions/
 import { cn } from '@/lib/utils';
 
 // The job's bar at the bottom of the screen, where the thumb is:
-// "Faza" (every phase, payment, lock, delete) on the left, one big button
+// "Stanje" (every phase, payment, lock, delete) on the left, one big button
 // for the next step in the middle, and "Pitaj Poslara" on the right.
+function nextActionLabel(id: JobPhase, label: string, field: boolean): string {
+  if (id === 'ready') return label === 'Gotovo' ? 'Gotovo je' : label;
+  if (id === 'collected') {
+    if (label === 'Preuzeto') return field ? 'Zatvoreno' : 'Mušterija preuzela';
+    return label;
+  }
+  if (id === 'diagnosis' && label === 'Dijagnostika') return 'Na dijagnostiku';
+  if (id === 'in_progress' && label === 'Popravak u tijeku') return 'U rad';
+  if (id === 'quality_check' && label === 'Kontrola') return 'Na kontrolu';
+  if (id === 'awaiting_approval' && label === 'Čeka odobrenje') return 'Na odobrenje';
+  if (id === 'awaiting_parts' && label === 'Čeka dijelove') return 'Čeka dijelove';
+  return label;
+}
+
 export function JobActionBar({
   jobId,
   phase,
@@ -21,6 +35,7 @@ export function JobActionBar({
   paid,
   locked,
   billing = true,
+  field = false,
   copilot,
 }: {
   jobId: string;
@@ -31,6 +46,7 @@ export function JobActionBar({
   locked: boolean;
   // False when the job is the business's own cost (Deal): nothing to collect.
   billing?: boolean;
+  field?: boolean;
   copilot: boolean;
 }) {
   const router = useRouter();
@@ -39,8 +55,7 @@ export function JobActionBar({
   const index = phases.findIndex((p) => p.id === phase);
   // "Next" skips the waiting states: they are chosen on purpose, not stepped into.
   const next = phases.slice(index + 1).find((p) => p.id !== 'awaiting_approval' && p.id !== 'awaiting_parts');
-  // Said as an action: "Dalje: Dijagnostika", and for the last two "Označi: Gotovo".
-  const nextLabel = next ? `${next.id === 'ready' || next.id === 'collected' ? 'Označi' : 'Dalje'}: ${next.label}` : null;
+  const nextLabel = next ? nextActionLabel(next.id, next.label, field) : null;
   // Collected but not paid: the owner's next step is the money.
   const markPaid = !next && billing && isOwner && !paid && phase === 'collected';
   const iconButton = 'flex h-14 w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-line bg-surface2 text-[11px] font-medium text-muted hover:text-fg';
@@ -51,11 +66,11 @@ export function JobActionBar({
         <Sheet
           open={open}
           onOpenChange={setOpen}
-          title="Faza naloga"
+          title="Stanje naloga"
           trigger={
-            <button type="button" className={iconButton} aria-label={`Faza: ${phases[index]?.label ?? ''}`}>
+            <button type="button" className={iconButton} aria-label={`Stanje naloga: ${phases[index]?.label ?? ''}`}>
               <ListChecks className="size-5" />
-              Faza
+              Stanje
             </button>
           }
         >

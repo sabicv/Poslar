@@ -8,7 +8,7 @@ import { getInspectionTemplates } from '@/lib/templates';
 import type { Inspection, InspectionResult, JobWithRefs } from '@/types/db';
 import { InspectionRunner, StartInspection } from './InspectionRunner';
 
-const PURPOSE_LABELS = { dvi: 'Digitalna inspekcija', checklist: 'Kontrolna lista', driver_check: 'Pregled vozača', seasonal: 'Sezonski protokol' } as const;
+const PURPOSE_LABELS = { dvi: 'Pregled u točkama', checklist: 'Kontrolna lista', driver_check: 'Pregled vozača', seasonal: 'Sezonski protokol' } as const;
 
 export async function InspectionTab({ ctx, job, locked }: { ctx: WorkshopContext; job: JobWithRefs; locked: boolean }) {
   const [templates, { data }] = await Promise.all([
@@ -75,7 +75,7 @@ export async function InspectionTab({ ctx, job, locked }: { ctx: WorkshopContext
         <p className="text-sm text-muted">
           Nalazi u žutom i crvenom jednim dodirom postaju predložene stavke, a stranka ih odobrava putem poveznice (kartica{' '}
           <Link prefetch={false} href={`/app/jobs/${job.id}?tab=stavke`} className="text-accent">
-            Stavke
+            Radovi i cijena
           </Link>
           ).
         </p>

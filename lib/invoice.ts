@@ -1,7 +1,7 @@
 import 'server-only';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { billingFrom, type InvoiceData, type PaymentMethod } from '@/components/invoice/InvoiceDocument';
+import { billingFrom, type InvoiceData, type InvoiceStatus, type PaymentMethod } from '@/components/invoice/InvoiceDocument';
 import { getPackage } from '@/config/tenant.config';
 import { allRows, inChunks } from '@/lib/paged';
 
@@ -17,7 +17,7 @@ export type LoadedInvoice = InvoiceData & {
 };
 
 const JOB_FIELDS =
-  'id, tenant_id, number, is_demo, work_summary, payment_status, invoice_number, invoice_year, invoice_issued_at, invoice_fiscal_ref, invoice_token, invoice_payment_method, invoice_premises, invoice_device, invoice_operator, client:clients(kind, first_name, last_name, company_name, oib, address, city, phone), asset:assets(make, model, asset_type, identifier)';
+  'id, tenant_id, number, is_demo, work_summary, payment_status, invoice_number, invoice_year, invoice_issued_at, invoice_fiscal_ref, invoice_token, invoice_payment_method, invoice_premises, invoice_device, invoice_operator, invoice_status, invoice_sent_at, invoice_voided_at, client:clients(kind, first_name, last_name, company_name, oib, address, city, phone), asset:assets(make, model, asset_type, identifier)';
 
 // Everything the invoice page shows, from one job. The owner's page passes
 // the owner's own client (prices under RLS); the customer's link passes the
@@ -71,6 +71,14 @@ export function zagrebDate(iso: string): string {
 
 type JobRow = Record<string, unknown>;
 
+function statusOf(job: JobRow): InvoiceStatus {
+  const stored = job.invoice_status as InvoiceStatus | null;
+  if (stored === 'draft' || stored === 'issued' || stored === 'sent' || stored === 'fiscalized' || stored === 'rejected' || stored === 'voided') return stored;
+  if (!job.invoice_number) return 'draft';
+  if (job.invoice_fiscal_ref) return 'fiscalized';
+  return 'issued';
+}
+
 async function assemble(db: SupabaseClient, jobs: JobRow[]): Promise<LoadedInvoice[]> {
   if (!jobs.length) return [];
   const { data: tenant } = await db.from('tenants').select('name, address, city, oib, phone, email, logo_url, settings, package').eq('id', jobs[0].tenant_id as string).single();
@@ -112,6 +120,9 @@ async function assemble(db: SupabaseClient, jobs: JobRow[]): Promise<LoadedInvoi
       year: job.invoice_year as number | null,
       issuedAt: job.invoice_issued_at as string | null,
       fiscalRef: job.invoice_fiscal_ref as string | null,
+      status: statusOf(job),
+      sentAt: (job.invoice_sent_at as string | null) ?? null,
+      voidedAt: (job.invoice_voided_at as string | null) ?? null,
       paymentMethod: (job.invoice_payment_method as PaymentMethod | null) ?? null,
       premises: (job.invoice_premises as string | null) ?? null,
       device: (job.invoice_device as string | null) ?? null,

@@ -135,7 +135,7 @@ export function AppShell({
           <div className="flex items-center justify-between gap-2 px-2">
             <span className="min-w-0">
               <span className="block break-words text-sm">{user.name}</span>
-              <span className="block text-xs text-faint">{user.isOwner ? 'Voditelj servisa' : 'Radnik'}</span>
+              <span className="block text-xs text-faint">{user.isOwner ? 'Voditelj' : 'Radnik'}</span>
             </span>
             <form action={signOut}>
               <button type="submit" className="flex size-12 items-center justify-center rounded-lg text-muted hover:bg-surface2 hover:text-fg" aria-label="Odjava">

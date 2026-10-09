@@ -29,7 +29,7 @@ import { BillingForm, LogoUpload, ModuleToggles, ProfileForm, TeamManager, Theme
 export const metadata: Metadata = { title: 'Postavke' };
 
 const MODULE_LABELS: Record<string, string> = {
-  dvi: 'Digitalna inspekcija (DVI)',
+  dvi: 'Pregled u točkama (DVI)',
   field_visits: 'Rad na terenu: lokacije, raspored, poruka „Na putu”, izvještaj za klijenta',
   condition_report: 'Zapisnik o stanju pri prijemu',
   approvals: 'Odobrenje stranke putem poveznice',

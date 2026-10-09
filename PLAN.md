@@ -147,7 +147,7 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [x] Dva ulaza: glavni „Isprobaj u radionici / na terenu 30 dana besplatno” (prazna radionica) i „Isprobaj demo verziju s izmišljenim podacima” (24 h s primjerima)
 - [x] AI tajnik: Standard 60 min, Premium 150 min, Basic samo doplata (100 min za 25 €); poziv najviše 4 min; kad minute nestanu kratka poruka; e-mail na 80 % i 100 %; u Tornju polje minuta
 - [x] Kalendar: odabrani dan ide u novi nalog, „Zakaži termin za [dan]”, Raspored i za radioničke zanate, termin za kasnije u radionici, nedovršeni unos samo u svojoj radionici (12 h)
-- [x] Nalog: datumi primljeno, gotovo, preuzeto, plaćeno; mjerenje (test akumulatora, parazitska potrošnja, geometrija) predlaže stavku
+- [x] Nalog: datumi primljeno, gotovo, preuzeto, plaćeno; mjerenje predlaže stavku (akumulator, parazitska potrošnja, geometrija, tlačna proba, ispitivanje instalacije, pregled aparata, F-plin, pH/klor, smjena apartmana…)
 - [x] Novi logo (plavi metronom, narančasta strelica iz sredine), nove boje: Moto plava, Limar narančasta, Kamioni siva, Vučna neon žuta
 - [x] Fotografije na početnoj i stranicama zanata, pravi ekrani u mobitelu i laptopu; „Mobitel na terenu. Laptop u uredu.”
 - [ ] Mjerenje → stavka i za ostale zanate (Vedran bira koje radnje i cijene)
@@ -162,7 +162,7 @@ Redoslijed je dogovoren. (V) = Vedran, ostalo radi Claude.
 - [ ] (V) Spojiti poslar.eu (docs/DOMENA.md); po želji i poslar.hr i .com; profili na mrežama; prijava žiga (DZIV ili EUIPO)
 - [x] Kopilot postaje „Pitaj Poslara”: odgovara Poslar, bez riječi AI i asistent; u pravnim tekstovima piše da radi uz umjetnu inteligenciju
 - [ ] (V) U Vercelu po želji preimenovati TAKTIX_* u POSLAR_* (stari nazivi rade)
-- [ ] Demo prijava demo@demo.xfiles.hr → nova domena (nakon deploya, uz ponovno punjenje demo radionica)
+- [x] Demo prijava demo@demo.poslar.eu (stari demo.xfiles.hr ostaje do sljedećeg seeda)
 
 ## Stadij 14: Financije i telefon (u tijeku, 7. 10.)
 - [x] Analiza troškova, poziva i cijena: docs/FINANCIJE.md
@@ -194,7 +194,7 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 - [ ] (V) Paddle sandbox po docs/PADDLE.md (proizvod, 6 cijena, ključevi, webhook), probna uplata 4242…, zatim pravi račun
 - [x] Telefon u pakete (pozivi umjesto minuta: 100/200/400, poziv do 60 s), zajednički broj po ForwardedFrom (vlasnik upiše mobitel koji preusmjerava; poziv bez prepoznate radionice ide u Greške za probni poziv; docs/VAPI.md dio 6), tjedna sigurnosna kopija baze (ZIP u privatnoj mapi, zadnjih 8, preuzimanje u Tornju), mjerač prostora (Toranj → Prostor i kopije) (8. 10.)
 - [ ] (V) Probni poziv na zajednički broj s A1, HT i Telemacha (docs/VAPI.md dio 6); u Vercel POSLAR_PHONE_NUMBER i VAPI_SHARED_NUMBER_ID; na Supabase Pro SUPABASE_PLAN=pro
-- [ ] Novi tekstovi iz Geminija (docs/GEMINI_TEKSTOVI.md) uneseni
+- [x] Novi tekstovi iz Geminija (docs/GEMINI_TEKSTOVI.md) uneseni
 
 ## Stadij 16: Mobitel na prvom mjestu (Geminijev UI/UX zadatak, 8. 10.)
 - [x] Gumbi, polja i poveznice najmanje 48 px; oznake (badge) ravne, bez ruba, nisu gumbi; imena se ne skraćuju s „…”
@@ -205,7 +205,7 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 - [x] Poslovanje: isto razdoblje na Pregledu i Arhivi (6 izbora), „Izvezi CSV” pokraj pretrage, brojke jedna ispod druge na mobitelu
 - [x] Naslovnica: „Započni 30 dana besplatno”, „Otvori demo bez prijave”, ista boja gumba na svim stranicama, isti blok „Zvuči ti poznato?”, 6 mogućnosti po zanatu (+ Pitaj Poslara), bez usamljene kartice u retku
 - [x] Geminijevi tekstovi, prvi dio (naslovnica, cijene, česta pitanja, 5 zanata), s ispravcima: „Poslar AI asistencija” → „Poslar na telefonu”, „AI očitavanja” → „pitanja Poslaru”, „potvrdan” → „potvrđen”; TRADE.wheel.pains.2.a nije uzet (ne odgovara pitanju)
-- [ ] Ostatak Geminijevih tekstova (ostali zanati)
+- [x] Ostatak Geminijevih tekstova (ostali zanati + 4 nova; vulkanizer više ne tvrdi automatsko raspoređivanje)
 
 ## Stadij 17: Novi zanati (odluka 8. 10., iza stadija 15)
 Novi zanat koji stane u radionicu ili teren je opis: kvarovi, predlošci s cijenama, check-liste s mjerenjima, ikona, tekst stranice, demo podaci. Oko jedan dan po zanatu, plus tekstovi za Geminija.
@@ -215,10 +215,10 @@ Novi zanat koji stane u radionicu ili teren je opis: kvarovi, predlošci s cijen
 - [x] Bravar, hitno otvaranje vrata (teren): noćni i vikend dodatak, provjera osobne, Poslar na telefonu
 - [x] Zajednički modul za nove zanate: servisni plan, povijest uređaja, „Dospijeva” na stranici modula
 - [x] Migracije 0035 i 0036 na živoj bazi, demo i uzorne radionice za 4 nova zanata (9. 10.)
-- [ ] Geminijevi tekstovi za 4 nova zanata
+- [x] Geminijevi tekstovi za 4 nova zanata
 - [ ] Tjedni posjeti na adresi (servisni plan danas najmanje mjesečno)
-- [ ] Održavanje bazena (teren, tjedno): mjerenja pH i klora
-- [ ] Čišćenje apartmana i ureda (teren, tjedno): smjene između gostiju
+- [x] Održavanje bazena (teren): mjerenja pH i klora, tjedni servis kao predložak (pravi tjedni ritam čeka tjedne posjete)
+- [x] Čišćenje apartmana i ureda (teren): smjene između gostiju i redovno čišćenje ureda
 - [ ] Kasnije, manje tržište: deratizacija, dimnjačar, garažna vrata, majstor za sve, okućnice i vrtovi, održavanje objekata
 - [ ] Kasnije, poseban modul: gradnja i adaptacije (ponuda po m², radovi danima, avansi, situacije)
 
@@ -239,9 +239,9 @@ Tri odvojena toka: Vedranova prodaja Poslara (Paddle), računi radionica njihovi
 - [x] Praćenje dostupnosti: /api/health + docs/UPTIMEROBOT.md (nije SLA)
 - [x] Uvoz mušterija i vozila iz Excela/CSV (postojeći čarobnjak + poveznica u Postavkama)
 - [x] Rad bez signala: fotografije i terenski koraci čekaju na telefonu i šalju se kad se veza vrati
-- [ ] Račun kao zaseban dokument sa stanjem (nacrt, poslan, fiskaliziran, odbijen, storniran), storno i ponovno slanje bez dvostrukog broja
-- [ ] Paddle: obavijest koja stigne izvan redoslijeda ne vraća stariju pretplatu
-- [ ] Na naslovnici provjeriti ostale tvrdnje „automatski” (vulkanizer: raspoređivanje termina; kamioni: upozorenja o rokovima)
+- [x] Račun kao zaseban dokument sa stanjem (nacrt, izdan, poslan, fiskaliziran, odbijen, storniran), storno i ponovno slanje bez dvostrukog broja
+- [x] Paddle: obavijest koja stigne izvan redoslijeda ne vraća stariju pretplatu
+- [x] Na naslovnici provjeriti ostale tvrdnje „automatski” (vulkanizer: raspoređivanje termina; kamioni: upozorenja o rokovima)
 
 ## Kasnije
 Sef za ključeve, engleski jezik, white label (domena, ime i boje partnera), regija (SLO, BiH, SRB uz njihovu fiskalizaciju).

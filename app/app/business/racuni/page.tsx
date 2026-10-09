@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Download, ReceiptText } from 'lucide-react';
-import { PAYMENT_METHODS, invoiceNumberLabel, invoiceTotals, lineAmount, type PaymentMethod } from '@/components/invoice/InvoiceDocument';
+import { INVOICE_STATUS_LABELS, PAYMENT_METHODS, invoiceNumberLabel, invoiceTotals, lineAmount, type PaymentMethod } from '@/components/invoice/InvoiceDocument';
 import { Badge, Card, EmptyState, Input, PageHeader, Stat, buttonClass } from '@/components/ui';
 import { TILL_RATES } from '@/lib/accounting';
 import { assetTitle, clientName, formatDate, formatEuro, formatNumber } from '@/lib/format';
@@ -32,7 +32,7 @@ export default async function TillDayPage({ searchParams }: { searchParams: Prom
 
   const rows = invoices.map((inv) => ({ inv, totals: invoiceTotals(inv.lines, inv.billing.vatRegistered) }));
   const gross = rows.reduce((s, r) => s + r.totals.gross, 0);
-  const waiting = invoices.filter((inv) => !inv.fiscalRef).length;
+  const waiting = invoices.filter((inv) => !inv.fiscalRef && inv.status !== 'voided').length;
   // By payment method and by VAT rate, as the till's day report shows them.
   const byMethod = new Map<PaymentMethod | 'none', number>();
   for (const r of rows) byMethod.set(r.inv.paymentMethod ?? 'none', (byMethod.get(r.inv.paymentMethod ?? 'none') ?? 0) + r.totals.gross);
@@ -79,7 +79,7 @@ export default async function TillDayPage({ searchParams }: { searchParams: Prom
 
       {invoices.length === 0 ? (
         <EmptyState icon={<ReceiptText className="size-8" />} title={isToday ? 'Danas još nema izdanih računa.' : 'Taj dan nema izdanih računa.'}>
-          Račun izdajete na nalogu: Stavke, pa Račun.
+          Račun izdajete na nalogu: Radovi i cijena, pa Račun.
         </EmptyState>
       ) : (
         <>
@@ -131,7 +131,12 @@ export default async function TillDayPage({ searchParams }: { searchParams: Prom
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-semibold tabular">{formatEuro(totals.gross)}</p>
-                      {inv.paymentMethod ? <Badge>{PAYMENT_METHODS[inv.paymentMethod]}</Badge> : null}
+                      <div className="flex flex-wrap justify-end gap-1">
+                        {inv.status === 'voided' || inv.status === 'rejected' || inv.status === 'fiscalized' || inv.status === 'sent' ? (
+                          <Badge tone={inv.status === 'voided' ? 'crit' : inv.status === 'rejected' ? 'warn' : 'ok'}>{INVOICE_STATUS_LABELS[inv.status]}</Badge>
+                        ) : null}
+                        {inv.paymentMethod ? <Badge>{PAYMENT_METHODS[inv.paymentMethod]}</Badge> : null}
+                      </div>
                     </div>
                   </div>
 
@@ -158,9 +163,11 @@ export default async function TillDayPage({ searchParams }: { searchParams: Prom
                   </p>
 
                   <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <div className="min-w-[14rem] flex-1">
-                      <FiscalRef jobId={inv.jobId} value={inv.fiscalRef} />
-                    </div>
+                    {inv.status !== 'voided' ? (
+                      <div className="min-w-[14rem] flex-1">
+                        <FiscalRef jobId={inv.jobId} value={inv.fiscalRef} />
+                      </div>
+                    ) : null}
                     <Link href={`/app/jobs/${inv.jobId}/racun`} className={buttonClass('ghost', 'sm')}>
                       Otvori račun
                     </Link>

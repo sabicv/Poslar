@@ -25,6 +25,7 @@ const heaterService: InspectionTemplate = {
   code: 'aqua.heater_service',
   name: 'Servis bojlera',
   purpose: 'dvi',
+  proposeTemplate: 'aqua.heater_service',
   sections: [
     {
       title: 'A · Unutra',
@@ -52,6 +53,7 @@ const boilerService: InspectionTemplate = {
   code: 'aqua.boiler_service',
   name: 'Servis plinskog kotla',
   purpose: 'dvi',
+  proposeTemplate: 'aqua.boiler_service',
   sections: [
     {
       title: 'Hidraulika',

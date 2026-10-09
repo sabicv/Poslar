@@ -72,6 +72,7 @@ export async function portalUrl(cfg: PaddleConfig, customerId: string, subscript
 interface PaddleEvent {
   event_id?: string;
   event_type: string;
+  occurred_at?: string;
   data: {
     id: string;
     status?: string;
@@ -106,8 +107,17 @@ export async function applyPaddleEvent(admin: Admin, cfg: PaddleConfig, e: Paddl
 
   if (e.event_type.startsWith('subscription.')) {
     const s = e.data;
+    const occurred = e.occurred_at ? Date.parse(e.occurred_at) : Date.now();
+    const { data: cur } = await admin.from('tenants').select('paddle_event_at').eq('id', tenantId).single();
+    // A retry or a delayed older event must not revert a newer subscription.
+    if (cur?.paddle_event_at && Date.parse(cur.paddle_event_at as string) > occurred) return 'stale subscription event';
     const plan = planOfPrice(cfg, s.items?.[0]?.price?.id);
-    const patch: Record<string, unknown> = { paddle_subscription_id: s.id, paddle_customer_id: s.customer_id ?? null, paddle_status: s.status ?? null };
+    const patch: Record<string, unknown> = {
+      paddle_subscription_id: s.id,
+      paddle_customer_id: s.customer_id ?? null,
+      paddle_status: s.status ?? null,
+      paddle_event_at: e.occurred_at ?? new Date().toISOString(),
+    };
     if (plan) patch.plan = plan;
     if (s.status === 'active' || s.status === 'trialing') {
       patch.status = 'active';

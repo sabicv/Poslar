@@ -14,6 +14,7 @@ const measure: InspectionTemplate = {
   code: 'electric.measure',
   name: 'Ispitivanje instalacije',
   purpose: 'dvi',
+  proposeTemplate: 'electric.test',
   sections: [
     {
       title: 'A · Mjerenja',
@@ -43,6 +44,7 @@ const solar: InspectionTemplate = {
   code: 'electric.solar',
   name: 'Pregled sunčane elektrane',
   purpose: 'dvi',
+  proposeTemplate: 'electric.solar',
   sections: [
     {
       title: 'Elektrana',

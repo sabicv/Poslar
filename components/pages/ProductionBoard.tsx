@@ -141,7 +141,7 @@ function Card({ card }: { card: BoardCard }) {
             onClick={() => run(() => advanceBodyPhase(card.id), { success: `Sada: ${card.next}` })}
             className="w-full justify-between"
           >
-            <span>Dalje: {card.next}</span>
+            <span>{card.next}</span>
             <ChevronRight className="size-4" />
           </Button>
         </div>

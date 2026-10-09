@@ -48,6 +48,7 @@ export interface Tenant {
   paddle_customer_id?: string | null;
   paddle_subscription_id?: string | null;
   paddle_status?: string | null;
+  paddle_event_at?: string | null;
   // The mobile that forwards calls to the shared Poslar number (0033).
   phone_forward_from?: string | null;
   // Poziv na broj (model HR00) for the subscription payment.
@@ -165,6 +166,14 @@ export interface Job {
   invoice_issued_at: string | null;
   invoice_fiscal_ref: string | null;
   invoice_token: string;
+  invoice_payment_method?: 'cash' | 'card' | 'transfer' | 'other' | null;
+  invoice_premises?: string | null;
+  invoice_device?: string | null;
+  invoice_operator?: string | null;
+  invoice_status?: 'draft' | 'issued' | 'sent' | 'fiscalized' | 'rejected' | 'voided';
+  invoice_sent_at?: string | null;
+  invoice_rejected_at?: string | null;
+  invoice_voided_at?: string | null;
 }
 
 export interface Site {

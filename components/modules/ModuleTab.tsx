@@ -49,6 +49,8 @@ export function ModuleTab(props: ModuleProps) {
     case 'electric':
     case 'appliance':
     case 'locksmith':
+    case 'pool':
+    case 'clean':
       return <GenericModule {...props} />;
   }
 }

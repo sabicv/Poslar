@@ -33,6 +33,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         <InvoiceActions
           jobId={id}
           issued={invoice.number !== null}
+          status={invoice.status}
           title={title}
           link={`${appUrl}/racun/${invoice.token}`}
           workshopName={invoice.workshop.name}
@@ -44,7 +45,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           // A company usually pays to the account, a person in cash or by card.
           defaultMethod={invoice.client.kind === 'company' ? 'transfer' : 'cash'}
         />
-        {missingPrices ? <p className="rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">Neke stavke nemaju cijenu. Upišite je u kartici Stavke.</p> : null}
+        {missingPrices ? <p className="rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">Neke stavke nemaju cijenu. Upišite je u kartici Radovi i cijena.</p> : null}
         {!invoice.billing.iban || !invoice.workshop.oib ? (
           <p className="text-xs text-muted">OIB i IBAN obrta upisuju se u Postavke → Radionica; tada se sami pojave na računu.</p>
         ) : null}

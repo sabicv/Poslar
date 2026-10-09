@@ -10,6 +10,7 @@ const check: InspectionTemplate = {
   code: 'appliance.check',
   name: 'Pregled uređaja',
   purpose: 'dvi',
+  proposeTemplate: 'appliance.visit',
   sections: [
     {
       title: 'A · Uređaj',

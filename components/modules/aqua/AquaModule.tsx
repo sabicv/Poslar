@@ -53,6 +53,7 @@ export async function AquaModule({ ctx, job, locked, extras }: ModuleProps) {
                 fixed={{ job_id: job.id, asset_id: job.asset.id, performed_at: '__now__' }}
                 initial={{ medium: 'water', duration_min: 30, passed: true }}
                 label="Proba"
+                proposeTemplate="aqua.pressure_test"
                 fields={[
                   { name: 'section', label: 'Dio instalacije', placeholder: 'npr. kupaonica, hladna i topla' },
                   { name: 'test_pressure_bar', label: 'Ispitni tlak', type: 'number', suffix: 'bar', half: true, required: true },

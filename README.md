@@ -54,13 +54,13 @@ Potrebno: Node.js 20+ i **novi** Supabase projekt. Ne koristite projekt servisa 
    ```
 4. **Otvaranje:** http://localhost:3000. Za drugi proizvod na istom računalu koristite poddomenu: `http://gear.localhost:3000`, `http://wheel.localhost:3000` itd.
 
-**Jedan račun za testiranje svega:** `demo@demo.xfiles.hr` (lozinka `Demo2026!` ili vaš `DEMO_PASSWORD`). Otvara **Demo centar** sa svih petnaest zanata: jednim dodirom ulazite kao voditelj ili radnik bilo koje demo radionice. U aplikaciji traka **Demo** na vrhu prebacuje ulogu (voditelj ⇄ radnik) ili vraća u Demo centar. Prebacivanje radi samo između demo računa (oznaka koju postavlja seed).
+**Jedan račun za testiranje svega:** `demo@demo.poslar.eu` (lozinka `Demo2026!` ili vaš `DEMO_PASSWORD`). Otvara **Demo centar** sa svih sedamnaest zanata: jednim dodirom ulazite kao voditelj ili radnik bilo koje demo radionice. U aplikaciji traka **Demo** na vrhu prebacuje ulogu (voditelj ⇄ radnik) ili vraća u Demo centar. Prebacivanje radi samo između demo računa (oznaka koju postavlja seed). Stari `demo@demo.xfiles.hr` još radi dok se demo ne napuni iznova.
 
 Pojedinačni demo računi, s istom lozinkom:
-- `vlasnik.volt@demo.xfiles.hr`: voditelj servisa (vidi cijene, naplatu, poslovanje);
-- `radnik.volt@demo.xfiles.hr`: radnik (vidi naloge, ne vidi iznose).
+- `vlasnik.volt@demo.poslar.eu`: voditelj servisa (vidi cijene, naplatu, poslovanje);
+- `radnik.volt@demo.poslar.eu`: radnik (vidi naloge, ne vidi iznose).
 
-Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `machine`, `moto`, `marine`, `air`, `aqua`, `tow`, `deal`, `detail`, `electric`, `appliance` i `locksmith`. Samo neke zanate puni `npm run db:seed -- detail electric`, a uzorne radionice za probni dan `npm run db:seed -- --uzorak`. Seed na kraju ispiše i poveznice za odobrenje stranke.
+Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `machine`, `moto`, `marine`, `air`, `aqua`, `tow`, `deal`, `detail`, `electric`, `appliance`, `locksmith`, `pool` i `clean`. Samo neke zanate puni `npm run db:seed -- detail electric`, a uzorne radionice za probni dan `npm run db:seed -- --uzorak`. Seed na kraju ispiše i poveznice za odobrenje stranke.
 
 `npm run db:seed` vraća demo podatke na početno stanje, s današnjim datumima. Računi ostaju isti, pa se nitko ne odjavljuje.
 
@@ -76,7 +76,7 @@ Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `machine`, `moto`, `marine`, `
 | `npm run db:migrate` | primjenjuje nove migracije (`-- --all` ponovno sve, sigurno je) |
 | `npm run db:seed` | briše i ponovno stvara samo demo radionice |
 | `npm run db:test` | 189 sigurnosnih testova baze na lokalnom Postgresu (PGlite), bez Supabasea, uključujući izravne napade preko API-ja |
-| `npm run icons` | ponovno generira ikone aplikacije za svih 15 zanata |
+| `npm run icons` | ponovno generira ikone aplikacije za svih 17 zanata |
 
 ## Objava (Vercel)
 

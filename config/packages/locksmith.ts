@@ -36,7 +36,7 @@ export const locksmith: PackageConfig = {
       'Način otvaranja zapisan (bez oštećenja, cilindar razbijen…)',
       'Fotografija nakon otvaranja',
       'Mušterija potpisala zapisnik',
-    ]),
+    ], 'locksmith.open'),
     checklist('locksmith.install', 'Ugradnja brave', 'checklist', 'Ugradnja', [
       'Mjere cilindra izmjerene (vani i unutra)',
       'Razred zaštite cilindra zapisan',

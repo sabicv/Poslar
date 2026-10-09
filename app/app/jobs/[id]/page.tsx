@@ -35,16 +35,16 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   if (!data) notFound();
   const job = data as unknown as JobWithRefs;
 
-  // "Dnevnik" is this job's log; the object's history is its own page.
+  // "Što je rađeno" is this job's log; the object's history is its own page.
   const tabs = [
     { id: 'pregled', label: 'Pregled' },
-    { id: 'stavke', label: 'Stavke' },
+    { id: 'stavke', label: 'Radovi i cijena' },
     { id: 'modul', label: ctx.pkg.moduleTab },
     { id: 'foto', label: 'Fotografije' },
     { id: 'poruke', label: 'Poruke' },
-    { id: 'inspekcija', label: 'Inspekcija' },
+    { id: 'inspekcija', label: 'Kontrolna lista' },
     ...(hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'condition_report') ? [{ id: 'zapisnik', label: 'Zapisnik' }] : []),
-    { id: 'povijest', label: 'Dnevnik' },
+    { id: 'povijest', label: 'Što je rađeno' },
   ];
   const active = tabs.some((t) => t.id === tab) ? tab : 'pregled';
   const href = (tabId: string) => `/app/jobs/${id}${tabId === 'pregled' ? '' : `?tab=${tabId}`}`;
@@ -77,6 +77,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         paid={job.payment_status === 'paid'}
         locked={locked}
         billing={billing}
+        field={ctx.pkg.sector === 'field'}
         copilot={Boolean(process.env.ANTHROPIC_API_KEY)}
       />
     </div>

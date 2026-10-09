@@ -11,10 +11,10 @@ export const COMMON_PHOTO_TAGS = [
 
 // A plain checklist: every item is "done / not applicable" with an
 // optional note, but it runs on the same inspection engine as the DVI.
-export function checklist(code: string, name: string, purpose: InspectionTemplate['purpose'], title: string, labels: string[]): InspectionTemplate {
+export function checklist(code: string, name: string, purpose: InspectionTemplate['purpose'], title: string, labels: string[], proposeTemplate?: string): InspectionTemplate {
   const section: InspectionSection = {
     title,
     items: labels.map((label, i) => ({ code: `${code.split('.').pop()}_${String(i + 1).padStart(2, '0')}`, label })),
   };
-  return { code, name, purpose, sections: [section] };
+  return { code, name, purpose, sections: [section], proposeTemplate };
 }

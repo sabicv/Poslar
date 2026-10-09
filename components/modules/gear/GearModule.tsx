@@ -77,7 +77,7 @@ export async function GearModule({ ctx, job, locked }: ModuleProps) {
           <p className="px-4 py-4 text-sm text-muted">
             Nema stavki vrste Dio. Dodajte ih u kartici{' '}
             <Link href={`${path}?tab=stavke`} className="text-accent">
-              Stavke
+              Radovi i cijena
             </Link>
             .
           </p>

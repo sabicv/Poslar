@@ -1,4 +1,4 @@
-import { Anchor, Bike, CarFront, Cog, Disc3, Droplets, Fan, KeyRound, PlugZap, Siren, Sparkles, SprayCan, Tractor, Truck, WashingMachine, Zap, type LucideIcon } from 'lucide-react';
+import { Anchor, Bike, Building2, CarFront, Cog, Disc3, Droplets, Fan, KeyRound, PlugZap, Siren, Sparkles, SprayCan, Tractor, Truck, WashingMachine, Waves, Zap, type LucideIcon } from 'lucide-react';
 import { BRAND, type PackageId } from '@/config/tenant.config';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +19,8 @@ export const PRODUCT_ICONS: Record<PackageId, LucideIcon> = {
   electric: PlugZap,
   appliance: WashingMachine,
   locksmith: KeyRound,
+  pool: Waves,
+  clean: Building2,
 };
 
 // The Poslar mark: a checkbox drawn as one white line on a blue tile, the

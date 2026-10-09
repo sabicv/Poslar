@@ -47,7 +47,8 @@ export function Pricing({ spotsLeft }: { spotsLeft: number }) {
           );
         })}
       </div>
-      <p className="mt-4 text-sm text-muted">{PRICING.funding}</p>
+      <p className="mt-4 text-sm text-muted">{PRICING.yearly}</p>
+      <p className="mt-2 text-sm text-muted">{PRICING.funding}</p>
     </>
   );
 }
