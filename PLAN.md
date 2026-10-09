@@ -214,7 +214,7 @@ Novi zanat koji stane u radionicu ili teren je opis: kvarovi, predlošci s cijen
 - [x] Servis kućanskih aparata (radionica i teren): uređaj sa serijskim brojem, očitavanje pločice, čekanje dijela
 - [x] Bravar, hitno otvaranje vrata (teren): noćni i vikend dodatak, provjera osobne, Poslar na telefonu
 - [x] Zajednički modul za nove zanate: servisni plan, povijest uređaja, „Dospijeva” na stranici modula
-- [ ] Migracije 0035 i 0036 na živu bazu, demo podaci (`npm run db:seed -- detail electric appliance locksmith`)
+- [x] Migracije 0035 i 0036 na živoj bazi, demo i uzorne radionice za 4 nova zanata (9. 10.)
 - [ ] Geminijevi tekstovi za 4 nova zanata
 - [ ] Tjedni posjeti na adresi (servisni plan danas najmanje mjesečno)
 - [ ] Održavanje bazena (teren, tjedno): mjerenja pH i klora
