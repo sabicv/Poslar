@@ -56,9 +56,11 @@ export function PhotoGallery({
     const all = [...list];
     setProgress({ done: 0, total: all.length });
     let failed = 0;
+    let queued = 0;
     for (const file of all) {
       try {
-        await uploadFile({ tenantId, jobId, file, tag, stage: withStages ? stage : null });
+        const result = await uploadFile({ tenantId, jobId, file, tag, stage: withStages ? stage : null });
+        if ('queued' in result && result.queued) queued++;
       } catch {
         failed++;
       }
@@ -66,6 +68,7 @@ export function PhotoGallery({
     }
     setProgress(null);
     if (failed) toast.error(`${failed} datoteka nije poslano. Provjerite vezu i pokušajte ponovno.`);
+    else if (queued) toast.success(queued === 1 ? 'Spremljeno na telefonu. Šalje se kad se veza vrati.' : `${queued} fotografija na telefonu. Šalju se kad se veza vrati.`);
     else toast.success(all.length === 1 ? 'Fotografija spremljena' : `${all.length} ${plural(all.length, 'datoteka spremljena', 'datoteke spremljene', 'datoteka spremljeno')}`);
     router.refresh();
   }

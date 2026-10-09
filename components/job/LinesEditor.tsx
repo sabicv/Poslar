@@ -328,10 +328,11 @@ function LineSheet({
   const [unitPrice, setUnitPrice] = useState(price ? String(price.unit_price) : !line && isOwner ? hourlyText : '');
   const [discount, setDiscount] = useState(price ? String(price.discount_pct) : '0');
   const [vat, setVat] = useState(price ? String(price.vat_rate) : '25');
+  const [kpd, setKpd] = useState(line?.kpd_code ?? '');
   // Core: kind, what, how many, price. Unit, discount, VAT and the customer
   // approval flow: "Više polja" (open when a line already uses them).
   const defaultUnit = (k: LineKind) => (k === 'labor' ? 'h' : k === 'material' ? 'l' : 'kom');
-  const [more, setMore] = useState(() => Boolean(line && line.unit !== defaultUnit(line.kind)) || Boolean(price && (Number(price.discount_pct) !== 0 || Number(price.vat_rate) !== 25)));
+  const [more, setMore] = useState(() => Boolean(line && (line.unit !== defaultUnit(line.kind) || line.kpd_code)) || Boolean(price && (Number(price.discount_pct) !== 0 || Number(price.vat_rate) !== 25)));
 
   function saved() {
     onSaved();
@@ -339,7 +340,7 @@ function LineSheet({
   }
 
   function save() {
-    const values = { kind, description, qty: num(qty) || 0, unit: unit || 'kom', approval, priority: priority || null };
+    const values = { kind, description, qty: num(qty) || 0, unit: unit || 'kom', approval, priority: priority || null, kpd_code: kpd };
     const priceValues = unitPrice !== '' ? { unit_price: num(unitPrice) || 0, discount_pct: num(discount) || 0, vat_rate: num(vat) || 0 } : undefined;
     if (line) {
       run(
@@ -409,6 +410,9 @@ function LineSheet({
             </>
           ) : null}
         </div>
+        <Field label="KPD šifra (fiskalni račun)">
+          <Input inputMode="numeric" maxLength={6} value={kpd} onChange={(e) => setKpd(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="npr. 452011" className="font-mono" />
+        </Field>
         </>
         ) : null}
         {/* Always in view: whether it is being done or first offered to the customer. */}

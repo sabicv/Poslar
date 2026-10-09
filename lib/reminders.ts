@@ -44,7 +44,7 @@ export function currentSeason(today = todayInZagreb()): Season {
 }
 
 const SEASON_CODES = ['wheel.season', 'wheel.suv'];
-const SERVICE_CODES = ['gear.small_service', 'gear.big_service', 'moto.service_small', 'moto.service_big', 'moto.outboard_service', 'fleet.pm_a', 'fleet.pm_b', 'fleet.machine_250'];
+const SERVICE_CODES = ['gear.small_service', 'gear.big_service', 'moto.service_small', 'moto.service_big', 'moto.outboard_service', 'fleet.pm_a', 'fleet.pm_b', 'machine.service_250', 'machine.service_500'];
 // Lines typed by hand count too: what a service or a tyre change is called.
 const SEASON_WORDS = ['sezonsk', 'montaža 4 kotača', 'zamjena guma', 'zimske gume', 'ljetne gume'];
 const SERVICE_WORDS = ['mali servis', 'veliki servis', 'zamjena ulja', 'ulje i filter', 'plansko održavanje', 'servis motocikla'];
@@ -74,7 +74,7 @@ export async function loadReminders(ctx: WorkshopContext): Promise<{ items: Remi
       .select('id, title, next_due_date, last_reminded_at, client:clients(kind, first_name, last_name, company_name, phone), site:sites(address, city, contact_phone), asset:assets(id, asset_type, identifier, make, model, client_id)')
       .eq('active', true)
       .lte('next_due_date', addDays(today, 30)),
-    ctx.pkg.id === 'fleet' ? s.from('fleet_compliance_items').select(`id, kind, valid_until, asset:assets(${assetSel})`).gte('valid_until', addDays(today, -30)).lte('valid_until', addDays(today, 30)) : Promise.resolve({ data: [] }),
+    ctx.pkg.id === 'fleet' || ctx.pkg.id === 'machine' ? s.from('fleet_compliance_items').select(`id, kind, valid_until, asset:assets(${assetSel})`).gte('valid_until', addDays(today, -30)).lte('valid_until', addDays(today, 30)) : Promise.resolve({ data: [] }),
     seasonal && season.kind ? s.from('wheel_tire_sets').select(`id, season, client_id, client:clients(kind, first_name, last_name, company_name, phone), asset:assets(${assetSel})`).eq('status', 'stored').eq('season', season.kind) : Promise.resolve({ data: [] }),
     seasonal && season.kind
       ? s.from('job_lines').select(`template_code, job:jobs(created_at, asset:assets(${assetSel}))`).or(lineMatch(SEASON_CODES, SEASON_WORDS)).gte('created_at', addMonths(today, -18))

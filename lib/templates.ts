@@ -16,7 +16,7 @@ export interface TemplateEntry extends JobTemplate {
   hidden: boolean;
 }
 
-const strip = (lines: TemplateLine[]) => lines.map(({ kind, description, code, qty, unit }) => ({ kind, description, ...(code ? { code } : {}), qty: Number(qty), unit }));
+const strip = (lines: TemplateLine[]) => lines.map(({ kind, description, code, qty, unit, kpd }) => ({ kind, description, ...(code ? { code } : {}), qty: Number(qty), unit, ...(kpd ? { kpd } : {}) }));
 export const sameLines = (a: TemplateLine[], b: TemplateLine[]) => JSON.stringify(strip(a)) === JSON.stringify(strip(b));
 
 export async function listTemplates(ctx: WorkshopContext, { includeHidden = false } = {}): Promise<TemplateEntry[]> {

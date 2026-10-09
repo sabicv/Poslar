@@ -66,7 +66,7 @@ async function allUsers() {
 
 // Only the demo workshops this script made (exact slug + demo flag),
 // never a real workshop whose name happens to start with "Demo".
-const ALL_PACKAGES = ['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'marine', 'air', 'aqua', 'tow', 'deal', 'detail', 'electric', 'appliance', 'locksmith'];
+const ALL_PACKAGES = ['volt', 'gear', 'body', 'wheel', 'fleet', 'machine', 'moto', 'marine', 'air', 'aqua', 'tow', 'deal', 'detail', 'electric', 'appliance', 'locksmith'];
 // `npm run db:seed -- --uzorak` makes the sample workshops instead: the
 // same data under uzorak-<package>, with logins nobody can use. A new
 // workshop's 24-hour trial is a copy of its trade's sample (clone_sample,
@@ -916,22 +916,15 @@ async function seedWheel() {
 async function seedFleet() {
   const T = await workshop({ pkg: 'fleet', name: 'Servis gospodarskih vozila Perić', city: 'Sesvete', address: 'Zagrebačka 210', phone: '+385 1 555 0505', owner: 'Stjepan Perić', worker: 'Mario Bošnjak' });
   const t1 = await client(T, { company: 'Transport Horvat d.o.o.', first: 'Damir', last: 'Horvat', phone: '+385 91 600 1100', city: 'Dugo Selo', oib: '12345678903' });
-  const t2 = await client(T, { company: 'Građevina Kamen d.o.o.', first: 'Siniša', last: 'Kralj', phone: '+385 98 600 2200', city: 'Vrbovec' });
-  const t3 = await client(T, { company: 'Agro Slavonija d.o.o.', first: 'Zdenko', last: 'Pavić', phone: '+385 95 600 3300', city: 'Đakovo' });
   await q(
     sb.from('fleet_accounts').insert([
       { tenant_id: T.id, client_id: t1, fleet_manager_name: 'Damir Horvat', fleet_manager_phone: '+385 91 600 1100', payment_terms_days: 30, po_required: true },
-      { tenant_id: T.id, client_id: t2, fleet_manager_name: 'Siniša Kralj', fleet_manager_phone: null, payment_terms_days: 45, po_required: false },
-      { tenant_id: T.id, client_id: t3, fleet_manager_name: 'Zdenko Pavić', fleet_manager_phone: null, payment_terms_days: 60, po_required: false },
     ])
   );
   const truck1 = await asset(T, t1, { type: 'tractor_unit', id: 'ZG-4410-TH', make: 'MAN', model: 'TGX 18.470', year: 2020, fuel: 'diesel', internal: 'K-04', axles: '4x2', gvw: 18 });
   const truck2 = await asset(T, t1, { type: 'tractor_unit', id: 'ZG-4411-TH', make: 'Volvo', model: 'FH 500', year: 2019, fuel: 'diesel', internal: 'K-05', axles: '4x2', gvw: 18 });
   const trailer1 = await asset(T, t1, { type: 'semi_trailer', id: 'ZG-123-PR', make: 'Schmitz Cargobull', model: 'S.KO Cool', year: 2018, parent: truck1, internal: 'P-11', axles: '3 osovine' });
   const truck3 = await asset(T, t1, { type: 'truck', id: 'ZG-7702-TH', make: 'Mercedes-Benz', model: 'Atego 1224', year: 2016, fuel: 'diesel', internal: 'K-09', gvw: 12 });
-  const digger = await asset(T, t2, { type: 'machine', id: 'CAT-320-0071', make: 'Caterpillar', model: '320 GC', year: 2021, unit: 'mth', vin: 'CAT0320GCXXX01234', internal: 'B-2' });
-  const tractor = await asset(T, t3, { type: 'tractor', id: 'OS-T-221', make: 'John Deere', model: '6155R', year: 2019, unit: 'mth' });
-  await asset(T, t3, { type: 'implement', id: 'PRS-8', make: 'Amazone', model: 'UX 5201 prskalica', year: 2020, unit: 'mth', parent: tractor });
 
   await q(
     sb.from('fleet_compliance_items').insert([
@@ -942,18 +935,17 @@ async function seedFleet() {
       { tenant_id: T.id, asset_id: truck2, kind: 'adr', valid_from: day(-300), valid_until: day(42) },
       { tenant_id: T.id, asset_id: trailer1, kind: 'preventive_inspection', valid_from: day(-170), valid_until: day(12) },
       { tenant_id: T.id, asset_id: truck3, kind: 'technical_inspection', valid_from: day(-330), valid_until: day(35) },
-      { tenant_id: T.id, asset_id: digger, kind: 'insurance', valid_from: day(-300), valid_until: day(65) },
     ])
   );
   const [plan] = await q(sb.from('fleet_pm_plans').insert({ tenant_id: T.id, name: 'PM-A kamion', interval_km: 60000, interval_days: 365, checklist_code: 'fleet.pm_a', template_code: 'fleet.pm_a' }).select('id'));
   await q(sb.from('fleet_asset_pm').insert({ tenant_id: T.id, asset_id: truck2, plan_id: plan.id, last_done_km: 402000, last_done_date: day(-300), next_due_km: 462000, next_due_date: day(65) }));
 
-  const j1 = await job(T, { client: t2, asset: digger, phase: 'in_progress', d: 0, source: 'field', unit: 'mth', meter: 4213.5, urgent: true, complaint: 'Terenska intervencija, Hidraulika, curi crijevo na strijeli', lines: [{ kind: 'fee', d: 'Izlazak na teren', unit: 'paušal', price: 60 }, { d: 'Rad na terenu', qty: 2, price: 65 }, { kind: 'part', d: 'Hidraulično crijevo 1/2" 1,6 m (izrada)', price: 95, buy: 58 }] });
+  const j1 = await job(T, { client: t1, asset: truck1, phase: 'in_progress', d: 0, source: 'field', meter: 388950, urgent: true, complaint: 'Terenska intervencija, vozilo stoji na parkiralištu, ne pali', lines: [{ kind: 'fee', d: 'Izlazak na teren', unit: 'paušal', price: 60 }, { d: 'Rad na terenu', qty: 2, price: 65 }, { kind: 'part', d: 'Relej anlasera', price: 48, buy: 22 }] });
   await q(
-    sb.from('fleet_field_jobs').insert({ tenant_id: T.id, job_id: j1.id, address: 'Gradilište obilaznica Vrbovec, dionica 3', lat: 45.8829, lng: 16.4213, departed_at: at(0, 7, 10), arrived_at: at(0, 7, 55), work_started: at(0, 8, 5), travel_km: 38 })
+    sb.from('fleet_field_jobs').insert({ tenant_id: T.id, job_id: j1.id, address: 'Parkiralište TPK, Dugo Selo', lat: 45.8061, lng: 16.2376, departed_at: at(0, 7, 10), arrived_at: at(0, 7, 55), work_started: at(0, 8, 5), travel_km: 18 })
   );
-  await q(sb.from('fleet_downtime').insert({ tenant_id: T.id, asset_id: digger, job_id: j1.id, from_at: at(1, 16), reason: 'breakdown' }));
-  await photo(T, j1.id, { label: 'Crijevo na strijeli', sub: 'CAT 320 · teren Vrbovec', tag: 'field', hue: 40, d: 0 });
+  await q(sb.from('fleet_downtime').insert({ tenant_id: T.id, asset_id: truck1, job_id: j1.id, from_at: at(1, 16), reason: 'breakdown' }));
+  await photo(T, j1.id, { label: 'Motor ne pali', sub: 'MAN TGX · teren Dugo Selo', tag: 'field', hue: 40, d: 0 });
 
   const j2 = await job(T, {
     client: t1,
@@ -973,9 +965,8 @@ async function seedFleet() {
 
   await job(T, { client: t1, asset: truck3, phase: 'awaiting_parts', d: 3, meter: 612400, complaint: 'Kočnice / zrak, pada tlak u krugu 2', lines: [{ d: 'Dijagnostika zračnog sustava', qty: 1.5, price: 55 }, { kind: 'part', d: 'Ventil četverokružni zaštitni', price: 210, buy: 150 }] });
   await job(T, { client: t1, asset: trailer1, phase: 'ready', d: 2, meter: 0, complaint: 'Pregled prikolice', summary: 'Ležajevi, kočnice i svjetla pregledani, zamijenjena žarulja pozicije.', lines: [{ d: 'Pregled priključnog vozila', qty: 1.5, price: 55 }] });
-  await job(T, { client: t3, asset: tractor, phase: 'collected', paid: true, d: 25, unit: 'mth', meter: 3120, complaint: 'Planski servis (PM)', lines: [{ d: 'Servis 500 mth', qty: 4, price: 55 }, { kind: 'part', d: 'Filteri i ulje', price: 310 }] });
   await job(T, { client: t1, asset: truck1, phase: 'collected', paid: false, d: 16, meter: 388200, complaint: 'Tahograf', lines: [{ d: 'Periodični pregled tahografa', unit: 'paušal', price: 120 }] });
-  await job(T, { client: t1, asset: truck1, phase: 'collected', paid: true, d: 80, meter: 371000, complaint: 'Vozilo stoji, ne pali', lines: [{ d: 'Terenska intervencija i popravak', qty: 3, price: 65 }, { kind: 'part', d: 'Relej anlasera', price: 48 }] });
+  await job(T, { client: t1, asset: truck3, phase: 'collected', paid: true, d: 80, meter: 598000, complaint: 'Zamjena uloška sušača zraka', lines: [{ d: 'Zamjena uloška sušača zraka', qty: 0.5, price: 55 }, { kind: 'part', d: 'Uložak sušača zraka', price: 45 }] });
 
   await q(sb.from('fleet_service_requests').insert({ tenant_id: T.id, asset_id: trailer1, reported_by: 'Vozač Ivica (K-04)', description: 'Kočnice cvile na prikolici, ABS lampica povremeno', priority: 'urgent', status: 'new' }));
   await q(
@@ -993,6 +984,50 @@ async function seedFleet() {
       ],
     })
   );
+  await messages(T, j1.id, 'Na terenu nema signala, koji je relej anlasera za ovaj MAN?', 'Bosch 0 331 303 007, fotka pločice je u galeriji.');
+  return { T, links: [] };
+}
+
+// ---------------------------------------------------------------------
+// MACHINE — bageri, traktori, priključci
+// ---------------------------------------------------------------------
+async function seedMachine() {
+  const T = await workshop({ pkg: 'machine', name: 'Servis radnih strojeva Kamen', city: 'Vrbovec', address: 'Moslavačka 14', phone: '+385 1 555 0606', owner: 'Siniša Kralj', worker: 'Ivan Bašić' });
+  const t2 = await client(T, { company: 'Građevina Kamen d.o.o.', first: 'Siniša', last: 'Kralj', phone: '+385 98 600 2200', city: 'Vrbovec' });
+  const t3 = await client(T, { company: 'Agro Slavonija d.o.o.', first: 'Zdenko', last: 'Pavić', phone: '+385 95 600 3300', city: 'Đakovo' });
+  await q(
+    sb.from('fleet_accounts').insert([
+      { tenant_id: T.id, client_id: t2, fleet_manager_name: 'Siniša Kralj', fleet_manager_phone: null, payment_terms_days: 45, po_required: false },
+      { tenant_id: T.id, client_id: t3, fleet_manager_name: 'Zdenko Pavić', fleet_manager_phone: null, payment_terms_days: 60, po_required: false },
+    ])
+  );
+  const digger = await asset(T, t2, { type: 'machine', id: 'CAT-320-0071', make: 'Caterpillar', model: '320 GC', year: 2021, unit: 'mth', vin: 'CAT0320GCXXX01234', internal: 'B-2' });
+  const tractor = await asset(T, t3, { type: 'tractor', id: 'OS-T-221', make: 'John Deere', model: '6155R', year: 2019, unit: 'mth' });
+  await asset(T, t3, { type: 'implement', id: 'PRS-8', make: 'Amazone', model: 'UX 5201 prskalica', year: 2020, unit: 'mth', parent: tractor });
+
+  await q(
+    sb.from('fleet_compliance_items').insert([
+      { tenant_id: T.id, asset_id: digger, kind: 'insurance', valid_from: day(-300), valid_until: day(65) },
+      { tenant_id: T.id, asset_id: tractor, kind: 'technical_inspection', valid_from: day(-200), valid_until: day(40) },
+      { tenant_id: T.id, asset_id: digger, kind: 'fire_extinguisher', valid_from: day(-280), valid_until: day(18) },
+    ])
+  );
+  const [plan] = await q(sb.from('fleet_pm_plans').insert({ tenant_id: T.id, name: 'Servis 250 mth', interval_mth: 250, checklist_code: 'machine.service', template_code: 'machine.service_250' }).select('id'));
+  await q(sb.from('fleet_asset_pm').insert({ tenant_id: T.id, asset_id: digger, plan_id: plan.id, last_done_mth: 4000, last_done_date: day(-40), next_due_mth: 4250, next_due_date: day(20) }));
+
+  const j1 = await job(T, { client: t2, asset: digger, phase: 'in_progress', d: 0, source: 'field', unit: 'mth', meter: 4213.5, urgent: true, complaint: 'Terenska intervencija, Hidraulika, curi crijevo na strijeli', lines: [{ kind: 'fee', d: 'Izlazak na teren', unit: 'paušal', price: 60 }, { d: 'Rad na terenu', qty: 2, price: 65 }, { kind: 'part', d: 'Hidraulično crijevo 1/2" 1,6 m (izrada)', price: 95, buy: 58 }] });
+  await q(
+    sb.from('fleet_field_jobs').insert({ tenant_id: T.id, job_id: j1.id, address: 'Gradilište obilaznica Vrbovec, dionica 3', lat: 45.8829, lng: 16.4213, departed_at: at(0, 7, 10), arrived_at: at(0, 7, 55), work_started: at(0, 8, 5), travel_km: 38 })
+  );
+  await q(sb.from('fleet_downtime').insert({ tenant_id: T.id, asset_id: digger, job_id: j1.id, from_at: at(1, 16), reason: 'breakdown' }));
+  await photo(T, j1.id, { label: 'Crijevo na strijeli', sub: 'CAT 320 · teren Vrbovec', tag: 'field', hue: 40, d: 0 });
+
+  await inspection(T, j1.id, 'machine.check', 'Pregled stroja', checklistCodes('check', 9).map((c, i) => [c, i === 2 ? 'warn' : i < 7 ? 'ok' : 'not_checked', null, i === 2 ? 'Crijevo na strijeli curi' : null]), { d: 0 });
+
+  await job(T, { client: t3, asset: tractor, phase: 'collected', paid: true, d: 25, unit: 'mth', meter: 3120, complaint: 'Planski servis (PM)', lines: [{ d: 'Servis 500 mth', qty: 4, price: 55 }, { kind: 'part', d: 'Filteri i ulje', price: 310 }] });
+  await job(T, { client: t2, asset: digger, phase: 'ready', d: 3, unit: 'mth', meter: 3980, complaint: 'Servis 250 mth', lines: [{ d: 'Servis radnog stroja (250 mth)', qty: 3, price: 55 }, { kind: 'part', d: 'Filter ulja', price: 30 }, { kind: 'material', d: 'Motorno ulje', qty: 15, unit: 'l', price: 6 }] });
+
+  await q(sb.from('fleet_service_requests').insert({ tenant_id: T.id, asset_id: digger, reported_by: 'Strojar Marko (B-2)', description: 'Curi ulje ispod stroja, nivo hidraulike pada', priority: 'urgent', status: 'new' }));
   await messages(T, j1.id, 'Na terenu nema signala za plan crijeva, koja je dimenzija spojnice?', 'JIC 3/4", fotka pločice stroja je u galeriji.');
   return { T, links: [] };
 }
@@ -2055,6 +2090,22 @@ const AI_BOOKINGS = {
       ['Poslar', 'Upisano: sutra u 7:30, zamjena na zimske za OS-631-GK. Doviđenja.'],
     ],
   },
+  machine: {
+    client: { company: 'Građevina Babić d.o.o.', first: 'Ivica', last: 'Babić', phone: '+385 91 557 3305', city: 'Vrbovec' },
+    asset: { type: 'machine', id: 'CAT-336-1102', make: 'Caterpillar', model: '336', year: 2020, unit: 'mth' },
+    complaint: 'Curi hidraulika na strijeli, stroj stoji na gradilištu.',
+    slot: [1, 8, 0, 180],
+    summary: 'Ivica Babić, Građevina Babić: bager CAT 336 curi hidraulika, treba terenska intervencija sutra u 8:00.',
+    talk: [
+      ['Poslar', 'Dobar dan, Servis radnih strojeva Kamen, ovdje Poslar. Majstor trenutno ne može, pa se javljam automatski. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Babić, Građevina Babić. Bageru curi crijevo na strijeli.'],
+      ['Poslar', 'Koji je stroj i gdje se nalazi?'],
+      ['Mušterija', 'CAT 336, obilaznica Vrbovec, dionica 2. Treba nam danas.'],
+      ['Poslar', 'Sutra u 8:00 imamo slobodnu ekipu za teren. Može?'],
+      ['Mušterija', 'Može, strojar čeka na gradilištu.'],
+      ['Poslar', 'Upisano: sutra u 8:00, terenska intervencija, hidraulika na CAT 336. Doviđenja.'],
+    ],
+  },
   fleet: {
     client: { company: 'Transport Babić d.o.o.', first: 'Ivica', last: 'Babić', phone: '+385 91 557 3304', city: 'Sesvete' },
     asset: { type: 'tractor_unit', id: 'ZG-9081-TB', make: 'MAN', model: 'TGX 18.510', year: 2020, fuel: 'diesel' },
@@ -2305,6 +2356,7 @@ for (const [name, fn] of [
   ['Body', seedBody],
   ['Wheel', seedWheel],
   ['Fleet', seedFleet],
+  ['Machine', seedMachine],
   ['Moto', seedMoto],
   ['Marine', seedMarine],
   ['Air', seedAir],

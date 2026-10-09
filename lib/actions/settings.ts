@@ -48,6 +48,7 @@ const billingSchema = z.object({
   // the Tax Administration: the invoice number then reads 12/PP1/1.
   premises: z.string().trim().max(20).regex(/^[A-Za-z0-9]*$/, 'Oznaka prostora: samo slova i brojke, bez razmaka.').optional().default(''),
   device: z.string().trim().max(6).regex(/^\d*$/, 'Oznaka naplatnog uređaja je broj.').optional().default(''),
+  operator: z.string().trim().max(80).optional().default(''),
 });
 
 export async function updateBilling(values: z.input<typeof billingSchema>): Promise<ActionResult> {
@@ -55,14 +56,14 @@ export async function updateBilling(values: z.input<typeof billingSchema>): Prom
   if (!ctx.isOwner) return fail('Podatke za račun uređuje voditelj servisa.');
   const parsed = billingSchema.safeParse(values);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? 'Provjerite podatke.');
-  const { premises, device } = parsed.data;
+  const { premises, device, operator } = parsed.data;
   if (Boolean(premises) !== Boolean(device)) return fail('Upišite i oznaku poslovnog prostora i oznaku naplatnog uređaja, ili nijednu.');
   const settings = {
     ...((ctx.tenant.settings as Record<string, unknown> | null) ?? {}),
     iban: parsed.data.iban || null,
     vat_registered: parsed.data.vat_registered,
     invoice_note: parsed.data.invoice_note || null,
-    fiscal: premises ? { premises: premises.toUpperCase(), device } : null,
+    fiscal: premises || operator ? { premises: premises ? premises.toUpperCase() : null, device: device || null, operator: operator || null } : null,
   };
   const { error } = await ctx.supabase.from('tenants').update({ settings }).eq('id', ctx.tenant.id);
   if (error) return fail(error);

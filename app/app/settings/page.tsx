@@ -217,6 +217,13 @@ export default async function SettingsPage() {
               </span>
               <ChevronRight className="size-5 text-faint" />
             </Link>
+            <Link href="/app/clients/uvoz" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
+              <span>
+                <span className="block font-semibold">Uvoz mušterija</span>
+                <span className="block text-sm text-muted">Excel, CSV ili imenik mobitela — da ne prepisujete stotine kartona</span>
+              </span>
+              <ChevronRight className="size-5 text-faint" />
+            </Link>
             <Link href="/app/settings/izvoz" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
               <span>
                 <span className="block font-semibold">Izvoz podataka</span>
@@ -230,8 +237,8 @@ export default async function SettingsPage() {
                 <BillingForm
                   billing={(() => {
                     const b = billingFrom(t.settings);
-                    const fiscal = (t.settings as { fiscal?: { premises?: string; device?: string } | null } | null)?.fiscal;
-                    return { iban: b.iban ?? '', vatRegistered: b.vatRegistered, note: b.note ?? '', premises: fiscal?.premises ?? '', device: fiscal?.device ?? '' };
+                    const fiscal = (t.settings as { fiscal?: { premises?: string; device?: string; operator?: string } | null } | null)?.fiscal;
+                    return { iban: b.iban ?? '', vatRegistered: b.vatRegistered, note: b.note ?? '', premises: fiscal?.premises ?? '', device: fiscal?.device ?? '', operator: fiscal?.operator ?? '' };
                   })()}
                 />
               </div>

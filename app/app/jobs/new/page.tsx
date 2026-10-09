@@ -59,7 +59,7 @@ export default async function NewJobPage({ searchParams }: { searchParams: Promi
         defaultAssetType={ctx.pkg.defaultAssetType}
         symptoms={ctx.pkg.symptoms}
         templates={templates.map((t) => ({ code: t.code, name: t.name }))}
-        isFleet={ctx.pkg.id === 'fleet'}
+        isFleet={ctx.pkg.id === 'fleet' || ctx.pkg.id === 'machine'}
         preset={preset}
         presetDate={presetDate}
         draftKey={`draft:new-job:${ctx.tenant.id}:${ctx.user.id}`}

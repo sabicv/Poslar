@@ -107,7 +107,8 @@ export const TRADE_LINES: Record<PackageId, string> = {
   volt: 'Baza DTC kodova, mjerenje parazitske potrošnje i dnevnik modula.',
   body: 'Interaktivna mapa oštećenja, recepture boja u gramima i zapisnici za osiguranje.',
   wheel: 'Hotel za gume s QR pozicijama, dubina šare u 3 točke i sezonski podsjetnici.',
-  fleet: 'Praćenje po motosatima i kilometrima, zakonski rokovi i terenski nalozi.',
+  fleet: 'Kilometri, zakonski rokovi (tahograf, tehnički) i terenski nalozi za tegljače i prikolice.',
+  machine: 'Motosati, hidraulika i terenski nalozi za bagere, traktore i priključke.',
   moto: 'Zapisnik oštećenja s potpisom, konzervacija za zimu i evidencija skladišta.',
   marine: 'Nautički karton po HIN broju, konzervacija motora i vođenje zimovnika.',
   air: 'Dnevni raspored s navigacijom, karton F-plinova i izvještaji s terena.',
@@ -268,25 +269,47 @@ export const TRADE_PAGES: TradePage[] = [
   },
   {
     id: 'fleet',
-    slug: 'kamioni-strojevi',
-    eyebrow: 'Teretni program, građevinska mehanizacija i vozni parkovi',
+    slug: 'kamioni',
+    eyebrow: 'Teretni program i vozni parkovi',
     title: 'Nijedan rok ne promakne. Ni periodični pregled, ni tahograf.',
-    subtitle: 'Motosati, kilometri i zakonske obveze. Potpuna evidencija za tegljače, prikolice, bagere i traktore.',
+    subtitle: 'Kilometri i zakonske obveze. Tegljač i prikolica, svaki sa svojom poviješću.',
     agent: 'Disponent flote šalje zahtjev za servis tegljača. Poslar zaprima podatke i usklađuje termin prema slobodnim kapacitetima.',
-    scene: 'Servisna ekipa je na terenu kod radnog stroja. Radni nalog sadrži točnu GPS lokaciju, popis radova i digitalni potpis strojara ili vozača po završetku.',
+    scene: 'Servisna ekipa je na terenu kod kamiona. Radni nalog sadrži točnu GPS lokaciju, popis radova i digitalni potpis vozača po završetku.',
     pains: [
-      { q: 'Kako izbjeći propuste oko atesta, tahografa ili tehničkog pregleda?', a: 'Sustav automatski šalje upozorenja o zakonskim rokovima tjednima unaprijed.' },
-      { q: 'Kako osigurati redovito održavanje flote prema radnim satima i kilometraži?', a: 'Poslar prati oba parametra i automatski najavljuje nadolazeće servisne intervale za svako vozilo.' },
-      { q: 'Kamion i prikolica stigli su skupa, ali zahtijevaju odvojenu povijest održavanja?', a: 'Sustav vodi zasebne kartone za vučna i priključna vozila ili radne alate.' },
+      { q: 'Kako izbjeći propuste oko atesta, tahografa ili tehničkog pregleda?', a: 'Poslar pokaže rokove tjednima unaprijed, a podsjetnik vozaču šalješ jednim dodirom.' },
+      { q: 'Kako osigurati redovito održavanje flote prema kilometraži?', a: 'Poslar prati kilometre i najavljuje nadolazeće servisne intervale za svako vozilo.' },
+      { q: 'Kamion i prikolica stigli su skupa, ali zahtijevaju odvojenu povijest?', a: 'Sustav vodi zasebne kartone za vučna i priključna vozila.' },
     ],
     features: [
-      { title: 'Servisni intervali', text: 'Praćenje dospijeća po radnim satima (mth) i kilometraži.' },
-      { title: 'Odvojena povijest vozila', text: 'Zasebni kartoni za tegljače, prikolice, građevinske strojeve i priključke.' },
-      { title: 'Upozorenja o zakonskim rokovima', text: 'Automatsko praćenje kalendara za tahograf, kalibracije i tehničke preglede.' },
-      { title: 'Terenski radni nalozi', text: 'GPS lokacija kvara, evidencija utrošenog vremena i digitalni potpis korisnika.' },
-      { title: 'Zapisnik stanja', text: 'Detaljan pregled opreme i zatečenog stanja prije početka radova.' },
+      { title: 'Servisni intervali', text: 'Praćenje dospijeća po kilometraži i kalendaru.' },
+      { title: 'Odvojena povijest vozila', text: 'Zasebni kartoni za tegljače, kamione i prikolice.' },
+      { title: 'Zakonski rokovi', text: 'Kalendar za tahograf, ADR i tehničke preglede.' },
+      { title: 'Terenski radni nalozi', text: 'GPS lokacija kvara, utrošeno vrijeme i digitalni potpis.' },
+      { title: 'Zapisnik stanja', text: 'Pregled opreme i zatečenog stanja prije početka radova.' },
     ],
-    jobs: ['Preventivni servis PM-A', 'Prošireni servis PM-B', 'Terenska dijagnostika i popravak', 'Priprema teretnog vozila za tehnički', 'Pregled kočionog sustava prikolice', 'Zamjena obloga kočnica po osovini', 'Redoviti servis radnog stroja (250 mth)', 'Izrada i zamjena hidrauličnog crijeva'],
+    jobs: ['Preventivni servis PM-A', 'Prošireni servis PM-B', 'Terenska dijagnostika i popravak', 'Priprema teretnog vozila za tehnički', 'Pregled kočionog sustava prikolice', 'Zamjena obloga kočnica po osovini', 'Baždarenje tahografa', 'Dijagnostika AdBlue sustava'],
+  },
+  {
+    id: 'machine',
+    slug: 'radni-strojevi',
+    eyebrow: 'Građevinska mehanizacija, traktori i priključci',
+    title: 'Motosati i hidraulika na jednom mjestu. I na terenu.',
+    subtitle: 'Bageri, traktori i priključci, svaki sa svojim satima, crijevima i rokovima.',
+    agent: 'Strojar s gradilišta zove da curi hidraulika. Poslar zaprima podatke i šalje ekipu na GPS lokaciju.',
+    scene: 'Servisna ekipa je na terenu kod bagera. Radni nalog sadrži GPS lokaciju, popis radova i digitalni potpis strojara.',
+    pains: [
+      { q: 'Kako pratiti servis po motosatima, a ne po kalendaru?', a: 'Poslar vodi interval po satima i pokaže koji stroj dospijeva, prije nego stane na gradilištu.' },
+      { q: 'Curi crijevo na strijeli, a Vi ste u radionici?', a: 'Terenski nalog nosi adresu, GPS i vrijeme dolaska. Strojara potpišete na licu mjesta.' },
+      { q: 'Traktor i prskalica stigli su skupa, a povijest im je različita?', a: 'Svaki priključak ima vlastiti karton, serijski broj i evidenciju radova.' },
+    ],
+    features: [
+      { title: 'Servis po motosatima', text: 'Intervali 250 i 500 mth, ulje, filteri i hidraulika.' },
+      { title: 'Hidraulika', text: 'Zamjena crijeva, ulja i filtera s popisom na nalogu.' },
+      { title: 'Terenski nalozi', text: 'GPS lokacija kvara, utrošeno vrijeme i potpis strojara.' },
+      { title: 'Priključci', text: 'Zasebni kartoni za prskalice, plugove i kose.' },
+      { title: 'Rokovi', text: 'Tehnički pregled, osiguranje i atest, po stroju.' },
+    ],
+    jobs: ['Servis 250 mth', 'Servis 500 mth', 'Terenska intervencija', 'Zamjena hidraulične cijevi', 'Zamjena hidrauličnog ulja', 'Podmazivanje', 'Pregled gusjenica ili guma', 'Pregled priključka'],
   },
   {
     id: 'moto',
@@ -510,7 +533,10 @@ export const TRADE_PAGES: TradePage[] = [
   },
 ];
 
-export const tradeBySlug = (slug: string) => TRADE_PAGES.find((t) => t.slug === slug) ?? null;
+export const tradeBySlug = (slug: string) => {
+  if (slug === 'kamioni-strojevi') return TRADE_PAGES.find((t) => t.id === 'fleet') ?? null;
+  return TRADE_PAGES.find((t) => t.slug === slug) ?? null;
+};
 export const tradeById = (id: PackageId) => TRADE_PAGES.find((t) => t.id === id)!;
 
 // Every trade page lists its five features and this one, so the grid is

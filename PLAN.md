@@ -232,8 +232,13 @@ Tri odvojena toka: Vedranova prodaja Poslara (Paddle), računi radionica njihovi
 - [ ] (V) Knjigovođa: fizička osoba, obrt ili j.d.o.o. (odgovornost proizvođača programa za fiskalizaciju), Paddleove isplate i samoizdani računi. Dotad bez POSLAR_IBAN u Vercelu
 - [ ] (V) E-pošta po docs/EMAIL_BREVO.md, zatim BREVO_API_KEY, MAIL_FROM, SUPPORT_EMAIL i AUTH_EMAIL u Vercelu
 - [ ] (V) Posrednik s API-jem za F1 i F2 (s popisa Porezne uprave): cijena, testno okruženje, primanje e-Računa, ovlaštenje u FiskAplikaciji
-- [ ] KPD šifre na stavkama, predlošcima i cjeniku (prijedlog po zanatu, voditelj mijenja)
-- [ ] Čarobnjak za fiskalne podatke radionice: OIB, PDV, poslovni prostor, naplatni uređaj, operater, certifikat
+- [x] KPD šifre na stavkama i predlošcima (prijedlog po zanatu, voditelj mijenja); F1 slanje čeka posrednika
+- [x] Fiskalni podaci radionice: OIB, PDV, poslovni prostor, naplatni uređaj, operater (certifikat i slanje čekaju posrednika)
+- [x] Kamioni i radni strojevi razdvojeni (fleet / machine)
+- [x] Povrat bez pitanja 14 dana od prve uplate; radno vrijeme podrške u uvjetima
+- [x] Praćenje dostupnosti: /api/health + docs/UPTIMEROBOT.md (nije SLA)
+- [x] Uvoz mušterija i vozila iz Excela/CSV (postojeći čarobnjak + poveznica u Postavkama)
+- [x] Rad bez signala: fotografije i terenski koraci čekaju na telefonu i šalju se kad se veza vrati
 - [ ] Račun kao zaseban dokument sa stanjem (nacrt, poslan, fiskaliziran, odbijen, storniran), storno i ponovno slanje bez dvostrukog broja
 - [ ] Paddle: obavijest koja stigne izvan redoslijeda ne vraća stariju pretplatu
 - [ ] Na naslovnici provjeriti ostale tvrdnje „automatski” (vulkanizer: raspoređivanje termina; kamioni: upozorenja o rokovima)

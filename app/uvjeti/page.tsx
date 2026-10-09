@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LegalPage, ProviderBlock, Section } from '@/components/legal/LegalPage';
 import { FOUNDER_MONTHS, FOUNDER_SPOTS, PLANS } from '@/config/plans';
+import { REFUND_DAYS, SUPPORT_HOURS } from '@/config/support';
 import { GRACE_DAYS, payee } from '@/lib/billing';
 import { whatsappReady } from '@/lib/whatsapp';
 
@@ -94,8 +95,8 @@ export default function TermsPage() {
       <Section n={7} title="Prestanak korištenja">
         <ul>
           <li>
-            Korisnik bez ugovornog razdoblja može prestati koristiti uslugu kad želi. Uplaćeni iznos za započeto razdoblje ne vraća se, osim kad povrat propisuje zakon ili ga Paddle odobri po
-            svojim uvjetima za kupce.
+            Korisnik može prestati koristiti uslugu kad želi. Ako zatraži povrat u roku od {REFUND_DAYS} dana od prve uplate, Pružatelj vraća iznos bez pitanja (putem Paddlea). Nakon tih{' '}
+            {REFUND_DAYS} dana uplaćeni iznos za započeto razdoblje ne vraća se, osim kad povrat propisuje zakon ili ga Paddle odobri po svojim uvjetima za kupce.
           </li>
           <li>Pružatelj može isključiti pristup zbog neplaćanja ili zbog teškog ili ponovljenog kršenja ovih uvjeta. O tome obavještava Korisnika.</li>
         </ul>
@@ -145,7 +146,10 @@ export default function TermsPage() {
 
       <Section n={12} title="Dostupnost i promjene usluge">
         <ul>
-          <li>Pružatelj nastoji da usluga radi bez prekida, ali neprekidnu dostupnost ne jamči. Planirano održavanje najavljuje kad je moguće.</li>
+          <li>Pružatelj nastoji da usluga radi bez prekida, ali neprekidnu dostupnost (SLA) ne jamči. Planirano održavanje najavljuje kad je moguće.</li>
+          <li>
+            Podrška odgovara {SUPPORT_HOURS}. Poruke primljene izvan tog vremena obrađuju se sljedećeg radnog dana. To nije jamstvo vremena odgovora.
+          </li>
           <li>Usluga se razvija i mogućnosti se mijenjaju. Bitne promjene na štetu Korisnika Pružatelj najavljuje unaprijed.</li>
         </ul>
       </Section>

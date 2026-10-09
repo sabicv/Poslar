@@ -219,6 +219,7 @@ export interface JobLine {
   template_code: string | null;
   technician_id: string | null;
   time_spent_h: number | null;
+  kpd_code?: string | null;
   created_at: string;
 }
 

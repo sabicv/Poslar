@@ -1,8 +1,10 @@
 'use client';
 
+import { toast } from 'sonner';
 import { useAction } from '@/components/client-ui';
 import { Button } from '@/components/ui';
 import { saveRecord } from '@/lib/actions/records';
+import { enqueueFieldStep, isOfflineError } from '@/lib/offline-queue';
 
 function position(): Promise<{ lat: number; lng: number } | null> {
   if (!('geolocation' in navigator)) return Promise.resolve(null);
@@ -27,7 +29,16 @@ export function FieldStep({ jobId, column, withGps, disabled }: { jobId: string;
       onClick={() =>
         run(async () => {
           const gps = withGps ? await position() : null;
-          return saveRecord('fleet_field_jobs', { job_id: jobId, [column]: '__now__', ...(gps ? { lat: gps.lat, lng: gps.lng } : {}) }, { upsertOn: 'job_id', revalidate: `/app/jobs/${jobId}` });
+          try {
+            const result = await saveRecord('fleet_field_jobs', { job_id: jobId, [column]: '__now__', ...(gps ? { lat: gps.lat, lng: gps.lng } : {}) }, { upsertOn: 'job_id', revalidate: `/app/jobs/${jobId}` });
+            if (!result.ok && isOfflineError(result.error)) throw new Error(result.error);
+            return result;
+          } catch (error) {
+            if (!isOfflineError(error)) throw error;
+            await enqueueFieldStep(jobId, column, gps);
+            toast.success('Spremljeno na telefonu. Šalje se kad se veza vrati.');
+            return { ok: true as const };
+          }
         })
       }
     >

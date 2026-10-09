@@ -1,6 +1,7 @@
 import { CalendarX2, MapPin, ShieldCheck, Timer } from 'lucide-react';
 import { Badge, Card, CardHeader } from '@/components/ui';
 import { COMPLIANCE_LABELS } from '@/config/packages/fleet';
+import { MACHINE_COMPLIANCE_LABELS } from '@/config/packages/machine';
 import { daysUntil, formatDate, formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
 import { MoreSections, foldable } from '../more';
@@ -27,6 +28,8 @@ export function complianceTone(days: number | null): 'crit' | 'warn' | 'ok' | 'm
 export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
   const path = `/app/jobs/${job.id}`;
   const s = ctx.supabase;
+  const labels = ctx.pkg.id === 'machine' ? MACHINE_COMPLIANCE_LABELS : COMPLIANCE_LABELS;
+  const objectWord = ctx.pkg.id === 'machine' ? 'stroja' : 'vozila';
   const [{ data: field }, { data: compliance }, { data: downtime }, { data: trailers }] = await Promise.all([
     s.from('fleet_field_jobs').select('*').eq('job_id', job.id).maybeSingle(),
     s.from('fleet_compliance_items').select('*').eq('asset_id', job.asset.id).order('valid_until'),
@@ -135,7 +138,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
               fixed={{ asset_id: job.asset.id }}
               label="Rok"
               fields={[
-                { name: 'kind', label: 'Vrsta', type: 'select', options: opts(COMPLIANCE_LABELS), required: true },
+                { name: 'kind', label: 'Vrsta', type: 'select', options: opts(labels), required: true },
                 { name: 'valid_from', label: 'Vrijedi od', type: 'date', half: true },
                 { name: 'valid_until', label: 'Vrijedi do', type: 'date', half: true, required: true },
                 { name: 'notes', label: 'Napomena', type: 'textarea' },
@@ -149,12 +152,12 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
               const days = daysUntil(c.valid_until as string);
               return (
                 <li key={c.id as string} className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
-                  <span className="flex-1">{COMPLIANCE_LABELS[c.kind as string]}</span>
+                  <span className="flex-1">{labels[c.kind as string] ?? c.kind}</span>
                   <span className="tabular text-muted">{formatDate(c.valid_until as string)}</span>
                   <Badge tone={complianceTone(days)}>{days === null ? '-' : days < 0 ? `Isteklo ${-days} d` : days === 0 ? 'Ističe danas' : `Još ${days} d`}</Badge>
                   <RecordSheet
                     table="fleet_compliance_items"
-                    title={COMPLIANCE_LABELS[c.kind as string]}
+                    title={labels[c.kind as string] ?? 'Rok'}
                     id={c.id as string}
                     revalidate={path}
                     initial={c}
@@ -182,15 +185,15 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
           <CardHeader
             title={
               <span className="flex items-center gap-2">
-                <Timer className="size-4 text-accent" /> Zastoj vozila
+                <Timer className="size-4 text-accent" /> Zastoj {objectWord}
               </span>
             }
           />
           <div className="space-y-3 p-4">
             {!locked ? (
               openDowntime ? (
-                <RecordButton table="fleet_downtime" id={openDowntime.id as string} revalidate={path} variant="ok" values={{ to_at: '__now__' }} success="Vozilo ponovno u pogonu">
-                  Vozilo ponovno u pogonu
+                <RecordButton table="fleet_downtime" id={openDowntime.id as string} revalidate={path} variant="ok" values={{ to_at: '__now__' }} success={ctx.pkg.id === 'machine' ? 'Stroj ponovno u pogonu' : 'Vozilo ponovno u pogonu'}>
+                  {ctx.pkg.id === 'machine' ? 'Stroj ponovno u pogonu' : 'Vozilo ponovno u pogonu'}
                 </RecordButton>
               ) : (
                 <RecordSheet
@@ -226,7 +229,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
         {/* Coupled units */}
         {showTrailers ? (
         <Card>
-          <CardHeader title="Priključna vozila" />
+          <CardHeader title={ctx.pkg.id === 'machine' ? 'Priključni strojevi' : 'Priključna vozila'} />
           {trailers?.length ? (
             <ul className="divide-y divide-line">
               {trailers.map((t) => (

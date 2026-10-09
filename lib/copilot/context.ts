@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { BODY_DAMAGE_TYPES, BODY_OPERATIONS, BODY_ZONES } from '@/config/packages/body';
 import { fgasObligations } from '@/config/packages/air';
 import { COMPLIANCE_LABELS } from '@/config/packages/fleet';
+import { MACHINE_COMPLIANCE_LABELS } from '@/config/packages/machine';
 import { DTC_CATEGORY_HINTS, findDtcCode } from '@/config/packages/volt-dtc';
 import { ASSET_TYPE_LABELS, METER_LABELS, phaseLabel, type MeterUnit } from '@/config/tenant.config';
 import { daysUntil } from '@/lib/format';
@@ -237,14 +238,15 @@ async function packageData(ctx: WorkshopContext, jobId: string, asset: Json & { 
         geometrija: alignment,
       };
     }
-    case 'fleet': {
+    case 'fleet':
+    case 'machine': {
       const [{ data: compliance }, { data: field }, { data: downtime }] = await Promise.all([
         s.from('fleet_compliance_items').select('kind, valid_until').eq('asset_id', asset.id),
         s.from('fleet_field_jobs').select('address, arrived_at, work_started, work_finished').eq('job_id', jobId).maybeSingle(),
         s.from('fleet_downtime').select('from_at, to_at, reason').eq('job_id', jobId),
       ]);
       return {
-        zakonski_rokovi: (compliance ?? []).map((c) => ({ vrsta: COMPLIANCE_LABELS[c.kind as string], vrijedi_do: c.valid_until, dana_do_isteka: daysUntil(c.valid_until as string) })),
+        zakonski_rokovi: (compliance ?? []).map((c) => ({ vrsta: COMPLIANCE_LABELS[c.kind as string] ?? MACHINE_COMPLIANCE_LABELS[c.kind as string] ?? c.kind, vrijedi_do: c.valid_until, dana_do_isteka: daysUntil(c.valid_until as string) })),
         teren: field,
         zastoj: downtime,
       };

@@ -33,7 +33,7 @@ export interface UploadOptions {
 // proof an insurer can check.
 const MAX_BYTES = 25 * 1024 * 1024; // same limit as the job-files bucket
 
-export async function uploadFile({ tenantId, jobId, assetId = null, file, tag = null, caption = null, stage = null, zone = null }: UploadOptions) {
+export async function uploadNow({ tenantId, jobId, assetId = null, file, tag = null, caption = null, stage = null, zone = null }: UploadOptions) {
   // Checked before hashing, so a huge file never gets read into memory.
   if (file.size > MAX_BYTES) throw new Error(`Datoteka „${file.name}” je veća od 25 MB.`);
   const supabase = createBrowserSupabaseClient();
@@ -68,6 +68,16 @@ export async function uploadFile({ tenantId, jobId, assetId = null, file, tag = 
     throw new Error(result.error);
   }
   return { id: result.data!.id, path };
+}
+
+export async function uploadFile(opts: UploadOptions) {
+  try {
+    return await uploadNow(opts);
+  } catch (error) {
+    const { enqueuePhoto, isOfflineError } = await import('@/lib/offline-queue');
+    if (isOfflineError(error)) return enqueuePhoto(opts);
+    throw error;
+  }
 }
 
 // Signatures and other generated PNGs.

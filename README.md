@@ -1,6 +1,6 @@
 # Poslar
 
-Jedna aplikacija za radionice i servise na terenu, petnaest zanata. Svaka radionica ima točno jedan paket. Na zajedničkoj adresi (poslar.eu) paket određuje prijavljena radionica, a na poddomeni zanata sama poddomena:
+Jedna aplikacija za radionice i servise na terenu, šesnaest zanata. Svaka radionica ima točno jedan paket. Na zajedničkoj adresi (poslar.eu) paket određuje prijavljena radionica, a na poddomeni zanata sama poddomena:
 
 | Paket (id) | Naziv | Poddomena | Za koga |
 |---|---|---|---|
@@ -8,7 +8,8 @@ Jedna aplikacija za radionice i servise na terenu, petnaest zanata. Svaka radion
 | gear | **Automehaničar** | automehanicar.poslar.eu | automehanika i opći servis |
 | body | **Limar i lakirer** | limar-lakirer.poslar.eu | limarija, lakirnica, procjena štete |
 | wheel | **Vulkanizer** | vulkanizer.poslar.eu | vulkanizeri, geometrija, hotel za gume |
-| fleet | **Kamioni i strojevi** | kamioni-strojevi.poslar.eu | teretni program, građevina, flote |
+| fleet | **Kamioni** | kamioni.poslar.eu | teretni program i vozni parkovi |
+| machine | **Radni strojevi** | radni-strojevi.poslar.eu | bageri, traktori, viljuškari, priključci |
 | moto | **Moto** | motocikli.poslar.eu | motocikli, skuteri, quadovi |
 | marine | **Nautika** | nautika.poslar.eu | jet ski, brodice, vanbrodski i ugradbeni motori |
 | air | **Klima serviser** | klima-serviser.poslar.eu | klime, dizalice topline, ventilacija (rad na terenu) |
@@ -59,7 +60,7 @@ Pojedinačni demo računi, s istom lozinkom:
 - `vlasnik.volt@demo.xfiles.hr`: voditelj servisa (vidi cijene, naplatu, poslovanje);
 - `radnik.volt@demo.xfiles.hr`: radnik (vidi naloge, ne vidi iznose).
 
-Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `moto`, `marine`, `air`, `aqua`, `tow`, `deal`, `detail`, `electric`, `appliance` i `locksmith`. Samo neke zanate puni `npm run db:seed -- detail electric`, a uzorne radionice za probni dan `npm run db:seed -- --uzorak`. Seed na kraju ispiše i poveznice za odobrenje stranke.
+Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `machine`, `moto`, `marine`, `air`, `aqua`, `tow`, `deal`, `detail`, `electric`, `appliance` i `locksmith`. Samo neke zanate puni `npm run db:seed -- detail electric`, a uzorne radionice za probni dan `npm run db:seed -- --uzorak`. Seed na kraju ispiše i poveznice za odobrenje stranke.
 
 `npm run db:seed` vraća demo podatke na početno stanje, s današnjim datumima. Računi ostaju isti, pa se nitko ne odjavljuje.
 

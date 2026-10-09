@@ -65,7 +65,7 @@ const HEADERS: [Target, string[]][] = [
   ['oib', ['oib', 'porezni broj', 'pdv id', 'vat']],
   ['address', ['adresa', 'ulica', 'ulica i broj', 'address', 'street', 'adresa ulica']],
   ['city', ['grad', 'mjesto', 'city', 'town', 'opcina', 'naselje']],
-  ['identifier', ['registracija', 'reg', 'reg oznaka', 'registarska oznaka', 'registarske oznake', 'registracijska oznaka', 'tablice', 'tablica', 'oznaka', 'plate', 'license plate', 'reg broj', 'registracija vozila']],
+  ['identifier', ['registracija', 'reg', 'reg oznaka', 'registarska oznaka', 'registarske oznake', 'registracijska oznaka', 'tablice', 'tablica', 'oznaka', 'plate', 'license plate', 'reg broj', 'registracija vozila', 'serijski broj', 'serijski', 'serial', 'interna oznaka', 'inventarni broj']],
   ['vin', ['vin', 'sasija', 'broj sasije', 'sasija broj', 'chassis', 'vin broj']],
   ['make', ['marka', 'proizvodac', 'make', 'brand', 'marka vozila']],
   ['make_model', ['vozilo', 'auto', 'automobil', 'marka i model', 'marka model', 'vehicle', 'uredaj', 'stroj', 'plovilo', 'motor']],

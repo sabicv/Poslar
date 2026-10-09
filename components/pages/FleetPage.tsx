@@ -3,6 +3,7 @@ import { complianceTone } from '@/components/modules/fleet/FleetModule';
 import { RecordButton } from '@/components/modules/kit';
 import { Badge, Card, CardHeader, EmptyState, buttonClass } from '@/components/ui';
 import { COMPLIANCE_LABELS } from '@/config/packages/fleet';
+import { MACHINE_COMPLIANCE_LABELS } from '@/config/packages/machine';
 import { assetTitle, clientName, daysUntil, formatDate, formatRelative } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 
@@ -47,7 +48,7 @@ export async function FleetPage({ ctx }: { ctx: WorkshopContext }) {
                     <span className="text-muted">{assetTitle(d.asset)}</span>
                     <span className="w-full text-xs text-faint sm:w-auto">{clientName(d.asset?.client)}</span>
                     <span className="ml-auto flex items-center gap-2">
-                      <span className="text-xs">{COMPLIANCE_LABELS[d.kind]}</span>
+                      <span className="text-xs">{(ctx.pkg.id === 'machine' ? MACHINE_COMPLIANCE_LABELS : COMPLIANCE_LABELS)[d.kind] ?? d.kind}</span>
                       <Badge tone={complianceTone(days)}>{days !== null && days < 0 ? `isteklo ${formatDate(d.valid_until)}` : formatDate(d.valid_until)}</Badge>
                     </span>
                   </Link>

@@ -2,8 +2,8 @@
 // Poslar · central tenant configuration
 //
 // One workshop = one package. Everything that differs between Volt,
-// Gear, Body, Wheel, Fleet, Moto, Marine, Air, Aqua, Tow, Deal, Detail,
-// Electric, Appliance and Locksmith lives here as typed data: brand and
+// Gear, Body, Wheel, Fleet, Machine, Moto, Marine, Air, Aqua, Tow, Deal,
+// Detail, Electric, Appliance and Locksmith lives here as typed data: brand and
 // accent colour, vocabulary (Mušterija vs Tvrtka, km vs mth), object
 // types, job phase wording, inspection checklists, work templates and
 // which modules are switched on. The database stores only the package
@@ -17,6 +17,7 @@ import { gear } from './packages/gear';
 import { body } from './packages/body';
 import { wheel } from './packages/wheel';
 import { fleet } from './packages/fleet';
+import { machine } from './packages/machine';
 import { moto } from './packages/moto';
 import { marine } from './packages/marine';
 import { air } from './packages/air';
@@ -28,7 +29,7 @@ import { electric } from './packages/electric';
 import { appliance } from './packages/appliance';
 import { locksmith } from './packages/locksmith';
 
-export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'moto' | 'marine' | 'air' | 'aqua' | 'tow' | 'deal' | 'detail' | 'electric' | 'appliance' | 'locksmith';
+export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'machine' | 'moto' | 'marine' | 'air' | 'aqua' | 'tow' | 'deal' | 'detail' | 'electric' | 'appliance' | 'locksmith';
 // Where the work happens: the customer brings the object in, or the
 // technician goes to the customer's address.
 export type Sector = 'workshop' | 'field';
@@ -111,6 +112,7 @@ export interface TemplateLine {
   qty: number;
   unit: string;
   price?: number;
+  kpd?: string;
 }
 
 export interface JobTemplate {
@@ -155,7 +157,7 @@ export interface PackageConfig {
   plan?: { title: string; template: string; months: number; hint: string };
 }
 
-export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto, marine, air, aqua, tow, deal, detail, electric, appliance, locksmith };
+export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, machine, moto, marine, air, aqua, tow, deal, detail, electric, appliance, locksmith };
 export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 
 // Groups so a visitor first says how he works, then picks the trade:
@@ -164,7 +166,7 @@ export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 // the road, or the cars are bought and sold.
 export type TradeGroupId = 'radionica' | 'teren' | 'cesta' | 'prodaja';
 export const TRADE_GROUPS: { id: TradeGroupId; name: string; hint: string; packages: PackageId[] }[] = [
-  { id: 'radionica', name: 'Radionica', hint: 'Posao se vodi iz radionice', packages: ['volt', 'gear', 'body', 'wheel', 'detail', 'moto', 'marine', 'fleet'] },
+  { id: 'radionica', name: 'Radionica', hint: 'Posao se vodi iz radionice', packages: ['volt', 'gear', 'body', 'wheel', 'detail', 'moto', 'marine', 'fleet', 'machine'] },
   { id: 'teren', name: 'Teren', hint: 'Majstor ide k mušteriji', packages: ['air', 'aqua', 'electric', 'appliance', 'locksmith'] },
   { id: 'cesta', name: 'Cesta', hint: 'Vuča i pomoć na cesti, danju i noću', packages: ['tow'] },
   { id: 'prodaja', name: 'Prodaja', hint: 'Otkup, priprema i prodaja rabljenih vozila', packages: ['deal'] },

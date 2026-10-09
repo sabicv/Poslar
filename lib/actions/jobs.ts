@@ -4,6 +4,7 @@ import { plural } from '@/lib/format';
 import { revalidatePath } from 'next/cache';
 import { after } from 'next/server';
 import { z } from 'zod';
+import { defaultKpd } from '@/config/kpd';
 import { DEVICE_TYPES, PACKAGES, PHASE_ORDER, defaultMeterUnit, phaseLabel, type AssetType, type JobPhase, type LineKind } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop, type WorkshopContext } from '@/lib/session';
@@ -213,6 +214,7 @@ async function insertTemplate(ctx: WorkshopContext, jobId: string, code: string,
         description: line.description,
         qty: line.qty,
         unit: line.unit,
+        kpd_code: line.kpd ?? defaultKpd(ctx.pkg.id),
         approval,
         source: 'template',
         template_code: template.code,
@@ -367,6 +369,14 @@ const lineSchema = z.object({
   priority: z.enum(['urgent', 'recommended', 'optional']).nullable().optional(),
   approval: z.enum(['proposed', 'approved', 'declined', 'deferred']).optional(),
   time_spent_h: z.number().min(0).max(1000).nullable().optional(),
+  kpd_code: z
+    .string()
+    .trim()
+    .max(6)
+    .optional()
+    .nullable()
+    .transform((v) => v || null)
+    .refine((v) => v === null || /^\d{6}$/.test(v), 'KPD šifra ima 6 znamenki.'),
 });
 
 const priceSchema = z.object({
@@ -383,7 +393,14 @@ export async function addLine(jobId: string, line: z.input<typeof lineSchema>, p
   const { data: last } = await ctx.supabase.from('job_lines').select('sort').eq('job_id', jobId).order('sort', { ascending: false }).limit(1);
   const { data, error } = await ctx.supabase
     .from('job_lines')
-    .insert({ ...parsed.data, tenant_id: ctx.tenant.id, job_id: jobId, sort: ((last?.[0]?.sort as number | undefined) ?? 0) + 1, technician_id: ctx.isOwner ? null : ctx.user.id })
+    .insert({
+      ...parsed.data,
+      kpd_code: parsed.data.kpd_code ?? defaultKpd(ctx.pkg.id),
+      tenant_id: ctx.tenant.id,
+      job_id: jobId,
+      sort: ((last?.[0]?.sort as number | undefined) ?? 0) + 1,
+      technician_id: ctx.isOwner ? null : ctx.user.id,
+    })
     .select('id')
     .single();
   if (error) return fail(error);

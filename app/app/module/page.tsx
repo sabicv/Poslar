@@ -30,7 +30,7 @@ export default async function ModulePage({ searchParams }: { searchParams: Promi
       {ctx.pkg.id === 'gear' ? <GearPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'body' ? <BodyPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'wheel' ? <WheelPage ctx={ctx} q={q} /> : null}
-      {ctx.pkg.id === 'fleet' ? <FleetPage ctx={ctx} /> : null}
+      {ctx.pkg.id === 'fleet' || ctx.pkg.id === 'machine' ? <FleetPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'moto' || ctx.pkg.id === 'marine' ? <MotoPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'air' ? <AirPage ctx={ctx} year={y} /> : null}
       {ctx.pkg.id === 'aqua' ? <AquaPage ctx={ctx} /> : null}

@@ -106,7 +106,7 @@ export function WorkshopForm({ tenant }: { tenant: { name: string; oib: string; 
 }
 
 // IBAN, VAT status and a line of text for the invoice.
-export function BillingForm({ billing }: { billing: { iban: string; vatRegistered: boolean; note: string; premises: string; device: string } }) {
+export function BillingForm({ billing }: { billing: { iban: string; vatRegistered: boolean; note: string; premises: string; device: string; operator: string } }) {
   const { pending, run } = useAction();
   const [v, setV] = useState(billing);
   return (
@@ -114,7 +114,7 @@ export function BillingForm({ billing }: { billing: { iban: string; vatRegistere
       className="grid gap-3"
       onSubmit={(e) => {
         e.preventDefault();
-        run(() => updateBilling({ iban: v.iban, vat_registered: v.vatRegistered, invoice_note: v.note, premises: v.premises, device: v.device }), { success: 'Podaci za račun spremljeni' });
+        run(() => updateBilling({ iban: v.iban, vat_registered: v.vatRegistered, invoice_note: v.note, premises: v.premises, device: v.device, operator: v.operator }), { success: 'Podaci za račun spremljeni' });
       }}
     >
       <Field label="IBAN (za plaćanje na račun)">
@@ -135,7 +135,10 @@ export function BillingForm({ billing }: { billing: { iban: string; vatRegistere
           <Input value={v.device} maxLength={6} inputMode="numeric" onChange={(e) => setV((s) => ({ ...s, device: e.target.value.replace(/\D/g, '') }))} placeholder="npr. 1" className="font-mono" />
         </Field>
       </div>
-      <p className="text-xs text-muted">Iste oznake kao u Vašoj blagajni, prijavljene Poreznoj upravi. S njima broj računa glasi 12/PP1/1. Bez njih ostaje 12/2026.</p>
+      <Field label="Operater na računu">
+        <Input value={v.operator} maxLength={80} onChange={(e) => setV((s) => ({ ...s, operator: e.target.value }))} placeholder="Ime i prezime, kao u blagajni" />
+      </Field>
+      <p className="text-xs text-muted">Iste oznake kao u Vašoj blagajni, prijavljene Poreznoj upravi. S njima broj računa glasi 12/PP1/1. Bez njih ostaje 12/2026. Fiskalizacija (F1) ide preko posrednika; ovdje spremate podatke koje će blagajna tražiti.</p>
       <div>
         <Button type="submit" variant="primary" disabled={pending}>
           Spremi

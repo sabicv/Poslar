@@ -1,4 +1,4 @@
-import { Anchor, Bike, CarFront, Cog, Disc3, Droplets, Fan, KeyRound, PlugZap, Siren, Sparkles, SprayCan, Truck, WashingMachine, Zap, type LucideIcon } from 'lucide-react';
+import { Anchor, Bike, CarFront, Cog, Disc3, Droplets, Fan, KeyRound, PlugZap, Siren, Sparkles, SprayCan, Tractor, Truck, WashingMachine, Zap, type LucideIcon } from 'lucide-react';
 import { BRAND, type PackageId } from '@/config/tenant.config';
 import { cn } from '@/lib/utils';
 
@@ -8,6 +8,7 @@ export const PRODUCT_ICONS: Record<PackageId, LucideIcon> = {
   body: SprayCan,
   wheel: Disc3,
   fleet: Truck,
+  machine: Tractor,
   moto: Bike,
   marine: Anchor,
   air: Fan,

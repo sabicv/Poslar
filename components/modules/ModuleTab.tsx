@@ -32,6 +32,7 @@ export function ModuleTab(props: ModuleProps) {
     case 'wheel':
       return <WheelModule {...props} />;
     case 'fleet':
+    case 'machine':
       return <FleetModule {...props} />;
     case 'moto':
     case 'marine':
