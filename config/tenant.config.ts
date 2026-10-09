@@ -2,7 +2,8 @@
 // Poslar · central tenant configuration
 //
 // One workshop = one package. Everything that differs between Volt,
-// Gear, Body, Wheel, Fleet, Moto, Marine, Air, Aqua, Tow and Deal lives here as typed data: brand and
+// Gear, Body, Wheel, Fleet, Moto, Marine, Air, Aqua, Tow, Deal, Detail,
+// Electric, Appliance and Locksmith lives here as typed data: brand and
 // accent colour, vocabulary (Mušterija vs Tvrtka, km vs mth), object
 // types, job phase wording, inspection checklists, work templates and
 // which modules are switched on. The database stores only the package
@@ -22,8 +23,12 @@ import { air } from './packages/air';
 import { aqua } from './packages/aqua';
 import { tow } from './packages/tow';
 import { deal } from './packages/deal';
+import { detail } from './packages/detail';
+import { electric } from './packages/electric';
+import { appliance } from './packages/appliance';
+import { locksmith } from './packages/locksmith';
 
-export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'moto' | 'marine' | 'air' | 'aqua' | 'tow' | 'deal';
+export type PackageId = 'volt' | 'gear' | 'body' | 'wheel' | 'fleet' | 'moto' | 'marine' | 'air' | 'aqua' | 'tow' | 'deal' | 'detail' | 'electric' | 'appliance' | 'locksmith';
 // Where the work happens: the customer brings the object in, or the
 // technician goes to the customer's address.
 export type Sector = 'workshop' | 'field';
@@ -42,7 +47,10 @@ export type AssetType =
   | 'car' | 'van' | 'truck' | 'tractor_unit' | 'bus' | 'trailer' | 'semi_trailer' | 'machine'
   | 'tractor' | 'implement' | 'motorcycle' | 'scooter' | 'atv' | 'jetski' | 'boat' | 'outboard' | 'inboard'
   | 'ac_split' | 'ac_multi' | 'ac_ducted' | 'ac_vrf' | 'heat_pump' | 'ventilation' | 'chiller'
-  | 'water_heater' | 'gas_boiler' | 'plumbing' | 'drainage' | 'heating' | 'pump';
+  | 'water_heater' | 'gas_boiler' | 'plumbing' | 'drainage' | 'heating' | 'pump'
+  | 'electrical' | 'switchboard' | 'solar_pv' | 'ev_charger'
+  | 'washer' | 'dishwasher' | 'fridge' | 'oven' | 'dryer' | 'coffee_machine' | 'small_appliance'
+  | 'door_lock' | 'safe';
 
 export type ModuleId =
   | 'dvi'
@@ -141,9 +149,13 @@ export interface PackageConfig {
   // Label of the package's tab on a work order and of its own page in the menu.
   moduleTab: string;
   modulePage: string;
+  // Trades without a module of their own (components/modules/GenericModule):
+  // the recurring service offered on the job's tab, and the hint on the
+  // module page while nothing is due.
+  plan?: { title: string; template: string; months: number; hint: string };
 }
 
-export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto, marine, air, aqua, tow, deal };
+export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, moto, marine, air, aqua, tow, deal, detail, electric, appliance, locksmith };
 export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 
 // Groups so a visitor first says how he works, then picks the trade:
@@ -152,8 +164,8 @@ export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];
 // the road, or the cars are bought and sold.
 export type TradeGroupId = 'radionica' | 'teren' | 'cesta' | 'prodaja';
 export const TRADE_GROUPS: { id: TradeGroupId; name: string; hint: string; packages: PackageId[] }[] = [
-  { id: 'radionica', name: 'Radionica', hint: 'Posao se vodi iz radionice', packages: ['volt', 'gear', 'body', 'wheel', 'moto', 'marine', 'fleet'] },
-  { id: 'teren', name: 'Teren', hint: 'Majstor ide k mušteriji', packages: ['air', 'aqua'] },
+  { id: 'radionica', name: 'Radionica', hint: 'Posao se vodi iz radionice', packages: ['volt', 'gear', 'body', 'wheel', 'detail', 'moto', 'marine', 'fleet'] },
+  { id: 'teren', name: 'Teren', hint: 'Majstor ide k mušteriji', packages: ['air', 'aqua', 'electric', 'appliance', 'locksmith'] },
   { id: 'cesta', name: 'Cesta', hint: 'Vuča i pomoć na cesti, danju i noću', packages: ['tow'] },
   { id: 'prodaja', name: 'Prodaja', hint: 'Otkup, priprema i prodaja rabljenih vozila', packages: ['deal'] },
 ];
@@ -227,12 +239,28 @@ export const ASSET_TYPE_LABELS: Record<AssetType, string> = {
   drainage: 'Odvodnja i kanalizacija',
   heating: 'Grijanje (radijatori, podno)',
   pump: 'Pumpa ili hidrofor',
+  electrical: 'Električna instalacija',
+  switchboard: 'Razvodni ormar',
+  solar_pv: 'Sunčana elektrana',
+  ev_charger: 'Punjač za električni auto',
+  washer: 'Perilica rublja',
+  dishwasher: 'Perilica posuđa',
+  fridge: 'Hladnjak ili zamrzivač',
+  oven: 'Štednjak ili pećnica',
+  dryer: 'Sušilica rublja',
+  coffee_machine: 'Aparat za kavu',
+  small_appliance: 'Mali kućanski aparat',
+  door_lock: 'Vrata i brava',
+  safe: 'Sef',
 };
 
 export const CLIMATE_TYPES: AssetType[] = ['ac_split', 'ac_multi', 'ac_ducted', 'ac_vrf', 'heat_pump', 'ventilation', 'chiller'];
 export const WATER_TYPES: AssetType[] = ['water_heater', 'gas_boiler', 'plumbing', 'drainage', 'heating', 'pump'];
+export const ELECTRIC_TYPES: AssetType[] = ['electrical', 'switchboard', 'solar_pv', 'ev_charger'];
+export const APPLIANCE_TYPES: AssetType[] = ['washer', 'dishwasher', 'fridge', 'oven', 'dryer', 'coffee_machine', 'small_appliance'];
+export const LOCK_TYPES: AssetType[] = ['door_lock', 'safe'];
 // Not a vehicle: no plate, no kilometres, a serial number instead of a VIN.
-export const DEVICE_TYPES: AssetType[] = [...CLIMATE_TYPES, ...WATER_TYPES];
+export const DEVICE_TYPES: AssetType[] = [...CLIMATE_TYPES, ...WATER_TYPES, ...ELECTRIC_TYPES, ...APPLIANCE_TYPES, ...LOCK_TYPES];
 const MTH_TYPES: AssetType[] = ['machine', 'tractor', 'implement', 'jetski', 'boat', 'outboard', 'inboard', ...DEVICE_TYPES];
 
 export function defaultMeterUnit(type: AssetType): MeterUnit {
@@ -243,6 +271,8 @@ export function identifierLabel(type: AssetType): string {
   if (type === 'boat' || type === 'jetski') return 'Registarska oznaka plovila';
   if (type === 'outboard' || type === 'inboard') return 'Serijski broj motora';
   if (type === 'machine' || type === 'implement') return 'Serijski broj';
+  if (LOCK_TYPES.includes(type)) return 'Oznaka (ulaz, kat, stan)';
+  if (type === 'electrical' || type === 'switchboard') return 'Oznaka (npr. stan, kuća, lokal)';
   if (DEVICE_TYPES.includes(type)) return 'Oznaka uređaja';
   return 'Registracija';
 }

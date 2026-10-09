@@ -1,5 +1,6 @@
 // npm run db:seed — creates one demo workshop per package (Volt, Gear,
-// Body, Wheel, Fleet, Moto, Air, Aqua, Tow, Deal), each with an owner and a worker account,
+// Body, Wheel, Fleet, Moto, Marine, Air, Aqua, Tow, Deal, Detail, Electric,
+// Appliance, Locksmith), each with an owner and a worker account,
 // customers, vehicles/machines/boats, work orders in every phase with
 // priced lines, inspections, condition reports, package records (tyre
 // hotel, DTC findings, paint recipes, field jobs, seasonal protocols) and
@@ -65,7 +66,7 @@ async function allUsers() {
 
 // Only the demo workshops this script made (exact slug + demo flag),
 // never a real workshop whose name happens to start with "Demo".
-const ALL_PACKAGES = ['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'marine', 'air', 'aqua', 'tow', 'deal'];
+const ALL_PACKAGES = ['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'marine', 'air', 'aqua', 'tow', 'deal', 'detail', 'electric', 'appliance', 'locksmith'];
 // `npm run db:seed -- --uzorak` makes the sample workshops instead: the
 // same data under uzorak-<package>, with logins nobody can use. A new
 // workshop's 24-hour trial is a copy of its trade's sample (clone_sample,
@@ -1691,6 +1692,300 @@ async function seedDeal() {
 }
 
 // ---------------------------------------------------------------------
+// Poslar Auto kozmetika: a detailing studio in Zagreb
+// ---------------------------------------------------------------------
+async function seedDetail() {
+  const T = await workshop({ pkg: 'detail', name: 'Sjaj Detailing', city: 'Zagreb', address: 'Slavonska avenija 52', phone: '+385 1 555 1111', owner: 'Luka Barišić', worker: 'Filip Golubić' });
+  const lak = (values) => ['b01', 'b02', 'b03', 'b04', 'b05'].map((c, i) => [c, values[i] < 60 ? 'crit' : values[i] < 80 ? 'warn' : 'ok', values[i]]);
+  const units = { b01: 'µm', b02: 'µm', b03: 'µm', b04: 'µm', b05: 'µm' };
+
+  const c1 = await client(T, { first: 'Ivana', last: 'Perić', phone: '+385 91 811 1100', city: 'Zagreb' });
+  const a1 = await asset(T, c1, { id: 'ZG-4410-IP', make: 'BMW', model: 'X3 xDrive20d', year: 2021, fuel: 'diesel' });
+  const c2 = await client(T, { first: 'Marko', last: 'Šimić', phone: '+385 98 811 2200', city: 'Velika Gorica' });
+  const a2 = await asset(T, c2, { id: 'VG-218-MS', make: 'Volkswagen', model: 'Golf 8 GTI', year: 2022, fuel: 'petrol' });
+  const c3 = await client(T, { company: 'Rent Adria d.o.o.', first: 'Tena', last: 'Kralj', phone: '+385 1 811 3300', city: 'Zagreb', oib: '33445566778' });
+  const a3 = await asset(T, c3, { type: 'van', id: 'ZG-7702-RA', make: 'Renault', model: 'Trafic', year: 2019, fuel: 'diesel' });
+  const c4 = await client(T, { first: 'Petra', last: 'Lončar', phone: '+385 95 811 4400', city: 'Zagreb' });
+  const a4 = await asset(T, c4, { id: 'ZG-1290-PL', make: 'Audi', model: 'A4 Avant', year: 2017, fuel: 'diesel' });
+
+  // Two-step correction under way; the paint was measured first.
+  const j1 = await job(T, {
+    client: c1,
+    asset: a1,
+    phase: 'in_progress',
+    d: 1,
+    meter: 48200,
+    complaint: 'Korekcija laka i keramička zaštita',
+    lines: [
+      { kind: 'package', d: 'Korekcija laka u dva koraka (rezanje i završno poliranje)', unit: 'paušal', price: 280 },
+      { kind: 'package', d: 'Priprema laka i nanošenje keramičke zaštite', unit: 'paušal', price: 380 },
+      { kind: 'material', d: 'Keramički premaz', price: 70 },
+    ],
+  });
+  await inspection(T, j1.id, 'detail.intake', 'Prijem vozila', [['a01', 'warn', null, 'Ogrebotine od pranja u autopraonici, desna vrata'], ['a02', 'warn', null, 'Prednji lijevi naplatak izgreban'], ['a03', 'ok'], ['a04', 'ok'], ['a05', 'ok'], ...lak([128, 121, 74, 132, 118])], { completed: true, d: 1, units });
+  await photo(T, j1.id, { label: 'Prije: hologrami na haubi', sub: 'BMW X3 · ZG-4410-IP', tag: 'before', hue: 215, customer: true, d: 1 });
+  await photo(T, j1.id, { label: 'Lijeva strana 74 µm', sub: 'Tanki lak, samo lagano poliranje', tag: 'damage', hue: 30, d: 1 });
+  await messages(T, j1.id, 'Lijeva strana ima 74 µm, idem samo s finom pastom?', 'Da, tamo bez rezanja. Upiši u napomenu za mušteriju.');
+
+  // Done, ceramic on, the yearly care switched on.
+  const j2 = await job(T, {
+    client: c2,
+    asset: a2,
+    phase: 'ready',
+    d: 3,
+    meter: 21500,
+    complaint: 'Keramička zaštita novog vozila',
+    summary: 'Dekontaminacija, poliranje u jednom koraku i keramika u dva sloja. Mušterija upućena: 7 dana bez šampona.',
+    lines: [
+      { kind: 'package', d: 'Poliranje laka u jednom koraku s voskom', unit: 'paušal', price: 150 },
+      { kind: 'package', d: 'Priprema laka i nanošenje keramičke zaštite', unit: 'paušal', price: 380 },
+      { kind: 'material', d: 'Keramički premaz', price: 70 },
+    ],
+  });
+  await inspection(T, j2.id, 'detail.ceramic', 'Keramička zaštita', [['c01', 'ok'], ['c02', 'ok'], ['c03', 'ok'], ['c04', 'ok', 21], ['c05', 'ok', 48], ['c06', 'ok', 2], ['c07', 'ok', null, 'Gtechniq Crystal Serum Light, serija 2406'], ['c08', 'ok']], { completed: true, d: 2, units: { c04: '°C', c05: '%', c06: 'sloj' } });
+  await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, client_id: c2, asset_id: a2, title: 'Održavanje keramičke zaštite', interval_months: 12, next_due_date: day(362), template_code: 'detail.ceramic_care', last_job_id: j2.id }));
+  await photo(T, j2.id, { label: 'Poslije: Golf GTI', sub: 'Keramika, 2 sloja', tag: 'after', hue: 0, customer: true, d: 2 });
+
+  // A rental van, inside only.
+  await job(T, { client: c3, asset: a3, phase: 'intake', d: 0, complaint: 'Dubinsko čišćenje unutra prije sezone', lines: [{ kind: 'package', d: 'Dubinsko čišćenje unutrašnjosti (sjedala, tepisi, plastika)', unit: 'paušal', price: 90 }] });
+
+  // Ceramic from last year: care is due.
+  const j4 = await job(T, { client: c4, asset: a4, phase: 'collected', paid: true, d: 350, meter: 131000, complaint: 'Keramička zaštita', lines: [{ kind: 'package', d: 'Priprema laka i nanošenje keramičke zaštite', unit: 'paušal', price: 380 }, { kind: 'material', d: 'Keramički premaz', price: 70 }] });
+  await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, client_id: c4, asset_id: a4, title: 'Održavanje keramičke zaštite', interval_months: 12, next_due_date: day(15), template_code: 'detail.ceramic_care', last_job_id: j4.id }));
+  await job(T, { client: c1, asset: a1, phase: 'collected', paid: true, d: 120, meter: 41000, complaint: 'Kompletna kozmetika', lines: [{ kind: 'package', d: 'Pranje izvana i dubinsko čišćenje unutra', unit: 'paušal', price: 140 }] });
+  return { T, links: [] };
+}
+
+// Field trades: a customer's address and the object at it.
+async function fieldSite(T, clientId, s) {
+  const [row] = await q(sb.from('sites').insert({ tenant_id: T.id, client_id: clientId, ...s }).select('id'));
+  return row.id;
+}
+
+// ---------------------------------------------------------------------
+// Poslar Električar: an electrician in Rijeka
+// ---------------------------------------------------------------------
+async function seedElectric() {
+  const T = await workshop({ pkg: 'electric', name: 'Elektro Kvarner', city: 'Rijeka', address: 'Zvonimirova 30', phone: '+385 51 555 1212', owner: 'Damir Jelenić', worker: 'Toni Mavrić' });
+  const device = (clientId, siteId, a) => asset(T, clientId, { ...a, site: siteId, unit: 'mth' });
+
+  const c1 = await client(T, { first: 'Sandra', last: 'Žic', phone: '+385 91 812 1100', city: 'Rijeka' });
+  const s1 = await fieldSite(T, c1, { kind: 'flat', address: 'Krešimirova 14', city: 'Rijeka', postal_code: '51000', access_notes: '3. kat. Razvodni ormar u hodniku, iza ogledala.', lat: 45.3313, lng: 14.4295 });
+  const i1 = await device(c1, s1, { type: 'electrical', id: 'Stan Krešimirova 14', model: 'Instalacija iz 1985., Al vodiči' });
+  const b1 = await device(c1, s1, { type: 'switchboard', id: 'Ormar u hodniku', make: 'Schneider', model: 'Resi9, 24 modula', year: 2016 });
+
+  const c2 = await client(T, { first: 'Branko', last: 'Ćiković', phone: '+385 98 812 2200', city: 'Kastav' });
+  const s2 = await fieldSite(T, c2, { kind: 'house', address: 'Belići 22', city: 'Kastav', access_notes: 'Izmjenjivač u garaži, paneli na južnom krovu.', lat: 45.3727, lng: 14.3486 });
+  const pv = await device(c2, s2, { type: 'solar_pv', id: 'Krov jug, 10 kW', make: 'Fronius', model: 'Symo 10.0-3-M', year: 2022, vin: 'FR-26180044' });
+
+  const c3 = await client(T, { first: 'Iva', last: 'Kukuljan', phone: '+385 95 812 3300', city: 'Opatija' });
+  const s3 = await fieldSite(T, c3, { kind: 'house', address: 'Nova cesta 61', city: 'Opatija', access_notes: 'Garaža ispod kuće, šifra 2580.' });
+  const ev = await device(c3, s3, { type: 'ev_charger', id: 'Garaža', make: 'Wallbox', model: 'Pulsar Plus 11 kW' });
+
+  const c4 = await client(T, { company: 'Caffe bar Molo d.o.o.', first: 'Saša', last: 'Brnčić', phone: '+385 51 812 4400', city: 'Rijeka', oib: '55667788991' });
+  const s4 = await fieldSite(T, c4, { kind: 'commercial', label: 'Caffe bar Molo', address: 'Riva 8', city: 'Rijeka', access_notes: 'Otvoreno od 7 h. Ormar u skladištu iza šanka.', contact_name: 'Šef smjene Ana', contact_phone: '+385 51 812 4401' });
+  const i4 = await device(c4, s4, { type: 'electrical', id: 'Caffe bar Molo', model: 'Lokal, trofazni priključak' });
+
+  // Today: the test with measurements, done.
+  const j1 = await job(T, {
+    client: c1,
+    asset: i1,
+    phase: 'ready',
+    d: 0,
+    complaint: 'Ispitivanje instalacije prije prodaje stana',
+    summary: 'Izmjereno svih 9 krugova. Izolacija kupaonice granična, preporučena zamjena kruga.',
+    source: 'field',
+    lines: [{ kind: 'package', d: 'Ispitivanje električne instalacije sa zapisnikom', unit: 'paušal', price: 120 }],
+    extra: { work_mode: 'field', site_id: s1, scheduled_start: zagrebAt(0, 8), scheduled_end: zagrebAt(0, 10), departed_at: zagrebAt(0, 7, 40), customer_notified_at: zagrebAt(0, 7, 41), arrived_at: zagrebAt(0, 8, 2), left_at: zagrebAt(0, 9, 50), finished_at: zagrebAt(0, 9, 50) },
+  });
+  await inspection(T, j1.id, 'electric.measure', 'Ispitivanje instalacije', [['a01', 'warn', 1.6, 'Krug kupaonice'], ['a02', 'ok', 0.21], ['a03', 'ok', 0.84], ['a04', 'ok', 6.2], ['a05', 'ok', 24], ['a06', 'ok', 21], ['b01', 'ok'], ['b02', 'ok'], ['b03', 'warn', null, 'Utičnica u kuhinji napukla'], ['b04', 'ok'], ['b05', 'ok']], { completed: true, d: 0, units: { a01: 'MΩ', a02: 'Ω', a03: 'Ω', a04: 'Ω', a05: 'ms', a06: 'mA' } });
+  await photo(T, j1.id, { label: 'Razvodni ormar', sub: 'Krešimirova 14 · 9 krugova', tag: 'board', hue: 210, customer: true, d: 0, when: zagrebAt(0, 8, 10) });
+  await photo(T, j1.id, { label: 'Otpor izolacije 1,6 MΩ', sub: 'Krug kupaonice', tag: 'meter_reading', hue: 45, customer: true, d: 0, when: zagrebAt(0, 9, 5) });
+
+  // Solar plant: yearly check, plan due in a week.
+  await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, client_id: c2, site_id: s2, asset_id: pv, title: 'Godišnji pregled', interval_months: 12, next_due_date: day(7), template_code: 'electric.solar' }));
+  await job(T, { client: c2, asset: pv, phase: 'collected', paid: true, d: 358, complaint: 'Pregled sunčane elektrane', source: 'field', lines: [{ kind: 'package', d: 'Godišnji pregled sunčane elektrane s mjerenjima', unit: 'paušal', price: 150 }], extra: { work_mode: 'field', site_id: s2 } });
+
+  // Tomorrow: a car charger.
+  await job(T, {
+    client: c3,
+    asset: ev,
+    phase: 'diagnosis',
+    d: 2,
+    complaint: 'Montaža kućnog punjača 11 kW',
+    source: 'phone',
+    lines: [
+      { kind: 'package', d: 'Montaža i spajanje kućnog punjača za električni auto', unit: 'paušal', price: 250 },
+      { kind: 'material', d: 'Kabel, zaštita i sitni materijal', unit: 'paušal', price: 60 },
+    ],
+    extra: { work_mode: 'field', site_id: s3, scheduled_start: zagrebAt(1, 9), scheduled_end: zagrebAt(1, 12) },
+  });
+
+  // Urgent: the bar has no power on one phase.
+  await job(T, {
+    client: c4,
+    asset: i4,
+    phase: 'intake',
+    d: 0,
+    urgent: true,
+    assigned: false,
+    complaint: 'Nema struje na aparatu za kavu i hladnjacima, iskače FID',
+    source: 'phone',
+    lines: [{ kind: 'fee', d: 'Izlazak na intervenciju', unit: 'paušal', price: 30 }],
+    extra: { work_mode: 'field', site_id: s4 },
+  });
+
+  await job(T, { client: c1, asset: b1, phase: 'collected', paid: true, d: 60, complaint: 'Iskače FID sklopka', summary: 'Neispravna FID sklopka zamijenjena.', source: 'field', lines: [{ d: 'Ugradnja FID sklopke u razvodni ormar', qty: 1, price: 35 }, { kind: 'part', d: 'FID sklopka 40 A / 30 mA', price: 45 }], extra: { work_mode: 'field', site_id: s1 } });
+  return { T, links: [] };
+}
+
+// ---------------------------------------------------------------------
+// Poslar Kućanski aparati: an appliance service in Osijek
+// ---------------------------------------------------------------------
+async function seedAppliance() {
+  const T = await workshop({ pkg: 'appliance', name: 'Servis Bijela tehnika Ban', city: 'Osijek', address: 'Trg Ante Starčevića 4', phone: '+385 31 555 1313', owner: 'Zlatko Ban', worker: 'Ivan Rajić' });
+  const device = (clientId, siteId, a) => asset(T, clientId, { ...a, site: siteId, unit: 'mth' });
+
+  const c1 = await client(T, { first: 'Marija', last: 'Kovačević', phone: '+385 91 813 1100', city: 'Osijek' });
+  const s1 = await fieldSite(T, c1, { kind: 'flat', address: 'Vukovarska 102', city: 'Osijek', postal_code: '31000', access_notes: '5. kat, lift radi. Perilica u kupaonici.', lat: 45.5550, lng: 18.6955 });
+  const w1 = await device(c1, s1, { type: 'washer', id: 'Kupaonica', make: 'Bosch', model: 'Serie 6 WAU28T60BY', year: 2018, vin: 'FD 9806 200421' });
+
+  const c2 = await client(T, { first: 'Stjepan', last: 'Matić', phone: '+385 98 813 2200', city: 'Đakovo' });
+  const s2 = await fieldSite(T, c2, { kind: 'house', address: 'Kralja Tomislava 9', city: 'Đakovo', access_notes: 'Kuhinja u prizemlju.' });
+  const f2 = await device(c2, s2, { type: 'fridge', id: 'Kuhinja', make: 'Gorenje', model: 'NRK6192AXL4', year: 2015 });
+
+  const c3 = await client(T, { company: 'Caffe Corso d.o.o.', first: 'Davor', last: 'Pejić', phone: '+385 31 813 3300', city: 'Osijek', oib: '66778899002' });
+  const s3 = await fieldSite(T, c3, { kind: 'commercial', label: 'Caffe Corso', address: 'Županijska 7', city: 'Osijek', contact_name: 'Davor', contact_phone: '+385 31 813 3300' });
+  const cm = await device(c3, s3, { type: 'coffee_machine', id: 'Šank', make: 'Saeco', model: 'Royal One Touch', year: 2020 });
+
+  const c4 = await client(T, { first: 'Ana', last: 'Bošnjak', phone: '+385 95 813 4400', city: 'Osijek' });
+  const s4 = await fieldSite(T, c4, { kind: 'flat', address: 'Divaltova 55', city: 'Osijek' });
+  const d4 = await device(c4, s4, { type: 'dishwasher', id: 'Kuhinja', make: 'Beko', model: 'DFN26420W', year: 2019 });
+
+  // Today: the washing machine pump, repaired.
+  const j1 = await job(T, {
+    client: c1,
+    asset: w1,
+    phase: 'ready',
+    d: 0,
+    complaint: 'Ne izbacuje vodu, greška E18',
+    summary: 'Pumpa odvoda blokirana i pregorjela. Zamijenjena, filter očišćen. Jamstvo na popravak 6 mjeseci.',
+    source: 'field',
+    lines: [
+      { kind: 'fee', d: 'Izlazak i dijagnostika kvara', unit: 'paušal', price: 35 },
+      { d: 'Zamjena pumpe odvoda', qty: 0.7, price: 35 },
+      { kind: 'part', d: 'Pumpa odvoda Bosch 00145787', price: 40 },
+    ],
+    extra: { work_mode: 'field', site_id: s1, scheduled_start: zagrebAt(0, 8, 30), scheduled_end: zagrebAt(0, 9, 30), departed_at: zagrebAt(0, 8, 10), customer_notified_at: zagrebAt(0, 8, 11), arrived_at: zagrebAt(0, 8, 31), left_at: zagrebAt(0, 9, 25), finished_at: zagrebAt(0, 9, 25) },
+  });
+  await inspection(T, j1.id, 'appliance.check', 'Pregled uređaja', [['a01', 'ok'], ['a02', 'crit', null, 'E18: voda se ne izbacuje'], ['a03', 'ok', 7], ['a04', 'ok'], ['b01', 'ok', 24], ['b03', 'ok', 18], ['c01', 'crit', null, 'Pumpa blokirana, u filteru novčić'], ['c02', 'ok'], ['c03', 'ok'], ['c04', 'warn', null, 'Malo kamenca na grijaču'], ['c05', 'ok']], { completed: true, d: 0, units: { a03: 'god.', b01: 'Ω', b03: 'MΩ' } });
+  await photo(T, j1.id, { label: 'Natpisna pločica', sub: 'Bosch WAU28T60BY · FD 9806', tag: 'nameplate', hue: 210, d: 0, when: zagrebAt(0, 8, 35) });
+  await photo(T, j1.id, { label: 'Šifra greške E18', sub: 'Na zaslonu pri dolasku', tag: 'error_code', hue: 0, customer: true, d: 0, when: zagrebAt(0, 8, 33) });
+  await photo(T, j1.id, { label: 'Stara pumpa', sub: 'Blokirana, pregorjela', tag: 'part_old', hue: 30, customer: true, d: 0, when: zagrebAt(0, 9, 5) });
+
+  // Fridge not cooling, part ordered.
+  await job(T, {
+    client: c2,
+    asset: f2,
+    phase: 'awaiting_parts',
+    d: 2,
+    complaint: 'Hladnjak ne hladi, zamrzivač radi',
+    diagnosis: 'Neispravan termostat hladnjaka. Naručen originalni dio, stiže u četvrtak.',
+    source: 'phone',
+    lines: [
+      { kind: 'fee', d: 'Izlazak i dijagnostika kvara', unit: 'paušal', price: 35 },
+      { d: 'Zamjena termostata', qty: 0.7, price: 35 },
+      { kind: 'part', d: 'Termostat Gorenje 409155', price: 30 },
+    ],
+    extra: { work_mode: 'field', site_id: s2 },
+  });
+
+  // The coffee machine: descaling every six months.
+  await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, client_id: c3, site_id: s3, asset_id: cm, title: 'Redovno čišćenje kamenca', interval_months: 6, next_due_date: day(4), template_code: 'appliance.descale' }));
+  await job(T, { client: c3, asset: cm, phase: 'collected', paid: true, d: 178, complaint: 'Čišćenje kamenca', source: 'field', lines: [{ kind: 'package', d: 'Čišćenje kamenca i servis aparata za kavu', unit: 'paušal', price: 45 }], extra: { work_mode: 'field', site_id: s3 } });
+
+  await job(T, { client: c4, asset: d4, phase: 'diagnosis', d: 1, complaint: 'Perilica posuđa curi ispod vrata', source: 'phone', lines: [{ kind: 'fee', d: 'Izlazak i dijagnostika kvara', unit: 'paušal', price: 35 }], extra: { work_mode: 'field', site_id: s4, scheduled_start: zagrebAt(0, 15), scheduled_end: zagrebAt(0, 16) } });
+  return { T, links: [] };
+}
+
+// ---------------------------------------------------------------------
+// Poslar Bravar: a locksmith in Split, day and night
+// ---------------------------------------------------------------------
+async function seedLocksmith() {
+  const T = await workshop({ pkg: 'locksmith', name: 'Bravar Ključ 0-24', city: 'Split', address: 'Ulica Domovinskog rata 61', phone: '+385 21 555 1414', owner: 'Mate Perković', worker: 'Josip Kalebić' });
+  const door = (clientId, siteId, a) => asset(T, clientId, { ...a, site: siteId, unit: 'mth' });
+
+  const c1 = await client(T, { first: 'Klara', last: 'Babić', phone: '+385 91 814 1100', city: 'Split' });
+  const s1 = await fieldSite(T, c1, { kind: 'flat', address: 'Kninska 24', city: 'Split', postal_code: '21000', access_notes: '2. kat, stan desno.', lat: 43.5130, lng: 16.4580 });
+  const d1 = await door(c1, s1, { type: 'door_lock', id: 'Ulazna vrata', make: 'Mottura', model: 'Cilindar 30/35' });
+
+  const c2 = await client(T, { company: 'Apartmani Bačvice d.o.o.', first: 'Nina', last: 'Grgić', phone: '+385 98 814 2200', city: 'Split', oib: '77889900113' });
+  const s2 = await fieldSite(T, c2, { kind: 'apartment', label: 'Apartman 3', address: 'Šetalište Petra Preradovića 4', city: 'Split', access_notes: 'Ključ kod recepcije u prizemlju.' });
+  const d2 = await door(c2, s2, { type: 'door_lock', id: 'Apartman 3', make: 'EVVA', model: 'ICS cilindar' });
+
+  const c3 = await client(T, { company: 'Zlatarna Riva', first: 'Ante', last: 'Vuković', phone: '+385 21 814 3300', city: 'Split', oib: '88990011224' });
+  const s3 = await fieldSite(T, c3, { kind: 'commercial', label: 'Zlatarna Riva', address: 'Obala Hrvatskog narodnog preporoda 12', city: 'Split' });
+  const safe = await door(c3, s3, { type: 'safe', id: 'Sef u skladištu', make: 'Format', model: 'Gigant Pro' });
+
+  // Last night, 01:20: locked out, opened without damage.
+  const j1 = await job(T, {
+    client: c1,
+    asset: d1,
+    phase: 'collected',
+    paid: true,
+    d: 1,
+    assigned: 'owner',
+    complaint: 'Zaključana vani, ključ ostao unutra',
+    summary: 'Vrata otvorena bez oštećenja. Osobna pregledana, adresa se poklapa.',
+    source: 'phone',
+    lines: [
+      { kind: 'package', d: 'Otvaranje zaključanih vrata bez oštećenja', unit: 'paušal', price: 60 },
+      { kind: 'fee', d: 'Dodatak za noć, vikend ili blagdan', unit: 'paušal', price: 40 },
+    ],
+    extra: { work_mode: 'field', site_id: s1, departed_at: zagrebAt(-1, 1, 25), arrived_at: zagrebAt(-1, 1, 41), left_at: zagrebAt(-1, 2, 5), finished_at: zagrebAt(-1, 2, 5) },
+  });
+  await inspection(T, j1.id, 'locksmith.opening', 'Zapisnik otvaranja', checklistCodes('opening', 6).map((c, i) => [c, 'ok', null, i === 1 ? 'Adresa na osobnoj iskaznici' : i === 3 ? 'Otvoreno bez oštećenja (ploča)' : null]), { completed: true, d: 1 });
+  await photo(T, j1.id, { label: 'Vrata prije otvaranja', sub: 'Kninska 24 · 01:43', tag: 'before', hue: 25, customer: true, d: 1, when: zagrebAt(-1, 1, 43) });
+  await photo(T, j1.id, { label: 'Dokaz prava ulaska', sub: 'Osobna, adresa Kninska 24', tag: 'id_check', hue: 200, d: 1, when: zagrebAt(-1, 1, 45) });
+  await photo(T, j1.id, { label: 'Nakon otvaranja', sub: 'Bez oštećenja', tag: 'after', hue: 140, customer: true, d: 1, when: zagrebAt(-1, 2, 0) });
+
+  // Today: a safety cylinder in the same flat.
+  await job(T, {
+    client: c1,
+    asset: d1,
+    phase: 'diagnosis',
+    d: 0,
+    complaint: 'Ugradnja sigurnosnog cilindra',
+    source: 'phone',
+    lines: [
+      { d: 'Ugradnja sigurnosnog cilindra', qty: 0.5, price: 35 },
+      { kind: 'part', d: 'Sigurnosni cilindar s karticom i 5 ključeva', price: 95 },
+    ],
+    extra: { work_mode: 'field', site_id: s1, scheduled_start: zagrebAt(0, 16), scheduled_end: zagrebAt(0, 17) },
+  });
+
+  // Apartments: new cylinder after a guest lost the key.
+  await job(T, {
+    client: c2,
+    asset: d2,
+    phase: 'in_progress',
+    d: 0,
+    complaint: 'Gost izgubio ključ, zamjena cilindra prije dolaska novih gostiju',
+    source: 'phone',
+    lines: [
+      { d: 'Zamjena cilindra', qty: 0.5, price: 35 },
+      { kind: 'part', d: 'Cilindar s 3 ključa', price: 35 },
+    ],
+    extra: { work_mode: 'field', site_id: s2, scheduled_start: zagrebAt(0, 11), scheduled_end: zagrebAt(0, 12), departed_at: zagrebAt(0, 10, 45), arrived_at: zagrebAt(0, 11, 2) },
+  });
+
+  // The jeweller's safe: yearly service.
+  await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, client_id: c3, site_id: s3, asset_id: safe, title: 'Godišnji servis sefa i brava', interval_months: 12, next_due_date: day(20), template_code: 'locksmith.lock' }));
+  await job(T, { client: c3, asset: safe, phase: 'collected', paid: true, d: 345, complaint: 'Servis sefa', source: 'field', lines: [{ d: 'Ugradnja ili zamjena brave', qty: 1, price: 35 }], extra: { work_mode: 'field', site_id: s3 } });
+  return { T, links: [] };
+}
+
+// ---------------------------------------------------------------------
 // The AI phone at work: in every trade one call the owner missed, taken
 // by the AI secretary, ended as a job in Prijem with its slot, the call
 // summary and the conversation (the scenes on the trade pages).
@@ -1861,6 +2156,69 @@ const AI_BOOKINGS = {
       ['Poslar', 'Upisano. Vučno vozilo kreće odmah, stiže za oko 30 minuta. Vozač će Vas nazvati. Doviđenja.'],
     ],
   },
+  detail: {
+    client: { first: 'Robert', last: 'Herceg', phone: '+385 91 815 2201', city: 'Zagreb' },
+    asset: { id: 'ZG-3381-RH', make: 'Mercedes-Benz', model: 'C 220d', year: 2020, fuel: 'diesel' },
+    complaint: 'Poliranje i keramička zaštita, crni lak s puno ogrebotina od pranja.',
+    slot: [2, 8, 0, 480],
+    summary: 'Robert Herceg: Mercedes C 220d, crni lak s ogrebotinama od pranja. Želi poliranje i keramiku. Auto ostavlja prekosutra u 8:00 za cijeli dan.',
+    talk: [
+      ['Poslar', 'Dobar dan, Sjaj Detailing, ovdje Poslar. Majstor trenutno polira, pa se javljam automatski. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Htio bih poliranje i keramiku, crni Mercedes, pun je ogrebotina od praonice.'],
+      ['Poslar', 'Za korekciju laka i keramiku auto ostaje cijeli dan. Prvi slobodan dan je prekosutra od 8:00. Može registracija?'],
+      ['Mušterija', 'ZG 3381 RH. Prekosutra mi odgovara.'],
+      ['Poslar', 'Upisano: prekosutra u 8:00, poliranje i keramika za ZG-3381-RH. Majstor će Vam potvrditi cijenu nakon pregleda laka. Doviđenja.'],
+    ],
+  },
+  electric: {
+    client: { first: 'Nada', last: 'Mikulić', phone: '+385 98 815 3302', city: 'Rijeka' },
+    site: { kind: 'flat', address: 'Vukovarska 44', city: 'Rijeka', postal_code: '51000', access_notes: '1. kat, zvono Mikulić.', lat: 45.3369, lng: 14.4307 },
+    asset: { type: 'electrical', id: 'Stan Vukovarska 44', model: 'Kuhinja i dnevni boravak' },
+    complaint: 'Iskače FID kad se uključi pećnica.',
+    slot: [1, 10, 0, 90],
+    summary: 'Nada Mikulić: iskače FID sklopka čim uključi pećnicu, traje tri dana. Stan na 1. katu, Vukovarska 44, Rijeka. Termin sutra u 10:00.',
+    talk: [
+      ['Poslar', 'Dobar dan, Elektro Kvarner, ovdje Poslar. Majstor je na terenu, pa se javljam automatski. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Iskače mi FID čim upalim pećnicu.'],
+      ['Poslar', 'Isključite pećnicu iz utičnice ili osigurač za pećnicu do dolaska majstora. Od kada to traje i koja je adresa?'],
+      ['Mušterija', 'Tri dana. Vukovarska 44, prvi kat.'],
+      ['Poslar', 'Upisano: sutra u 10:00, traženje kvara na Vukovarskoj 44. Majstor će Vam javiti kad krene. Doviđenja.'],
+    ],
+  },
+  appliance: {
+    client: { first: 'Vesna', last: 'Radić', phone: '+385 95 815 4403', city: 'Osijek' },
+    site: { kind: 'flat', address: 'Reisnerova 17', city: 'Osijek', postal_code: '31000', access_notes: '3. kat, nema lifta.', lat: 45.5545, lng: 18.6870 },
+    asset: { type: 'washer', id: 'Kupaonica', make: 'Samsung', model: 'WW80T534DAW', year: 2021 },
+    complaint: 'Perilica jako lupa na centrifugi, na zaslonu UE.',
+    slot: [1, 13, 0, 60],
+    summary: 'Vesna Radić: Samsung perilica lupa na centrifugi, na zaslonu UE. Kupljena 2021. Reisnerova 17, 3. kat bez lifta. Termin sutra u 13:00.',
+    talk: [
+      ['Poslar', 'Dobar dan, Servis Bijela tehnika Ban, ovdje Poslar. Serviser je kod mušterije, pa se javljam automatski. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Perilica mi strašno lupa kad centrifugira, piše UE.'],
+      ['Poslar', 'UE obično znači neuravnotežen bubanj, ali lupanje može biti i ležaj. Koja je marka i koliko je stara?'],
+      ['Mušterija', 'Samsung, iz 2021. Reisnerova 17, treći kat.'],
+      ['Poslar', 'Upisano: sutra u 13:00, pregled perilice na Reisnerovoj 17. Serviser će Vam javiti kad krene. Doviđenja.'],
+    ],
+  },
+  locksmith: {
+    client: { first: 'Tomislav', last: 'Bilić', phone: '+385 91 815 5504', city: 'Split' },
+    site: { kind: 'flat', address: 'Put Firula 30', city: 'Split', postal_code: '21000', access_notes: 'Prizemlje, ulaz iz dvorišta.', lat: 43.5032, lng: 16.4570 },
+    asset: { type: 'door_lock', id: 'Ulazna vrata', model: 'Sigurnosna vrata' },
+    complaint: 'HITNO: zaključan vani, ključevi unutra.',
+    urgent: true,
+    slot: [0, 23, 30, 45],
+    called: [0, 23, 5],
+    summary: 'Tomislav Bilić: zaključan vani, ključevi ostali u stanu. Put Firula 30, prizemlje. Upozoren da treba osobna iskaznica s tom adresom. Hitni izlazak u 23:30.',
+    talk: [
+      ['Poslar', 'Dobar večer, Bravar Ključ 0-24, ovdje Poslar. Majstor trenutno ne može, pa se javljam automatski. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Zaključao sam se vani, ključevi su unutra.'],
+      ['Poslar', 'Razumijem. Koja je adresa i kakva su vrata?'],
+      ['Mušterija', 'Put Firula 30, prizemlje. Sigurnosna vrata.'],
+      ['Poslar', 'Majstor će trebati vidjeti osobnu iskaznicu s tom adresom ili drugi dokaz da tu stanujete. Imate li je kod sebe?'],
+      ['Mušterija', 'Imam, u novčaniku je.'],
+      ['Poslar', 'Upisano: hitni izlazak, majstor stiže oko 23:30. Javit će Vam se kad krene. Doviđenja.'],
+    ],
+  },
 };
 
 async function aiBooking(T, b) {
@@ -1953,6 +2311,10 @@ for (const [name, fn] of [
   ['Aqua', seedAqua],
   ['Tow', seedTow],
   ['Deal', seedDeal],
+  ['Detail', seedDetail],
+  ['Electric', seedElectric],
+  ['Appliance', seedAppliance],
+  ['Locksmith', seedLocksmith],
 ].filter(([name]) => !ONLY.length || ONLY.includes(name.toLowerCase()))) {
   process.stdout.write(`  ${name}… `);
   const result = await fn();

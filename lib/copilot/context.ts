@@ -292,5 +292,15 @@ async function packageData(ctx: WorkshopContext, jobId: string, asset: Json & { 
       ]);
       return { vozilo_na_prodaju: stock, probne_voznje: drives };
     }
+    case 'detail':
+    case 'electric':
+    case 'appliance':
+    case 'locksmith': {
+      const [{ data: earlier }, { data: plan }] = await Promise.all([
+        s.from('jobs').select('created_at, complaint, work_summary').eq('asset_id', asset.id).neq('id', jobId).order('created_at', { ascending: false }).limit(5),
+        s.from('maintenance_plans').select('title, interval_months, next_due_date').eq('asset_id', asset.id).eq('active', true).order('next_due_date').limit(1),
+      ]);
+      return { raniji_radovi: earlier, servisni_plan: plan?.[0] };
+    }
   }
 }

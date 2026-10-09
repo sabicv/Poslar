@@ -10,6 +10,7 @@ import { AirModule } from './air/AirModule';
 import { AquaModule } from './aqua/AquaModule';
 import { DealModule } from './deal/DealModule';
 import { TowModule } from './tow/TowModule';
+import { GenericModule } from './GenericModule';
 
 export interface ModuleProps {
   ctx: WorkshopContext;
@@ -43,5 +44,10 @@ export function ModuleTab(props: ModuleProps) {
       return <TowModule {...props} />;
     case 'deal':
       return <DealModule {...props} />;
+    case 'detail':
+    case 'electric':
+    case 'appliance':
+    case 'locksmith':
+      return <GenericModule {...props} />;
   }
 }

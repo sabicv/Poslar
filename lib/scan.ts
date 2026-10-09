@@ -20,7 +20,7 @@ Pročitaj i vrati JSON s ovim ključevima (null ako polje ne postoji ili se ne m
  "make": marka (D.1), "model": trgovački naziv/model (D.3),
  "vin": identifikacijski broj vozila (E), 17 znakova,
  "fuel": jedno od "petrol","diesel","hybrid","plugin","electric","lpg","cng" (P.3), "power_kw": snaga u kW (P.2) kao broj}`,
-  plocica: `Na slici je natpisna pločica uređaja (klima, dizalica topline, ventilacija, bojler, plinski kotao, pumpa, stroj, motor).
+  plocica: `Na slici je natpisna pločica uređaja (klima, dizalica topline, ventilacija, bojler, plinski kotao, pumpa, stroj, motor, perilica, hladnjak, štednjak, aparat za kavu, izmjenjivač sunčane elektrane, punjač za auto).
 Vrati JSON (null ako nema ili nije čitljivo):
 {"make": proizvođač, "model": oznaka modela, "serial": serijski broj,
  "refrigerant": radna tvar (npr. "R32", "R410A"), "charge_kg": količina punjenja u kg kao broj,

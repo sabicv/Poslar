@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { hasModule, type ModuleId, type PackageId } from '@/config/tenant.config';
+import { PACKAGE_IDS, hasModule, type ModuleId, type PackageId } from '@/config/tenant.config';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop, type WorkshopContext } from '@/lib/session';
 
@@ -106,7 +106,7 @@ const MODULE_TABLES: Record<string, ModuleId> = {
 function tablePackage(table: string): PackageId | null {
   if (table === 'insurers') return 'body';
   const prefix = table.split('_')[0];
-  return (['volt', 'gear', 'body', 'wheel', 'fleet', 'moto', 'marine', 'air', 'aqua', 'tow', 'deal'] as PackageId[]).includes(prefix as PackageId) ? (prefix as PackageId) : null;
+  return (PACKAGE_IDS as string[]).includes(prefix) ? (prefix as PackageId) : null;
 }
 
 function allowedForWorkshop(ctx: WorkshopContext, table: string): boolean {

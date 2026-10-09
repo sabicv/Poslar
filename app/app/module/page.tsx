@@ -5,6 +5,7 @@ import { DealPage } from '@/components/pages/DealPage';
 import { TowPage } from '@/components/pages/TowPage';
 import { BodyPage } from '@/components/pages/BodyPage';
 import { FleetPage } from '@/components/pages/FleetPage';
+import { GenericPage } from '@/components/pages/GenericPage';
 import { GearPage } from '@/components/pages/GearPage';
 import { MotoPage } from '@/components/pages/MotoPage';
 import { VoltPage } from '@/components/pages/VoltPage';
@@ -35,6 +36,7 @@ export default async function ModulePage({ searchParams }: { searchParams: Promi
       {ctx.pkg.id === 'aqua' ? <AquaPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'tow' ? <TowPage ctx={ctx} /> : null}
       {ctx.pkg.id === 'deal' ? <DealPage ctx={ctx} /> : null}
+      {['detail', 'electric', 'appliance', 'locksmith'].includes(ctx.pkg.id) ? <GenericPage ctx={ctx} /> : null}
     </>
   );
 }

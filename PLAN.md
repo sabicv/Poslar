@@ -209,10 +209,13 @@ Vedranova odluka: stranica opisuje cijeli proizvod; sve ispod mora biti gotovo p
 
 ## Stadij 17: Novi zanati (odluka 8. 10., iza stadija 15)
 Novi zanat koji stane u radionicu ili teren je opis: kvarovi, predlošci s cijenama, check-liste s mjerenjima, ikona, tekst stranice, demo podaci. Oko jedan dan po zanatu, plus tekstovi za Geminija.
-- [ ] Auto kozmetika i poliranje (radionica): registracija, slike prije i poslije, paketi, rezervacija termina
-- [ ] Električar (teren): zapisnik mjerenja instalacije (izolacija, petlja, RCD), solari
-- [ ] Servis kućanskih aparata (radionica i teren): uređaj sa serijskim brojem
-- [ ] Bravar, hitno otvaranje vrata (teren): noćni i vikend dodatak, Poslar na telefonu
+- [x] Auto kozmetika i poliranje (radionica): registracija, slike prije i poslije, paketi, mjerenje laka, obnova keramike
+- [x] Električar (teren): zapisnik mjerenja instalacije (izolacija, petlja, RCD), solari, punjači za auto
+- [x] Servis kućanskih aparata (radionica i teren): uređaj sa serijskim brojem, očitavanje pločice, čekanje dijela
+- [x] Bravar, hitno otvaranje vrata (teren): noćni i vikend dodatak, provjera osobne, Poslar na telefonu
+- [x] Zajednički modul za nove zanate: servisni plan, povijest uređaja, „Dospijeva” na stranici modula
+- [ ] Migracije 0035 i 0036 na živu bazu, demo podaci (`npm run db:seed -- detail electric appliance locksmith`)
+- [ ] Geminijevi tekstovi za 4 nova zanata
 - [ ] Tjedni posjeti na adresi (servisni plan danas najmanje mjesečno)
 - [ ] Održavanje bazena (teren, tjedno): mjerenja pH i klora
 - [ ] Čišćenje apartmana i ureda (teren, tjedno): smjene između gostiju
