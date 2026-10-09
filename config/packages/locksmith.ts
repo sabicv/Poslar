@@ -1,4 +1,5 @@
 import type { PackageConfig } from '../tenant.config';
+import { LOCKSMITH_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 // Bravar: locked out, broken keys, new cylinders and safety locks, safes.
@@ -27,7 +28,8 @@ export const locksmith: PackageConfig = {
   symptoms: ['Zaključan sam vani', 'Slomljen ključ u bravi', 'Zamjena cilindra', 'Sigurnosna brava', 'Popravak brave', 'Otvaranje sefa', 'Izrada ključa', 'Brava zapinje'],
   photoTags: [{ code: 'before', label: 'Prije' }, { code: 'after', label: 'Poslije' }, { code: 'id_check', label: 'Dokaz prava ulaska' }, ...COMMON_PHOTO_TAGS],
   diagram: 'car',
-  equipment: [],
+  conditionZones: LOCKSMITH_ZONES,
+  equipment: ['Ključevi predani', 'Stari cilindar', 'Kartice / transponderi', 'Dokaz prava ulaska'],
   inspections: [
     checklist('locksmith.opening', 'Zapisnik otvaranja', 'checklist', 'Prije i poslije otvaranja', [
       'Osobna iskaznica pregledana (ime i adresa)',
@@ -84,7 +86,7 @@ export const locksmith: PackageConfig = {
     { code: 'locksmith.key', name: 'Izrada ključa', lines: [{ kind: 'part', description: 'Izrada ključa', qty: 1, unit: 'kom', price: 8 }] },
     { code: 'locksmith.safe', name: 'Otvaranje sefa', lines: [{ kind: 'package', description: 'Otvaranje sefa', qty: 1, unit: 'paušal', price: 150 }], inspection: 'locksmith.opening' },
   ],
-  modules: ['dvi', 'approvals', 'field_visits', 'maintenance_plans'],
+  modules: ['dvi', 'condition_report', 'approvals', 'field_visits', 'maintenance_plans'],
   optionalModules: [],
   moduleTab: 'Vrata i povijest',
   modulePage: 'Servisni planovi',

@@ -9,6 +9,7 @@ import { payee, subscription } from '@/lib/billing';
 import { founderSpotsLeft } from '@/lib/founder';
 import { formatDate, formatEuro } from '@/lib/format';
 import { isPlayApp } from '@/lib/play';
+import { AdjustPlan } from '@/components/billing/AdjustPlan';
 import { CardCheckout } from '@/components/billing/CardCheckout';
 import { openCardPortal } from '@/lib/actions/paddle';
 import { switchWorkshop } from '@/lib/actions/workshops';
@@ -101,6 +102,18 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
               {subscribed ? <KeyValue label="Plaćanje">Karticom, obnavlja se samo</KeyValue> : null}
               <KeyValue label={`${AI_LABELS.scan} ovaj mjesec`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>
               <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
+            </div>
+            <div className="border-t border-line p-4">
+              <AdjustPlan
+                current={plan.id}
+                subscribed={subscribed}
+                card={card}
+                prices={cfg?.prices ?? null}
+                tenantId={t.id}
+                email={ctx.user.email ?? null}
+                founder={founder}
+                demo={sub.status === 'demo'}
+              />
             </div>
           </Card>
 

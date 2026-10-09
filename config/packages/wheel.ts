@@ -1,4 +1,5 @@
 import type { PackageConfig } from '../tenant.config';
+import { WHEEL_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 export const TIRE_POSITIONS = [
@@ -51,7 +52,8 @@ export const wheel: PackageConfig = {
     { code: 'alignment_report', label: 'Ispis geometrije' },
   ],
   diagram: 'car',
-  equipment: ['Ključ sigurnosnih vijaka', 'Kapice', 'Rezervni kotač'],
+  conditionZones: WHEEL_ZONES,
+  equipment: ['Ključ sigurnosnih vijaka', 'Kapice (4)', 'Vijci u vrećici', 'Rezervni kotač', 'Senzori TPMS'],
   inspections: [
     checklist('wheel.storage_intake', 'Zaprimanje na čuvanje', 'checklist', 'Set guma', [
       'Dimenzija, marka i model',
@@ -139,8 +141,8 @@ export const wheel: PackageConfig = {
     { code: 'wheel.nitrogen', name: 'Punjenje dušikom', lines: [{ kind: 'labor', description: 'Punjenje 4 gume dušikom', qty: 1, unit: 'paušal', price: 8 }] },
     { code: 'wheel.disposal', name: 'Zbrinjavanje starih guma', lines: [{ kind: 'fee', description: 'Zbrinjavanje stare gume', qty: 4, unit: 'kom', price: 2.5 }] },
   ],
-  modules: ['dvi', 'approvals', 'wheel_hotel', 'wheel_torque', 'wheel_alignment'],
-  optionalModules: ['condition_report', 'field_visits'],
+  modules: ['dvi', 'condition_report', 'approvals', 'wheel_hotel', 'wheel_torque', 'wheel_alignment'],
+  optionalModules: ['field_visits'],
   moduleTab: 'Gume i hotel',
   modulePage: 'Hotel za gume',
 };

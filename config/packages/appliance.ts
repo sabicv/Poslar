@@ -1,4 +1,5 @@
 import type { InspectionTemplate, PackageConfig } from '../tenant.config';
+import { APPLIANCE_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 // Servis kućanskih aparata: washing machines, dishwashers, fridges, ovens,
@@ -63,7 +64,8 @@ export const appliance: PackageConfig = {
   symptoms: ['Ne izbacuje vodu', 'Ne grije', 'Curi voda', 'Ne pali', 'Buka pri centrifugi', 'Ne hladi', 'Greška na zaslonu', 'Vrata se ne zatvaraju', 'Čišćenje kamenca'],
   photoTags: [{ code: 'nameplate', label: 'Natpisna pločica' }, { code: 'error_code', label: 'Šifra greške' }, ...COMMON_PHOTO_TAGS],
   diagram: 'car',
-  equipment: [],
+  conditionZones: APPLIANCE_ZONES,
+  equipment: ['Uputstva', 'Priključna crijeva', 'Ladice / police', 'Stari dio za pokazati'],
   inspections: [
     check,
     checklist('appliance.handover', 'Završetak popravka', 'checklist', 'Prije odlaska', [
@@ -122,7 +124,7 @@ export const appliance: PackageConfig = {
     { code: 'appliance.descale', name: 'Čišćenje kamenca', lines: [{ kind: 'package', description: 'Čišćenje kamenca i servis aparata za kavu', qty: 1, unit: 'paušal', price: 45 }] },
     { code: 'appliance.filters', name: 'Čišćenje filtera i odvoda', lines: [{ kind: 'labor', description: 'Čišćenje filtera, sifona i odvoda', qty: 0.5, unit: 'h', price: 35 }] },
   ],
-  modules: ['dvi', 'approvals', 'field_visits', 'maintenance_plans'],
+  modules: ['dvi', 'condition_report', 'approvals', 'field_visits', 'maintenance_plans'],
   optionalModules: [],
   moduleTab: 'Uređaj i servis',
   modulePage: 'Servisni planovi',

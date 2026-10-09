@@ -1,4 +1,5 @@
 import type { PackageConfig } from '../tenant.config';
+import { FLEET_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 export const COMPLIANCE_LABELS: Record<string, string> = {
@@ -37,7 +38,8 @@ export const fleet: PackageConfig = {
   symptoms: ['Planski servis (PM)', 'Vozilo stoji', 'Kočnice / zrak', 'Elektrika', 'Tahograf', 'Tehnički pregled', 'AdBlue', 'Terenska intervencija'],
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'field', label: 'Teren' }],
   diagram: 'truck',
-  equipment: ['Ključevi', 'Kartica tahografa', 'Dokumenti vozila', 'Vatrogasni aparat', 'Trokut i prva pomoć'],
+  conditionZones: FLEET_ZONES,
+  equipment: ['Ključevi', 'Kartica tahografa', 'Dokumenti vozila', 'Vatrogasni aparat', 'Trokut i prva pomoć', 'Klinovi', 'Lanci', 'Ključ cerade / kaveza'],
   inspections: [
     checklist('fleet.driver_check', 'Dnevni pregled vozača', 'driver_check', 'Prije polaska', [
       'Gume, tlak i oštećenja',
@@ -159,8 +161,8 @@ export const fleet: PackageConfig = {
       ],
     },
   ],
-  modules: ['dvi', 'approvals', 'fleet_compliance', 'fleet_field', 'fleet_pm'],
-  optionalModules: ['condition_report', 'parts'],
+  modules: ['dvi', 'condition_report', 'approvals', 'fleet_compliance', 'fleet_field', 'fleet_pm'],
+  optionalModules: ['parts'],
   moduleTab: 'Flota i teren',
   modulePage: 'Rokovi i zahtjevi',
 };

@@ -580,7 +580,7 @@ export async function linesFromInspection(jobId: string, inspectionId: string): 
 // ---------------------------------------------------------------------
 const reportSchema = z.object({
   diagram: z.enum(['car', 'truck', 'moto', 'atv', 'boat']),
-  marks: z.array(z.object({ zone: z.string().max(60), code: z.enum(['O', 'U', 'P', 'K', 'L', 'N']), note: z.string().max(200).optional() })).max(200),
+  marks: z.array(z.object({ zone: z.string().max(80), code: z.enum(['O', 'U', 'P', 'K', 'L', 'N', 'R', 'B']), note: z.string().max(200).optional() })).max(200),
   equipment: z.array(z.object({ item: z.string().max(80), present: z.boolean() })).max(60),
   fuel_level: z.enum(['0', '1/4', '1/2', '3/4', '1']).nullable(),
 });

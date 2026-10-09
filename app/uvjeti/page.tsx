@@ -69,7 +69,8 @@ export default function TermsPage() {
           </li>
           {slip ? <li>Pretplata se može platiti i uplatom na račun Pružatelja s pozivom na broj radionice, za jedan ili više mjeseci.</li> : null}
           <li>
-            Pretplatu karticom Korisnik otkazuje sam, u Postavke → Pretplata → Kartica i računi. Otkazana pretplata vrijedi do kraja plaćenog razdoblja i sljedeća naplata se ne radi.
+            Pretplatu karticom Korisnik otkazuje sam, u Postavke → Pretplata → Kartica i računi. Otkazana pretplata vrijedi do kraja plaćenog razdoblja i sljedeća naplata se ne radi. Paket mijenja
+            u Postavke → Pretplata → Prilagodi plan.
           </li>
           <li>
             Za pitanja o naplati, kartici i Paddleovim računima Korisnik se obraća Paddleu (paddle.net). Za rad aplikacije i podršku odgovara Pružatelj.

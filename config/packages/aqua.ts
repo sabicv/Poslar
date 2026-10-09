@@ -1,4 +1,5 @@
 import type { InspectionTemplate, PackageConfig } from '../tenant.config';
+import { AQUA_ZONES } from './condition-zones';
 import { checklist } from './shared';
 
 export const ENERGY_LABELS: Record<string, string> = {
@@ -116,7 +117,8 @@ export const aqua: PackageConfig = {
     { code: 'document', label: 'Dokument' },
   ],
   diagram: 'car',
-  equipment: [],
+  conditionZones: AQUA_ZONES,
+  equipment: ['Glavni ključ / pristup', 'Dokumentacija uređaja', 'Filteri', 'Ventili skinuti'],
   inspections: [
     heaterService,
     boilerService,
@@ -200,7 +202,7 @@ export const aqua: PackageConfig = {
       lines: [{ kind: 'labor', description: 'Odzračivanje radijatora i nadopuna sustava', qty: 1, unit: 'h', price: 35 }],
     },
   ],
-  modules: ['dvi', 'approvals', 'field_visits', 'maintenance_plans'],
+  modules: ['dvi', 'condition_report', 'approvals', 'field_visits', 'maintenance_plans'],
   optionalModules: [],
   moduleTab: 'Uređaj i tlačna proba',
   modulePage: 'Servisni planovi',

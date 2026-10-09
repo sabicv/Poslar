@@ -29,7 +29,7 @@ export async function LinesTab({ ctx, job, locked }: { ctx: WorkshopContext; job
       locked={locked}
       approval={(approvals.data?.[0] as Approval | undefined) ?? null}
       appUrl={process.env.NEXT_PUBLIC_APP_URL ?? ''}
-      clientPhone={job.client.phone}
+      clientPhone={job.client?.phone ?? null}
       vatRegistered={billingFrom(ctx.tenant.settings).vatRegistered}
       invoice={!ctx.pkg.internalJobs}
       hourlyRate={book?.hourly ?? null}

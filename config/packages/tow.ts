@@ -1,4 +1,5 @@
 import type { PackageConfig } from '../tenant.config';
+import { TOW_ZONES } from './condition-zones';
 import { checklist } from './shared';
 
 export const TOW_SERVICES: Record<string, string> = {
@@ -76,7 +77,8 @@ export const tow: PackageConfig = {
     { code: 'document', label: 'Dokument / nalog asistencije' },
   ],
   diagram: 'car',
-  equipment: ['Ključevi', 'Prometna dozvola', 'Rezervni kotač', 'Stvari u vozilu'],
+  conditionZones: TOW_ZONES,
+  equipment: ['Ključevi', 'Prometna dozvola', 'Rezervni kotač', 'Stvari u vozilu', 'Dječja sjedalica', 'Registracijske ploče'],
   inspections: [
     checklist('tow.pickup', 'Preuzimanje vozila', 'checklist', 'Prije utovara', [
       'Fotografije sa sve četiri strane',

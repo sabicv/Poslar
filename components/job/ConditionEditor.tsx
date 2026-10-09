@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Check, PenLine } from 'lucide-react';
 import { Diagram, MARK_CODES, zonesFor, type DiagramKind, type MarkCode } from '@/components/Diagram';
+import type { ConditionZone } from '@/config/tenant.config';
 import { Segmented, Sheet, SignaturePad, useAction } from '@/components/client-ui';
-import { Badge, Button, Card, CardHeader, Field, Input } from '@/components/ui';
+import { Badge, Button, Card, CardHeader, Field, Input, Textarea } from '@/components/ui';
 import { saveConditionReport, signConditionReport } from '@/lib/actions/jobs';
 import { formatDateTime } from '@/lib/format';
 import { uploadBlob } from '@/lib/upload';
@@ -20,6 +21,7 @@ export function ConditionEditor({
   jobId,
   tenantId,
   diagram,
+  zones,
   equipment,
   reports,
   clientName,
@@ -28,32 +30,37 @@ export function ConditionEditor({
   jobId: string;
   tenantId: string;
   diagram: DiagramKind;
+  zones?: ConditionZone[];
   equipment: string[];
   reports: Partial<Record<Kind, ReportView>>;
   clientName: string;
   locked: boolean;
 }) {
-  const [kind, setKind] = useState<Kind>(reports.intake?.signed_at && !reports.handover ? 'handover' : 'intake');
   return (
     <div className="space-y-4">
-      <Segmented
-        value={kind}
-        onChange={setKind}
-        size="lg"
-        options={[
-          { value: 'intake', label: 'Prijem' },
-          { value: 'handover', label: 'Predaja' },
-        ]}
-      />
       <ReportForm
-        key={kind}
+        key="intake"
         jobId={jobId}
         tenantId={tenantId}
-        kind={kind}
+        kind="intake"
         diagram={diagram}
+        zones={zones}
         equipment={equipment}
-        report={reports[kind] ?? null}
-        copyFrom={kind === 'handover' ? reports.intake ?? null : null}
+        report={reports.intake ?? null}
+        copyFrom={null}
+        clientName={clientName}
+        locked={locked}
+      />
+      <ReportForm
+        key="handover"
+        jobId={jobId}
+        tenantId={tenantId}
+        kind="handover"
+        diagram={diagram}
+        zones={zones}
+        equipment={equipment}
+        report={reports.handover ?? null}
+        copyFrom={reports.intake ?? null}
         clientName={clientName}
         locked={locked}
       />
@@ -66,6 +73,7 @@ function ReportForm({
   tenantId,
   kind,
   diagram,
+  zones,
   equipment,
   report,
   copyFrom,
@@ -76,6 +84,7 @@ function ReportForm({
   tenantId: string;
   kind: Kind;
   diagram: DiagramKind;
+  zones?: ConditionZone[];
   equipment: string[];
   report: ReportView | null;
   copyFrom: ReportView | null;
@@ -91,6 +100,7 @@ function ReportForm({
   });
   const [fuel, setFuel] = useState<string | null>(base?.fuel_level ?? null);
   const [zone, setZone] = useState<{ code: string; label: string } | null>(null);
+  const [zoneNote, setZoneNote] = useState('');
   const [signer, setSigner] = useState(report?.signer_name ?? clientName);
   const [signature, setSignature] = useState<Blob | null>(null);
   const [dirty, setDirty] = useState(!report && Boolean(copyFrom));
@@ -101,12 +111,23 @@ function ReportForm({
 
   const marked: Record<string, string[]> = {};
   for (const m of marks) (marked[m.zone] ??= []).push(m.code);
-  const zoneLabels = Object.fromEntries(zonesFor(diagram).map((z) => [z.code, z.label]));
+  const zoneList = zones ?? zonesFor(diagram);
+  const zoneLabels = Object.fromEntries(zoneList.map((z) => [z.code, z.label]));
 
   function toggleMark(zoneCode: string, code: MarkCode) {
     setDirty(true);
     setTouched(true);
-    setMarks((all) => (all.some((m) => m.zone === zoneCode && m.code === code) ? all.filter((m) => !(m.zone === zoneCode && m.code === code)) : [...all, { zone: zoneCode, code }]));
+    setMarks((all) => {
+      if (all.some((m) => m.zone === zoneCode && m.code === code)) return all.filter((m) => !(m.zone === zoneCode && m.code === code));
+      return [...all, { zone: zoneCode, code, note: zoneNote.trim() || undefined }];
+    });
+  }
+
+  function saveZoneNote(zoneCode: string, note: string) {
+    setZoneNote(note);
+    setDirty(true);
+    setTouched(true);
+    setMarks((all) => all.map((m) => (m.zone === zoneCode ? { ...m, note: note.trim() || undefined } : m)));
   }
 
   function save(after?: () => void, quiet = false) {
@@ -155,18 +176,37 @@ function ReportForm({
       <Card>
         <CardHeader
           title={kind === 'intake' ? 'Stanje pri prijemu' : 'Stanje pri predaji'}
-          subtitle={signed ? `Potpisano ${formatDateTime(report!.signed_at)} · ${report!.signer_name ?? ''}` : 'Dodirnite dio i označite oštećenje'}
+          subtitle={
+            signed
+              ? `Potpisano ${formatDateTime(report!.signed_at)} · ${report!.signer_name ?? ''}`
+              : kind === 'handover'
+                ? 'Usporedite s prijemom. Označite što je ostalo ili novo.'
+                : 'Dodirnite dio i napišite gdje točno.'
+          }
           action={signed ? <Badge tone="ok"><Check className="size-3" /> Potpisano</Badge> : null}
         />
         <div className="p-4">
-          <Diagram kind={diagram} marked={marked} onZone={setZone} disabled={readOnly} />
+          <Diagram
+            kind={diagram}
+            zones={zoneList}
+            marked={marked}
+            onZone={(z) => {
+              setZoneNote(marks.find((m) => m.zone === z.code)?.note ?? '');
+              setZone(z);
+            }}
+            disabled={readOnly}
+            detail
+          />
           {/* The list below names every mark in full, so no separate legend. */}
           {marks.length ? (
             <ul className="mt-4 divide-y divide-line rounded-xl border border-line">
               {marks.map((m, i) => (
-                <li key={`${m.zone}-${m.code}-${i}`} className="flex items-center justify-between px-3 py-2 text-sm">
-                  <span>{zoneLabels[m.zone] ?? m.zone}</span>
-                  <span className="text-muted">{MARK_CODES[m.code as MarkCode]}</span>
+                <li key={`${m.zone}-${m.code}-${i}`} className="px-3 py-2 text-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <span>{zoneLabels[m.zone] ?? m.zone}</span>
+                    <span className="shrink-0 text-muted">{MARK_CODES[m.code as MarkCode]}</span>
+                  </div>
+                  {m.note ? <p className="mt-0.5 text-xs text-faint">{m.note}</p> : null}
                 </li>
               ))}
             </ul>
@@ -214,7 +254,7 @@ function ReportForm({
       </Card>
 
       <Card>
-        <CardHeader title="Potpis stranke" />
+        <CardHeader title="Potpis mušterije" />
         <div className="space-y-4 p-4">
           {signed && report?.signatureUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -228,7 +268,7 @@ function ReportForm({
               </Field>
               <SignaturePad onChange={setSignature} />
               <p className="text-xs text-faint">
-                Potpisom stranka potvrđuje stanje {kind === 'intake' ? 'pri predaji vozila servisu' : 'pri preuzimanju'} i navedenu opremu.
+                Potpisom mušterija potvrđuje stanje {kind === 'intake' ? 'pri predaji u radionicu' : 'pri preuzimanju'} i navedenu opremu.
               </p>
               <Button variant="primary" size="lg" disabled={pending || !signature} onClick={sign}>
                 <PenLine className="size-4" /> Potvrdi potpis
@@ -249,12 +289,22 @@ function ReportForm({
                 onClick={() => zone && toggleMark(zone.code, code)}
                 className={cn('flex h-14 items-center gap-3 rounded-xl border px-4 text-left', on ? 'border-warn bg-warn/10' : 'border-line hover:bg-surface2')}
               >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-surface2 font-mono font-bold">{code}</span>
+                <span className="flex size-8 items-center justify-center rounded-lg bg-surface2 font-semibold">{code}</span>
                 <span className="flex-1">{MARK_CODES[code]}</span>
                 {on ? <Check className="size-5 text-warn" /> : null}
               </button>
             );
           })}
+          {zone && !readOnly ? (
+            <Field label="Gdje točno?">
+              <Textarea
+                rows={2}
+                value={zoneNote}
+                placeholder="npr. donji rub, oko 4 cm"
+                onChange={(e) => saveZoneNote(zone.code, e.target.value)}
+              />
+            </Field>
+          ) : null}
           <Button size="lg" variant="primary" className="mt-2" onClick={() => setZone(null)}>
             Gotovo
           </Button>

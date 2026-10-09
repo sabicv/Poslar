@@ -97,15 +97,15 @@ async function assemble(db: SupabaseClient, jobs: JobRow[]): Promise<LoadedInvoi
   const demoWorkshop = (tenant.settings as { demo?: unknown } | null)?.demo === true;
 
   return jobs.map((job) => {
-    const client = job.client as InvoiceData['client'] & { phone: string | null };
+    const client = job.client as (InvoiceData['client'] & { phone: string | null }) | null;
     return {
       jobId: job.id as string,
       tenantId: job.tenant_id as string,
       token: job.invoice_token as string,
       paid: job.payment_status === 'paid',
       sample: job.is_demo === true && !demoWorkshop,
-      clientPhone: client.phone,
-      clientFirstName: client.kind === 'person' ? client.first_name : null,
+      clientPhone: client?.phone ?? null,
+      clientFirstName: client?.kind === 'person' ? client.first_name : null,
       workshop: {
         name: tenant.name as string,
         address: tenant.address as string | null,
@@ -129,7 +129,7 @@ async function assemble(db: SupabaseClient, jobs: JobRow[]): Promise<LoadedInvoi
       operator: (job.invoice_operator as string | null) ?? null,
       jobNumber: job.number as number,
       client,
-      asset: job.asset as InvoiceData['asset'],
+      asset: (job.asset as InvoiceData['asset']) ?? null,
       assetLabel,
       workSummary: job.work_summary as string | null,
       lines: lines

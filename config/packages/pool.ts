@@ -1,4 +1,5 @@
 import type { InspectionTemplate, PackageConfig } from '../tenant.config';
+import { POOL_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 // Održavanje bazena: weekly water chemistry on site. The numbers decide
@@ -60,7 +61,8 @@ export const pool: PackageConfig = {
   symptoms: ['Tjedni servis', 'Mutna voda', 'Zelene alge', 'pH visok', 'Nema klora', 'Filter zapinje', 'Pumpa ne vuče', 'Curenje', 'Otvaranje sezone', 'Zatvaranje sezone'],
   photoTags: [{ code: 'before', label: 'Prije' }, { code: 'after', label: 'Poslije' }, { code: 'water', label: 'Voda' }, { code: 'plant', label: 'Strojarnica' }, ...COMMON_PHOTO_TAGS],
   diagram: 'car',
-  equipment: [],
+  conditionZones: POOL_ZONES,
+  equipment: ['Plahta / pokrov', 'Robot / usis', 'Kemija na licu mjesta', 'Ključ strojarnice'],
   inspections: [
     water,
     checklist('pool.open', 'Otvaranje sezone', 'checklist', 'Prije punjenja', [
@@ -112,7 +114,7 @@ export const pool: PackageConfig = {
     { code: 'pool.close', name: 'Zatvaranje sezone', lines: [{ kind: 'package', description: 'Zatvaranje bazena za zimu', qty: 1, unit: 'paušal', price: 160 }], inspection: 'pool.close' },
     { code: 'pool.hour', name: 'Sat rada', lines: [{ kind: 'labor', description: 'Radovi na bazenu', qty: 1, unit: 'h', price: 35 }] },
   ],
-  modules: ['dvi', 'approvals', 'field_visits', 'maintenance_plans'],
+  modules: ['dvi', 'condition_report', 'approvals', 'field_visits', 'maintenance_plans'],
   optionalModules: [],
   moduleTab: 'Bazen i plan',
   modulePage: 'Servisni planovi',

@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { FieldActions, ScheduleSheet } from '@/components/field/FieldActions';
 import { Card, CardHeader, KeyValue } from '@/components/ui';
-import { DEVICE_TYPES } from '@/config/tenant.config';
+import { DEVICE_TYPES, hasModule } from '@/config/tenant.config';
+import { ConditionTab } from './ConditionTab';
 import { waEnabled } from '@/config/whatsapp';
 import { canMessage, whatsappReady } from '@/lib/whatsapp';
 import { ConfirmAppointment } from './ConfirmAppointment';
@@ -107,6 +108,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
             ) : null}
           </Card>
         ) : null}
+        {hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'condition_report') ? <ConditionTab ctx={ctx} job={job} locked={Boolean(job.locked_at)} /> : null}
         <OverviewEditor
           job={{
             id: job.id,

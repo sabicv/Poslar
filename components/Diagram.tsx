@@ -1,9 +1,10 @@
 // No 'use client': the helpers (diagramFor, zonesFor) are also called on the
 // server; the component runs in the browser when a client component renders it.
 import { BODY_ZONES } from '@/config/packages/body';
+import { FLEET_ZONES } from '@/config/packages/condition-zones';
 import { MOTO_ZONES } from '@/config/packages/moto';
 import { BOAT_ZONES } from '@/config/packages/marine';
-import type { AssetType } from '@/config/tenant.config';
+import type { AssetType, ConditionZone } from '@/config/tenant.config';
 import { cn } from '@/lib/utils';
 
 export type DiagramKind = 'car' | 'truck' | 'moto' | 'boat';
@@ -12,9 +13,11 @@ export const MARK_CODES = {
   O: 'Ogrebotina',
   U: 'Udubljenje',
   P: 'Pukotina',
-  K: 'Kamenčić / oštećen lak',
+  K: 'Kamenčić / odlupan lak',
   L: 'Lom',
   N: 'Nedostaje',
+  R: 'Korozija / hrđa',
+  B: 'Savijeno / deformacija',
 } as const;
 export type MarkCode = keyof typeof MARK_CODES;
 
@@ -77,10 +80,60 @@ export function diagramFor(assetType: AssetType, fallback: DiagramKind): Diagram
   return fallback;
 }
 
-export function zonesFor(kind: DiagramKind): { code: string; label: string }[] {
-  if (kind === 'car') return CAR;
-  if (kind === 'truck') return TRUCK;
-  return (kind === 'moto' ? MOTO_ZONES : BOAT_ZONES).map((l) => ({ code: l, label: l }));
+export function zonesFor(kind: DiagramKind): ConditionZone[] {
+  if (kind === 'car') return BODY_ZONES;
+  if (kind === 'truck') return FLEET_ZONES;
+  return kind === 'moto' ? MOTO_ZONES : BOAT_ZONES;
+}
+
+export function resolveZones(kind: DiagramKind, packageKind: DiagramKind, packageZones?: ConditionZone[]): ConditionZone[] {
+  if (kind === packageKind && packageZones?.length) return packageZones;
+  return zonesFor(kind);
+}
+
+function ZoneGrid({
+  zones,
+  marked,
+  onZone,
+  disabled,
+}: {
+  zones: ConditionZone[];
+  marked: Record<string, string[]>;
+  onZone: (zone: { code: string; label: string }) => void;
+  disabled?: boolean;
+}) {
+  const groups = [...new Set(zones.map((z) => z.group))];
+  return (
+    <div className="space-y-4">
+      {groups.map((group) => (
+        <div key={group}>
+          <p className="mb-2 text-xs font-medium text-muted">{group}</p>
+          <div className="grid grid-cols-2 gap-2">
+            {zones
+              .filter((z) => z.group === group)
+              .map((zone) => {
+                const codes = marked[zone.code] ?? [];
+                return (
+                  <button
+                    key={zone.code}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => onZone(zone)}
+                    className={cn(
+                      'flex min-h-12 items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-sm',
+                      codes.length ? 'border-warn/50 bg-warn/10' : 'border-line hover:bg-surface2'
+                    )}
+                  >
+                    <span>{zone.label}</span>
+                    {codes.length ? <span className="shrink-0 font-mono text-xs font-bold text-warn">{codes.join('')}</span> : null}
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function Diagram({
@@ -88,41 +141,24 @@ export function Diagram({
   marked,
   onZone,
   disabled,
+  detail = false,
+  zones,
 }: {
   kind: DiagramKind;
   marked: Record<string, string[]>;
   onZone: (zone: { code: string; label: string }) => void;
   disabled?: boolean;
+  detail?: boolean;
+  zones?: ConditionZone[];
 }) {
-  if (kind === 'moto' || kind === 'boat') {
-    return (
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {zonesFor(kind).map((zone) => {
-          const codes = marked[zone.code] ?? [];
-          return (
-            <button
-              key={zone.code}
-              type="button"
-              disabled={disabled}
-              onClick={() => onZone(zone)}
-              className={cn(
-                'flex min-h-12 items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-sm',
-                codes.length ? 'border-warn/50 bg-warn/10' : 'border-line hover:bg-surface2'
-              )}
-            >
-              <span>{zone.label}</span>
-              {codes.length ? <span className="font-mono text-xs font-bold text-warn">{codes.join('')}</span> : null}
-            </button>
-          );
-        })}
-      </div>
-    );
+  if (kind === 'moto' || kind === 'boat' || detail) {
+    return <ZoneGrid zones={zones ?? zonesFor(kind)} marked={marked} onZone={onZone} disabled={disabled} />;
   }
 
-  const zones = kind === 'car' ? CAR : TRUCK;
+  const map = kind === 'car' ? CAR : TRUCK;
   return (
     <svg viewBox="0 0 200 390" className="mx-auto block h-auto w-full max-w-[280px] select-none" role="img" aria-label="Dijagram vozila">
-      {zones.map((zone) => {
+      {map.map((zone) => {
         const codes = marked[zone.code] ?? [];
         return (
           <g

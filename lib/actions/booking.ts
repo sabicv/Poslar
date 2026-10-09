@@ -7,7 +7,7 @@ import { isGuestTenant } from '@/lib/guest';
 import { digitsOf, overLimit, senderHash } from '@/lib/intake';
 import { sendMail } from '@/lib/mail';
 import { ownerEmail } from '@/lib/phone-agent';
-import { appOrigin } from '@/lib/qr';
+import { publicAppUrl } from '@/lib/qr';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 // "Rezerviraj termin": the customer books a free slot on the workshop's
@@ -63,7 +63,7 @@ export async function submitBooking(token: string, values: z.input<typeof schema
     // from the demo, whose accounts are throwaway).
     const to = isGuestTenant(at.tenant) ? null : await ownerEmail(admin, at.tenant.id);
     if (to) {
-      const link = `${process.env.NEXT_PUBLIC_APP_URL || (await appOrigin())}/app/jobs/${r.jobId}`;
+      const link = `${publicAppUrl()}/app/jobs/${r.jobId}`;
       await sendMail(to, `Nova rezervacija: ${r.label}`, `Mušterija je rezervirala termin preko poveznice.\n\nTermin: ${r.label}\nMušterija: ${v.name}, ${v.phone}\nPosao: ${v.complaint}\n\nNalog #${r.number}: ${link}\nPotvrdite termin mušteriji iz naloga.`).catch(() => {});
     }
     return { ok: true, data: { label: r.label, number: r.number, again: false } };

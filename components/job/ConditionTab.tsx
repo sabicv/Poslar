@@ -1,4 +1,4 @@
-import { diagramFor } from '@/components/Diagram';
+import { diagramFor, resolveZones } from '@/components/Diagram';
 import type { WorkshopContext } from '@/lib/session';
 import type { ConditionReport, JobWithRefs } from '@/types/db';
 import { ConditionEditor } from './ConditionEditor';
@@ -15,11 +15,13 @@ export async function ConditionTab({ ctx, job, locked }: { ctx: WorkshopContext;
   }
 
   const diagram = diagramFor(job.asset.asset_type, ctx.pkg.diagram);
+  const zones = resolveZones(diagram, ctx.pkg.diagram, ctx.pkg.conditionZones);
   return (
     <ConditionEditor
       jobId={job.id}
       tenantId={ctx.tenant.id}
       diagram={diagram}
+      zones={zones}
       equipment={ctx.pkg.equipment}
       reports={Object.fromEntries(reports.map((r) => [r.kind, { ...r, signatureUrl: r.signature_path ? signatures[r.signature_path] ?? null : null }]))}
       clientName={[job.client.first_name, job.client.last_name].filter(Boolean).join(' ') || job.client.company_name || ''}

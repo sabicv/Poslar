@@ -117,9 +117,12 @@ body {
 }
 
 /* While typing on a phone the page shrinks above the keyboard; the bottom
-   menu and the job's action bar step aside so the field stays in view. */
+   menu and the job's action bar step aside so the field stays in view.
+   Date/time and <select> use a native picker, not the keyboard — if they
+   stay focused after a cancel ("neodabir"), hiding the chrome leaves the
+   bottom of the screen empty (Poslovanje month, Računi danas date). */
 @media (pointer: coarse) {
-  body:has(:is(input:not([type='checkbox']):not([type='radio']):not([type='file']), textarea, select):focus) .hide-on-type {
+  body:has(:is(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='date']):not([type='time']):not([type='datetime-local']):not([type='hidden']):not([type='range']), textarea):focus) .hide-on-type {
     display: none;
   }
 }

@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import { PHONE_CALL_MAX_SECONDS, PHONE_PACK } from '@/config/plans';
-import { appOrigin } from '@/lib/qr';
+import { publicAppUrl } from '@/lib/qr';
 import { sendMail } from '@/lib/mail';
 import { agentVariables, book, callerContext, offerSlots, openJobsText, ownerEmail, tenantForNumber } from '@/lib/phone-agent';
 import { logError } from '@/lib/errors';
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
           results.push({ toolCallId, result: `Rezervirano: ${r.label}. Broj naloga ${r.number}. Reci pozivatelju termin i da će majstor poslati potvrdu porukom.` });
           const to = await ownerEmail(admin, at.tenant.id);
           if (to) {
-            const link = `${process.env.NEXT_PUBLIC_APP_URL || (await appOrigin())}/app/jobs/${r.jobId}`;
+            const link = `${publicAppUrl()}/app/jobs/${r.jobId}`;
             await sendMail(to, `Novi termin: ${r.label}`, `Poslar je na telefonu dogovorio termin.\n\nTermin: ${r.label}\nMušterija: ${str(args.ime_prezime) ?? ''}, ${str(args.telefon) ?? caller ?? ''}\nPosao: ${str(args.opis) ?? ''}\n\nNalog #${r.number}: ${link}\nPotvrdite termin mušteriji iz naloga.`);
           }
         } else {
@@ -189,7 +189,7 @@ async function warnAboutMinutes(admin: ReturnType<typeof createAdminClient>, ten
   await admin.from('tenants').update({ settings: { ...(tenant.settings ?? {}), phone_warned: `${month}:${level}` } }).eq('id', tenant.id);
   const to = await ownerEmail(admin, tenant.id);
   if (!to) return;
-  const link = `${appOrigin()}/app/settings/telefon`;
+  const link = `${publicAppUrl()}/app/settings/telefon`;
   await sendMail(
     to,
     level === 100 ? 'Poslar na telefonu: pozivi za ovaj mjesec su potrošeni' : 'Poslar na telefonu: potrošeno 80 % poziva',

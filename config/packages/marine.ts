@@ -1,9 +1,45 @@
-import type { PackageConfig } from '../tenant.config';
+import type { ConditionZone, PackageConfig } from '../tenant.config';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
-export const BOAT_ZONES = [
-  'Pramac', 'Bok lijevi', 'Bok desni', 'Krma', 'Dno / antivegetativ', 'Paluba', 'Ograda', 'Tende i jastuci',
-  'Poklopac motora', 'Noga i propeler', 'Anode', 'Prikolica',
+export const BOAT_ZONES: ConditionZone[] = [
+  { code: 'bow', label: 'Prova', group: 'Prova' },
+  { code: 'stem', label: 'Špic prove', group: 'Prova' },
+  { code: 'bow_locker', label: 'Sidrena kutija', group: 'Prova' },
+  { code: 'bow_cleat', label: 'Bitva prove', group: 'Prova' },
+  { code: 'bow_rail', label: 'Ograda prove', group: 'Prova' },
+  { code: 'bow_light', label: 'Navigacijsko svjetlo prove', group: 'Prova' },
+  { code: 'keel', label: 'Kobilica', group: 'Trup i dno' },
+  { code: 'bottom', label: 'Dno / antivegetativ', group: 'Trup i dno' },
+  { code: 'hull_l', label: 'Bok lijevi', group: 'Lijeva strana' },
+  { code: 'rub_l', label: 'Odbojnik lijevi', group: 'Lijeva strana' },
+  { code: 'rail_l', label: 'Ograda lijeva', group: 'Lijeva strana' },
+  { code: 'cleat_l', label: 'Bitva lijeva', group: 'Lijeva strana' },
+  { code: 'hull_r', label: 'Bok desni', group: 'Desna strana' },
+  { code: 'rub_r', label: 'Odbojnik desni', group: 'Desna strana' },
+  { code: 'rail_r', label: 'Ograda desna', group: 'Desna strana' },
+  { code: 'cleat_r', label: 'Bitva desna', group: 'Desna strana' },
+  { code: 'stern', label: 'Krma', group: 'Krma' },
+  { code: 'transom', label: 'Krmena ploča', group: 'Krma' },
+  { code: 'platform', label: 'Kupaća platforma', group: 'Krma' },
+  { code: 'stern_cleat_l', label: 'Bitva krme lijeva', group: 'Krma' },
+  { code: 'stern_cleat_r', label: 'Bitva krme desna', group: 'Krma' },
+  { code: 'rudder', label: 'Kormilo', group: 'Krma' },
+  { code: 'stern_light', label: 'Navigacijsko svjetlo krme', group: 'Krma' },
+  { code: 'deck', label: 'Paluba', group: 'Paluba i kokpit' },
+  { code: 'cockpit', label: 'Kokpit', group: 'Paluba i kokpit' },
+  { code: 'console', label: 'Konzola / volan', group: 'Paluba i kokpit' },
+  { code: 'seats', label: 'Sjedala', group: 'Paluba i kokpit' },
+  { code: 'canvas', label: 'Tenda i jastuci', group: 'Paluba i kokpit' },
+  { code: 'windshield', label: 'Vjetrobran', group: 'Paluba i kokpit' },
+  { code: 'cowling', label: 'Poklopac motora', group: 'Motor' },
+  { code: 'leg', label: 'Noga motora', group: 'Motor' },
+  { code: 'prop', label: 'Propeler', group: 'Motor' },
+  { code: 'anodes', label: 'Anode', group: 'Motor' },
+  { code: 'trailer_frame', label: 'Ram prikolice', group: 'Prikolica' },
+  { code: 'trailer_winch', label: 'Vitlo', group: 'Prikolica' },
+  { code: 'trailer_wheel_l', label: 'Kotač prikolice lijevi', group: 'Prikolica' },
+  { code: 'trailer_wheel_r', label: 'Kotač prikolice desni', group: 'Prikolica' },
+  { code: 'trailer_light', label: 'Svjetla prikolice', group: 'Prikolica' },
 ];
 
 export const marine: PackageConfig = {
@@ -30,7 +66,19 @@ export const marine: PackageConfig = {
   symptoms: ['Redovni servis', 'Konzervacija (zimovanje)', 'Dekonzervacija', 'Ne pali', 'Gubi snagu', 'Pregrijava se', 'Električni kvar', 'Skladištenje'],
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'hull', label: 'Trup' }, { code: 'equipment', label: 'Oprema' }],
   diagram: 'boat',
-  equipment: ['Ključ', 'Daljinski alarma', 'Punjač / održavač', 'Cerada', 'Prsluk za spašavanje', 'Sidro', 'Prekidač za slučaj pada'],
+  conditionZones: BOAT_ZONES,
+  equipment: [
+    'Ključ kontakta',
+    'Daljinski alarma',
+    'Punjač / održavač',
+    'Cerada',
+    'Prsluk za spašavanje',
+    'Sidro',
+    'Prekidač za slučaj pada',
+    'Veslo',
+    'Dokumenti plovila',
+    'Gašenje / aparat',
+  ],
   inspections: [
     checklist('marine.winterize_outboard', 'Konzervacija vanbrodskog motora', 'seasonal', 'Zimovanje', [
       'Ispiranje slatkom vodom',

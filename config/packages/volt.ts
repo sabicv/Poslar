@@ -1,4 +1,5 @@
 import type { PackageConfig } from '../tenant.config';
+import { VOLT_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 export const volt: PackageConfig = {
@@ -40,7 +41,8 @@ export const volt: PackageConfig = {
     { code: 'scope', label: 'Valni oblik (osciloskop)' },
   ],
   diagram: 'car',
-  equipment: ['Ključevi', 'Daljinski', 'Dokumenti vozila', 'Punjač / kabel'],
+  conditionZones: VOLT_ZONES,
+  equipment: ['Ključevi', 'Daljinski', 'Dokumenti vozila', 'Punjač / kabel', 'Radio kod', 'Servisna knjižica'],
   inspections: [
     checklist('volt.diag_protocol', 'Dijagnostički protokol', 'checklist', 'Koraci dijagnostike', [
       'Napon akumulatora ≥ 12,4 V prije dijagnostike, inače punjač',

@@ -1,5 +1,5 @@
 // npm run db:seed — creates one demo workshop per package (Volt, Gear,
-// Body, Wheel, Fleet, Moto, Marine, Air, Aqua, Tow, Deal, Detail, Electric,
+// Body, Wheel, Fleet, Machine, Moto, Marine, Air, Aqua, Tow, Deal, Detail, Electric,
 // Appliance, Locksmith, Pool, Clean), each with an owner and a worker account,
 // customers, vehicles/machines/boats, work orders in every phase with
 // priced lines, inspections, condition reports, package records (tyre
@@ -386,18 +386,18 @@ async function inspection(T, jobId, code, title, results, { completed = false, d
 
 const checklistCodes = (name, count) => Array.from({ length: count }, (_, i) => `${name}_${String(i + 1).padStart(2, '0')}`);
 
-async function conditionReport(T, jobId, { diagram = 'car', marks = [], equipment = [], fuel = '1/2', d = 1 }) {
+async function conditionReport(T, jobId, { diagram = 'car', kind = 'intake', marks = [], equipment = [], fuel = null, d = 1 }) {
   await q(
     sb.from('condition_reports').insert({
       tenant_id: T.id,
       job_id: jobId,
-      kind: 'intake',
+      kind,
       diagram,
       marks,
       equipment: equipment.map(([item, present]) => ({ item, present })),
       fuel_level: fuel,
       staff_id: T.worker,
-      created_at: at(d, 8, 40),
+      created_at: at(d, kind === 'handover' ? 16 : 8, 40),
     })
   );
 }
@@ -467,7 +467,16 @@ async function seedVolt() {
   );
   await q(sb.from('volt_battery_tests').insert({ tenant_id: T.id, job_id: j1.id, battery_type: 'agm', rest_voltage_v: 12.31, rated_cca_a: 760, measured_cca_a: 505, soh_pct: 64, soc_pct: 72, cranking_min_v: 9.6, result: 'replace', created_by: T.worker }));
   await inspection(T, j1.id, 'volt.diag_protocol', 'Dijagnostički protokol', checklistCodes('diag_protocol', 5).map((c) => [c, 'ok']), { d: 1 });
-  await conditionReport(T, j1.id, { marks: [{ zone: 'rear_bumper', code: 'O' }, { zone: 'door_fl', code: 'U' }], equipment: [['Ključevi', true], ['Daljinski', true], ['Dokumenti vozila', true], ['Punjač / kabel', false]], fuel: '1/4' });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'battery', code: 'R', note: 'polovi oksidirani' },
+      { zone: 'door_fl', code: 'U', note: 'donji rub, oko 3 cm' },
+      { zone: 'headlight_l', code: 'O' },
+      { zone: 'fuse_box', code: 'O', note: 'poklopac napuknut' },
+    ],
+    equipment: [['Ključevi', true], ['Daljinski', true], ['Dokumenti vozila', true], ['Punjač / kabel', false], ['Radio kod', false], ['Servisna knjižica', true]],
+    fuel: '1/4',
+  });
   await photo(T, j1.id, { label: 'Stanje pri prijemu', sub: 'ZG-1234-AB · Golf 7', tag: 'intake', hue: 210 });
   await photo(T, j1.id, { label: 'Strujna kliješta, 850 mA', sub: 'Početno mjerenje nakon zaključavanja', tag: 'meter', hue: 190 });
   await messages(T, j1.id, 'F23 ne piše u shemi, što je na tom osiguraču kod Golfa 7?', 'Kad nađeš krivca, slikaj modul i javi prije zamjene.');
@@ -649,7 +658,17 @@ async function seedGear() {
   await q(sb.from('job_line_prices').insert({ job_line_id: svc.id, tenant_id: T.id, unit_price: 45 }));
   await photo(T, j1.id, { label: 'Stražnje pločice 2,1 mm', sub: 'Nalaz inspekcije · Hitno', tag: 'inspection', hue: 0, customer: true, d: 0 });
   await photo(T, j1.id, { label: 'Manžeta poluosovine', sub: 'Napuknuta, lijeva unutarnja', tag: 'inspection', hue: 30, customer: true, d: 0 });
-  await conditionReport(T, j1.id, { marks: [{ zone: 'front_bumper', code: 'K' }], equipment: [['Ključevi', true], ['Dokumenti vozila', true], ['Servisna knjižica', true], ['Rezervni kotač', true]], fuel: '1/2', d: 0 });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'front_bumper', code: 'K', note: 'desni kut, odlupan lak' },
+      { zone: 'wheel_fl', code: 'O', note: 'naplatak prednji lijevi, rub' },
+      { zone: 'tyre_rl', code: 'O', note: 'stražnja lijeva, šara na granici' },
+      { zone: 'exhaust', code: 'R', note: 'zadnji lonac' },
+    ],
+    equipment: [['Ključevi', true], ['Druga garnitura ključeva', false], ['Dokumenti vozila', true], ['Servisna knjižica', true], ['Rezervni kotač', true], ['Trokut i prva pomoć', true], ['Podna prostirka', true]],
+    fuel: '1/2',
+    d: 0,
+  });
   const gearLink = await approvalLink(T, j1.id);
   await messages(T, j1.id, 'Za Astru nema diskova straga na stanju, naručiti ili pričekati odobrenje?', 'Pošalji stranci poveznicu, pa naruči tek odobreno.');
 
@@ -744,7 +763,18 @@ async function seedBody() {
   for (const [i, angle] of ['Prednja lijeva 3/4', 'Prednja strana', 'Lijevi bok'].entries()) {
     await photo(T, j1.id, { label: angle, sub: 'RI-220-SV · prije popravka', tag: 'angle', stage: 'before', zone: angle, hue: 330 + i * 8, customer: true, d: 0 });
   }
-  await conditionReport(T, j1.id, { marks: [{ zone: 'front_bumper', code: 'P' }, { zone: 'fender_fl', code: 'U' }, { zone: 'headlight_l', code: 'O' }], equipment: [['Ključevi', true], ['Dokumenti vozila', true], ['Europsko izvješće o nezgodi', false], ['Polica osiguranja', true]], fuel: '3/4', d: 0 });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'front_bumper', code: 'P', note: 'sredina, pukotina oko 8 cm' },
+      { zone: 'fender_fl', code: 'U', note: 'prednji blatobran lijevi' },
+      { zone: 'headlight_l', code: 'O' },
+      { zone: 'wheel_fl', code: 'O', note: 'naplatak prednji lijevi, krak' },
+      { zone: 'pillar_c_l', code: 'O', note: 'C stup lijevi, donji rub' },
+    ],
+    equipment: [['Ključevi', true], ['Dokumenti vozila', true], ['Europsko izvješće o nezgodi', false], ['Polica osiguranja', true], ['Radio / ukrasne lajsne', true], ['Sadržaj prtljažnika', false], ['Registracijske ploče', true]],
+    fuel: '3/4',
+    d: 0,
+  });
 
   const j2 = await job(T, {
     client: c2,
@@ -884,6 +914,17 @@ async function seedWheel() {
   await q(sb.from('wheel_torque_records').insert({ tenant_id: T.id, job_id: j1.id, applied_nm: 120, tool: 'Moment ključ Hazet 5122', tool_calibrated_on: day(-120), retorque_due: day(7) }));
   await q(sb.from('wheel_balancing').insert(['FL', 'FR', 'RL', 'RR'].map((position, k) => ({ tenant_id: T.id, job_id: j1.id, position, weight_inner_g: [15, 20, 5, 10][k], weight_outer_g: [10, 5, 15, 0][k] }))));
   await inspection(T, j1.id, 'wheel.season_change', 'Sezonska zamjena', checklistCodes('season_change', 4).map((c) => [c, 'ok']), { d: 0 });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'tyre_fl', code: 'O', note: 'prednja lijeva ljetna, šara 5,4 mm' },
+      { zone: 'wheel_fl', code: 'O', note: 'naplatak prednji lijevi, rub od rubnika' },
+      { zone: 'valve_fr', code: 'N', note: 'kapica ventila prednjeg desnog nestala' },
+      { zone: 'lock_nut', code: 'N', note: 'ključ sigurnosnog vijka nije u autu' },
+    ],
+    equipment: [['Ključ sigurnosnih vijaka', false], ['Kapice (4)', true], ['Vijci u vrećici', true], ['Rezervni kotač', true], ['Senzori TPMS', true]],
+    fuel: '1/2',
+    d: 0,
+  });
   await photo(T, j1.id, { label: 'Zimske, šara 6,8 mm', sub: 'OS-112-KT · izmjereno', tag: 'tire', hue: 200, d: 0 });
 
   const j2 = await job(T, { client: p3.c, asset: p3.a, phase: 'diagnosis', d: 1, meter: 118900, complaint: 'Vibracije u volanu, Vuče u stranu', lines: [{ d: 'Mjerenje i podešavanje geometrije', unit: 'paušal', price: 45 }] });
@@ -903,6 +944,12 @@ async function seedWheel() {
   const j4 = await job(T, { client: p4.c, asset: p4.a, phase: 'intake', d: 0, meter: 39800, complaint: 'Guma probušena, bok', assigned: false, urgent: true });
   await q(sb.from('wheel_repairs').insert({ tenant_id: T.id, job_id: j4.id, position: 'FR', damage_zone: 'sidewall' }));
   await photo(T, j4.id, { label: 'Oštećenje boka', sub: 'Nije popravljivo, nova guma', tag: 'damage', hue: 5, customer: true, d: 0 });
+  await conditionReport(T, j4.id, {
+    marks: [{ zone: 'tyre_fr', code: 'L', note: 'bok prednje desne, rez od ruba' }, { zone: 'wheel_fr', code: 'O', note: 'naplatak prednji desni, lagana ogrebotina' }],
+    equipment: [['Ključ sigurnosnih vijaka', true], ['Kapice (4)', false], ['Rezervni kotač', false], ['Senzori TPMS', true]],
+    fuel: '1/4',
+    d: 0,
+  });
   await job(T, { client: p5.c, asset: p5.a, phase: 'collected', paid: true, d: 12, meter: 71000, complaint: 'Sezonska zamjena', lines: [{ d: 'Skidanje i montaža 4 kotača', unit: 'paušal', price: 30 }, { d: 'Balansiranje 4 kotača', unit: 'paušal', price: 20 }] });
   await job(T, { client: p6.c, asset: p6.a, phase: 'collected', paid: true, d: 40, meter: 52300, complaint: 'Nove gume', lines: [{ kind: 'part', d: 'Guma 205/55 R16 91V', qty: 4, price: 89, buy: 64 }, { d: 'Montaža i balansiranje', unit: 'paušal', price: 40 }] });
   await job(T, { client: p2.c, asset: p2.a, phase: 'collected', paid: true, d: 170, meter: 58000, complaint: 'Sezonska zamjena', lines: [{ d: 'Skidanje i montaža 4 kotača', unit: 'paušal', price: 30 }, { kind: 'fee', d: 'Čuvanje seta guma', unit: 'paušal', price: 25 }] });
@@ -946,6 +993,19 @@ async function seedFleet() {
   );
   await q(sb.from('fleet_downtime').insert({ tenant_id: T.id, asset_id: truck1, job_id: j1.id, from_at: at(1, 16), reason: 'breakdown' }));
   await photo(T, j1.id, { label: 'Motor ne pali', sub: 'MAN TGX · teren Dugo Selo', tag: 'field', hue: 40, d: 0 });
+  await conditionReport(T, j1.id, {
+    diagram: 'truck',
+    marks: [
+      { zone: 'door_l', code: 'O', note: 'lijeva vrata kabine, donji rub' },
+      { zone: 'step_l', code: 'B', note: 'stepenica lijeva, savijena' },
+      { zone: 'tyre_fl', code: 'O', note: 'prednja lijeva, bočni rez' },
+      { zone: 'air_lines', code: 'R', note: 'zračna crijeva, ovitak ispucao' },
+      { zone: 'ebs_cable', code: 'O', note: 'utikač ABS prikolice, oksidacija' },
+    ],
+    equipment: [['Ključevi', true], ['Kartica tahografa', true], ['Dokumenti vozila', true], ['Vatrogasni aparat', true], ['Trokut i prva pomoć', true], ['Klinovi', true], ['Lanci', false], ['Ključ cerade / kaveza', true]],
+    fuel: '3/4',
+    d: 0,
+  });
 
   const j2 = await job(T, {
     client: t1,
@@ -1021,11 +1081,31 @@ async function seedMachine() {
   );
   await q(sb.from('fleet_downtime').insert({ tenant_id: T.id, asset_id: digger, job_id: j1.id, from_at: at(1, 16), reason: 'breakdown' }));
   await photo(T, j1.id, { label: 'Crijevo na strijeli', sub: 'CAT 320 · teren Vrbovec', tag: 'field', hue: 40, d: 0 });
+  await conditionReport(T, j1.id, {
+    diagram: 'truck',
+    marks: [
+      { zone: 'hose_l', code: 'P', note: 'hidraulično crijevo lijevo na strijeli, curi' },
+      { zone: 'boom', code: 'O', note: 'strijela, ogrebotine od rada' },
+      { zone: 'track_l', code: 'R', note: 'gusjenica lijeva, zglobovi suhi' },
+      { zone: 'cab_glass', code: 'O', note: 'prednje staklo, kamenčić desno' },
+      { zone: 'bucket', code: 'B', note: 'zubi žlice istrošeni' },
+    ],
+    equipment: [['Ključevi kabine', true], ['Pločica stroja', true], ['Dokumenti stroja', true], ['Vatrogasni aparat', true], ['Priključak', true], ['Utezi', false], ['Uputstva', false]],
+    d: 0,
+  });
 
   await inspection(T, j1.id, 'machine.check', 'Pregled stroja', checklistCodes('check', 9).map((c, i) => [c, i === 2 ? 'warn' : i < 7 ? 'ok' : 'not_checked', null, i === 2 ? 'Crijevo na strijeli curi' : null]), { d: 0 });
 
-  await job(T, { client: t3, asset: tractor, phase: 'collected', paid: true, d: 25, unit: 'mth', meter: 3120, complaint: 'Planski servis (PM)', lines: [{ d: 'Servis 500 mth', qty: 4, price: 55 }, { kind: 'part', d: 'Filteri i ulje', price: 310 }] });
+  const jTractor = await job(T, { client: t3, asset: tractor, phase: 'collected', paid: true, d: 25, unit: 'mth', meter: 3120, complaint: 'Planski servis (PM)', lines: [{ d: 'Servis 500 mth', qty: 4, price: 55 }, { kind: 'part', d: 'Filteri i ulje', price: 310 }] });
+  await conditionReport(T, jTractor.id, {
+    diagram: 'truck',
+    kind: 'handover',
+    marks: [{ zone: 'hood', code: 'O', note: 'poklopac motora, stara ogrebotina' }, { zone: 'mirror_l', code: 'O' }],
+    equipment: [['Ključevi kabine', true], ['Pločica stroja', true], ['Dokumenti stroja', true], ['Vatrogasni aparat', true], ['Priključak', true], ['Utezi', true], ['Uputstva', true]],
+    d: 25,
+  });
   await job(T, { client: t2, asset: digger, phase: 'ready', d: 3, unit: 'mth', meter: 3980, complaint: 'Servis 250 mth', lines: [{ d: 'Servis radnog stroja (250 mth)', qty: 3, price: 55 }, { kind: 'part', d: 'Filter ulja', price: 30 }, { kind: 'material', d: 'Motorno ulje', qty: 15, unit: 'l', price: 6 }] });
+  await job(T, { client: t3, asset: tractor, phase: 'diagnosis', d: 1, unit: 'mth', meter: 3188, complaint: 'Klimatizacija kabine ne hladi, curi voda na pod', lines: [{ d: 'Dijagnostika klime kabine', qty: 1.5, price: 55 }] });
 
   await q(sb.from('fleet_service_requests').insert({ tenant_id: T.id, asset_id: digger, reported_by: 'Strojar Marko (B-2)', description: 'Curi ulje ispod stroja, nivo hidraulike pada', priority: 'urgent', status: 'new' }));
   await messages(T, j1.id, 'Na terenu nema signala za plan crijeva, koja je dimenzija spojnice?', 'JIC 3/4", fotka pločice stroja je u galeriji.');
@@ -1053,8 +1133,27 @@ async function seedMoto() {
   const j1 = await job(T, { client: c1, asset: m1, phase: 'diagnosis', d: 1, meter: 18450, complaint: 'Ne pali, stajao 3 mjeseca' });
   await conditionReport(T, j1.id, {
     diagram: 'moto',
-    marks: [{ zone: 'Lijevi bočni oklop', code: 'O' }, { zone: 'Ručice kočnice i kvačila', code: 'O' }],
-    equipment: [['Kaciga', true], ['Ključ', true], ['Bočni kofer', false], ['Top case', false], ['Punjač / održavač', false]],
+    marks: [
+      { zone: 'fairing_l', code: 'O', note: 'bočni oklop lijevi, donji rub, oko 4 cm' },
+      { zone: 'lever_brake', code: 'O', note: 'ručica prednje kočnice, vrh' },
+      { zone: 'mirror_l', code: 'O', note: 'retrovizor lijevi' },
+      { zone: 'wheel_f', code: 'K', note: 'prednja felga, lijevi krak' },
+      { zone: 'slider_l', code: 'O', note: 'klizač lijevi, trag pada' },
+    ],
+    equipment: [
+      ['Ključ kontakta', true],
+      ['Ključ kacige', false],
+      ['Kaciga', true],
+      ['Lijevi kofer', false],
+      ['Desni kofer', false],
+      ['Gornji kofer', false],
+      ['Dokumenti vozila', true],
+      ['Daljinski alarma', false],
+      ['Punjač / održavač', false],
+      ['Cerada', false],
+      ['Prekidač za slučaj pada', true],
+      ['Alat', false],
+    ],
     fuel: '1/4',
     d: 1,
   });
@@ -1132,6 +1231,31 @@ async function seedMarine() {
   const ins = await inspection(T, j1.id, 'marine.winterize_outboard', 'Konzervacija, vanbrodski motor', checklistCodes('winterize_outboard', 12).map((c, i) => [c, i < 7 ? 'ok' : i === 7 ? 'warn' : 'not_checked', null, i === 7 ? 'Anoda noge 60% istrošena' : null]), { d: 2 });
   await q(sb.from('moto_seasonal_protocols').insert({ tenant_id: T.id, job_id: j1.id, kind: 'winterize', inspection_id: ins.id, fuel_stabilized: true, battery_maintained: true, anodes_wear_pct: { noga: 60, trim: 35, trup: 20 } }));
   await q(sb.from('moto_storage_stays').insert({ tenant_id: T.id, asset_id: boat, location_id: outside[0].id, from_date: day(-2), until_date: day(180) }));
+  await conditionReport(T, j1.id, {
+    diagram: 'boat',
+    marks: [
+      { zone: 'bow', code: 'O', note: 'prova, lijevi bok uz špic' },
+      { zone: 'hull_l', code: 'O', note: 'bok lijevi, uz odbojnik' },
+      { zone: 'stern', code: 'U', note: 'krma, desni kut krmene ploče' },
+      { zone: 'transom', code: 'U', note: 'krmena ploča, desni kut' },
+      { zone: 'anodes', code: 'R', note: 'anoda noge 60 % istrošena' },
+      { zone: 'prop', code: 'O', note: 'propeler, jedna lopatica' },
+    ],
+    equipment: [
+      ['Ključ kontakta', true],
+      ['Daljinski alarma', false],
+      ['Punjač / održavač', true],
+      ['Cerada', false],
+      ['Prsluk za spašavanje', true],
+      ['Sidro', true],
+      ['Prekidač za slučaj pada', true],
+      ['Veslo', false],
+      ['Dokumenti plovila', true],
+      ['Gašenje / aparat', true],
+    ],
+    fuel: '1/2',
+    d: 2,
+  });
   await photo(T, j1.id, { label: 'Anoda noge, 60 %', sub: 'Yamaha F150 · preporuka zamjene', tag: 'part_old', hue: 185, customer: true, d: 2 });
 
   await q(sb.from('moto_storage_stays').insert({ tenant_id: T.id, asset_id: jet, location_id: hall[0].id, from_date: day(-20), until_date: day(200), battery_checks: [{ at: at(10), v: 12.6 }] }));
@@ -1252,6 +1376,16 @@ async function seedAir() {
     ],
     { completed: true, d: 0, units: AIR_UNITS }
   );
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'indoor_filter', code: 'R', note: 'filter zaprljan, očišćen' },
+      { zone: 'indoor_coil', code: 'O', note: 'isparivač, prašina prije pranja' },
+      { zone: 'insulation', code: 'P', note: 'izolacija cijevi na vanjskoj, ispucala od sunca' },
+      { zone: 'outdoor_fins', code: 'O', note: 'rebra vanjske jedinice, prašina' },
+    ],
+    equipment: [['Daljinski klime', true], ['Filteri', true], ['Dokumentacija uređaja', false], ['Poklopci jedinice', true]],
+    d: 0,
+  });
   await photo(T, j1.id, { label: 'Isparivač, prije', sub: 'Ilica 112 · Daikin FTXP35M', tag: 'before', hue: 30, customer: true, d: 0, when: zagrebAt(0, 8, 6) });
   await photo(T, j1.id, { label: 'Isparivač, poslije', sub: 'Očišćeno i dezinficirano', tag: 'after', hue: 175, customer: true, d: 0, when: zagrebAt(0, 8, 50) });
   await photo(T, j1.id, { label: 'Natpisna pločica', sub: 'R32 · 0,80 kg', tag: 'nameplate', hue: 210, d: 0, when: zagrebAt(0, 8, 8) });
@@ -1278,6 +1412,15 @@ async function seedAir() {
     },
   });
   await inspection(T, j2.id, 'air.heat_pump', 'Servis dizalice topline', [['h01', 'warn', 0.9, 'Dopunjeno na 1,5 bar'], ['h02', 'ok', 1.0], ['h03', 'ok'], ['h07', 'warn', 35]], { d: 0, units: AIR_UNITS });
+  await conditionReport(T, j2.id, {
+    marks: [
+      { zone: 'outdoor_case', code: 'R', note: 'kućište vanjske, korozija na nosaču' },
+      { zone: 'outdoor_bracket', code: 'R', note: 'konzole, površinska hrđa' },
+      { zone: 'indoor_drain', code: 'O', note: 'odvod kondenzata, talog' },
+    ],
+    equipment: [['Daljinski klime', true], ['Filteri', true], ['Dokumentacija uređaja', true], ['Poklopci jedinice', true]],
+    d: 0,
+  });
   await messages(T, j2.id, 'Anoda spremnika na 35 %, imamo li zamjensku u kombiju?', 'U kombiju je jedna, uzmi je i dodaj stavku.');
 
   // Today 13:00 — apartment A1: water leaking, owner not there.
@@ -1439,6 +1582,14 @@ async function seedAqua() {
     d: 0,
     units: { a01: '%', b03: '°C' },
   });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'heater', code: 'R', note: 'bojler, anoda potrošena 90 %' },
+      { zone: 'pipe_visible', code: 'R', note: 'priključak hladne, površinska korozija' },
+    ],
+    equipment: [['Glavni ključ / pristup', true], ['Dokumentacija uređaja', false], ['Filteri', false], ['Ventili skinuti', false]],
+    d: 0,
+  });
   await photo(T, j1.id, { label: 'Stara anoda', sub: 'Gorenje TGR 80 · potrošena 90 %', tag: 'before', hue: 25, customer: true, d: 0, when: zagrebAt(0, 8, 20) });
   await photo(T, j1.id, { label: 'Kamenac iz bojlera', sub: 'Poljička cesta 12', tag: 'before', hue: 45, customer: true, d: 0, when: zagrebAt(0, 8, 35) });
   await photo(T, j1.id, { label: 'Natpisna pločica', sub: '80 l · 2 kW · 6 bar', tag: 'nameplate', hue: 215, d: 0, when: zagrebAt(0, 8, 10) });
@@ -1474,12 +1625,21 @@ async function seedAqua() {
       { tenant_id: T.id, job_id: j2.id, asset_id: babicBath, section: 'Topla voda i cirkulacija', medium: 'water', test_pressure_bar: 10, end_pressure_bar: 10, duration_min: 30, passed: true, technician_id: T.worker, performed_at: zagrebAt(0, 11, 20) },
     ])
   );
+  await conditionReport(T, j2.id, {
+    marks: [
+      { zone: 'pipe_visible', code: 'O', note: 'PPR razvod, bez pločica' },
+      { zone: 'tap_l', code: 'N', note: 'slavine još nisu montirane' },
+      { zone: 'shower', code: 'N', note: 'tuš kabina nije postavljena' },
+    ],
+    equipment: [['Glavni ključ / pristup', true], ['Dokumentacija uređaja', false], ['Filteri', false], ['Ventili skinuti', true]],
+    d: 6,
+  });
   await photo(T, j2.id, { label: 'Manometar 10 bar', sub: 'Početak probe · hladna voda', tag: 'gauge', hue: 205, customer: true, d: 0, when: zagrebAt(0, 10, 45) });
   await photo(T, j2.id, { label: 'Manometar 9,9 bar', sub: 'Nakon 30 min', tag: 'gauge', hue: 195, customer: true, d: 0, when: zagrebAt(0, 11, 16) });
   await messages(T, j2.id, 'Majstor za pločice pita smije li sutra krenuti?', 'Kad i topla prođe, javi mu da može. Pošalji mi slike manometra.');
 
   // Today 14:00 — restaurant drain, urgent.
-  await job(T, {
+  const jDrain = await job(T, {
     client: konoba,
     asset: konobaDrain,
     phase: 'diagnosis',
@@ -1489,6 +1649,14 @@ async function seedAqua() {
     source: 'phone',
     lines: [{ kind: 'package', d: 'Odčepljenje odvoda spiralom', unit: 'paušal', price: 60 }],
     extra: { work_mode: 'field', site_id: konobaSite, scheduled_start: zagrebAt(0, 14), scheduled_end: zagrebAt(0, 15) },
+  });
+  await conditionReport(T, jDrain.id, {
+    marks: [
+      { zone: 'siphon', code: 'R', note: 'sifon sudopera, pun masti' },
+      { zone: 'floor_drain', code: 'R', note: 'podni odvod kuhinje, voda se vraća' },
+    ],
+    equipment: [['Glavni ključ / pristup', true], ['Dokumentacija uređaja', false], ['Filteri', false], ['Ventili skinuti', false]],
+    d: 0,
   });
 
   // Tomorrow 09:00 — boiler service.
@@ -1589,7 +1757,18 @@ async function seedTow() {
   });
   await call(j2.id, { service: 'tow', payer: 'insurance', payer_name: 'Osiguranje Demo d.d.', claim_no: 'ST-2026-118843', pickup_address: 'D1, Mostanje, kod benzinske', pickup_lat: 45.4655, pickup_lng: 15.5612, dropoff_address: 'Naš plac, Zagrebačka cesta 120', distance_km: 18, called_at: at(4, 17, 20), departed_at: at(4, 17, 24), arrived_at: at(4, 17, 41), loaded_at: at(4, 18, 5), delivered_at: at(4, 18, 30) });
   await q(sb.from('tow_storage').insert({ tenant_id: T.id, job_id: j2.id, asset_id: juricCar, spot: 'B3', in_at: at(4, 18, 30), note: 'Čeka procjenitelja osiguranja.' }));
-  await conditionReport(T, j2.id, { marks: [{ zone: 'front_bumper', code: 'U' }, { zone: 'hood', code: 'U' }, { zone: 'headlight_l', code: 'S' }], equipment: [['Ključevi', true], ['Prometna dozvola', true], ['Rezervni kotač', true], ['Stvari u vozilu', false]], fuel: '1/2', d: 4 });
+  await conditionReport(T, j2.id, {
+    marks: [
+      { zone: 'front_bumper', code: 'U', note: 'prednji branik, sredina' },
+      { zone: 'hood', code: 'U', note: 'hauba, prednji rub' },
+      { zone: 'headlight_l', code: 'L', note: 'far lijevi, rasprsnut' },
+      { zone: 'tie_front', code: 'O', note: 'točka vezanja naprijed, trag remena' },
+      { zone: 'underbody', code: 'O', note: 'podvozje, trag vitla' },
+    ],
+    equipment: [['Ključevi', true], ['Prometna dozvola', true], ['Rezervni kotač', true], ['Stvari u vozilu', false], ['Dječja sjedalica', false], ['Registracijske ploče', true]],
+    fuel: '1/2',
+    d: 4,
+  });
   await photo(T, j2.id, { label: 'Na mjestu nezgode', sub: 'KA-334-TJ · D1 Mostanje', tag: 'pickup', hue: 10, d: 4, when: at(4, 17, 45) });
   await photo(T, j2.id, { label: 'Utovareno', sub: 'Vezano u četiri točke', tag: 'loaded', hue: 40, d: 4, when: at(4, 18, 6) });
 
@@ -1605,6 +1784,16 @@ async function seedTow() {
   });
   await call(j3.id, { service: 'tow', payer: 'assistance', payer_name: 'Asistencija Demo', claim_no: 'AP-55120', pickup_address: 'Duga Resa, Ulica Josipa Jurja Strossmayera 8', pickup_lat: 45.4471, pickup_lng: 15.4979, dropoff_address: 'Autoservis Mrežnica, Karlovac', distance_km: 12, called_at: zagrebAt(0, 9, 10), departed_at: zagrebAt(0, 9, 14), arrived_at: zagrebAt(0, 9, 36), loaded_at: zagrebAt(0, 9, 52), truck: 'KA-101-VS' });
   await photo(T, j3.id, { label: 'Pri preuzimanju', sub: 'KA-778-MK · ogrebotina na stražnjem braniku', tag: 'damage', hue: 5, d: 0, when: zagrebAt(0, 9, 40) });
+  await conditionReport(T, j3.id, {
+    marks: [
+      { zone: 'rear_bumper', code: 'O', note: 'stražnji branik, desni kut' },
+      { zone: 'wheel_rl', code: 'O', note: 'kotač stražnji lijevi, kapica nestala' },
+      { zone: 'contents', code: 'N', note: 'prtljažnik prazan, bez osobnih stvari' },
+    ],
+    equipment: [['Ključevi', true], ['Prometna dozvola', true], ['Rezervni kotač', false], ['Stvari u vozilu', false], ['Dječja sjedalica', false], ['Registracijske ploče', true]],
+    fuel: '1/4',
+    d: 0,
+  });
 
   // On the way — van in a ditch.
   const j4 = await job(T, {
@@ -1671,6 +1860,18 @@ async function seedDeal() {
   );
   await photo(T, j1.id, { label: 'Golf 7, prednja strana', sub: 'Za oglas', tag: 'ad', hue: 220, d: 68 });
   await photo(T, j1.id, { label: 'Kilometraža 168.400', sub: 'Pri otkupu', tag: 'meter', hue: 200, d: 75 });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'front_bumper', code: 'K', note: 'desni kut, odlupan lak' },
+      { zone: 'door_rl', code: 'O', note: 'stražnja vrata lijeva, parking' },
+      { zone: 'wheel_fl', code: 'O', note: 'naplatak prednji lijevi' },
+      { zone: 'seat_driver', code: 'O', note: 'sjedalo vozača, habanje ruba' },
+      { zone: 'underbody', code: 'R', note: 'podvozje, točkasta korozija' },
+    ],
+    equipment: [['Ključevi (oba)', true], ['Daljinski', true], ['Prometna dozvola', true], ['Servisna knjižica', true], ['Rezervni kotač', true], ['Druge gume', false], ['Radio kod', true]],
+    fuel: '1/2',
+    d: 75,
+  });
 
   // 2 — BMW being prepared.
   const s2 = await client(T, { first: 'Hrvoje', last: 'Bošnjak', phone: '+385 99 300 2200', city: 'Đakovo' });
@@ -1700,6 +1901,17 @@ async function seedDeal() {
   await stock(j3.id, a3, { source: 'leasing', purchased_on: day(-3), keys_count: 2, service_book: true, registered_until: day(200) });
   await price(j3.id, 'purchase', 13800);
   await inspection(T, j3.id, 'deal.buy_check', 'Pregled pri otkupu', [['a01', 'ok'], ['a02', 'ok'], ['a03', 'ok'], ['a04', 'ok', 2], ['b01', 'warn', 340, 'Stražnja lijeva vrata lakirana'], ['b02', 'ok'], ['b04', 'warn', 2.8, 'Stražnje gume za zamjenu']], { d: 0, units: { a04: 'kom', b01: 'µm', b04: 'mm' } });
+  await conditionReport(T, j3.id, {
+    marks: [
+      { zone: 'door_rl', code: 'O', note: 'stražnja vrata lijeva, lakirana, 340 µm' },
+      { zone: 'tyre_rl', code: 'O', note: 'stražnja lijeva guma 2,8 mm' },
+      { zone: 'tyre_rr', code: 'O', note: 'stražnja desna guma 2,7 mm' },
+      { zone: 'interior', code: 'O', note: 'unutrašnjost uredna' },
+    ],
+    equipment: [['Ključevi (oba)', true], ['Daljinski', true], ['Prometna dozvola', true], ['Servisna knjižica', true], ['Rezervni kotač', true], ['Druge gume', false], ['Radio kod', false]],
+    fuel: '3/4',
+    d: 3,
+  });
 
   // 4 — Mégane, 110 days on the lot, reserved.
   const s4 = await client(T, { first: 'Vesna', last: 'Jukić', phone: '+385 91 300 4400', city: 'Vinkovci' });
@@ -1758,6 +1970,18 @@ async function seedDetail() {
     ],
   });
   await inspection(T, j1.id, 'detail.intake', 'Prijem vozila', [['a01', 'warn', null, 'Ogrebotine od pranja u autopraonici, desna vrata'], ['a02', 'warn', null, 'Prednji lijevi naplatak izgreban'], ['a03', 'ok'], ['a04', 'ok'], ['a05', 'ok'], ...lak([128, 121, 74, 132, 118])], { completed: true, d: 1, units });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'hood', code: 'O', note: 'hauba, hologrami od pranja' },
+      { zone: 'door_fr', code: 'O', note: 'prednja vrata desna, ogrebotine od rotacije' },
+      { zone: 'door_rr', code: 'O', note: 'stražnja vrata desna' },
+      { zone: 'wheel_fl', code: 'O', note: 'naplatak prednji lijevi, izgreban' },
+      { zone: 'seat_driver', code: 'O', note: 'sjedalo vozača, prašina u šavovima' },
+    ],
+    equipment: [['Ključevi', true], ['Daljinski', true], ['Tepisi', true], ['Dječja sjedalica', false], ['Punjač ili kabel', true], ['Sitnice u kabini', false]],
+    fuel: '1/2',
+    d: 1,
+  });
   await photo(T, j1.id, { label: 'Prije: hologrami na haubi', sub: 'BMW X3 · ZG-4410-IP', tag: 'before', hue: 215, customer: true, d: 1 });
   await photo(T, j1.id, { label: 'Lijeva strana 74 µm', sub: 'Tanki lak, samo lagano poliranje', tag: 'damage', hue: 30, d: 1 });
   await messages(T, j1.id, 'Lijeva strana ima 74 µm, idem samo s finom pastom?', 'Da, tamo bez rezanja. Upiši u napomenu za mušteriju.');
@@ -1780,6 +2004,13 @@ async function seedDetail() {
   await inspection(T, j2.id, 'detail.ceramic', 'Keramička zaštita', [['c01', 'ok'], ['c02', 'ok'], ['c03', 'ok'], ['c04', 'ok', 21], ['c05', 'ok', 48], ['c06', 'ok', 2], ['c07', 'ok', null, 'Gtechniq Crystal Serum Light, serija 2406'], ['c08', 'ok']], { completed: true, d: 2, units: { c04: '°C', c05: '%', c06: 'sloj' } });
   await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, client_id: c2, asset_id: a2, title: 'Održavanje keramičke zaštite', interval_months: 12, next_due_date: day(362), template_code: 'detail.ceramic_care', last_job_id: j2.id }));
   await photo(T, j2.id, { label: 'Poslije: Golf GTI', sub: 'Keramika, 2 sloja', tag: 'after', hue: 0, customer: true, d: 2 });
+  await conditionReport(T, j2.id, {
+    kind: 'handover',
+    marks: [{ zone: 'hood', code: 'O', note: 'stara točka od kamenčića, nije dirano' }],
+    equipment: [['Ključevi', true], ['Daljinski', true], ['Tepisi', true], ['Dječja sjedalica', false], ['Punjač ili kabel', true], ['Sitnice u kabini', true]],
+    fuel: '1/2',
+    d: 2,
+  });
 
   // A rental van, inside only.
   await job(T, { client: c3, asset: a3, phase: 'intake', d: 0, complaint: 'Dubinsko čišćenje unutra prije sezone', lines: [{ kind: 'package', d: 'Dubinsko čišćenje unutrašnjosti (sjedala, tepisi, plastika)', unit: 'paušal', price: 90 }] });
@@ -1834,6 +2065,16 @@ async function seedElectric() {
     extra: { work_mode: 'field', site_id: s1, scheduled_start: zagrebAt(0, 8), scheduled_end: zagrebAt(0, 10), departed_at: zagrebAt(0, 7, 40), customer_notified_at: zagrebAt(0, 7, 41), arrived_at: zagrebAt(0, 8, 2), left_at: zagrebAt(0, 9, 50), finished_at: zagrebAt(0, 9, 50) },
   });
   await inspection(T, j1.id, 'electric.measure', 'Ispitivanje instalacije', [['a01', 'warn', 1.6, 'Krug kupaonice'], ['a02', 'ok', 0.21], ['a03', 'ok', 0.84], ['a04', 'ok', 6.2], ['a05', 'ok', 24], ['a06', 'ok', 21], ['b01', 'ok'], ['b02', 'ok'], ['b03', 'warn', null, 'Utičnica u kuhinji napukla'], ['b04', 'ok'], ['b05', 'ok']], { completed: true, d: 0, units: { a01: 'MΩ', a02: 'Ω', a03: 'Ω', a04: 'Ω', a05: 'ms', a06: 'mA' } });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'board', code: 'O', note: 'ormar, poklopac ogreben' },
+      { zone: 'rcd', code: 'O', note: 'FID, stariji model' },
+      { zone: 'socket_l', code: 'P', note: 'utičnica kuhinja lijevo, napukla' },
+      { zone: 'earth', code: 'O', note: 'uzemljenje, spoj provjeren' },
+    ],
+    equipment: [['Ključ ormara', true], ['Shema razvoda', false], ['Oznake krugova', true]],
+    d: 0,
+  });
   await photo(T, j1.id, { label: 'Razvodni ormar', sub: 'Krešimirova 14 · 9 krugova', tag: 'board', hue: 210, customer: true, d: 0, when: zagrebAt(0, 8, 10) });
   await photo(T, j1.id, { label: 'Otpor izolacije 1,6 MΩ', sub: 'Krug kupaonice', tag: 'meter_reading', hue: 45, customer: true, d: 0, when: zagrebAt(0, 9, 5) });
 
@@ -1914,12 +2155,31 @@ async function seedAppliance() {
     extra: { work_mode: 'field', site_id: s1, scheduled_start: zagrebAt(0, 8, 30), scheduled_end: zagrebAt(0, 9, 30), departed_at: zagrebAt(0, 8, 10), customer_notified_at: zagrebAt(0, 8, 11), arrived_at: zagrebAt(0, 8, 31), left_at: zagrebAt(0, 9, 25), finished_at: zagrebAt(0, 9, 25) },
   });
   await inspection(T, j1.id, 'appliance.check', 'Pregled uređaja', [['a01', 'ok'], ['a02', 'crit', null, 'E18: voda se ne izbacuje'], ['a03', 'ok', 7], ['a04', 'ok'], ['b01', 'ok', 24], ['b03', 'ok', 18], ['c01', 'crit', null, 'Pumpa blokirana, u filteru novčić'], ['c02', 'ok'], ['c03', 'ok'], ['c04', 'warn', null, 'Malo kamenca na grijaču'], ['c05', 'ok']], { completed: true, d: 0, units: { a03: 'god.', b01: 'Ω', b03: 'MΩ' } });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'front', code: 'O', note: 'vrata perilice, trag kamenca' },
+      { zone: 'hose_out', code: 'R', note: 'crijevo odvoda, stvrdnuto' },
+      { zone: 'drum', code: 'O', note: 'bubanj, novčić u filteru' },
+      { zone: 'door_seal', code: 'O', note: 'brtva vrata, talog' },
+    ],
+    equipment: [['Uputstva', false], ['Priključna crijeva', true], ['Ladice / police', true], ['Stari dio za pokazati', true]],
+    d: 0,
+  });
+  await conditionReport(T, j1.id, {
+    kind: 'handover',
+    marks: [
+      { zone: 'front', code: 'O', note: 'vrata, stari trag ostaje' },
+      { zone: 'hose_out', code: 'O', note: 'novo crijevo odvoda' },
+    ],
+    equipment: [['Uputstva', false], ['Priključna crijeva', true], ['Ladice / police', true], ['Stari dio za pokazati', true]],
+    d: 0,
+  });
   await photo(T, j1.id, { label: 'Natpisna pločica', sub: 'Bosch WAU28T60BY · FD 9806', tag: 'nameplate', hue: 210, d: 0, when: zagrebAt(0, 8, 35) });
   await photo(T, j1.id, { label: 'Šifra greške E18', sub: 'Na zaslonu pri dolasku', tag: 'error_code', hue: 0, customer: true, d: 0, when: zagrebAt(0, 8, 33) });
   await photo(T, j1.id, { label: 'Stara pumpa', sub: 'Blokirana, pregorjela', tag: 'part_old', hue: 30, customer: true, d: 0, when: zagrebAt(0, 9, 5) });
 
   // Fridge not cooling, part ordered.
-  await job(T, {
+  const jFridge = await job(T, {
     client: c2,
     asset: f2,
     phase: 'awaiting_parts',
@@ -1933,6 +2193,15 @@ async function seedAppliance() {
       { kind: 'part', d: 'Termostat Gorenje 409155', price: 30 },
     ],
     extra: { work_mode: 'field', site_id: s2 },
+  });
+  await conditionReport(T, jFridge.id, {
+    marks: [
+      { zone: 'side_l', code: 'O', note: 'bok lijevi, udubljenje od pomaka' },
+      { zone: 'door_seal', code: 'O', note: 'brtva vrata hladnjaka, tvrda' },
+      { zone: 'panel', code: 'O', note: 'upravljačka ploča, bez greške na zaslonu' },
+    ],
+    equipment: [['Uputstva', true], ['Priključna crijeva', false], ['Ladice / police', true], ['Stari dio za pokazati', false]],
+    d: 2,
   });
 
   // The coffee machine: descaling every six months.
@@ -1980,6 +2249,25 @@ async function seedLocksmith() {
     extra: { work_mode: 'field', site_id: s1, departed_at: zagrebAt(-1, 1, 25), arrived_at: zagrebAt(-1, 1, 41), left_at: zagrebAt(-1, 2, 5), finished_at: zagrebAt(-1, 2, 5) },
   });
   await inspection(T, j1.id, 'locksmith.opening', 'Zapisnik otvaranja', checklistCodes('opening', 6).map((c, i) => [c, 'ok', null, i === 1 ? 'Adresa na osobnoj iskaznici' : i === 3 ? 'Otvoreno bez oštećenja (ploča)' : null]), { completed: true, d: 1 });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'door_leaf', code: 'O', note: 'krilo, stara ogrebotina uz kvaku' },
+      { zone: 'cylinder', code: 'O', note: 'cilindar Mottura 30/35, bez loma' },
+      { zone: 'handle_out', code: 'O', note: 'vanjska kvaka' },
+      { zone: 'frame', code: 'O', note: 'štok, bez oštećenja od otvaranja' },
+    ],
+    equipment: [['Ključevi predani', false], ['Stari cilindar', false], ['Kartice / transponderi', false], ['Dokaz prava ulaska', true]],
+    d: 1,
+  });
+  await conditionReport(T, j1.id, {
+    kind: 'handover',
+    marks: [
+      { zone: 'door_leaf', code: 'O', note: 'krilo, stara ogrebotina ostaje' },
+      { zone: 'cylinder', code: 'O', note: 'otvoreno pločom, cilindar cijel' },
+    ],
+    equipment: [['Ključevi predani', true], ['Stari cilindar', false], ['Kartice / transponderi', false], ['Dokaz prava ulaska', true]],
+    d: 1,
+  });
   await photo(T, j1.id, { label: 'Vrata prije otvaranja', sub: 'Kninska 24 · 01:43', tag: 'before', hue: 25, customer: true, d: 1, when: zagrebAt(-1, 1, 43) });
   await photo(T, j1.id, { label: 'Dokaz prava ulaska', sub: 'Osobna, adresa Kninska 24', tag: 'id_check', hue: 200, d: 1, when: zagrebAt(-1, 1, 45) });
   await photo(T, j1.id, { label: 'Nakon otvaranja', sub: 'Bez oštećenja', tag: 'after', hue: 140, customer: true, d: 1, when: zagrebAt(-1, 2, 0) });
@@ -2000,7 +2288,7 @@ async function seedLocksmith() {
   });
 
   // Apartments: new cylinder after a guest lost the key.
-  await job(T, {
+  const jApt = await job(T, {
     client: c2,
     asset: d2,
     phase: 'in_progress',
@@ -2012,6 +2300,15 @@ async function seedLocksmith() {
       { kind: 'part', d: 'Cilindar s 3 ključa', price: 35 },
     ],
     extra: { work_mode: 'field', site_id: s2, scheduled_start: zagrebAt(0, 11), scheduled_end: zagrebAt(0, 12), departed_at: zagrebAt(0, 10, 45), arrived_at: zagrebAt(0, 11, 2) },
+  });
+  await conditionReport(T, jApt.id, {
+    marks: [
+      { zone: 'cylinder', code: 'N', note: 'stari cilindar skida se, ključ izgubljen' },
+      { zone: 'escutch', code: 'O', note: 'štitnik, ogreben od pokušaja otvaranja' },
+      { zone: 'hinge_top', code: 'O', note: 'gornja šarka, bez zračnosti' },
+    ],
+    equipment: [['Ključevi predani', false], ['Stari cilindar', true], ['Kartice / transponderi', false], ['Dokaz prava ulaska', true]],
+    d: 0,
   });
 
   // The jeweller's safe: yearly service.
@@ -2049,9 +2346,19 @@ async function seedPool() {
     extra: { work_mode: 'field', site_id: s1, departed_at: zagrebAt(-2, 8, 10), arrived_at: zagrebAt(-2, 8, 28), left_at: zagrebAt(-2, 9, 20), finished_at: zagrebAt(-2, 9, 20) },
   });
   await inspection(T, j1.id, 'pool.water', 'Mjerenje vode', [['a01', 'ok', 7.5], ['a02', 'warn', 0.4, 'Ispod 0,5'], ['a03', 'ok', 0.2], ['a04', 'ok', 40], ['a05', 'ok', 24], ['a06', 'warn', null, 'Blago mutna'], ['b01', 'ok'], ['b02', 'ok'], ['b03', 'ok'], ['b04', 'ok'], ['b05', 'ok']], { completed: true, d: 2, units: { a01: '', a02: 'mg/l', a03: 'mg/l', a04: 'mg/l', a05: '°C' } });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'wall_l', code: 'O', note: 'zid lijevi, alga uz vodenu liniju' },
+      { zone: 'skimmer', code: 'R', note: 'skimer, košara puna lišća' },
+      { zone: 'liner', code: 'O', note: 'folija, sitna mrlja na dnu' },
+      { zone: 'pump', code: 'O', note: 'pumpa, curenje na mehaničkoj brtvi nije vidljivo' },
+    ],
+    equipment: [['Plahta / pokrov', false], ['Robot / usis', true], ['Kemija na licu mjesta', true], ['Ključ strojarnice', true]],
+    d: 2,
+  });
   await photo(T, j1.id, { label: 'Voda prije šoka', sub: 'Put Dikla 18', tag: 'water', hue: 190, customer: true, d: 2, when: zagrebAt(-2, 8, 30) });
 
-  await job(T, {
+  const jOpen = await job(T, {
     client: c2,
     asset: p2,
     phase: 'diagnosis',
@@ -2060,6 +2367,25 @@ async function seedPool() {
     source: 'phone',
     lines: [{ kind: 'package', d: 'Otvaranje bazena: čišćenje, spajanje, start kemija', unit: 'paušal', price: 180 }],
     extra: { work_mode: 'field', site_id: s2, scheduled_start: zagrebAt(1, 9), scheduled_end: zagrebAt(1, 12) },
+  });
+  await conditionReport(T, jOpen.id, {
+    marks: [
+      { zone: 'cover', code: 'O', note: 'plahta, lišće i talog' },
+      { zone: 'wall_deep', code: 'R', note: 'zid dubokog kraja, alga' },
+      { zone: 'filter', code: 'R', note: 'filter, pijesak slegnut' },
+    ],
+    equipment: [['Plahta / pokrov', true], ['Robot / usis', false], ['Kemija na licu mjesta', false], ['Ključ strojarnice', true]],
+    d: 0,
+  });
+  await job(T, {
+    client: c1,
+    asset: p1,
+    phase: 'in_progress',
+    d: 0,
+    complaint: 'Tjedni servis, kontrola klora nakon šoka',
+    source: 'phone',
+    lines: [{ kind: 'package', d: 'Tjedni servis: mjerenje, kemija, čišćenje skimmera i pregled filtera', unit: 'paušal', price: 45 }],
+    extra: { work_mode: 'field', site_id: s1, scheduled_start: zagrebAt(0, 8), scheduled_end: zagrebAt(0, 9), departed_at: zagrebAt(0, 7, 50), arrived_at: zagrebAt(0, 8, 8) },
   });
 
   await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, client_id: c1, site_id: s1, asset_id: p1, title: 'Tjedni obilazak', interval_months: 1, next_due_date: day(5), template_code: 'pool.weekly' }));
@@ -2095,9 +2421,24 @@ async function seedClean() {
     extra: { work_mode: 'field', site_id: s1, departed_at: zagrebAt(-1, 10, 15), arrived_at: zagrebAt(-1, 10, 28), left_at: zagrebAt(-1, 12, 5), finished_at: zagrebAt(-1, 12, 5) },
   });
   await inspection(T, j1.id, 'clean.turnover', 'Smjena između gostiju', [['a01', 'ok'], ['a02', 'ok'], ['a03', 'ok'], ['a04', 'ok'], ['a05', 'ok'], ['a06', 'ok'], ['b01', 'warn', null, 'Napukla čaša'], ['b02', 'ok'], ['b03', 'ok'], ['b04', 'ok'], ['b05', 'ok']], { completed: true, d: 1 });
+  await conditionReport(T, j1.id, {
+    marks: [
+      { zone: 'kitchen', code: 'O', note: 'kuhinja, masni trag na ploči' },
+      { zone: 'bath', code: 'O', note: 'kupaonica, kamenac na slavinama' },
+      { zone: 'bed_1', code: 'O', note: 'spavaća, posteljina zamijenjena' },
+    ],
+    equipment: [['Ključevi / kartice', true], ['Daljinski klime', true], ['Inventar (popis)', true], ['Posteljina predana', true]],
+    d: 1,
+  });
+  await conditionReport(T, j1.id, {
+    kind: 'handover',
+    marks: [{ zone: 'kitchen', code: 'O', note: 'napukla čaša ostavljena na šanku, slika na nalogu' }],
+    equipment: [['Ključevi / kartice', true], ['Daljinski klime', true], ['Inventar (popis)', true], ['Posteljina predana', true]],
+    d: 1,
+  });
   await photo(T, j1.id, { label: 'Gotov studio', sub: 'Apartman 2', tag: 'after', hue: 40, customer: true, d: 1, when: zagrebAt(-1, 12, 0) });
 
-  await job(T, {
+  const jOffice = await job(T, {
     client: c2,
     asset: u2,
     phase: 'diagnosis',
@@ -2106,6 +2447,27 @@ async function seedClean() {
     source: 'phone',
     lines: [{ kind: 'package', d: 'Redovno čišćenje ureda', unit: 'paušal', price: 40 }],
     extra: { work_mode: 'field', site_id: s2, scheduled_start: zagrebAt(0, 16), scheduled_end: zagrebAt(0, 17, 30) },
+  });
+  await conditionReport(T, jOffice.id, {
+    marks: [
+      { zone: 'living', code: 'O', note: 'uredski prostor, prašina na policama' },
+      { zone: 'kitchen', code: 'O', note: 'kuhinjica, talog u sudoperu' },
+    ],
+    equipment: [['Ključevi / kartice', true], ['Daljinski klime', true], ['Inventar (popis)', false], ['Posteljina predana', false]],
+    d: 0,
+  });
+  const s3 = await fieldSite(T, c1, { kind: 'apartment', label: 'Apartman 1', address: 'Ulica od Puča 12', city: 'Dubrovnik', postal_code: '20000', access_notes: '1. kat, isti sef, šifra 2014.' });
+  const u3 = await unit(c1, s3, { type: 'apartment_unit', id: 'Apartman 1', model: 'Dvosobni, 4 osobe' });
+  await job(T, {
+    client: c1,
+    asset: u3,
+    phase: 'intake',
+    d: 0,
+    assigned: false,
+    complaint: 'Smjena: odjava 11:00, novi gosti 16:00',
+    source: 'phone',
+    lines: [{ kind: 'package', d: 'Čišćenje apartmana između gostiju (kreveti, kupaonica, kuhinja, podovi)', unit: 'paušal', price: 55 }],
+    extra: { work_mode: 'field', site_id: s3 },
   });
 
   await q(sb.from('maintenance_plans').insert({ tenant_id: T.id, client_id: c2, site_id: s2, asset_id: u2, title: 'Redovno čišćenje', interval_months: 1, next_due_date: day(3), template_code: 'clean.office' }));
@@ -2297,6 +2659,22 @@ const AI_BOOKINGS = {
       ['Poslar', 'Poslao sam Vam poruku s poveznicom za točnu lokaciju. Koje je vozilo i imate li broj predmeta asistencije?'],
       ['Mušterija', 'Audi A4, ZG 1187 DS. Asistencija mi je dala AP 56231.'],
       ['Poslar', 'Upisano. Vučno vozilo kreće odmah, stiže za oko 30 minuta. Vozač će Vas nazvati. Doviđenja.'],
+    ],
+  },
+  deal: {
+    client: { first: 'Ivana', last: 'Lukić', phone: '+385 98 300 7700', city: 'Osijek' },
+    asset: { id: 'OS-884-IL', make: 'Volkswagen', model: 'Passat B8 2.0 TDI', year: 2016, fuel: 'diesel' },
+    complaint: 'Želi prodati svoj Passat, pita za otkup i pregled.',
+    slot: [1, 10, 0, 60],
+    summary: 'Ivana Lukić: nudi na otkup VW Passat B8 2.0 TDI (OS-884-IL), oko 178.000 km. Pregled i procjena sutra u 10:00.',
+    talk: [
+      ['Poslar', 'Dobar dan, Auto plac Drava, ovdje Poslar. Kolega je s kupcem, pa se javljam automatski. Kako Vam mogu pomoći?'],
+      ['Mušterija', 'Imam Passata koji bih htjela prodati, radite li otkup?'],
+      ['Poslar', 'Radimo. Koja je godina i koliko ima kilometara?'],
+      ['Mušterija', '2016., oko 178 tisuća, OS 884 IL. Servisna je uredna.'],
+      ['Poslar', 'Za pregled i procjenu imamo slobodno sutra u 10:00. Ponesite servisnu i oba ključa. Odgovara li Vam?'],
+      ['Mušterija', 'Odgovara, hvala.'],
+      ['Poslar', 'Upisano: sutra u 10:00, pregled za otkup Passata OS-884-IL. Doviđenja.'],
     ],
   },
   detail: {

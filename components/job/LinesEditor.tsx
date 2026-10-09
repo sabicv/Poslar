@@ -173,7 +173,7 @@ export function LinesEditor({
         })
       )}
 
-      {isOwner && lines.length > 0 ? (
+      {isOwner ? (
         <Card className="space-y-1.5 p-4 text-sm">
           {vatRegistered ? (
             <>

@@ -12,7 +12,7 @@ export default async function ExportPage({ searchParams }: { searchParams: Promi
     <>
       <PageHeader title="Izvoz podataka" subtitle={ctx.tenant.name} back={<BackLink href="/app/settings">Postavke</BackLink>} />
       <Card className="max-w-2xl">
-        <CardHeader title="Svi podaci radionice u jednoj datoteci" subtitle="ZIP: tablice za Excel i iste tablice za prijenos u drugi program" />
+        <CardHeader title="Svi podaci radionice u jednoj datoteci" subtitle="ZIP: tablice za Excel (čitljivi stupci) i iste tablice za prijenos u drugi program" />
         <div className="space-y-4 p-4 text-sm">
           <ul className="list-disc space-y-1 pl-5 text-muted">
             <li>Mušterije, vozila i uređaji, adrese, nalozi, stavke s cijenama, ponude, odobrenja i računi.</li>

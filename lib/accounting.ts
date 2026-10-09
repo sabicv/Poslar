@@ -35,8 +35,8 @@ export function invoiceBookCsv(invoices: LoadedInvoice[]): string {
         invoiceId(inv),
         `${d}.${m}.${y}.`,
         clientName(inv.client as never),
-        inv.client.oib,
-        inv.client.city,
+        inv.client?.oib,
+        inv.client?.city,
         csvMoney(t.net),
         csvMoney(t.vat),
         csvMoney(t.gross),
@@ -70,7 +70,7 @@ export function tillDayCsv(invoices: LoadedInvoice[]): string {
     cells.forEach((n, i) => (sum[i] += n));
     const time = new Date(inv.issuedAt!).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zagreb' });
     rows.push(
-      [invoiceId(inv), time, clientName(inv.client as never), inv.client.oib, inv.paymentMethod ? PAYMENT_METHODS[inv.paymentMethod] : '', ...cells.map(csvMoney), inv.fiscalRef, inv.jobNumber].map(csvCell).join(';')
+      [invoiceId(inv), time, clientName(inv.client as never), inv.client?.oib, inv.paymentMethod ? PAYMENT_METHODS[inv.paymentMethod] : '', ...cells.map(csvMoney), inv.fiscalRef, inv.jobNumber].map(csvCell).join(';')
     );
   }
   rows.push(['', '', '', '', 'Ukupno', ...sum.map(csvMoney), '', ''].map(csvCell).join(';'));
@@ -134,7 +134,7 @@ export function invoiceUbl(inv: LoadedInvoice): string {
     tag('DocumentCurrencyCode', 'EUR'),
     tag('BuyerReference', `Nalog ${inv.jobNumber}`),
     `<cac:AccountingSupplierParty>${party({ name: w.name, oib: w.oib, address: w.address, city: w.city, vatId: vat && w.oib ? `HR${w.oib}` : null, phone: w.phone, email: w.email })}</cac:AccountingSupplierParty>`,
-    `<cac:AccountingCustomerParty>${party({ name: clientName(inv.client as never), oib: inv.client.oib, address: inv.client.address, city: inv.client.city })}</cac:AccountingCustomerParty>`,
+    `<cac:AccountingCustomerParty>${party({ name: clientName(inv.client as never), oib: inv.client?.oib ?? null, address: inv.client?.address ?? null, city: inv.client?.city ?? null })}</cac:AccountingCustomerParty>`,
     (inv.paymentMethod ?? 'transfer') !== 'transfer'
       ? `<cac:PaymentMeans>${tag('PaymentMeansCode', PAYMENT_CODES[inv.paymentMethod ?? 'other'] ?? '1')}</cac:PaymentMeans>`
       : inv.billing.iban

@@ -1,4 +1,5 @@
 import type { InspectionTemplate, PackageConfig } from '../tenant.config';
+import { GEAR_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 // The 50-point digital vehicle inspection. Items with a unit take a
@@ -134,7 +135,8 @@ export const gear: PackageConfig = {
   ],
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'inspection', label: 'Nalaz inspekcije' }],
   diagram: 'car',
-  equipment: ['Ključevi', 'Dokumenti vozila', 'Servisna knjižica', 'Rezervni kotač'],
+  conditionZones: GEAR_ZONES,
+  equipment: ['Ključevi', 'Druga garnitura ključeva', 'Dokumenti vozila', 'Servisna knjižica', 'Rezervni kotač', 'Trokut i prva pomoć', 'Podna prostirka'],
   inspections: [
     dvi50,
     checklist('gear.final', 'Završna kontrola', 'checklist', 'Prije predaje vozila', [

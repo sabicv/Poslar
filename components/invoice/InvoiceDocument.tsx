@@ -32,8 +32,8 @@ export interface InvoiceData {
   device: string | null;
   operator: string | null;
   jobNumber: number;
-  client: Pick<Client, 'kind' | 'first_name' | 'last_name' | 'company_name' | 'oib' | 'address' | 'city'>;
-  asset: Pick<Asset, 'make' | 'model' | 'asset_type' | 'identifier'>;
+  client: Pick<Client, 'kind' | 'first_name' | 'last_name' | 'company_name' | 'oib' | 'address' | 'city'> | null;
+  asset: Pick<Asset, 'make' | 'model' | 'asset_type' | 'identifier'> | null;
   assetLabel: string;
   workSummary: string | null;
   lines: InvoiceLine[];
@@ -98,7 +98,7 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
   const client = data.client;
 
   return (
-    <article className="invoice relative mx-auto w-full max-w-[210mm] overflow-hidden rounded-2xl bg-white p-6 text-[13px] leading-relaxed text-neutral-900 shadow-sm print:rounded-none print:p-0 print:shadow-none sm:p-10">
+    <article className="invoice relative mx-auto w-full max-w-[210mm] overflow-x-hidden rounded-2xl bg-white p-6 text-[13px] leading-relaxed text-neutral-900 shadow-sm print:rounded-none print:p-0 print:shadow-none sm:p-10">
       {data.status === 'voided' ? (
         <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-6xl font-bold uppercase tracking-widest text-red-600/20 print:text-red-600/30" aria-hidden>
           <span className="-rotate-12">Storno</span>
@@ -131,13 +131,13 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Kupac</p>
           <p className="font-medium">{clientName(client)}</p>
-          {client.address || client.city ? <p className="text-neutral-600">{[client.address, client.city].filter(Boolean).join(', ')}</p> : null}
-          {client.oib ? <p className="text-neutral-600">OIB {client.oib}</p> : null}
+          {client?.address || client?.city ? <p className="text-neutral-600">{[client.address, client.city].filter(Boolean).join(', ')}</p> : null}
+          {client?.oib ? <p className="text-neutral-600">OIB {client.oib}</p> : null}
         </div>
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{data.assetLabel}</p>
           <p className="font-medium">{assetTitle(data.asset)}</p>
-          {data.asset.identifier ? <p className="font-mono text-neutral-600">{data.asset.identifier}</p> : null}
+          {data.asset?.identifier ? <p className="font-mono text-neutral-600">{data.asset.identifier}</p> : null}
         </div>
       </section>
 

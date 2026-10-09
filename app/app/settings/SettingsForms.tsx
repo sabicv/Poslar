@@ -57,7 +57,6 @@ export function ThemeToggle() {
     <Segmented
       value={theme}
       onChange={apply}
-      size="lg"
       options={[
         { value: 'dark', label: <span className="flex items-center gap-2"><Moon className="size-4" /> Tamno</span> },
         { value: 'light', label: <span className="flex items-center gap-2"><Sun className="size-4" /> Svijetlo</span> },
@@ -206,30 +205,22 @@ export function TeamManager({ me, staff }: { me: string; staff: { id: string; na
   const { pending, run } = useAction();
   const [open, setOpen] = useState(false);
   const [v, setV] = useState({ fullName: '', email: '', password: '', role: 'worker' as 'owner' | 'worker' });
-  const [reset, setReset] = useState<{ id: string; name: string } | null>(null);
+  const [edit, setEdit] = useState<{ id: string; name: string; role: 'owner' | 'worker' } | null>(null);
   const [newPassword, setNewPassword] = useState('');
 
   return (
     <div className="space-y-3">
       <ul className="divide-y divide-line rounded-xl border border-line">
         {staff.map((p) => (
-          <li key={p.id} className="flex flex-wrap items-center gap-2 px-3 py-2.5">
+          <li key={p.id} className="flex items-center gap-2 px-3 py-2.5">
             <span className="min-w-0 flex-1 text-sm">
               {p.name} {p.id === me ? <span className="text-faint">(vi)</span> : null}
             </span>
             <Badge tone={p.role === 'owner' ? 'accent' : 'neutral'}>{p.role === 'owner' ? 'Voditelj' : 'Radnik'}</Badge>
             {p.id !== me ? (
-              <span className="flex gap-1">
-                <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => setStaffRole(p.id, p.role === 'owner' ? 'worker' : 'owner'), { success: 'Uloga promijenjena' })}>
-                  {p.role === 'owner' ? 'U radnika' : 'U voditelja'}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setReset({ id: p.id, name: p.name })}>
-                  Lozinka
-                </Button>
-                <ConfirmButton size="sm" variant="ghost" confirmLabel="Ukloniti?" onConfirm={() => run(() => removeStaff(p.id), { success: 'Djelatnik uklonjen' })}>
-                  Ukloni
-                </ConfirmButton>
-              </span>
+              <Button size="sm" variant="ghost" onClick={() => setEdit(p)}>
+                Uredi
+              </Button>
             ) : null}
           </li>
         ))}
@@ -281,19 +272,64 @@ export function TeamManager({ me, staff }: { me: string; staff: { id: string; na
         </form>
       </Sheet>
 
-      <Sheet open={reset !== null} onOpenChange={(o) => !o && setReset(null)} title={`Nova lozinka: ${reset?.name ?? ''}`}>
-        <div className="space-y-3">
-          <Input value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Barem 8 znakova" />
-          <Button
-            variant="primary"
-            size="lg"
-            className="w-full"
-            disabled={pending || newPassword.length < 8}
-            onClick={() => reset && run(() => resetStaffPassword(reset.id, newPassword), { success: 'Lozinka promijenjena', onDone: () => { setReset(null); setNewPassword(''); } })}
-          >
-            Postavi lozinku
-          </Button>
-        </div>
+      <Sheet
+        open={edit !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setEdit(null);
+            setNewPassword('');
+          }
+        }}
+        title={edit?.name ?? 'Djelatnik'}
+      >
+        {edit ? (
+          <div className="space-y-4">
+            <Segmented
+              value={edit.role}
+              onChange={(role) => {
+                setEdit({ ...edit, role });
+                run(() => setStaffRole(edit.id, role), { success: 'Uloga promijenjena' });
+              }}
+              options={[
+                { value: 'worker', label: 'Radnik' },
+                { value: 'owner', label: 'Voditelj' },
+              ]}
+            />
+            <Field label="Nova lozinka" hint="Barem 8 znakova">
+              <Input value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Ostaje ista ako ostavite prazno" />
+            </Field>
+            {newPassword.length > 0 ? (
+              <Button
+                variant="primary"
+                className="w-full"
+                disabled={pending || newPassword.length < 8}
+                onClick={() =>
+                  run(() => resetStaffPassword(edit.id, newPassword), {
+                    success: 'Lozinka promijenjena',
+                    onDone: () => {
+                      setEdit(null);
+                      setNewPassword('');
+                    },
+                  })
+                }
+              >
+                Spremi lozinku
+              </Button>
+            ) : null}
+            <ConfirmButton
+              variant="ghost"
+              confirmLabel="Ukloniti s radionice?"
+              onConfirm={() =>
+                run(() => removeStaff(edit.id), {
+                  success: 'Djelatnik uklonjen',
+                  onDone: () => setEdit(null),
+                })
+              }
+            >
+              Ukloni s radionice
+            </ConfirmButton>
+          </div>
+        ) : null}
       </Sheet>
     </div>
   );

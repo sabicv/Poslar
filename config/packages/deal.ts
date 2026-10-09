@@ -1,4 +1,5 @@
 import type { InspectionTemplate, PackageConfig } from '../tenant.config';
+import { DEAL_ZONES } from './condition-zones';
 import { checklist } from './shared';
 
 export const DEAL_SOURCES: Record<string, string> = {
@@ -110,7 +111,8 @@ export const deal: PackageConfig = {
     { code: 'after', label: 'Nakon pripreme' },
   ],
   diagram: 'car',
-  equipment: ['Ključevi', 'Prometna dozvola', 'Servisna knjižica', 'Rezervni kotač', 'Druge gume'],
+  conditionZones: DEAL_ZONES,
+  equipment: ['Ključevi (oba)', 'Daljinski', 'Prometna dozvola', 'Servisna knjižica', 'Rezervni kotač', 'Druge gume', 'Radio kod'],
   inspections: [
     buyCheck,
     checklist('deal.ready', 'Spremno za prodaju', 'checklist', 'Prije oglasa', [

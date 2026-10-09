@@ -1,4 +1,5 @@
 import type { InspectionTemplate, PackageConfig } from '../tenant.config';
+import { CLEAN_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 // Čišćenje apartmana i ureda: turnover between guests, and a regular
@@ -60,7 +61,8 @@ export const clean: PackageConfig = {
   symptoms: ['Smjena između gostiju', 'Dubinsko čišćenje', 'Redovno čišćenje ureda', 'Nakon odjave', 'Prije dolaska gostiju', 'Prozori', 'Posteljina', 'Oštećenje nakon gosta'],
   photoTags: [{ code: 'before', label: 'Prije' }, { code: 'after', label: 'Poslije' }, { code: 'damage', label: 'Šteta' }, { code: 'linen', label: 'Rublje' }, ...COMMON_PHOTO_TAGS],
   diagram: 'car',
-  equipment: [],
+  conditionZones: CLEAN_ZONES,
+  equipment: ['Ključevi / kartice', 'Daljinski klime', 'Inventar (popis)', 'Posteljina predana'],
   inspections: [
     turnover,
     checklist('clean.office', 'Čišćenje ureda', 'checklist', 'Ured', [
@@ -103,7 +105,7 @@ export const clean: PackageConfig = {
     { code: 'clean.linen', name: 'Posteljina i ručnici', lines: [{ kind: 'labor', description: 'Zamjena i pranje posteljine i ručnika', qty: 1, unit: 'paušal', price: 20 }] },
     { code: 'clean.hour', name: 'Sat rada', lines: [{ kind: 'labor', description: 'Čišćenje', qty: 1, unit: 'h', price: 18 }] },
   ],
-  modules: ['dvi', 'approvals', 'field_visits', 'maintenance_plans'],
+  modules: ['dvi', 'condition_report', 'approvals', 'field_visits', 'maintenance_plans'],
   optionalModules: [],
   moduleTab: 'Jedinica i plan',
   modulePage: 'Servisni planovi',

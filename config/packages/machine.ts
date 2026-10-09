@@ -1,4 +1,5 @@
 import type { PackageConfig } from '../tenant.config';
+import { MACHINE_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 export const MACHINE_COMPLIANCE_LABELS: Record<string, string> = {
@@ -34,7 +35,8 @@ export const machine: PackageConfig = {
   symptoms: ['Planski servis', 'Stroj stoji', 'Hidraulika', 'Motor', 'Elektrika', 'Gume / gusjenice', 'Priključak', 'Terenska intervencija'],
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'field', label: 'Teren' }, { code: 'plate', label: 'Pločica stroja' }, { code: 'hydraulics', label: 'Hidraulika' }],
   diagram: 'truck',
-  equipment: ['Ključevi', 'Pločica stroja', 'Dokumenti stroja', 'Vatrogasni aparat'],
+  conditionZones: MACHINE_ZONES,
+  equipment: ['Ključevi kabine', 'Pločica stroja', 'Dokumenti stroja', 'Vatrogasni aparat', 'Priključak', 'Utezi', 'Uputstva'],
   inspections: [
     checklist('machine.check', 'Pregled stroja', 'checklist', 'Prije rada', [
       'Ulje motora i hidraulike, razina',
@@ -130,8 +132,8 @@ export const machine: PackageConfig = {
       inspection: 'machine.check',
     },
   ],
-  modules: ['dvi', 'approvals', 'fleet_compliance', 'fleet_field', 'fleet_pm'],
-  optionalModules: ['condition_report', 'parts'],
+  modules: ['dvi', 'condition_report', 'approvals', 'fleet_compliance', 'fleet_field', 'fleet_pm'],
+  optionalModules: ['parts'],
   moduleTab: 'Stroj i teren',
   modulePage: 'Rokovi i zahtjevi',
 };

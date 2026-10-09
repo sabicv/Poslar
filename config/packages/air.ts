@@ -1,5 +1,6 @@
 import { addMonths } from '../../lib/time';
 import type { InspectionTemplate, PackageConfig } from '../tenant.config';
+import { AIR_ZONES } from './condition-zones';
 import { checklist } from './shared';
 
 // ---------------------------------------------------------------------
@@ -210,7 +211,8 @@ export const air: PackageConfig = {
     { code: 'document', label: 'Dokument' },
   ],
   diagram: 'car',
-  equipment: [],
+  conditionZones: AIR_ZONES,
+  equipment: ['Daljinski klime', 'Filteri', 'Dokumentacija uređaja', 'Poklopci jedinice'],
   inspections: [
     serviceSplit,
     install,
@@ -336,7 +338,7 @@ export const air: PackageConfig = {
       ],
     },
   ],
-  modules: ['dvi', 'approvals', 'field_visits', 'maintenance_plans', 'fgas'],
+  modules: ['dvi', 'condition_report', 'approvals', 'field_visits', 'maintenance_plans', 'fgas'],
   optionalModules: [],
   moduleTab: 'Uređaj i F-plin',
   modulePage: 'Servisni planovi',

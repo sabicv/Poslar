@@ -11,7 +11,7 @@ Kad je sve upisano:
 - svaka uplata sama produži "Plaćeno do" i upiše se u Toranj (napomena "Kartica (Paddle)");
 - radionica koja plaća karticom vidi "Kartica i računi" (Paddleova stranica za promjenu kartice i preuzimanje računa).
 
-Promjenu paketa radionica i dalje traži gumbom "Želim …". Ti je u Paddleu napraviš na njezinoj pretplati (Subscriptions → pretplata → Change plan).
+Promjenu paketa radionica radi sama gumbom "Prilagodi plan" (na kartici trenutačne pretplate). Viši paket naplaćuje razliku odmah; niži ide od sljedeće naplate, bez povrata. Ako kartica nije spojena, i dalje šalju "Želim …".
 
 ## 1. Prvo sandbox (probni novac)
 

@@ -36,6 +36,90 @@ export function planOfPrice(cfg: PaddleConfig, priceId: string | null | undefine
   return (PLAN_IDS.find((id) => cfg.prices[id].full === priceId || cfg.prices[id].founder === priceId) as PlanId | undefined) ?? null;
 }
 
+export function priceIdOf(cfg: PaddleConfig, plan: PlanId, founder: boolean): string {
+  return (founder && cfg.prices[plan].founder) || cfg.prices[plan].full;
+}
+
+const PLAN_RANK: Record<PlanId, number> = { basic: 0, standard: 1, premium: 2 };
+
+// Upgrade: charge the difference now. Downgrade: new price from the next renewal, no refund.
+export function prorationMode(from: PlanId, to: PlanId): 'prorated_immediately' | 'prorated_next_billing_period' {
+  return PLAN_RANK[to] > PLAN_RANK[from] ? 'prorated_immediately' : 'prorated_next_billing_period';
+}
+
+export interface PlanUpdatePreview {
+  chargeNow: number | null;
+  recurring: number | null;
+  nextBilledAt: string | null;
+}
+
+function paddleHeaders(): HeadersInit {
+  return { Authorization: `Bearer ${env('PADDLE_API_KEY')}`, 'content-type': 'application/json' };
+}
+
+function paddleError(body: { error?: { detail?: string; code?: string } }, fallback: string): string {
+  const code = body.error?.code ?? '';
+  if (/payment/i.test(code) || /payment/i.test(body.error?.detail ?? '')) return 'Kartica je odbijena. Promjena nije provedena.';
+  if (/locked|conflict/i.test(code)) return 'Pretplata se trenutno ne može mijenjati. Pokušajte za minutu.';
+  return fallback;
+}
+
+function euroFromMinor(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n / 100 : null;
+}
+
+async function paddlePatch(cfg: PaddleConfig, path: string, payload: unknown): Promise<{ ok: true; data: Record<string, unknown> } | { ok: false; error: string }> {
+  try {
+    const res = await fetch(`${paddleApi(cfg)}${path}`, {
+      method: 'PATCH',
+      headers: paddleHeaders(),
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(12000),
+    });
+    const body = (await res.json().catch(() => ({}))) as { data?: Record<string, unknown>; error?: { detail?: string; code?: string } };
+    if (!res.ok || !body.data) return { ok: false, error: paddleError(body, 'Promjena paketa nije uspjela. Pokušajte za minutu.') };
+    return { ok: true, data: body.data };
+  } catch {
+    return { ok: false, error: 'Paddle trenutno ne odgovara. Pokušajte za minutu.' };
+  }
+}
+
+function itemsBody(priceId: string, mode: 'prorated_immediately' | 'prorated_next_billing_period') {
+  return { items: [{ price_id: priceId, quantity: 1 }], proration_billing_mode: mode };
+}
+
+export async function previewSubscriptionPlan(
+  cfg: PaddleConfig,
+  subscriptionId: string,
+  priceId: string,
+  mode: 'prorated_immediately' | 'prorated_next_billing_period'
+): Promise<{ ok: true; preview: PlanUpdatePreview } | { ok: false; error: string }> {
+  const res = await paddlePatch(cfg, `/subscriptions/${subscriptionId}/preview`, itemsBody(priceId, mode));
+  if (!res.ok) return res;
+  const immediate = res.data.immediate_transaction as { details?: { totals?: { grand_total?: string } } } | null | undefined;
+  const recurring = res.data.recurring_transaction_details as { totals?: { grand_total?: string }; details?: { totals?: { grand_total?: string } } } | null | undefined;
+  return {
+    ok: true,
+    preview: {
+      chargeNow: euroFromMinor(immediate?.details?.totals?.grand_total),
+      recurring: euroFromMinor(recurring?.details?.totals?.grand_total ?? recurring?.totals?.grand_total),
+      nextBilledAt: typeof res.data.next_billed_at === 'string' ? res.data.next_billed_at : null,
+    },
+  };
+}
+
+export async function updateSubscriptionPlan(
+  cfg: PaddleConfig,
+  subscriptionId: string,
+  priceId: string,
+  mode: 'prorated_immediately' | 'prorated_next_billing_period'
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const res = await paddlePatch(cfg, `/subscriptions/${subscriptionId}`, itemsBody(priceId, mode));
+  return res.ok ? { ok: true } : res;
+}
+
 export function paddleApi(cfg: PaddleConfig): string {
   return env('PADDLE_API_BASE') ?? (cfg.environment === 'sandbox' ? 'https://sandbox-api.paddle.com' : 'https://api.paddle.com');
 }

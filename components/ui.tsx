@@ -204,6 +204,25 @@ export function KeyValue({ label, children }: { label: string; children: ReactNo
   );
 }
 
+// One row in a settings list: title, a quiet subtitle, chevron. Used so
+// Postavke is a list, not a stack of separate cards.
+export function NavRow({ href, title, subtitle, badge }: { href: string; title: ReactNode; subtitle?: ReactNode; badge?: ReactNode }) {
+  return (
+    <Link href={href} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-surface2">
+      <span className="min-w-0">
+        <span className="block text-sm font-medium">{title}</span>
+        {subtitle ? <span className="mt-0.5 block text-xs text-muted">{subtitle}</span> : null}
+      </span>
+      <span className="flex shrink-0 items-center gap-2">
+        {badge}
+        <span aria-hidden className="text-faint">
+          ›
+        </span>
+      </span>
+    </Link>
+  );
+}
+
 export function Skeleton({ className }: { className?: string }) {
   return <div className={cn('animate-pulse rounded-xl bg-surface2', className)} />;
 }

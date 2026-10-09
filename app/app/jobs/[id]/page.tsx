@@ -4,7 +4,6 @@ import { JobActionBar } from '@/components/job/JobActionBar';
 import { JobHeader } from '@/components/job/JobHeader';
 import { JobStepper } from '@/components/job/JobStepper';
 import { JobTabs } from '@/components/job/JobTabs';
-import { ConditionTab } from '@/components/job/ConditionTab';
 import { HistoryTab } from '@/components/job/HistoryTab';
 import { InspectionTab } from '@/components/job/InspectionTab';
 import { LinesTab } from '@/components/job/LinesTab';
@@ -12,7 +11,7 @@ import { MessagesTab } from '@/components/job/MessagesTab';
 import { OverviewTab } from '@/components/job/OverviewTab';
 import { PhotosTab } from '@/components/job/PhotosTab';
 import { ModuleTab } from '@/components/modules/ModuleTab';
-import { PHASE_ORDER, hasModule, phaseLabel } from '@/config/tenant.config';
+import { PHASE_ORDER, phaseLabel } from '@/config/tenant.config';
 import { requireWorkshop } from '@/lib/session';
 import type { JobWithRefs } from '@/types/db';
 
@@ -26,7 +25,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string; vise?: string }> }) {
   const ctx = await requireWorkshop();
   const { id } = await params;
-  const { tab = 'pregled', vise } = await searchParams;
+  const { tab: rawTab = 'pregled', vise } = await searchParams;
+  const tab = rawTab === 'zapisnik' ? 'pregled' : rawTab;
   // Sections a tab folds away open with its own "Više" (?vise=1), inside the tab.
   const extras = vise === '1';
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
@@ -43,7 +43,6 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     { id: 'foto', label: 'Fotografije' },
     { id: 'poruke', label: 'Poruke' },
     { id: 'inspekcija', label: 'Kontrolna lista' },
-    ...(hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'condition_report') ? [{ id: 'zapisnik', label: 'Zapisnik' }] : []),
     { id: 'povijest', label: 'Što je rađeno' },
   ];
   const active = tabs.some((t) => t.id === tab) ? tab : 'pregled';
@@ -62,7 +61,6 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         {active === 'pregled' ? <OverviewTab ctx={ctx} job={job} extras={extras} /> : null}
         {active === 'stavke' ? <LinesTab ctx={ctx} job={job} locked={locked} /> : null}
         {active === 'inspekcija' ? <InspectionTab ctx={ctx} job={job} locked={locked} /> : null}
-        {active === 'zapisnik' ? <ConditionTab ctx={ctx} job={job} locked={locked} /> : null}
         {active === 'modul' ? <ModuleTab ctx={ctx} job={job} locked={locked} extras={extras} /> : null}
         {active === 'foto' ? <PhotosTab ctx={ctx} job={job} /> : null}
         {active === 'poruke' ? <MessagesTab ctx={ctx} job={job} /> : null}

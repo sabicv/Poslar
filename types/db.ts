@@ -268,7 +268,7 @@ export interface InspectionResult {
 
 export interface ConditionMark {
   zone: string;
-  code: 'O' | 'U' | 'P' | 'K' | 'L' | 'N';
+  code: 'O' | 'U' | 'P' | 'K' | 'L' | 'N' | 'R' | 'B';
   note?: string;
 }
 

@@ -1,20 +1,19 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronRight, LogOut, PlayCircle } from 'lucide-react';
+import { PlayCircle } from 'lucide-react';
 import { VideoChip } from '@/components/help/VideoChip';
 import { SupportButton } from '@/components/SupportButton';
 import { ReferralShare } from '@/components/billing/ReferralShare';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { DailySummaryControls } from '@/components/settings/DailySummaryControls';
 import { DeleteAccount } from '@/components/settings/DeleteAccount';
-import { Badge, Button, Card, CardHeader, KeyValue, PageHeader } from '@/components/ui';
+import { Badge, Card, CardHeader, KeyValue, NavRow, PageHeader } from '@/components/ui';
 import { HELP_TOPICS } from '@/config/help';
 import { LEGAL_PAGES } from '@/config/legal';
 import { AI_LABELS, TERM_LABELS, aiQuota, getPlan, monthlyPrice } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { loadHelpVideos } from '@/lib/help';
 import { isPlayApp } from '@/lib/play';
-import { signOut } from '@/lib/actions/auth';
 import { hasModule } from '@/config/tenant.config';
 import { formatDate } from '@/lib/format';
 import { appOrigin } from '@/lib/qr';
@@ -69,205 +68,80 @@ export default async function SettingsPage() {
   // The owner's own link for colleagues (not in the shared demo workshops).
   const isDemo = (t.settings as { demo?: unknown } | null)?.demo === true;
   const referral = ctx.isOwner && !isDemo ? await loadReferral(t.id, t.billing_ref) : null;
+  const place = ctx.pkg.sector === 'field' ? 'Servis' : 'Radionica';
 
-  return (
-    <>
-      <PageHeader title="Postavke" />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="space-y-4">
-          {/* Only for Poslar itself: the way into the tower from a workshop account. */}
-          {tower ? (
-            <Link href="/admin" className="flex items-center justify-between gap-3 rounded-2xl border border-accent/50 bg-accent/10 px-4 py-3">
-              <span>
-                <span className="block font-semibold">Toranj</span>
-                <span className="block text-sm text-muted">Radionice, pretplate, podrška i greške</span>
-              </span>
-              <ChevronRight className="size-5 text-accent" />
-            </Link>
-          ) : null}
-          <Card>
-            <CardHeader
-              title="Moj račun"
-              subtitle={ctx.user.email}
-              action={
-                <form action={signOut}>
-                  <Button type="submit" size="sm" variant="secondary">
-                    <LogOut className="size-4" /> Odjava
-                  </Button>
-                </form>
-              }
-            />
-            <div className="p-4">
-              <ProfileForm
-                fullName={ctx.profile.full_name ?? ''}
-                phone={ctx.profile.phone ?? ''}
-                fgasCertificate={hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'fgas') ? (ctx.profile.fgas_certificate ?? '') : undefined}
-              />
-            </div>
-            {/* Shared demo accounts are never deleted. */}
-            {!isDemo ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3">
-                <Link href="/nova-lozinka" className="text-sm font-medium text-accent hover:underline">
-                  Promijeni lozinku
-                </Link>
-                <DeleteAccount owner={ctx.isOwner} />
-              </div>
-            ) : null}
-          </Card>
-          <Card>
-            <CardHeader title="Izgled" />
-            <div className="p-4">
-              <ThemeToggle />
-            </div>
-          </Card>
-          {ctx.isOwner ? (
-          <Card>
-            <CardHeader title="Pretplata" />
-            <div className="divide-y divide-line px-4">
-              <KeyValue label="Zanat">{ctx.pkg.product}</KeyValue>
-              <KeyValue label="Status">
-                <Badge tone={t.status === 'active' ? 'ok' : t.status === 'trial' ? 'warn' : 'crit'}>{t.status === 'active' ? 'Aktivno' : t.status === 'trial' ? 'Probno razdoblje' : 'Isključeno'}</Badge>
-              </KeyValue>
-              {t.status === 'trial' ? <KeyValue label="Proba traje do">{formatDate(t.trial_ends_at)}</KeyValue> : null}
-              {/* The Google Play app shows no prices (config/play.ts). */}
-              {play ? (
-                <KeyValue label="Pretplata">{`${plan.name} · ${plan.people}`}</KeyValue>
-              ) : (
-                <>
-                  <KeyValue label="Pretplata">{`${plan.name} · ${plan.people} · ${monthlyPrice(t.plan, t.billing_term, t.founder_until)} € mjesečno`}</KeyValue>
-                  <KeyValue label="Način plaćanja">{TERM_LABELS[t.billing_term] ?? TERM_LABELS.monthly}</KeyValue>
-                </>
-              )}
-              {t.paid_until ? <KeyValue label="Plaćeno do">{formatDate(t.paid_until)}</KeyValue> : null}
-              <KeyValue label={`${AI_LABELS.scan} ovaj mjesec`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>
-              <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
-            </div>
-            {!play ? (
-              <Link href="/app/settings/pretplata" className="flex items-center justify-between border-t border-line px-4 py-3 text-sm font-medium text-accent">
-                Pretplata, paketi i uplata
-                <ChevronRight className="size-4" />
-              </Link>
-            ) : null}
-          </Card>
-          ) : null}
-          {referral ? (
-            <Card>
-              <CardHeader title="Preporučite Poslar" subtitle="Kolega se registrira preko Vaše poveznice. Kad plati prvu pretplatu, Vi dobivate mjesec dana gratis." />
-              <div className="space-y-3 p-4">
-                <ReferralShare link={referral.link} workshop={t.name} />
-              </div>
-              {referral.joined ? (
-                <div className="divide-y divide-line border-t border-line px-4">
-                  <KeyValue label="Registrirano preko poveznice">{referral.joined}</KeyValue>
-                  <KeyValue label="Od toga plaća">{referral.paid}</KeyValue>
-                </div>
-              ) : null}
-            </Card>
-          ) : null}
+  const account = (
+    <div className="space-y-4">
+      {tower ? (
+        <Card className="border-accent/50 bg-accent/10">
+          <NavRow href="/admin" title="Toranj" subtitle="Radionice, pretplate, podrška i greške" />
+        </Card>
+      ) : null}
+      <Card>
+        <CardHeader title="Moj račun" subtitle={ctx.user.email} />
+        <div className="space-y-5 p-4">
+          <ProfileForm
+            fullName={ctx.profile.full_name ?? ''}
+            phone={ctx.profile.phone ?? ''}
+            fgasCertificate={hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'fgas') ? (ctx.profile.fgas_certificate ?? '') : undefined}
+          />
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted">Izgled</p>
+            <ThemeToggle />
+          </div>
         </div>
-
-        {ctx.isOwner ? (
-          <div className="space-y-4">
-            <Card>
-              <CardHeader title="Radionica" />
-              <div className="space-y-5 p-4">
-                <LogoUpload tenantId={t.id} logoUrl={t.logo_url} />
-                <WorkshopForm tenant={{ name: t.name, oib: t.oib ?? '', phone: t.phone ?? '', email: t.email ?? '', address: t.address ?? '', city: t.city ?? '' }} />
-              </div>
-            </Card>
-            <Link href="/app/settings/radionice" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
-              <span>
-                <span className="block font-semibold">Radionice</span>
-                <span className="block text-sm text-muted">{workshops.length > 1 ? `${workshops.length} radionice · prebacivanje i nova radionica` : 'Druga i treća radionica uz Premium'}</span>
-              </span>
-              <ChevronRight className="size-5 text-faint" />
+        {!isDemo ? (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line px-4 py-3 text-sm">
+            <Link href="/nova-lozinka" className="font-medium text-accent hover:underline">
+              Promijeni lozinku
             </Link>
-            <Link href="/app/settings/qr" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
-              <span>
-                <span className="block font-semibold">QR samoprijem</span>
-                <span className="block text-sm text-muted">Kod za vrata, plakat za ispis</span>
-              </span>
-              <ChevronRight className="size-5 text-faint" />
-            </Link>
-            <Link href="/app/settings/poruke" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
-              <span>
-                <span className="block font-semibold">Poruke mušterijama</span>
-                <span className="block text-sm text-muted">Potvrda termina, podsjetnik, „gotovo” na WhatsApp</span>
-              </span>
-              <ChevronRight className="size-5 text-faint" />
-            </Link>
-            <Link href="/app/settings/termin" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
-              <span>
-                <span className="block font-semibold">Rezerviraj termin</span>
-                <span className="block text-sm text-muted">{t.booking_enabled !== false ? 'Uključeno · poveznica za mušterije' : 'Isključeno'}</span>
-              </span>
-              <ChevronRight className="size-5 text-faint" />
-            </Link>
-            <Link href="/app/settings/telefon" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
-              <span>
-                <span className="block font-semibold">Poslar na telefonu</span>
-                <span className="block text-sm text-muted">{t.phone_agent_number_id ? 'Uključen · radno vrijeme i pozivi' : 'Javlja se kad Vi ne možete, dogovara termine'}</span>
-              </span>
-              <ChevronRight className="size-5 text-faint" />
-            </Link>
-            <Link href="/app/settings/cjenik" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
-              <span>
-                <span className="block font-semibold">Cjenik i predlošci</span>
-                <span className="block text-sm text-muted">Satnica, Vaše cijene i Vaši poslovi</span>
-              </span>
-              <ChevronRight className="size-5 text-faint" />
-            </Link>
-            <Link href="/app/clients/uvoz" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
-              <span>
-                <span className="block font-semibold">Uvoz mušterija</span>
-                <span className="block text-sm text-muted">Excel, CSV ili imenik mobitela — da ne prepisujete stotine kartona</span>
-              </span>
-              <ChevronRight className="size-5 text-faint" />
-            </Link>
-            <Link href="/app/settings/izvoz" className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:border-accent/60">
-              <span>
-                <span className="block font-semibold">Izvoz podataka</span>
-                <span className="block text-sm text-muted">Sve mušterije, nalozi, računi i fotografije u jednoj datoteci</span>
-              </span>
-              <ChevronRight className="size-5 text-faint" />
-            </Link>
-            <Card>
-              <CardHeader title="Račun" subtitle="Pojavljuje se na računu za stranku" />
-              <div className="p-4">
-                <BillingForm
-                  billing={(() => {
-                    const b = billingFrom(t.settings);
-                    const fiscal = (t.settings as { fiscal?: { premises?: string; device?: string; operator?: string } | null } | null)?.fiscal;
-                    return { iban: b.iban ?? '', vatRegistered: b.vatRegistered, note: b.note ?? '', premises: fiscal?.premises ?? '', device: fiscal?.device ?? '', operator: fiscal?.operator ?? '' };
-                  })()}
-                />
-              </div>
-            </Card>
-            {!isDemo && !isGuestTenant(t) ? (
-              <Card>
-                <CardHeader title="Dnevni sažetak" subtitle={`Svaku večer na ${ctx.user.email ?? 'Vaš e-mail'}`} />
-                <DailySummaryControls enabled={(t.settings as { daily_email?: unknown } | null)?.daily_email !== false} />
-              </Card>
-            ) : null}
-            <Card>
-              <CardHeader title="Tim" subtitle="Radnici vide naloge, ali ne i iznose, naplatu ni poslovanje" action={<VideoChip href={links.team} />} />
-              <div className="p-4">
-                <TeamManager me={ctx.user.id} staff={((staff ?? []) as Profile[]).map((p) => ({ id: p.id, name: p.full_name ?? '-', role: p.role }))} />
-              </div>
-            </Card>
-            {ctx.pkg.optionalModules.length ? (
-              <Card>
-                <CardHeader title="Dodatni moduli" />
-                <div className="p-4">
-                  <ModuleToggles modules={ctx.pkg.optionalModules.map((m) => ({ id: m, label: MODULE_LABELS[m] ?? m, on: t.enabled_modules.includes(m) }))} />
-                </div>
-              </Card>
-            ) : null}
+            <DeleteAccount owner={ctx.isOwner} />
           </div>
         ) : null}
-      </div>
-      {/* Help at the bottom of the page, where one looks when stuck (Vedran). */}
-      <Card className="mt-4">
+      </Card>
+      {ctx.isOwner ? (
+        <Card>
+          <CardHeader title="Pretplata" />
+          <div className="divide-y divide-line px-4">
+            <KeyValue label="Zanat">{ctx.pkg.product}</KeyValue>
+            <KeyValue label="Status">
+              <Badge tone={t.status === 'active' ? 'ok' : t.status === 'trial' ? 'warn' : 'crit'}>{t.status === 'active' ? 'Aktivno' : t.status === 'trial' ? 'Probno razdoblje' : 'Isključeno'}</Badge>
+            </KeyValue>
+            {t.status === 'trial' ? <KeyValue label="Proba traje do">{formatDate(t.trial_ends_at)}</KeyValue> : null}
+            {play ? (
+              <KeyValue label="Paket">{`${plan.name} · ${plan.people}`}</KeyValue>
+            ) : (
+              <>
+                <KeyValue label="Paket">{`${plan.name} · ${plan.people} · ${monthlyPrice(t.plan, t.billing_term, t.founder_until)} € mjesečno`}</KeyValue>
+                <KeyValue label="Plaćanje">{TERM_LABELS[t.billing_term] ?? TERM_LABELS.monthly}</KeyValue>
+              </>
+            )}
+            {t.paid_until ? <KeyValue label="Plaćeno do">{formatDate(t.paid_until)}</KeyValue> : null}
+            <KeyValue label={`${AI_LABELS.scan} ovaj mjesec`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>
+            <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
+          </div>
+          {!play ? (
+            <div className="border-t border-line">
+              <NavRow href="/app/settings/pretplata" title="Paketi i uplata" />
+            </div>
+          ) : null}
+        </Card>
+      ) : null}
+      {referral ? (
+        <Card>
+          <CardHeader title="Preporučite Poslar" subtitle="Kolega se registrira preko Vaše poveznice. Kad plati prvu pretplatu, Vi dobivate mjesec dana gratis." />
+          <div className="p-4">
+            <ReferralShare link={referral.link} workshop={t.name} />
+          </div>
+          {referral.joined ? (
+            <div className="divide-y divide-line border-t border-line px-4">
+              <KeyValue label="Registrirano preko poveznice">{referral.joined}</KeyValue>
+              <KeyValue label="Od toga plaća">{referral.paid}</KeyValue>
+            </div>
+          ) : null}
+        </Card>
+      ) : null}
+      <Card>
         <CardHeader title="Pomoć" subtitle="Nešto ne radi ili Vam nešto treba? Javite nam." />
         <div className="flex flex-wrap items-center gap-2 p-4">
           <SupportButton />
@@ -279,10 +153,9 @@ export default async function SettingsPage() {
             }
           />
           {(tickets ?? []).length ? (
-            <Link href="/app/podrska" className="inline-flex h-12 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-muted hover:bg-surface2 hover:text-fg">
+            <Link href="/app/podrska" className="text-sm font-medium text-accent hover:underline">
               Moje prijave ({(tickets ?? []).length})
-              {unread ? <Badge tone="accent">{unread === 1 ? 'novi odgovor' : `${unread} nova odgovora`}</Badge> : null}
-              <ChevronRight className="size-4" />
+              {unread ? ` · ${unread === 1 ? 'novi odgovor' : `${unread} nova odgovora`}` : ''}
             </Link>
           ) : null}
         </div>
@@ -302,13 +175,88 @@ export default async function SettingsPage() {
           </div>
         ) : null}
       </Card>
-      <p className="mt-8 flex flex-wrap gap-x-4 gap-y-1 text-xs text-faint">
+      <p className="flex flex-wrap gap-x-4 gap-y-1 px-1 text-xs text-faint">
         {LEGAL_PAGES.map((p) => (
           <Link key={p.href} href={p.href} className="hover:text-fg">
             {p.title}
           </Link>
         ))}
       </p>
+    </div>
+  );
+
+  const workshop = ctx.isOwner ? (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader title={place} />
+        <div className="space-y-5 p-4">
+          <LogoUpload tenantId={t.id} logoUrl={t.logo_url} />
+          <WorkshopForm tenant={{ name: t.name, oib: t.oib ?? '', phone: t.phone ?? '', email: t.email ?? '', address: t.address ?? '', city: t.city ?? '' }} />
+        </div>
+        <details className="border-t border-line">
+          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium hover:bg-surface2 [&::-webkit-details-marker]:hidden">
+            Podaci na računu <span className="text-faint">›</span>
+          </summary>
+          <div className="border-t border-line p-4">
+            <BillingForm
+              billing={(() => {
+                const b = billingFrom(t.settings);
+                const fiscal = (t.settings as { fiscal?: { premises?: string; device?: string; operator?: string } | null } | null)?.fiscal;
+                return { iban: b.iban ?? '', vatRegistered: b.vatRegistered, note: b.note ?? '', premises: fiscal?.premises ?? '', device: fiscal?.device ?? '', operator: fiscal?.operator ?? '' };
+              })()}
+            />
+          </div>
+        </details>
+      </Card>
+      <Card>
+        <div className="divide-y divide-line">
+          <NavRow
+            href="/app/settings/radionice"
+            title="Radionice"
+            subtitle={workshops.length > 1 ? `${workshops.length} · prebacivanje i nova` : 'Druga i treća uz Premium'}
+          />
+          <NavRow href="/app/settings/qr" title="QR samoprijem" subtitle="Kod za vrata, plakat za ispis" />
+          <NavRow href="/app/settings/poruke" title="Poruke mušterijama" subtitle="Termin, podsjetnik i „gotovo” na WhatsApp" />
+          <NavRow href="/app/settings/termin" title="Rezerviraj termin" subtitle={t.booking_enabled !== false ? 'Uključeno' : 'Isključeno'} />
+          <NavRow href="/app/settings/telefon" title="Poslar na telefonu" subtitle={t.phone_agent_number_id ? 'Uključen' : 'Javlja se kad Vi ne možete'} />
+          <NavRow href="/app/settings/cjenik" title="Cjenik i predlošci" subtitle="Satnica i Vaši poslovi" />
+          <NavRow href="/app/clients/uvoz" title="Uvoz mušterija" subtitle="Excel, CSV ili imenik" />
+          <NavRow href="/app/settings/izvoz" title="Izvoz podataka" subtitle="Sve u jednoj datoteci" />
+        </div>
+        {!isDemo && !isGuestTenant(t) ? (
+          <div className="border-t border-line">
+            <DailySummaryControls enabled={(t.settings as { daily_email?: unknown } | null)?.daily_email !== false} />
+          </div>
+        ) : null}
+      </Card>
+      <Card>
+        <CardHeader title="Tim" subtitle="Radnici vide naloge, ali ne i iznose" action={<VideoChip href={links.team} />} />
+        <div className="p-4">
+          <TeamManager me={ctx.user.id} staff={((staff ?? []) as Profile[]).map((p) => ({ id: p.id, name: p.full_name ?? '-', role: p.role }))} />
+        </div>
+      </Card>
+      {ctx.pkg.optionalModules.length ? (
+        <Card>
+          <CardHeader title="Dodatni moduli" />
+          <div className="p-4">
+            <ModuleToggles modules={ctx.pkg.optionalModules.map((m) => ({ id: m, label: MODULE_LABELS[m] ?? m, on: t.enabled_modules.includes(m) }))} />
+          </div>
+        </Card>
+      ) : null}
+    </div>
+  ) : null;
+
+  return (
+    <>
+      <PageHeader title="Postavke" />
+      {ctx.isOwner ? (
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          {account}
+          {workshop}
+        </div>
+      ) : (
+        <div className="mx-auto max-w-xl">{account}</div>
+      )}
     </>
   );
 }

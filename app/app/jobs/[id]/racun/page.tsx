@@ -43,7 +43,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
           empty={invoice.lines.length === 0}
           sample={invoice.sample}
           // A company usually pays to the account, a person in cash or by card.
-          defaultMethod={invoice.client.kind === 'company' ? 'transfer' : 'cash'}
+          defaultMethod={invoice.client?.kind === 'company' ? 'transfer' : 'cash'}
         />
         {missingPrices ? <p className="rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">Neke stavke nemaju cijenu. Upišite je u kartici Radovi i cijena.</p> : null}
         {!invoice.billing.iban || !invoice.workshop.oib ? (

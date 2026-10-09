@@ -4,6 +4,7 @@ import { subscription } from '@/lib/billing';
 import { clientName, countJobs, formatEuro, plural, vocativeHR } from '@/lib/format';
 import { isGuestTenant } from '@/lib/guest';
 import { sendMail } from '@/lib/mail';
+import { publicAppUrl } from '@/lib/qr';
 import { allRows, inChunks } from '@/lib/paged';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { addDays, formatTime, todayInZagreb, zagrebMidnight } from '@/lib/time';
@@ -107,14 +108,13 @@ export function summaryMail(name: string | null, day: string, parts: DaySummary[
     parts.length === 1
       ? `Poslar · ${parts[0].tenant.name}: ${dayTitle(day)}${parts[0].revenue ? `, ${formatEuro(parts[0].revenue)}` : ''}`
       : `Poslar · ${parts.length} radionice: ${dayTitle(day)}${total ? `, ${formatEuro(total)}` : ''}`;
-  const app = process.env.NEXT_PUBLIC_APP_URL?.trim() || '';
   const text = [
     first ? `Dobra večer, ${vocativeHR(first)}.` : 'Dobra večer.',
     parts.length === 1 ? 'Evo kako je prošao dan u radionici.' : 'Evo kako je prošao dan u Vašim radionicama.',
     '',
     parts.map((p) => p.text).join('\n\n----------\n\n'),
     '',
-    app ? `Otvori Poslar: ${app}/app` : '',
+    `Otvori Poslar: ${publicAppUrl()}/app`,
     'Sažetak isključujete u Postavke → Dnevni sažetak.',
   ]
     .filter((l, i, all) => !(l === '' && all[i - 1] === ''))

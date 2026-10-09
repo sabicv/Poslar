@@ -54,7 +54,7 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
 
       <h1 className="font-display text-3xl font-bold tracking-tight">Odaberite proizvod i ulogu</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        Jedan račun za svih jedanaest zanata. Voditelj vidi cijene i naplatu, radnik vidi samo posao. Podaci su izmišljeni: slobodno mijenjajte, dodajte i brišite,
+        Jedan račun za svaki zanat. Voditelj vidi cijene i naplatu, radnik vidi samo posao. Podaci su izmišljeni: slobodno mijenjajte, dodajte i brišite,
         demo se može vratiti na početno stanje. Iz aplikacije se ovamo vraćate preko trake <span className="font-medium text-fg">Demo</span> na vrhu.
       </p>
       {greska ? (

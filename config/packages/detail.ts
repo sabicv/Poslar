@@ -1,4 +1,5 @@
 import type { InspectionTemplate, PackageConfig } from '../tenant.config';
+import { DETAIL_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 // Auto kozmetika: washing, deep cleaning, polishing and paint protection.
@@ -79,7 +80,8 @@ export const detail: PackageConfig = {
   symptoms: ['Vanjsko pranje', 'Dubinsko čišćenje unutra', 'Poliranje laka', 'Keramička zaštita', 'Poliranje farova', 'Čišćenje kože', 'Neugodan miris', 'Priprema za prodaju', 'Pranje motora'],
   photoTags: [{ code: 'before', label: 'Prije' }, { code: 'after', label: 'Poslije' }, ...COMMON_PHOTO_TAGS],
   diagram: 'car',
-  equipment: ['Ključevi', 'Tepisi', 'Dječja sjedalica', 'Punjač ili kabel'],
+  conditionZones: DETAIL_ZONES,
+  equipment: ['Ključevi', 'Daljinski', 'Tepisi', 'Dječja sjedalica', 'Punjač ili kabel', 'Sitnice u kabini'],
   inspections: [
     intake,
     ceramic,
@@ -113,8 +115,8 @@ export const detail: PackageConfig = {
     { code: 'detail.engine', name: 'Pranje motora', lines: [{ kind: 'package', description: 'Pranje i zaštita motornog prostora', qty: 1, unit: 'paušal', price: 30 }] },
     { code: 'detail.sale', name: 'Priprema za prodaju', lines: [{ kind: 'package', description: 'Priprema vozila za prodaju (izvana, iznutra, motor, farovi)', qty: 1, unit: 'paušal', price: 160 }], inspection: 'detail.intake' },
   ],
-  modules: ['dvi', 'approvals', 'maintenance_plans'],
-  optionalModules: ['condition_report'],
+  modules: ['dvi', 'condition_report', 'approvals', 'maintenance_plans'],
+  optionalModules: [],
   moduleTab: 'Zaštita i povijest',
   modulePage: 'Obnove zaštite',
   plan: {

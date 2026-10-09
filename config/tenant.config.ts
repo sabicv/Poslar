@@ -151,6 +151,8 @@ export interface PackageConfig {
   symptoms: string[];
   photoTags: { code: string; label: string }[];
   diagram: 'car' | 'truck' | 'moto' | 'boat';
+  // Parts on the intake/handover zapisnik. Falls back to the diagram list.
+  conditionZones?: ConditionZone[];
   equipment: string[];
   inspections: InspectionTemplate[];
   templates: JobTemplate[];
@@ -164,6 +166,8 @@ export interface PackageConfig {
   // module page while nothing is due.
   plan?: { title: string; template: string; months: number; hint: string };
 }
+
+export type ConditionZone = { code: string; label: string; group: string };
 
 export const PACKAGES: Record<PackageId, PackageConfig> = { volt, gear, body, wheel, fleet, machine, moto, marine, air, aqua, tow, deal, detail, electric, appliance, locksmith, pool, clean };
 export const PACKAGE_IDS = Object.keys(PACKAGES) as PackageId[];

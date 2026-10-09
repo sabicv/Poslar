@@ -1,4 +1,5 @@
 import type { InspectionTemplate, PackageConfig } from '../tenant.config';
+import { ELECTRIC_ZONES } from './condition-zones';
 import { checklist, COMMON_PHOTO_TAGS } from './shared';
 
 // Električar: home and small-business installations, switchboards, solar
@@ -82,7 +83,8 @@ export const electric: PackageConfig = {
   symptoms: ['Nema struje', 'Iskače osigurač', 'Iskače FID sklopka', 'Nova utičnica ili prekidač', 'Rasvjeta', 'Ispitivanje instalacije', 'Punjač za auto', 'Sunčana elektrana', 'Razvodni ormar'],
   photoTags: [{ code: 'before', label: 'Prije' }, { code: 'after', label: 'Poslije' }, { code: 'board', label: 'Razvodni ormar' }, { code: 'meter_reading', label: 'Mjerni instrument' }, ...COMMON_PHOTO_TAGS],
   diagram: 'car',
-  equipment: [],
+  conditionZones: ELECTRIC_ZONES,
+  equipment: ['Ključ ormara', 'Shema razvoda', 'Oznake krugova'],
   inspections: [
     measure,
     solar,
@@ -136,7 +138,7 @@ export const electric: PackageConfig = {
     },
     { code: 'electric.solar', name: 'Pregled sunčane elektrane', lines: [{ kind: 'package', description: 'Godišnji pregled sunčane elektrane s mjerenjima', qty: 1, unit: 'paušal', price: 150 }], inspection: 'electric.solar' },
   ],
-  modules: ['dvi', 'approvals', 'field_visits', 'maintenance_plans'],
+  modules: ['dvi', 'condition_report', 'approvals', 'field_visits', 'maintenance_plans'],
   optionalModules: [],
   moduleTab: 'Instalacija i plan',
   modulePage: 'Servisni planovi',
