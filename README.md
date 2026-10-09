@@ -1,6 +1,6 @@
 # Poslar
 
-Jedna aplikacija za radionice i servise na terenu, jedanaest zanata. Svaka radionica ima točno jedan paket. Na zajedničkoj adresi (poslar.eu) paket određuje prijavljena radionica, a na poddomeni zanata sama poddomena:
+Jedna aplikacija za radionice i servise na terenu, petnaest zanata. Svaka radionica ima točno jedan paket. Na zajedničkoj adresi (poslar.eu) paket određuje prijavljena radionica, a na poddomeni zanata sama poddomena:
 
 | Paket (id) | Naziv | Poddomena | Za koga |
 |---|---|---|---|
@@ -15,6 +15,10 @@ Jedna aplikacija za radionice i servise na terenu, jedanaest zanata. Svaka radio
 | aqua | **Vodoinstalater** | vodoinstalater.poslar.eu | vodoinstalacije, bojleri (rad na terenu) |
 | tow | **Vučna služba** | vucna-sluzba.poslar.eu | vuča i pomoć na cesti |
 | deal | **Auto plac** | auto-plac.poslar.eu | prodaja rabljenih vozila |
+| detail | **Auto kozmetika** | autokozmetika.poslar.eu | poliranje, keramička zaštita, detailing |
+| electric | **Električar** | elektricar.poslar.eu | elektroinstalacije, mjerenja, solari, punjači (rad na terenu) |
+| appliance | **Servis kućanskih aparata** | kucanskiaparati.poslar.eu | perilice, hladnjaci, štednjaci, aparati za kavu (rad na terenu) |
+| locksmith | **Bravar** | bravar.poslar.eu | hitno otvaranje vrata, cilindri, brave, sefovi (rad na terenu) |
 
 Logo i ikona: `npm run brand` piše `public/brand/poslar-logo.svg` i `poslar-mark.svg` (font Saira Condensed Bold iz `scripts/assets`), a `npm run icons` ikone aplikacije u `public/icons`.
 
@@ -49,13 +53,13 @@ Potrebno: Node.js 20+ i **novi** Supabase projekt. Ne koristite projekt servisa 
    ```
 4. **Otvaranje:** http://localhost:3000. Za drugi proizvod na istom računalu koristite poddomenu: `http://gear.localhost:3000`, `http://wheel.localhost:3000` itd.
 
-**Jedan račun za testiranje svega:** `demo@demo.xfiles.hr` (lozinka `Demo2026!` ili vaš `DEMO_PASSWORD`). Otvara **Demo centar** sa svih jedanaest zanata: jednim dodirom ulazite kao voditelj ili radnik bilo koje demo radionice. U aplikaciji traka **Demo** na vrhu prebacuje ulogu (voditelj ⇄ radnik) ili vraća u Demo centar. Prebacivanje radi samo između demo računa (oznaka koju postavlja seed).
+**Jedan račun za testiranje svega:** `demo@demo.xfiles.hr` (lozinka `Demo2026!` ili vaš `DEMO_PASSWORD`). Otvara **Demo centar** sa svih petnaest zanata: jednim dodirom ulazite kao voditelj ili radnik bilo koje demo radionice. U aplikaciji traka **Demo** na vrhu prebacuje ulogu (voditelj ⇄ radnik) ili vraća u Demo centar. Prebacivanje radi samo između demo računa (oznaka koju postavlja seed).
 
 Pojedinačni demo računi, s istom lozinkom:
 - `vlasnik.volt@demo.xfiles.hr`: voditelj servisa (vidi cijene, naplatu, poslovanje);
 - `radnik.volt@demo.xfiles.hr`: radnik (vidi naloge, ne vidi iznose).
 
-Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `moto` i `air`. Seed na kraju ispiše i poveznice za odobrenje stranke.
+Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `moto`, `marine`, `air`, `aqua`, `tow`, `deal`, `detail`, `electric`, `appliance` i `locksmith`. Samo neke zanate puni `npm run db:seed -- detail electric`, a uzorne radionice za probni dan `npm run db:seed -- --uzorak`. Seed na kraju ispiše i poveznice za odobrenje stranke.
 
 `npm run db:seed` vraća demo podatke na početno stanje, s današnjim datumima. Računi ostaju isti, pa se nitko ne odjavljuje.
 
@@ -70,8 +74,8 @@ Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `moto` i `air`. Seed na kraju 
 | `npm run type-check` | provjera tipova |
 | `npm run db:migrate` | primjenjuje nove migracije (`-- --all` ponovno sve, sigurno je) |
 | `npm run db:seed` | briše i ponovno stvara samo demo radionice |
-| `npm run db:test` | 66 sigurnosnih testova baze na lokalnom Postgresu (PGlite), bez Supabasea, uključujući izravne napade preko API-ja |
-| `npm run icons` | ponovno generira ikone aplikacije za svih 7 proizvoda |
+| `npm run db:test` | 189 sigurnosnih testova baze na lokalnom Postgresu (PGlite), bez Supabasea, uključujući izravne napade preko API-ja |
+| `npm run icons` | ponovno generira ikone aplikacije za svih 15 zanata |
 
 ## Objava (Vercel)
 
