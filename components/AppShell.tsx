@@ -4,6 +4,7 @@ import { plural } from '@/lib/format';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { NavMemory } from '@/components/nav-memory';
 import { BarChart3, Bell, CalendarDays, ClipboardList, FlaskConical, LogOut, Plus, Repeat, Settings, Users, type LucideIcon } from 'lucide-react';
 import { PRODUCT_ICONS, ProductMark } from '@/components/ProductMark';
 import { buttonClass } from '@/components/ui';
@@ -80,26 +81,22 @@ export function AppShell({
 
   return (
     <div className="lg:flex" style={{ '--shell-top': `calc(${headerRem}rem + env(safe-area-inset-top))` } as React.CSSProperties}>
+      <NavMemory />
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh print:!hidden w-60 shrink-0 flex-col border-r border-line bg-surface/40 px-3 py-4 lg:flex">
         {demo ? <DemoBar product={product.id} isOwner={user.isOwner} className="mb-4 flex-wrap rounded-xl border border-line px-2 py-1.5" /> : null}
-        {workshops.length > 1 ? (
-          <WorkshopSwitch workshops={workshops} className="mb-6 flex min-h-12 w-full items-center gap-2.5 rounded-xl px-2 hover:bg-surface2/60">
-            {mark}
-            <span className="min-w-0 flex-1">
-              <span className="block break-words text-sm font-semibold leading-tight">{workshop.name}</span>
-              <span className="block break-words text-xs text-faint">{product.name}</span>
-            </span>
-          </WorkshopSwitch>
-        ) : (
-          <Link href="/app" className="mb-6 flex items-center gap-2.5 px-2">
+        <div className="mb-6 flex items-center">
+          <Link href="/app" className="flex min-h-12 min-w-0 flex-1 items-center gap-2.5 rounded-xl px-2 hover:bg-surface2/60">
             {mark}
             <span className="min-w-0">
               <span className="block break-words text-sm font-semibold leading-tight">{workshop.name}</span>
               <span className="block break-words text-xs text-faint">{product.name}</span>
             </span>
           </Link>
-        )}
+          {workshops.length > 1 ? (
+            <WorkshopSwitch workshops={workshops} className="flex size-12 shrink-0 items-center justify-center rounded-xl text-muted hover:bg-surface2" />
+          ) : null}
+        </div>
         <Link href={newJobHref} className={buttonClass('primary', 'md', 'mb-4 w-full')}>
           <Plus className="size-4" /> Novi nalog
         </Link>
@@ -138,8 +135,9 @@ export function AppShell({
               <span className="block text-xs text-faint">{user.isOwner ? 'Voditelj' : 'Radnik'}</span>
             </span>
             <form action={signOut}>
-              <button type="submit" className="flex size-12 items-center justify-center rounded-lg text-muted hover:bg-surface2 hover:text-fg" aria-label="Odjava">
+              <button type="submit" className="inline-flex h-12 items-center gap-1.5 rounded-lg px-2 text-sm text-muted hover:bg-surface2 hover:text-fg">
                 <LogOut className="size-4" />
+                Odjava
               </button>
             </form>
           </div>
@@ -148,20 +146,17 @@ export function AppShell({
 
       <div className="min-w-0 flex-1">
         {/* Phone top bar */}
-        <header className="sticky top-0 z-30 border-b border-line bg-bg/85 pt-safe backdrop-blur-md print:hidden lg:hidden">
+        {/* Above sheets (z-50): the name stays tappable and returns home. */}
+        <header className="pointer-events-auto sticky top-0 z-[70] border-b border-line bg-bg/85 pt-safe backdrop-blur-md print:hidden lg:hidden">
           {demo ? <DemoBar product={product.id} isOwner={user.isOwner} className="h-11 border-b border-line px-4" /> : null}
           <div className="flex h-14 items-center gap-3 px-4">
+            <Link href="/app" className="flex min-h-12 min-w-0 flex-1 items-center gap-2.5" aria-label={workshop.name}>
+              {mark}
+              <span className="line-clamp-2 text-sm font-semibold leading-tight">{workshop.name}</span>
+            </Link>
             {workshops.length > 1 ? (
-              <WorkshopSwitch workshops={workshops} className="flex min-h-12 min-w-0 flex-1 items-center gap-2.5">
-                {mark}
-                <span className="line-clamp-2 min-w-0 text-sm font-semibold leading-tight">{workshop.name}</span>
-              </WorkshopSwitch>
-            ) : (
-              <Link href="/app" className="flex min-h-12 min-w-0 flex-1 items-center gap-2.5">
-                {mark}
-                <span className="line-clamp-2 text-sm font-semibold leading-tight">{workshop.name}</span>
-              </Link>
-            )}
+              <WorkshopSwitch workshops={workshops} className="flex size-12 shrink-0 items-center justify-center rounded-xl text-muted hover:bg-surface2" />
+            ) : null}
             <Link href="/app/inbox" className="relative flex size-12 items-center justify-center rounded-xl text-muted hover:bg-surface2" aria-label="Poruke">
               <Bell className="size-5" />
               {inboxCount > 0 ? (

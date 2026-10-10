@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { BellRing, CalendarDays, ChevronRight, ClipboardList, Flame, Search, UserRound } from 'lucide-react';
 import { FieldSchedule } from '@/components/field/FieldSchedule';
+import { RestoreScroll } from '@/components/nav-memory';
 import { JobCard, type BoardJob } from '@/components/JobCard';
 import { EmptyState, Input, PageHeader, buttonClass } from '@/components/ui';
 import { PHASE_ORDER, hasFieldWork, phaseLabel, type JobPhase } from '@/config/tenant.config';
@@ -47,11 +48,11 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   // The title already names the current view; the button offers the other one.
   const viewSwitch = (
     showSchedule ? (
-      <Link href="/app?view=faze" className={buttonClass('secondary', 'sm')}>
+      <Link href="/app?view=faze" replace className={buttonClass('secondary', 'sm')}>
         <ClipboardList className="size-4" /> Po fazama
       </Link>
     ) : (
-      <Link href="/app?view=dan" className={buttonClass('secondary', 'sm')}>
+      <Link href="/app?view=dan" replace className={buttonClass('secondary', 'sm')}>
         <CalendarDays className="size-4" /> Raspored
       </Link>
     )
@@ -59,6 +60,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   if (showSchedule) {
     return (
       <>
+        <RestoreScroll />
         <PageHeader title="Raspored" action={viewSwitch} />
         {firstSteps}
         {reminderBanner}
@@ -161,6 +163,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
 
   return (
     <>
+      <RestoreScroll />
       <PageHeader title="Nalozi" action={viewSwitch} />
       {firstSteps}
       {reminderBanner}
@@ -180,6 +183,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
           <Link
             key={s.id}
             href={link({ f: s.id })}
+            replace
             aria-current={segment === s.id ? 'page' : undefined}
             className={cn(
               'flex min-h-14 flex-col items-center justify-center rounded-xl px-1 text-center text-sm leading-tight transition-colors',
@@ -194,11 +198,11 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
 
       {/* On top of it: only urgent, only mine. */}
       <div className="mb-6 flex flex-wrap gap-2">
-        <Link href={link({ hitno: !urgentOnly })} aria-pressed={urgentOnly} className={cn(buttonClass('secondary', 'sm'), 'rounded-full', urgentOnly && 'border-crit/60 bg-crit/15 text-crit')}>
+        <Link href={link({ hitno: !urgentOnly })} replace aria-pressed={urgentOnly} className={cn(buttonClass('secondary', 'sm'), 'rounded-full', urgentOnly && 'border-crit/60 bg-crit/15 text-crit')}>
           <Flame className="size-4" /> Hitno
           {urgentCount ? <span className="tabular opacity-80">{urgentCount}</span> : null}
         </Link>
-        <Link href={link({ moji: !mineOnly })} aria-pressed={mineOnly} className={cn(buttonClass('secondary', 'sm'), 'rounded-full', mineOnly && 'border-accent/60 bg-accent/15 text-fg')}>
+        <Link href={link({ moji: !mineOnly })} replace aria-pressed={mineOnly} className={cn(buttonClass('secondary', 'sm'), 'rounded-full', mineOnly && 'border-accent/60 bg-accent/15 text-fg')}>
           <UserRound className="size-4" /> Moji nalozi
           {mineCount ? <span className="tabular opacity-80">{mineCount}</span> : null}
         </Link>

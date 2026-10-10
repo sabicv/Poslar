@@ -20,7 +20,7 @@ export interface SwitchWorkshop {
 
 // The workshop name at the top, for an owner of several: one tap lists
 // them, another opens one.
-export function WorkshopSwitch({ workshops, className, children }: { workshops: SwitchWorkshop[]; className?: string; children: React.ReactNode }) {
+export function WorkshopSwitch({ workshops, className, children }: { workshops: SwitchWorkshop[]; className?: string; children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [going, setGoing] = useState<string | null>(null);
   return (

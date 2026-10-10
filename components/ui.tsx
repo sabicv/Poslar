@@ -187,13 +187,7 @@ export function PageHeader({ title, subtitle, action, back }: { title: ReactNode
   );
 }
 
-export function BackLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <Link href={href} className="-ml-2 mb-1 inline-flex h-12 items-center gap-1 rounded-lg px-2 text-sm text-muted hover:text-fg">
-      <span aria-hidden>←</span> {children}
-    </Link>
-  );
-}
+export { BackLink } from './BackLink';
 
 export function KeyValue({ label, children }: { label: string; children: ReactNode }) {
   return (

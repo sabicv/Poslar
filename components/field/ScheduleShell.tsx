@@ -53,7 +53,7 @@ export function ScheduleShell({
       if (params.d) setShownDay(params.d);
       if (params.t) setShownTech(params.t);
       const q = new URLSearchParams({ view: 'dan', d: params.d ?? day, t: params.t ?? tech });
-      router.push(`/app?${q.toString()}`, { scroll: false });
+      router.replace(`/app?${q.toString()}`, { scroll: false });
     });
 
   return (

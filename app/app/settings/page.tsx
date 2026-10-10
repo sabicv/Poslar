@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { PlayCircle } from 'lucide-react';
+import { LogOut, PlayCircle } from 'lucide-react';
+import { signOut } from '@/lib/actions/auth';
 import { VideoChip } from '@/components/help/VideoChip';
 import { SupportButton } from '@/components/SupportButton';
 import { ReferralShare } from '@/components/billing/ReferralShare';
@@ -90,14 +91,22 @@ export default async function SettingsPage() {
             <ThemeToggle />
           </div>
         </div>
-        {!isDemo ? (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line px-4 py-3 text-sm">
-            <Link href="/nova-lozinka" className="font-medium text-accent hover:underline">
-              Promijeni lozinku
-            </Link>
-            <DeleteAccount owner={ctx.isOwner} />
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line px-4 py-3 text-sm">
+          {!isDemo ? (
+            <>
+              <Link href="/nova-lozinka" className="font-medium text-accent hover:underline">
+                Promijeni lozinku
+              </Link>
+              <DeleteAccount owner={ctx.isOwner} />
+            </>
+          ) : null}
+          <form action={signOut}>
+            <button type="submit" className="inline-flex min-h-12 items-center gap-2 font-medium text-muted hover:text-fg">
+              <LogOut className="size-4" />
+              Odjava
+            </button>
+          </form>
+        </div>
       </Card>
       {ctx.isOwner ? (
         <Card>
