@@ -7,7 +7,7 @@ import { Building2, CalendarClock, Check, ChevronDown, MapPin, Search, User, X }
 import { DictateButton, DictateInput, Segmented } from '@/components/client-ui';
 import { ScanButton } from '@/components/ScanButton';
 import { Button, Card, Field, Input, Select, Textarea } from '@/components/ui';
-import { DEVICE_TYPES, type AssetType, type MeterUnit, type Vocabulary } from '@/config/tenant.config';
+import { DEVICE_TYPES, assetNeedsMake, type AssetType, type MeterUnit, type Vocabulary } from '@/config/tenant.config';
 import { createJob } from '@/lib/actions/jobs';
 import { searchClients, type ClientHit } from '@/lib/actions/clients';
 import { clearDraft, readDraft, writeDraft } from '@/lib/drafts';
@@ -18,6 +18,15 @@ import { cn } from '@/lib/utils';
 const DRAFT_MAX_AGE = 12 * 3600 * 1000;
 
 type SiteKind = 'house' | 'flat' | 'apartment' | 'office' | 'commercial' | 'other';
+function clockChoices(current: string) {
+  const list: string[] = [];
+  for (let hour = 6; hour <= 21; hour += 1) {
+    for (const minute of ['00', '30']) list.push(`${String(hour).padStart(2, '0')}:${minute}`);
+  }
+  if (current && !list.includes(current)) list.unshift(current);
+  return list;
+}
+
 const SITE_KINDS: { value: SiteKind; label: string }[] = [
   { value: 'flat', label: 'Stan' },
   { value: 'house', label: 'Kuća' },
@@ -430,7 +439,7 @@ export function NewJobForm({
             {/* The nameplate camera sits on the heading row, taking no extra line. */}
             <div className="mb-2 flex items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">{vocabulary.asset.one}</h3>
-              {!assetId ? (
+              {!assetId && assetNeedsMake(newAsset.assetType) ? (
                 <ScanButton
                   kind="plocica"
                   label="Slikaj natpisnu pločicu"
@@ -446,7 +455,7 @@ export function NewJobForm({
               ) : null}
             </div>
             {client && !usingNewSite ? <AssetChoice assets={visibleAssets} assetId={assetId} onPick={setAssetId} newLabel={vocabulary.asset.new} /> : null}
-            {!assetId ? <NewAssetFields vocabulary={vocabulary} assetTypes={assetTypes} value={newAsset} onChange={setNewAsset} field more={more} /> : null}
+            {!assetId ? <NewAssetFields vocabulary={vocabulary} assetTypes={assetTypes} value={newAsset} onChange={setNewAsset} field={isField} named={assetNeedsMake(newAsset.assetType)} more={more} /> : null}
           </div>
 
           <div className="grid gap-3 border-t border-line pt-4 sm:grid-cols-2">
@@ -454,7 +463,13 @@ export function NewJobForm({
               <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </Field>
             <Field label="Vrijeme">
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              <Select value={time} onChange={(e) => setTime(e.target.value)}>
+                {clockChoices(time).map((slot) => (
+                  <option key={slot} value={slot}>
+                    {slot}
+                  </option>
+                ))}
+              </Select>
             </Field>
             {more ? (
               <>
@@ -504,7 +519,13 @@ export function NewJobForm({
                 <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
               </Field>
               <Field label="Vrijeme">
-                <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+                <Select value={time} onChange={(e) => setTime(e.target.value)}>
+                  {clockChoices(time).map((slot) => (
+                    <option key={slot} value={slot}>
+                      {slot}
+                    </option>
+                  ))}
+                </Select>
               </Field>
             </div>
           </Card>
@@ -518,7 +539,7 @@ export function NewJobForm({
       {/* What to do */}
       <Card className="p-4">
         <h2 className="mb-3 text-sm font-semibold">Što treba napraviti</h2>
-        <div className="mb-3 flex flex-wrap gap-2">
+        <div className={cn('mb-3', isField ? 'grid gap-2' : 'flex flex-wrap gap-2')}>
           {symptoms.map((symptom) => {
             const on = picked.includes(symptom);
             return (
@@ -526,14 +547,18 @@ export function NewJobForm({
                 key={symptom}
                 type="button"
                 onClick={() => setPicked((p) => (on ? p.filter((s) => s !== symptom) : [...p, symptom]))}
-                className={cn('h-11 rounded-full border px-3.5 text-sm transition-colors sm:h-10', on ? 'border-accent bg-accent/15 text-fg' : 'border-line text-muted hover:text-fg')}
+                className={cn(
+                  'border text-sm transition-colors',
+                  isField ? 'flex min-h-11 items-center rounded-xl px-3 text-left' : 'h-11 rounded-full px-3.5 sm:h-10',
+                  on ? 'border-accent bg-accent/15 text-fg' : 'border-line text-muted hover:text-fg'
+                )}
               >
                 {symptom}
               </button>
             );
           })}
         </div>
-        <Textarea value={complaint} onChange={(e) => setComplaint(e.target.value)} rows={3} placeholder="Opis kvara riječima klijenta" />
+        <Textarea value={complaint} onChange={(e) => setComplaint(e.target.value)} rows={3} placeholder={isField ? 'Napomena, ako treba' : 'Opis kvara riječima klijenta'} />
         <div className="mt-2">
           <DictateButton onText={(text) => setComplaint((c) => (c ? `${c.trimEnd()} ${text}` : text))} />
         </div>
@@ -586,7 +611,7 @@ export function NewJobForm({
 
       <div className="sticky bottom-20 z-10 lg:bottom-4">
         <Button variant="primary" size="lg" className="w-full shadow-2xl shadow-black/50" disabled={pending} onClick={submit}>
-          {pending ? 'Spremam…' : isField ? (date ? 'Zakaži posjet' : 'Otvori nalog bez termina') : booking && date ? 'Zakaži termin' : 'Otvori nalog'}
+          {pending ? 'Spremam…' : isField ? (date ? 'Zakaži posjet' : 'Spremi nalog') : booking && date ? 'Zakaži termin' : 'Otvori nalog'}
         </Button>
       </div>
     </div>
@@ -637,6 +662,7 @@ function NewAssetFields({
   value,
   onChange,
   field = false,
+  named = true,
   more,
 }: {
   vocabulary: Vocabulary;
@@ -644,25 +670,31 @@ function NewAssetFields({
   value: NewAsset;
   onChange: (update: (v: NewAsset) => NewAsset) => void;
   field?: boolean;
+  named?: boolean;
   more: boolean;
 }) {
   return (
     <div className={cn('space-y-3', !field && 'mt-4 border-t border-line pt-4')}>
       <div className="grid grid-cols-2 gap-3">
-        <Field label={field ? 'Gdje je (npr. Dnevni boravak)' : vocabulary.identifier} className="col-span-2">
+        <Field label={named && field ? 'Gdje je (npr. Dnevni boravak)' : vocabulary.identifier} className="col-span-2">
           <DictateInput
-            mode={field ? 'text' : 'plate'}
+            mode={field || !named ? 'text' : 'plate'}
             value={value.identifier}
-            className={cn(!field && 'font-mono uppercase')}
+            className={cn(named && !field && 'font-mono uppercase')}
+            placeholder={!named ? 'npr. A-12' : undefined}
             onValue={(identifier) => onChange((a) => ({ ...a, identifier }))}
           />
         </Field>
-        <Field label="Marka">
-          <DictateInput mode="name" value={value.make} onValue={(make) => onChange((a) => ({ ...a, make }))} placeholder={field ? 'npr. Daikin' : undefined} />
-        </Field>
-        <Field label="Model">
-          <DictateInput mode="name" value={value.model} onValue={(model) => onChange((a) => ({ ...a, model }))} placeholder={field ? 'npr. FTXP35M' : undefined} />
-        </Field>
+        {named ? (
+          <>
+            <Field label="Marka">
+              <DictateInput mode="name" value={value.make} onValue={(make) => onChange((a) => ({ ...a, make }))} placeholder={field ? 'npr. Daikin' : undefined} />
+            </Field>
+            <Field label="Model">
+              <DictateInput mode="name" value={value.model} onValue={(model) => onChange((a) => ({ ...a, model }))} placeholder={field ? 'npr. FTXP35M' : undefined} />
+            </Field>
+          </>
+        ) : null}
       </div>
       {more ? (
         <>
@@ -677,14 +709,16 @@ function NewAssetFields({
               </Select>
             </Field>
           ) : null}
-          <div className="grid grid-cols-2 gap-3">
-            <Field label={field ? 'Godina ugradnje' : 'Godište'}>
-              <DictateInput mode="digits" inputMode="numeric" maxLength={4} value={value.year} onValue={(year) => onChange((a) => ({ ...a, year: year.replace(/\D/g, '').slice(0, 4) }))} />
-            </Field>
-            <Field label={field ? 'Serijski broj' : 'VIN'}>
-              <DictateInput mode={field ? 'text' : 'vin'} value={value.vin} className="font-mono uppercase" onValue={(vin) => onChange((a) => ({ ...a, vin }))} />
-            </Field>
-          </div>
+          {named ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={field ? 'Godina ugradnje' : 'Godište'}>
+                <DictateInput mode="digits" inputMode="numeric" maxLength={4} value={value.year} onValue={(year) => onChange((a) => ({ ...a, year: year.replace(/\D/g, '').slice(0, 4) }))} />
+              </Field>
+              <Field label={field ? 'Serijski broj' : 'VIN'}>
+                <DictateInput mode={field ? 'text' : 'vin'} value={value.vin} className="font-mono uppercase" onValue={(vin) => onChange((a) => ({ ...a, vin }))} />
+              </Field>
+            </div>
+          ) : null}
         </>
       ) : null}
     </div>

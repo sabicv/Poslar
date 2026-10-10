@@ -47,6 +47,15 @@ export interface FieldContext {
 
 const time = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' }) : '');
 
+function clockChoices(current: string) {
+  const list: string[] = [];
+  for (let hour = 6; hour <= 21; hour += 1) {
+    for (const minute of ['00', '30']) list.push(`${String(hour).padStart(2, '0')}:${minute}`);
+  }
+  if (current && !list.includes(current)) list.unshift(current);
+  return list;
+}
+
 function position(): Promise<{ lat: number; lng: number } | null> {
   if (typeof navigator === 'undefined' || !('geolocation' in navigator)) return Promise.resolve(null);
   return new Promise((resolve) => {
@@ -77,10 +86,10 @@ export function FieldActions({ job, site, ctx, variant = 'card' }: { job: FieldJ
     run(() => markReportShared(job.id));
   }
 
-  const step = job.left_at ? 'done' : job.arrived_at ? 'working' : job.departed_at ? 'driving' : 'planned';
+  const step = !job.scheduled_start && !job.departed_at ? 'unscheduled' : job.left_at ? 'done' : job.arrived_at ? 'working' : job.departed_at ? 'driving' : 'planned';
 
   const primary =
-    step === 'planned' ? (
+    step === 'unscheduled' ? null : step === 'planned' ? (
       <Button variant="primary" size="lg" className="min-w-0 flex-1 whitespace-normal leading-tight" disabled={pending} onClick={() => setOnTheWay(true)}>
         <Car className="size-5" /> Na putu
       </Button>
@@ -135,6 +144,7 @@ export function FieldActions({ job, site, ctx, variant = 'card' }: { job: FieldJ
               </li>
             ))}
           </ol>
+          {step === 'unscheduled' ? <p className="text-sm text-muted">Nema termina. Zakažite ga gumbom iznad, pa krenite.</p> : null}
           <div className="flex gap-2">
             {primary}
             {nav}
@@ -170,6 +180,8 @@ export function FieldActions({ job, site, ctx, variant = 'card' }: { job: FieldJ
             </div>
           ) : null}
         </div>
+      ) : step === 'unscheduled' ? (
+        <p className="text-sm text-muted">Nema termina.</p>
       ) : (
         <div className="flex gap-2">
           {primary}
@@ -282,7 +294,13 @@ export function ScheduleSheet({
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
           <Field label="Vrijeme">
-            <Input type="time" value={clock} onChange={(e) => setClock(e.target.value)} />
+            <Select value={clock} onChange={(e) => setClock(e.target.value)}>
+              {clockChoices(clock).map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </Select>
           </Field>
         </div>
         <Field label="Trajanje">

@@ -1,4 +1,6 @@
 import { billingFrom } from '@/components/invoice/InvoiceDocument';
+import { quotePolicy } from '@/config/tenant.config';
+import { publicAppUrl } from '@/lib/qr';
 import type { WorkshopContext } from '@/lib/session';
 import { getJobTemplates, loadPriceBook } from '@/lib/templates';
 import type { Approval, JobLine, JobLinePrice, JobWithRefs } from '@/types/db';
@@ -28,10 +30,11 @@ export async function LinesTab({ ctx, job, locked }: { ctx: WorkshopContext; job
       isOwner={ctx.isOwner}
       locked={locked}
       approval={(approvals.data?.[0] as Approval | undefined) ?? null}
-      appUrl={process.env.NEXT_PUBLIC_APP_URL ?? ''}
+      appUrl={publicAppUrl()}
       clientPhone={job.client?.phone ?? null}
       vatRegistered={billingFrom(ctx.tenant.settings).vatRegistered}
       invoice={!ctx.pkg.internalJobs}
+      quotes={quotePolicy(ctx.pkg) !== 'never'}
       hourlyRate={book?.hourly ?? null}
       templateName={(job.complaint ?? '').split(/[,.]/)[0].trim().slice(0, 60)}
     />

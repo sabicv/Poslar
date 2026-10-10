@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Check, PenLine } from 'lucide-react';
-import { Diagram, MARK_CODES, zonesFor, type DiagramKind, type MarkCode } from '@/components/Diagram';
+import { Diagram, MARK_CODES, zonesFor, type DiagramKind } from '@/components/Diagram';
 import type { ConditionZone } from '@/config/tenant.config';
 import { Segmented, Sheet, SignaturePad, useAction } from '@/components/client-ui';
 import { Badge, Button, Card, CardHeader, Field, Input, Textarea } from '@/components/ui';
@@ -22,6 +22,8 @@ export function ConditionEditor({
   tenantId,
   diagram,
   zones,
+  marks: markList,
+  level = 'fuel',
   equipment,
   reports,
   clientName,
@@ -31,11 +33,14 @@ export function ConditionEditor({
   tenantId: string;
   diagram: DiagramKind;
   zones?: ConditionZone[];
+  marks?: { code: string; label: string }[];
+  level?: 'fuel' | 'battery' | 'none';
   equipment: string[];
   reports: Partial<Record<Kind, ReportView>>;
   clientName: string;
   locked: boolean;
 }) {
+  const marks = markList?.length ? markList : (Object.entries(MARK_CODES) as [string, string][]).map(([code, label]) => ({ code, label }));
   return (
     <div className="space-y-4">
       <ReportForm
@@ -45,6 +50,8 @@ export function ConditionEditor({
         kind="intake"
         diagram={diagram}
         zones={zones}
+        markList={marks}
+        level={level}
         equipment={equipment}
         report={reports.intake ?? null}
         copyFrom={null}
@@ -58,6 +65,8 @@ export function ConditionEditor({
         kind="handover"
         diagram={diagram}
         zones={zones}
+        markList={marks}
+        level={level}
         equipment={equipment}
         report={reports.handover ?? null}
         copyFrom={reports.intake ?? null}
@@ -74,6 +83,8 @@ function ReportForm({
   kind,
   diagram,
   zones,
+  markList,
+  level,
   equipment,
   report,
   copyFrom,
@@ -85,6 +96,8 @@ function ReportForm({
   kind: Kind;
   diagram: DiagramKind;
   zones?: ConditionZone[];
+  markList: { code: string; label: string }[];
+  level: 'fuel' | 'battery' | 'none';
   equipment: string[];
   report: ReportView | null;
   copyFrom: ReportView | null;
@@ -114,7 +127,15 @@ function ReportForm({
   const zoneList = zones ?? zonesFor(diagram);
   const zoneLabels = Object.fromEntries(zoneList.map((z) => [z.code, z.label]));
 
-  function toggleMark(zoneCode: string, code: MarkCode) {
+  const markName = (code: string) => markList.find((m) => m.code === code)?.label ?? code;
+  const same = (a: ConditionMark, b: ConditionMark) => a.zone === b.zone && a.code === b.code;
+  const intakeMarks = kind === 'handover' ? (copyFrom?.marks ?? []) : [];
+  const repaired = intakeMarks.filter((m) => !marks.some((h) => same(m, h)));
+  const unchanged = intakeMarks.filter((m) => marks.some((h) => same(m, h)));
+  const added = marks.filter((m) => !intakeMarks.some((h) => same(m, h)));
+  const nameOf = (m: ConditionMark) => `${zoneLabels[m.zone] ?? m.zone} (${markName(m.code)})`;
+
+  function toggleMark(zoneCode: string, code: string) {
     setDirty(true);
     setTouched(true);
     setMarks((all) => {
@@ -137,7 +158,7 @@ function ReportForm({
           diagram,
           marks,
           equipment: Object.entries(present).map(([item, p]) => ({ item, present: p })),
-          fuel_level: fuel as (typeof FUEL)[number] | null,
+          fuel_level: level === 'none' ? null : (fuel as (typeof FUEL)[number] | null),
         }),
       {
         success: after || quiet ? undefined : 'Zapisnik spremljen',
@@ -204,20 +225,28 @@ function ReportForm({
                 <li key={`${m.zone}-${m.code}-${i}`} className="px-3 py-2 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <span>{zoneLabels[m.zone] ?? m.zone}</span>
-                    <span className="shrink-0 text-muted">{MARK_CODES[m.code as MarkCode]}</span>
+                    <span className="shrink-0 text-muted">{markName(m.code)}</span>
                   </div>
                   {m.note ? <p className="mt-0.5 text-xs text-faint">{m.note}</p> : null}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-4 text-sm text-muted">Bez vidljivih oštećenja.</p>
+            <p className="mt-4 text-sm text-muted">{markList.some((m) => m.label === 'Ogrebotina') ? 'Bez vidljivih oštećenja.' : 'Ništa označeno.'}</p>
           )}
+          {kind === 'handover' && intakeMarks.length ? (
+            <div className="mt-4 space-y-1 rounded-xl border border-line px-3 py-2 text-sm">
+              <p>{repaired.length ? `Popravljeno: ${repaired.map(nameOf).join(', ')}` : 'Ništa od prijema nije uklonjeno.'}</p>
+              {unchanged.length ? <p className="text-muted">Isto kao pri prijemu: {unchanged.map(nameOf).join(', ')}</p> : null}
+              {added.length ? <p>Novo pri predaji: {added.map(nameOf).join(', ')}</p> : null}
+            </div>
+          ) : null}
         </div>
       </Card>
 
+      {equipment.length || level !== 'none' ? (
       <Card>
-        <CardHeader title="Oprema i gorivo" />
+        <CardHeader title={level === 'battery' ? 'Oprema i baterija' : level === 'fuel' ? 'Oprema i gorivo' : 'Oprema'} />
         <div className="space-y-4 p-4">
           <div className="grid gap-2 sm:grid-cols-2">
             {equipment.map((item) => (
@@ -237,21 +266,24 @@ function ReportForm({
               </label>
             ))}
           </div>
-          <Field label="Gorivo / baterija">
-            <Segmented
-              value={fuel}
-              disabled={readOnly}
-              onChange={(f) => {
-                setDirty(true);
-                setTouched(true);
-                setFuel(f);
-              }}
-              options={FUEL.map((f) => ({ value: f, label: f === '0' ? 'Prazno' : f === '1' ? 'Puno' : f }))}
-            />
-          </Field>
+          {level !== 'none' ? (
+            <Field label={level === 'battery' ? 'Baterija' : 'Gorivo / baterija'}>
+              <Segmented
+                value={fuel}
+                disabled={readOnly}
+                onChange={(f) => {
+                  setDirty(true);
+                  setTouched(true);
+                  setFuel(f);
+                }}
+                options={FUEL.map((f) => ({ value: f, label: f === '0' ? 'Prazno' : f === '1' ? 'Puno' : f }))}
+              />
+            </Field>
+          ) : null}
           {!readOnly ? <p className="text-xs text-faint">{pending ? 'Spremam…' : dirty ? (touched ? 'Upisujem…' : '') : report ? 'Spremljeno' : ''}</p> : null}
         </div>
       </Card>
+      ) : null}
 
       <Card>
         <CardHeader title="Potpis mušterije" />
@@ -268,7 +300,7 @@ function ReportForm({
               </Field>
               <SignaturePad onChange={setSignature} />
               <p className="text-xs text-faint">
-                Potpisom mušterija potvrđuje stanje {kind === 'intake' ? 'pri predaji u radionicu' : 'pri preuzimanju'} i navedenu opremu.
+                Potpisom mušterija potvrđuje stanje {kind === 'intake' ? 'pri prijemu' : 'pri predaji'} i navedenu opremu.
               </p>
               <Button variant="primary" size="lg" disabled={pending || !signature} onClick={sign}>
                 <PenLine className="size-4" /> Potvrdi potpis
@@ -280,17 +312,17 @@ function ReportForm({
 
       <Sheet open={zone !== null} onOpenChange={(o) => !o && setZone(null)} title={zone?.label ?? ''}>
         <div className="grid gap-2">
-          {(Object.keys(MARK_CODES) as MarkCode[]).map((code) => {
-            const on = zone ? (marked[zone.code] ?? []).includes(code) : false;
+          {markList.map((mark) => {
+            const on = zone ? (marked[zone.code] ?? []).includes(mark.code) : false;
             return (
               <button
-                key={code}
+                key={mark.code}
                 type="button"
-                onClick={() => zone && toggleMark(zone.code, code)}
+                onClick={() => zone && toggleMark(zone.code, mark.code)}
                 className={cn('flex h-14 items-center gap-3 rounded-xl border px-4 text-left', on ? 'border-warn bg-warn/10' : 'border-line hover:bg-surface2')}
               >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-surface2 font-semibold">{code}</span>
-                <span className="flex-1">{MARK_CODES[code]}</span>
+                <span className="flex size-8 items-center justify-center rounded-lg bg-surface2 font-semibold">{mark.code}</span>
+                <span className="flex-1">{mark.label}</span>
                 {on ? <Check className="size-5 text-warn" /> : null}
               </button>
             );

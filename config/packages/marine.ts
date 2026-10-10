@@ -63,6 +63,7 @@ export const marine: PackageConfig = {
   assetTypes: ['jetski', 'boat', 'outboard', 'inboard'],
   defaultAssetType: 'boat',
   phaseLabels: { in_progress: 'Servis / protokol' },
+  opening: { intake: 'Sljedeće: nautički karton.', tab: 'modul' },
   symptoms: ['Redovni servis', 'Konzervacija (zimovanje)', 'Dekonzervacija', 'Ne pali', 'Gubi snagu', 'Pregrijava se', 'Električni kvar', 'Skladištenje'],
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'hull', label: 'Trup' }, { code: 'equipment', label: 'Oprema' }],
   diagram: 'boat',

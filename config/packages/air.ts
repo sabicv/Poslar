@@ -199,6 +199,7 @@ export const air: PackageConfig = {
     ready: 'Odrađeno',
     collected: 'Zatvoreno',
   },
+  opening: { intake: 'Sljedeće: servis uređaja i F-plin.', tab: 'modul' },
   symptoms: ['Godišnji servis', 'Slabo hladi', 'Ne grije', 'Curi voda', 'Neugodan miris', 'Greška na displeju', 'Buka ili vibracije', 'Ne pali', 'Montaža novog uređaja'],
   photoTags: [
     { code: 'before', label: 'Prije' },
@@ -212,6 +213,15 @@ export const air: PackageConfig = {
   ],
   diagram: 'car',
   conditionZones: AIR_ZONES,
+  marks: [
+    { code: 'N', label: 'Ne radi' },
+    { code: 'C', label: 'Curenje' },
+    { code: 'Z', label: 'Začepljeno' },
+    { code: 'B', label: 'Buči' },
+    { code: 'O', label: 'Oštećeno' },
+    { code: 'I', label: 'Neispravno' },
+  ],
+  level: 'none',
   equipment: ['Daljinski klime', 'Filteri', 'Dokumentacija uređaja', 'Poklopci jedinice'],
   inspections: [
     serviceSplit,

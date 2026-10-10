@@ -8,10 +8,12 @@ import { waEnabled } from '@/config/whatsapp';
 import { canMessage, whatsappReady } from '@/lib/whatsapp';
 import { ConfirmAppointment } from './ConfirmAppointment';
 import { spokenSlot } from '@/lib/calendar';
+import { publicAppUrl } from '@/lib/qr';
 import { whatsappLink } from '@/lib/contact';
 import { formatDateTime, plural, vocativeHR } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import type { JobWithRefs } from '@/types/db';
+import { NextStep } from './NextStep';
 import { OverviewEditor } from './OverviewEditor';
 
 // Client and object details are not repeated here: the header names them
@@ -60,6 +62,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <div className="space-y-4">
+        <NextStep ctx={ctx} job={job} />
         {/* On the field what the caller said comes first, then the visit. */}
         {field && (bookedNote || (confirm && booked)) ? (
           <Card>
@@ -86,7 +89,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
                   techName: job.assignee?.full_name ?? ctx.profile.full_name ?? 'Tehničar',
                   clientFirstName: job.client.kind === 'person' ? job.client.first_name : null,
                   clientPhone: job.client.phone,
-                  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? '',
+                  appUrl: publicAppUrl(),
                   isOwner: ctx.isOwner,
                 }}
               />
@@ -127,6 +130,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
           field={field}
           meter={!climate}
           extras={extras}
+          complaint={ctx.pkg.id === 'clean' ? 'none' : field ? 'note' : 'fault'}
         />
       </div>
 

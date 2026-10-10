@@ -7,7 +7,7 @@ import { Copy, FileCheck2, FileCode2, MessageCircle, Printer, RotateCcw, Undo2 }
 import { ConfirmButton, Segmented, useAction } from '@/components/client-ui';
 import { INVOICE_STATUS_LABELS, PAYMENT_METHODS, type InvoiceStatus, type PaymentMethod } from '@/components/invoice/InvoiceDocument';
 import { Badge, Button, Field, Input, buttonClass } from '@/components/ui';
-import { issueInvoice, markInvoiceSent, rejectInvoice, resendInvoice, setInvoiceFiscalRef, voidInvoice } from '@/lib/actions/invoice';
+import { issueInvoice, markInvoiceSent, rejectInvoice, reopenVoidedInvoice, resendInvoice, setInvoiceFiscalRef, voidInvoice } from '@/lib/actions/invoice';
 import { copyText } from '@/lib/clipboard';
 import { vocativeHR } from '@/lib/format';
 import { whatsappLink } from '@/lib/contact';
@@ -94,7 +94,9 @@ export function InvoiceActions({
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone={STATUS_TONE[status]}>{INVOICE_STATUS_LABELS[status]}</Badge>
         {status === 'rejected' ? <p className="text-sm text-warn">Broj ostaje. Pošaljite isti račun ponovo u blagajnu.</p> : null}
-        {status === 'voided' ? <p className="text-sm text-muted">Broj je iskorišten. Novi račun ide na novi nalog.</p> : null}
+        {status === 'voided' ? (
+          <p className="text-sm text-muted">Broj ostaje iskorišten. Na istom nalogu možete uzeti sljedeći broj i prije toga promijeniti stavke.</p>
+        ) : null}
       </div>
       <div className="flex flex-wrap gap-2">
         <Button variant="primary" onClick={() => window.print()}>
@@ -154,7 +156,15 @@ export function InvoiceActions({
             <Undo2 className="size-4" /> Storno
           </ConfirmButton>
         </div>
-      ) : null}
+      ) : (
+        <ConfirmButton
+          disabled={pending}
+          confirmLabel="Stari broj ostaje storno. Novi račun dobiva sljedeći broj."
+          onConfirm={() => run(() => reopenVoidedInvoice(jobId), { success: 'Stavke možete prilagoditi, pa izdati novi broj', ...refresh })}
+        >
+          <FileCheck2 className="size-4" /> Novi račun na ovom nalogu
+        </ConfirmButton>
+      )}
     </div>
   );
 }

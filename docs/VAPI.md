@@ -32,7 +32,7 @@ operater naplaćuje kao međunarodni poziv, pa treba **hrvatski broj**:
 
 Vapi → Assistants → Create Assistant (Blank).
 
-- **Model:** npr. OpenAI gpt-4o. Probaj i Anthropic Claude; zadrži onaj koji bolje govori.
+- **Model:** kad je `OPENROUTER_API_KEY` postavljen, Poslar na svaki poziv sam stavi Claude Haiku (`AI_VAPI_MODEL`, inače `anthropic/claude-haiku-4.5`). Ključ ostaje u Poslaru. Bez ključa vrijedi model koji odabereš ovdje (npr. OpenAI gpt-4o).
 - **Transcriber** (razumijevanje govora): onaj koji podržava hrvatski (npr. Azure ili Google, jezik `hr-HR`).
 - **Voice:** Azure `hr-HR-SreckoNeural` (muški; Poslar je „on”, pa u prošlom vremenu kaže „upisao sam”),
   ili ElevenLabs višejezični glas. Poslušaj par rečenica pa odaberi.

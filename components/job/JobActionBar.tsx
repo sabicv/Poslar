@@ -36,6 +36,7 @@ export function JobActionBar({
   locked,
   billing = true,
   field = false,
+  scheduled = true,
   copilot,
 }: {
   jobId: string;
@@ -47,6 +48,8 @@ export function JobActionBar({
   // False when the job is the business's own cost (Deal): nothing to collect.
   billing?: boolean;
   field?: boolean;
+  // A field job with no appointment should not offer the next phase as if it were booked.
+  scheduled?: boolean;
   copilot: boolean;
 }) {
   const router = useRouter();
@@ -124,7 +127,9 @@ export function JobActionBar({
           ) : null}
         </Sheet>
 
-        {next && nextLabel ? (
+        {field && !scheduled && next?.id === 'diagnosis' ? (
+          <p className="min-w-0 flex-1 px-2 text-center text-sm text-muted">Zakažite termin u pregledu</p>
+        ) : next && nextLabel ? (
           <Button size="lg" variant="primary" disabled={pending} onClick={() => run(() => setJobPhase(jobId, next.id))} className="min-w-0 flex-1 gap-1 whitespace-normal px-3 text-base">
             <span className="text-center leading-tight">{nextLabel}</span>
             <ChevronRight className="size-5 shrink-0" />

@@ -28,14 +28,14 @@ export function PlanCard({
       <CardHeader
         title={
           <span className="flex items-center gap-2">
-            <CalendarClock className="size-4 text-accent" /> Servisni plan
+            <CalendarClock className="size-4 text-accent" /> {plan ? String(plan.title) : 'Ponavljajući posao'}
           </span>
         }
-        subtitle={plan ? `${plan.title} · svakih ${plan.interval_months} mj.` : 'Ponavljajući servis: aplikacija sama ponudi termin kad se približi'}
+        subtitle={plan ? `Svakih ${plan.interval_months} mj.` : 'Uključite ga i mjesec dana prije roka posao se sam pojavi za zakazivanje'}
         action={
           <RecordSheet
             table="maintenance_plans"
-            title="Servisni plan"
+            title="Ponavljajući posao"
             id={plan?.id as string | undefined}
             revalidate={path}
             fixed={{ client_id: job.client.id, site_id: job.site_id, asset_id: job.asset.id }}
@@ -45,7 +45,7 @@ export function PlanCard({
             fields={[
               { name: 'title', label: 'Naziv', required: true },
               { name: 'interval_months', label: 'Svakih', type: 'number', suffix: 'mj.', half: true, required: true },
-              { name: 'next_due_date', label: 'Sljedeći servis', type: 'date', half: true, required: true },
+              { name: 'next_due_date', label: 'Sljedeći dolazak', type: 'date', half: true, required: true },
               { name: 'template_code', label: 'Predložak posla', type: 'select', options: [...ctx.pkg.templates].sort((a, b) => a.name.localeCompare(b.name, 'hr')).map((t) => ({ value: t.code, label: t.name })) },
               { name: 'notes', label: 'Napomena', type: 'textarea' },
             ]}
@@ -54,12 +54,16 @@ export function PlanCard({
       />
       {plan ? (
         <div className="flex flex-wrap items-center gap-2 px-4 py-3 text-sm">
-          <span className="text-muted">Sljedeći servis:</span>
+          <span className="text-muted">Sljedeći dolazak:</span>
           <Badge tone={(daysUntil(plan.next_due_date as string) ?? 0) < 0 ? 'crit' : (daysUntil(plan.next_due_date as string) ?? 99) <= 30 ? 'warn' : 'ok'}>{formatDate(plan.next_due_date as string)}</Badge>
-          <span className="text-xs text-faint">Kad je ovaj nalog vezan uz plan i označen „{ctx.pkg.phaseLabels.ready ?? 'Gotovo'}”, datum se sam pomakne.</span>
+          <span className="text-xs text-faint">
+            {job.plan_id === plan.id
+              ? `Kad ovaj nalog označite „${ctx.pkg.phaseLabels.ready ?? 'Odrađeno'}”, sljedeći dolazak se sam pomakne za ${plan.interval_months} mj.`
+              : 'Rok se sam pomakne kad završite nalog otvoren iz ovog plana (gumb Zakaži).'}
+          </span>
         </div>
       ) : (
-        <p className="px-4 py-3 text-sm text-muted">Mjesec dana prije roka servis se sam pojavi u „{ctx.pkg.modulePage}”, s porukom za podsjetnik i gumbom Zakaži.</p>
+        <p className="px-4 py-3 text-sm text-muted">Mjesec dana prije roka posao se sam pojavi u „{ctx.pkg.modulePage}”, s porukom za podsjetnik i gumbom Zakaži.</p>
       )}
     </Card>
   );

@@ -32,6 +32,7 @@ export const machine: PackageConfig = {
   assetTypes: ['machine', 'tractor', 'implement'],
   defaultAssetType: 'machine',
   phaseLabels: { in_progress: 'Rad (radionica / teren)' },
+  opening: { intake: 'Sljedeće: motosati i hidraulika.', tab: 'modul' },
   symptoms: ['Planski servis', 'Stroj stoji', 'Hidraulika', 'Motor', 'Elektrika', 'Gume / gusjenice', 'Priključak', 'Terenska intervencija'],
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'field', label: 'Teren' }, { code: 'plate', label: 'Pločica stroja' }, { code: 'hydraulics', label: 'Hidraulika' }],
   diagram: 'truck',

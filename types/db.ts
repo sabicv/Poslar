@@ -268,7 +268,7 @@ export interface InspectionResult {
 
 export interface ConditionMark {
   zone: string;
-  code: 'O' | 'U' | 'P' | 'K' | 'L' | 'N' | 'R' | 'B';
+  code: string;
   note?: string;
 }
 
@@ -317,6 +317,8 @@ export interface Approval {
   expires_at: string;
   decisions: { lineId: string; decision: 'approved' | 'declined' }[];
   signer_name: string | null;
+  quote_number?: number | null;
+  quote_year?: number | null;
 }
 
 export interface JobEvent {

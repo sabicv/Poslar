@@ -107,6 +107,7 @@ export const aqua: PackageConfig = {
     ready: 'Odrađeno',
     collected: 'Zatvoreno',
   },
+  opening: { intake: 'Sljedeće: tlačna proba i zapisnik.', tab: 'modul' },
   symptoms: ['Curi voda', 'Začepljen odvod', 'Bojler ne grije', 'Servis bojlera', 'Servis plinskog kotla', 'Pao tlak u grijanju', 'WC kotlić curi', 'Zamjena slavine', 'Nova instalacija'],
   photoTags: [
     { code: 'before', label: 'Prije' },
@@ -118,6 +119,15 @@ export const aqua: PackageConfig = {
   ],
   diagram: 'car',
   conditionZones: AQUA_ZONES,
+  marks: [
+    { code: 'C', label: 'Curenje' },
+    { code: 'Z', label: 'Začepljeno' },
+    { code: 'N', label: 'Ne radi' },
+    { code: 'H', label: 'Hrđa' },
+    { code: 'O', label: 'Oštećeno' },
+    { code: 'I', label: 'Neispravno' },
+  ],
+  level: 'none',
   equipment: ['Glavni ključ / pristup', 'Dokumentacija uređaja', 'Filteri', 'Ventili skinuti'],
   inspections: [
     heaterService,

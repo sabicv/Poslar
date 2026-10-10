@@ -81,7 +81,7 @@ export function ScheduleShell({
         </div>
       </div>
 
-      <div className="flex items-stretch gap-1">
+      <div className="flex items-stretch gap-1 lg:max-w-xl">
         <button type="button" onClick={() => go({ d: prevWeek })} className="flex w-8 shrink-0 items-center justify-center rounded-xl text-muted hover:bg-surface2" aria-label="Prethodni tjedan">
           <ChevronLeft className="size-5" />
         </button>
@@ -95,14 +95,13 @@ export function ScheduleShell({
                 onClick={() => go({ d: x.d })}
                 aria-pressed={selected}
                 className={cn(
-                  'flex h-[4.5rem] flex-col items-center justify-center gap-0.5 rounded-xl border transition-colors',
+                  'flex h-14 flex-col items-center justify-center gap-0.5 rounded-xl border transition-colors lg:h-12',
                   selected ? 'border-accent bg-accent text-accent-fg' : 'border-line bg-surface text-fg',
-                  !selected && x.d === today && 'border-accent/60',
-                  selected && pending && 'animate-pulse'
+                  !selected && x.d === today && 'border-accent/60'
                 )}
               >
                 <span className={cn('text-[11px] uppercase', selected ? 'text-accent-fg/80' : 'text-muted')}>{x.weekday}</span>
-                <span className="text-lg font-semibold leading-none tabular">{x.num}</span>
+                <span className="text-base font-semibold leading-none tabular">{x.num}</span>
                 <span
                   className={cn(
                     'mt-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold tabular',

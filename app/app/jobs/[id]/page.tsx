@@ -76,6 +76,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         locked={locked}
         billing={billing}
         field={ctx.pkg.sector === 'field'}
+        scheduled={Boolean(job.scheduled_start)}
         copilot={Boolean(process.env.ANTHROPIC_API_KEY)}
       />
     </div>

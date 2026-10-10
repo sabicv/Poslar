@@ -104,6 +104,8 @@ export const body: PackageConfig = {
   assetTypes: ['car', 'van', 'truck', 'motorcycle'],
   defaultAssetType: 'car',
   phaseLabels: { diagnosis: 'Procjena', in_progress: 'U proizvodnji', awaiting_approval: 'Čeka osiguranje' },
+  quote: 'first',
+  opening: { intake: 'Sljedeće: procjena štete i ponuda.', diagnosis: 'Sljedeće: karta oštećenja i lak.', tab: 'stavke', diagnosisTab: 'modul' },
   symptoms: ['Sudar', 'Parkiranje', 'Tuča', 'Divljač', 'Vandalizam', 'Korozija', 'Poliranje / zaštita'],
   photoTags: [
     ...COMMON_PHOTO_TAGS,

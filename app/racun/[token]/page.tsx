@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { JobDossier } from '@/components/job/JobDossier';
 import { InvoiceDocument } from '@/components/invoice/InvoiceDocument';
+import { loadDossier } from '@/lib/dossier';
 import { loadInvoice } from '@/lib/invoice';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { PrintButton } from './PrintButton';
@@ -12,8 +14,10 @@ export const metadata: Metadata = { title: 'Račun', robots: { index: false, fol
 export default async function PublicInvoicePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(token)) notFound();
-  const invoice = await loadInvoice(createAdminClient(), { token });
+  const admin = createAdminClient();
+  const invoice = await loadInvoice(admin, { token });
   if (!invoice || invoice.number === null) notFound();
+  const dossier = await loadDossier(admin, invoice.jobId);
 
   return (
     <main className="mx-auto min-h-dvh max-w-[230mm] space-y-4 bg-neutral-100 px-4 py-6 pt-safe text-neutral-900 print:bg-white print:p-0">
@@ -21,6 +25,11 @@ export default async function PublicInvoicePage({ params }: { params: Promise<{ 
         <PrintButton />
       </div>
       <InvoiceDocument data={invoice} />
+      {dossier ? (
+        <div className="print:break-before-page" style={{ breakBefore: 'page' }}>
+          <JobDossier data={dossier} />
+        </div>
+      ) : null}
     </main>
   );
 }

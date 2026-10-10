@@ -23,6 +23,7 @@ export const volt: PackageConfig = {
   assetTypes: ['car', 'van', 'truck', 'bus', 'motorcycle'],
   defaultAssetType: 'car',
   phaseLabels: { diagnosis: 'Dijagnostika', in_progress: 'Popravak u tijeku' },
+  opening: { intake: 'Sljedeće: očitanje i dijagnostika.', tab: 'modul' },
   symptoms: [
     'Akumulator se prazni',
     'Ne pali / verglanje',

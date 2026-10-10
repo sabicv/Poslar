@@ -153,6 +153,17 @@ export interface PackageConfig {
   diagram: 'car' | 'truck' | 'moto' | 'boat';
   // Parts on the intake/handover zapisnik. Falls back to the diagram list.
   conditionZones?: ConditionZone[];
+  // What a mark means on that zapisnik. Vehicles keep the body-shop list
+  // (scratch, stone chip). A room or a boiler does not.
+  marks?: { code: string; label: string }[];
+  // The gauge under the equipment list. Vehicles keep fuel.
+  level?: 'fuel' | 'battery' | 'none';
+  // first: the job should open with a quote. offer: only when lines are
+  // proposed. never: the price is already known (or there is no customer).
+  quote?: 'first' | 'offer' | 'never';
+  // This trade's first move, while the job is still at the start.
+  // A quote that is waiting replaces it.
+  opening?: { intake: string; diagnosis?: string; tab?: 'modul' | 'inspekcija' | 'foto' | 'stavke'; diagnosisTab?: 'modul' | 'inspekcija' | 'foto' | 'stavke' };
   equipment: string[];
   inspections: InspectionTemplate[];
   templates: JobTemplate[];
@@ -280,6 +291,11 @@ export const APPLIANCE_TYPES: AssetType[] = ['washer', 'dishwasher', 'fridge', '
 export const LOCK_TYPES: AssetType[] = ['door_lock', 'safe'];
 export const POOL_TYPES: AssetType[] = ['swimming_pool', 'pool_plant'];
 export const CLEAN_TYPES: AssetType[] = ['apartment_unit', 'holiday_unit', 'office_unit'];
+
+// A place, not a device: an apartment or a pool has an oznaka, not a make and model.
+export function assetNeedsMake(type: AssetType): boolean {
+  return !CLEAN_TYPES.includes(type) && type !== 'swimming_pool';
+}
 // Not a vehicle: no plate, no kilometres, a serial number instead of a VIN.
 export const DEVICE_TYPES: AssetType[] = [...CLIMATE_TYPES, ...WATER_TYPES, ...ELECTRIC_TYPES, ...APPLIANCE_TYPES, ...LOCK_TYPES, ...POOL_TYPES, ...CLEAN_TYPES];
 const MTH_TYPES: AssetType[] = ['machine', 'tractor', 'implement', 'jetski', 'boat', 'outboard', 'inboard', ...DEVICE_TYPES];
@@ -318,6 +334,11 @@ export function getPackage(id: string | null | undefined): PackageConfig {
 
 export function phaseLabel(pkg: PackageConfig, phase: JobPhase): string {
   return pkg.phaseLabels[phase] ?? BASE_PHASE_LABELS[phase];
+}
+
+export function quotePolicy(pkg: PackageConfig): 'first' | 'offer' | 'never' {
+  if (pkg.internalJobs) return 'never';
+  return pkg.quote ?? 'offer';
 }
 
 export function hasModule(pkg: PackageConfig, enabled: string[] | null | undefined, module: ModuleId): boolean {

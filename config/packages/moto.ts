@@ -68,6 +68,7 @@ export const moto: PackageConfig = {
   assetTypes: ['motorcycle', 'scooter', 'atv'],
   defaultAssetType: 'motorcycle',
   phaseLabels: { in_progress: 'Servis / protokol' },
+  opening: { intake: 'Sljedeće: zapisnik i protokol.', tab: 'modul' },
   symptoms: ['Redovni servis', 'Konzervacija (zimovanje)', 'Dekonzervacija', 'Ne pali', 'Gubi snagu', 'Pregrijava se', 'Električni kvar', 'Skladištenje'],
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'fairing', label: 'Oklop / plastika' }, { code: 'equipment', label: 'Oprema' }],
   diagram: 'moto',

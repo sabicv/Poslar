@@ -93,7 +93,7 @@ export function InvoiceDocument({ data }: { data: InvoiceData }) {
   const totals = invoiceTotals(data.lines, billing.vatRegistered);
   // Before issuing the page is a preview; the number comes with "Izdaj račun".
   const label = invoiceNumberLabel(data);
-  const title = data.status === 'voided' && label ? `Storno računa br. ${label}` : label ? `Račun br. ${label}` : 'Račun (još nije izdan)';
+  const title = data.status === 'voided' && label ? `Storno računa br. ${label}` : label ? `Račun br. ${label}` : 'Pregled prije izdavanja';
   const reference = data.number ? `${data.number}-${data.year}` : null;
   const client = data.client;
 

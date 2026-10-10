@@ -22,6 +22,8 @@ export async function ConditionTab({ ctx, job, locked }: { ctx: WorkshopContext;
       tenantId={ctx.tenant.id}
       diagram={diagram}
       zones={zones}
+      marks={ctx.pkg.marks}
+      level={ctx.pkg.level ?? 'fuel'}
       equipment={ctx.pkg.equipment}
       reports={Object.fromEntries(reports.map((r) => [r.kind, { ...r, signatureUrl: r.signature_path ? signatures[r.signature_path] ?? null : null }]))}
       clientName={[job.client.first_name, job.client.last_name].filter(Boolean).join(' ') || job.client.company_name || ''}

@@ -123,6 +123,7 @@ export const gear: PackageConfig = {
   assetTypes: ['car', 'van', 'truck', 'motorcycle'],
   defaultAssetType: 'car',
   phaseLabels: {},
+  opening: { intake: 'Sljedeće: servisni pregled.', tab: 'inspekcija' },
   symptoms: [
     'Redovni servis',
     'Kočnice škripe / slabo koče',

@@ -10,6 +10,7 @@ import { fail, type ActionResult } from '@/lib/action-result';
 import { requireWorkshop, type WorkshopContext } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getInspectionTemplates, linePrice, listTemplates, loadPriceBook } from '@/lib/templates';
+import { todayInZagreb } from '@/lib/time';
 import { notifyJob, whatsappReady } from '@/lib/whatsapp';
 import type { InspectionStatus, LineApproval, LinePriority } from '@/types/db';
 
@@ -580,7 +581,7 @@ export async function linesFromInspection(jobId: string, inspectionId: string): 
 // ---------------------------------------------------------------------
 const reportSchema = z.object({
   diagram: z.enum(['car', 'truck', 'moto', 'atv', 'boat']),
-  marks: z.array(z.object({ zone: z.string().max(80), code: z.enum(['O', 'U', 'P', 'K', 'L', 'N', 'R', 'B']), note: z.string().max(200).optional() })).max(200),
+  marks: z.array(z.object({ zone: z.string().max(80), code: z.string().min(1).max(4), note: z.string().max(200).optional() })).max(200),
   equipment: z.array(z.object({ item: z.string().max(80), present: z.boolean() })).max(60),
   fuel_level: z.enum(['0', '1/4', '1/2', '3/4', '1']).nullable(),
 });
@@ -714,20 +715,57 @@ export async function setMessageStatus(id: string, jobId: string | null, status:
 // ---------------------------------------------------------------------
 // Customer approval link
 // ---------------------------------------------------------------------
-export async function createApproval(jobId: string): Promise<ActionResult<{ token: string }>> {
+export async function createApproval(jobId: string): Promise<ActionResult<{ token: string; number: number; year: number }>> {
   const ctx = await requireWorkshop();
-  if (!ctx.isOwner) return fail('Odobrenje šalje voditelj servisa.');
-  const { count } = await ctx.supabase.from('job_lines').select('id', { count: 'exact', head: true }).eq('job_id', jobId).eq('approval', 'proposed');
-  if (!count) return fail('Nema predloženih stavki za odobrenje.');
+  if (!ctx.isOwner) return fail('Ponudu šalje voditelj servisa.');
+  const [{ data: job }, { data: lines }] = await Promise.all([
+    ctx.supabase.from('jobs').select('complaint, diagnosis_notes').eq('id', jobId).maybeSingle(),
+    ctx.supabase.from('job_lines').select('id, description, qty, unit, approval, sort').eq('job_id', jobId).in('approval', ['proposed', 'approved']).order('sort'),
+  ]);
+  const quoted = lines ?? [];
+  const proposed = quoted.filter((l) => l.approval === 'proposed');
+  if (!proposed.length) return fail('Označite stavke kao prijedlog. Tek se one šalju na ponudi.');
+  const ids = quoted.map((l) => l.id as string);
+  const { data: prices } = ids.length
+    ? await ctx.supabase.from('job_line_prices').select('job_line_id, unit_price, discount_pct, vat_rate').in('job_line_id', ids)
+    : { data: [] };
+  const priceOf = new Map((prices ?? []).map((p) => [p.job_line_id as string, p]));
+  const snapshot = {
+    complaint: (job?.complaint as string | null) ?? null,
+    diagnosis: (job?.diagnosis_notes as string | null) ?? null,
+    lines: quoted.map((l) => {
+      const price = priceOf.get(l.id as string);
+      return {
+        id: l.id as string,
+        description: l.description as string,
+        qty: Number(l.qty),
+        unit: l.unit as string,
+        approval: l.approval as 'proposed' | 'approved',
+        unit_price: Number(price?.unit_price ?? 0),
+        discount_pct: Number(price?.discount_pct ?? 0),
+        vat_rate: Number(price?.vat_rate ?? 25),
+      };
+    }),
+  };
+  const year = Number(todayInZagreb().slice(0, 4));
   await ctx.supabase.from('approvals').update({ status: 'expired' }).eq('job_id', jobId).in('status', ['sent', 'viewed']);
-  const { data, error } = await ctx.supabase
-    .from('approvals')
-    .insert({ tenant_id: ctx.tenant.id, job_id: jobId, sent_via: 'link', created_by: ctx.user.id })
-    .select('token')
-    .single();
-  if (error) return fail(error);
+  let inserted: { token: string; quote_number: number } | null = null;
+  let lastError: { message?: string; code?: string } | null = null;
+  for (let attempt = 0; attempt < 2 && !inserted; attempt += 1) {
+    const { data: last } = await ctx.supabase.from('approvals').select('quote_number').eq('tenant_id', ctx.tenant.id).eq('quote_year', year).order('quote_number', { ascending: false }).limit(1).maybeSingle();
+    const number = Number(last?.quote_number ?? 0) + 1;
+    const { data, error } = await ctx.supabase
+      .from('approvals')
+      .insert({ tenant_id: ctx.tenant.id, job_id: jobId, sent_via: 'link', created_by: ctx.user.id, quote_number: number, quote_year: year, snapshot })
+      .select('token, quote_number')
+      .single();
+    if (!error && data) inserted = { token: data.token as string, quote_number: data.quote_number as number };
+    else lastError = error;
+  }
+  if (!inserted) return fail(lastError ?? 'Ponuda nije poslana.');
   await ctx.supabase.from('jobs').update({ phase: 'awaiting_approval' }).eq('id', jobId).in('phase', ['intake', 'diagnosis']);
-  await logEvent(ctx, jobId, 'approval', `Poslano na odobrenje: ${count} ${plural(count, 'stavka', 'stavke', 'stavki')}`);
+  await logEvent(ctx, jobId, 'approval', `Ponuda ${inserted.quote_number}/${year}: ${proposed.length} ${plural(proposed.length, 'stavka', 'stavke', 'stavki')}`);
   revalidatePath(jobPath(jobId));
-  return { ok: true, data: { token: data.token as string } };
+  revalidatePath(`${jobPath(jobId)}/ponuda`);
+  return { ok: true, data: { token: inserted.token, number: inserted.quote_number, year } };
 }

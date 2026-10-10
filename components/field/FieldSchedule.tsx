@@ -3,6 +3,7 @@ import { AlertTriangle, CalendarPlus, KeyRound, MapPin } from 'lucide-react';
 import { Badge, Card, EmptyState, buttonClass } from '@/components/ui';
 import { PHASE_TONE, hasModule, phaseLabel, type JobPhase } from '@/config/tenant.config';
 import { dayRouteLink } from '@/lib/contact';
+import { publicAppUrl } from '@/lib/qr';
 import { assetTitle, clientName, plural } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import { addDays, dayOf, formatDayLabel, formatTime, todayInZagreb, weekStart, zagrebMidnight } from '@/lib/time';
@@ -91,7 +92,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, 
     techName: v.assignee?.full_name ?? ctx.profile.full_name ?? 'Tehničar',
     clientFirstName: v.client?.kind === 'person' ? v.client.first_name : null,
     clientPhone: v.client?.phone ?? null,
-    appUrl: process.env.NEXT_PUBLIC_APP_URL ?? '',
+    appUrl: publicAppUrl(),
     isOwner: ctx.isOwner,
   });
 
@@ -125,7 +126,7 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, 
       {showPlans && (plans as { count: number | null }).count ? (
         <Link href="/app/module" className="flex items-center gap-2 rounded-xl border border-warn/40 bg-warn/10 px-4 py-3 text-sm">
           <CalendarPlus className="size-4 text-warn" />
-          <span className="flex-1">{(plans as { count: number }).count} {plural((plans as { count: number }).count, 'servis dospijeva', 'servisa dospijevaju', 'servisa dospijeva')} u sljedećih 30 dana. Zakažite ih.</span>
+          <span className="flex-1">{(plans as { count: number }).count} {plural((plans as { count: number }).count, 'rok dospijeva', 'roka dospijevaju', 'rokova dospijeva')} u sljedećih 30 dana. Zakažite.</span>
           <span aria-hidden>→</span>
         </Link>
       ) : null}

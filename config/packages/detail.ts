@@ -77,6 +77,7 @@ export const detail: PackageConfig = {
   defaultAssetType: 'car',
   phaseLabels: { diagnosis: 'Pregled stanja', in_progress: 'U obradi', quality_check: 'Završna kontrola' },
   skipPhases: ['awaiting_parts'],
+  opening: { intake: 'Sljedeće: fotografije prije i debljina laka.', tab: 'modul' },
   symptoms: ['Vanjsko pranje', 'Dubinsko čišćenje unutra', 'Poliranje laka', 'Keramička zaštita', 'Poliranje farova', 'Čišćenje kože', 'Neugodan miris', 'Priprema za prodaju', 'Pranje motora'],
   photoTags: [{ code: 'before', label: 'Prije' }, { code: 'after', label: 'Poslije' }, ...COMMON_PHOTO_TAGS],
   diagram: 'car',

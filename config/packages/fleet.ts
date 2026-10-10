@@ -35,6 +35,7 @@ export const fleet: PackageConfig = {
   assetTypes: ['truck', 'tractor_unit', 'trailer', 'semi_trailer', 'bus', 'van'],
   defaultAssetType: 'truck',
   phaseLabels: { in_progress: 'Rad (radionica / teren)' },
+  opening: { intake: 'Sljedeće: rokovi vozila i radovi.', tab: 'modul' },
   symptoms: ['Planski servis (PM)', 'Vozilo stoji', 'Kočnice / zrak', 'Elektrika', 'Tahograf', 'Tehnički pregled', 'AdBlue', 'Terenska intervencija'],
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'field', label: 'Teren' }],
   diagram: 'truck',

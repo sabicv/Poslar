@@ -25,10 +25,20 @@ export const locksmith: PackageConfig = {
   defaultAssetType: 'door_lock',
   phaseLabels: { intake: 'Novi poziv', diagnosis: 'Na putu', in_progress: 'Na terenu', ready: 'Odrađeno', collected: 'Zatvoreno' },
   skipPhases: ['awaiting_parts', 'quality_check'],
+  opening: { intake: 'Sljedeće: otvaranje i dokaz prava ulaska.', tab: 'modul' },
   symptoms: ['Zaključan sam vani', 'Slomljen ključ u bravi', 'Zamjena cilindra', 'Sigurnosna brava', 'Popravak brave', 'Otvaranje sefa', 'Izrada ključa', 'Brava zapinje'],
   photoTags: [{ code: 'before', label: 'Prije' }, { code: 'after', label: 'Poslije' }, { code: 'id_check', label: 'Dokaz prava ulaska' }, ...COMMON_PHOTO_TAGS],
   diagram: 'car',
   conditionZones: LOCKSMITH_ZONES,
+  marks: [
+    { code: 'N', label: 'Ne radi' },
+    { code: 'S', label: 'Slomljeno' },
+    { code: 'Z', label: 'Zaglavljeno' },
+    { code: 'T', label: 'Istrošeno' },
+    { code: 'O', label: 'Oštećeno' },
+    { code: 'D', label: 'Nedostaje' },
+  ],
+  level: 'none',
   equipment: ['Ključevi predani', 'Stari cilindar', 'Kartice / transponderi', 'Dokaz prava ulaska'],
   inspections: [
     checklist('locksmith.opening', 'Zapisnik otvaranja', 'checklist', 'Prije i poslije otvaranja', [

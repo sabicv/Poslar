@@ -1,7 +1,7 @@
 import 'server-only';
 import { getPlan, monthlyPrice } from '@/config/plans';
 import { internationalDigits, whatsappLink } from '@/lib/contact';
-import { companyEnv } from '@/lib/legal';
+import { companyEnv, supportEmail } from '@/lib/legal';
 import { addDays, todayInZagreb } from '@/lib/time';
 import type { Tenant } from '@/types/db';
 
@@ -27,7 +27,7 @@ export function payee(): Payee | null {
 }
 
 export function support(): { phone: string | null; email: string | null } {
-  return { phone: process.env.SUPPORT_PHONE?.trim() || null, email: process.env.SUPPORT_EMAIL?.trim() || null };
+  return { phone: process.env.SUPPORT_PHONE?.trim() || null, email: supportEmail() };
 }
 
 // WhatsApp to Poslar support with the message ready; null while no number

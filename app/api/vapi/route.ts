@@ -4,6 +4,7 @@ import { publicAppUrl } from '@/lib/qr';
 import { sendMail } from '@/lib/mail';
 import { agentVariables, book, callerContext, offerSlots, openJobsText, ownerEmail, tenantForNumber } from '@/lib/phone-agent';
 import { logError } from '@/lib/errors';
+import { vapiModelOverride } from '@/lib/openrouter';
 import { forwardedFrom } from '@/lib/phone-forward';
 import { phoneUsage } from '@/lib/phone-usage';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -70,6 +71,7 @@ export async function POST(request: Request) {
         assistantOverrides: {
           firstMessage: 'Dobar dan, ovdje Poslar, automatska poruka. Ovaj broj još nije povezan s radionicom. Pokušajte kasnije.',
           variableValues: { radionica: 'radionica', zanat: '', danas: '', radno_vrijeme: '', pozivatelj: '', sto_pitati: '', rezervacije: 'ne', pozdrav: '' },
+          ...vapiModelOverride(),
         },
       });
     }
@@ -84,10 +86,11 @@ export async function POST(request: Request) {
           firstMessage: `Dobar dan, ${at.tenant.name}. Majstor se trenutno ne može javiti. Nazvat će Vas čim stigne. Doviđenja.`,
           variableValues: { ...variables, rezervacije: 'ne' },
           maxDurationSeconds: 20,
+          ...vapiModelOverride(),
         },
       });
     }
-    return Response.json({ assistantId, assistantOverrides: { firstMessage: variables.pozdrav, variableValues: variables, maxDurationSeconds: PHONE_CALL_MAX_SECONDS } });
+    return Response.json({ assistantId, assistantOverrides: { firstMessage: variables.pozdrav, variableValues: variables, maxDurationSeconds: PHONE_CALL_MAX_SECONDS, ...vapiModelOverride() } });
   }
 
   if (type === 'tool-calls') {

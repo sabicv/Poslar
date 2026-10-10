@@ -96,6 +96,22 @@ export async function resendInvoice(jobId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
+// After a storno the number stays used. The same job becomes a draft
+// again, so the next issue takes the following number. Lines stay.
+export async function reopenVoidedInvoice(jobId: string): Promise<ActionResult<{ number: number; year: number }>> {
+  const ctx = await requireWorkshop();
+  if (!ctx.isOwner) return fail('Račun uređuje voditelj servisa.');
+  const job = await invoiceJob(ctx, jobId);
+  if (job?.is_demo && (ctx.tenant.settings as { demo?: unknown } | null)?.demo !== true) return fail('Ovo je primjer naloga.');
+  if (job?.invoice_status !== 'voided') return fail('Novi broj ide samo nakon storna.');
+  const { data, error } = await ctx.supabase.rpc('reopen_voided_invoice', { p_job_id: jobId });
+  if (error) return fail(error.message?.includes('invoice_not_voided') ? 'Novi broj ide samo nakon storna.' : error);
+  const row = (data as { o_number: number; o_year: number }[] | null)?.[0];
+  refresh(jobId);
+  revalidatePath(`/app/jobs/${jobId}`);
+  return { ok: true, data: { number: row?.o_number ?? 0, year: row?.o_year ?? 0 } };
+}
+
 // Storno: the number stays used so the yearly sequence has no gap.
 export async function voidInvoice(jobId: string): Promise<ActionResult> {
   const ctx = await requireWorkshop();

@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { HelpVideo } from '@/components/help/HelpVideo';
+import { JobDossier } from '@/components/job/JobDossier';
 import { InvoiceDocument, invoiceNumberLabel } from '@/components/invoice/InvoiceDocument';
 import { BackLink } from '@/components/ui';
+import { loadDossier } from '@/lib/dossier';
 import { loadInvoice } from '@/lib/invoice';
+import { publicAppUrl } from '@/lib/qr';
 import { requireOwner } from '@/lib/session';
 import { InvoiceActions } from './InvoiceActions';
 
@@ -16,10 +19,10 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const ctx = await requireOwner();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const invoice = await loadInvoice(ctx.supabase, { id });
+  const [invoice, dossier] = await Promise.all([loadInvoice(ctx.supabase, { id }), loadDossier(ctx.supabase, id)]);
   if (!invoice) notFound();
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+  const appUrl = publicAppUrl();
   const title = invoice.number ? `Račun br. ${invoiceNumberLabel(invoice)}` : 'Račun';
   const missingPrices = invoice.lines.some((l) => !l.unit_price);
 
@@ -49,8 +52,19 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
         {!invoice.billing.iban || !invoice.workshop.oib ? (
           <p className="text-xs text-muted">OIB i IBAN obrta upisuju se u Postavke → Radionica; tada se sami pojave na računu.</p>
         ) : null}
+        <p className="text-xs text-muted">
+          Ispis uključuje zapisnik naloga na sljedećoj stranici.{' '}
+          <a href={`/app/jobs/${id}/zapisnik`} className="text-accent">
+            Otvori zapisnik
+          </a>
+        </p>
       </div>
       <InvoiceDocument data={invoice} />
+      {dossier ? (
+        <div className="print:break-before-page" style={{ breakBefore: 'page' }}>
+          <JobDossier data={dossier} />
+        </div>
+      ) : null}
     </div>
   );
 }

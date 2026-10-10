@@ -25,10 +25,14 @@ export function OverviewEditor({
   field,
   meter,
   extras,
+  complaint = 'fault',
 }: {
   field: boolean;
   meter: boolean;
   extras: boolean;
+  // fault: a workshop writes what is wrong. note: a visit. none: the job
+  // type was already chosen, so the overview does not ask again.
+  complaint?: 'fault' | 'note' | 'none';
   job: {
     id: string;
     complaint: string;
@@ -70,9 +74,11 @@ export function OverviewEditor({
 
   return (
     <div className="space-y-4">
-      <Card className="p-4">
-        <AutoSaveTextarea label="Opis kvara" initial={job.complaint} disabled={locked} onSave={(v) => save({ complaint: v || null })} />
-      </Card>
+      {complaint === 'none' ? null : (
+        <Card className="p-4">
+          <AutoSaveTextarea label={complaint === 'note' ? 'Što treba napraviti' : 'Opis kvara'} initial={job.complaint} disabled={locked} onSave={(v) => save({ complaint: v || null })} />
+        </Card>
+      )}
       <Card className="p-4">
         <AutoSaveTextarea label="Obavljeni radovi (vidi stranka)" initial={job.work_summary} rows={4} disabled={locked} placeholder="Što je napravljeno i preporuke" onSave={(v) => save({ work_summary: v || null })} />
       </Card>

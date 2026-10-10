@@ -54,6 +54,7 @@ export function LinesEditor({
   clientPhone,
   vatRegistered,
   invoice = true,
+  quotes = true,
   hourlyRate = null,
   templateName = '',
 }: {
@@ -68,6 +69,8 @@ export function LinesEditor({
   clientPhone: string | null;
   vatRegistered: boolean;
   invoice?: boolean;
+  // Known-price trades (čišćenje, gume, vuča) do not send a quote.
+  quotes?: boolean;
   // The owner's hourly rate (Cjenik): the starting price of a new line of work.
   hourlyRate?: number | null;
   templateName?: string;
@@ -81,7 +84,7 @@ export function LinesEditor({
 
   const groups: { title: string; approval: LineApproval[] }[] = [
     { title: 'Radovi i dijelovi', approval: ['approved'] },
-    { title: 'Predloženo stranci', approval: ['proposed'] },
+    { title: 'Na ponudi', approval: ['proposed'] },
     { title: 'Odbijeno ili odgođeno', approval: ['declined', 'deferred'] },
   ];
 
@@ -96,6 +99,7 @@ export function LinesEditor({
 
   function sendApproval() {
     run(() => createApproval(jobId), {
+      success: 'Ponuda je poslana',
       onDone: (data) => {
         if (data?.token) setLink(`${origin}/approve/${data.token}`);
       },
@@ -229,27 +233,30 @@ export function LinesEditor({
         <p className="text-sm text-muted">Nalog je zaključan. Stavke se više ne mogu mijenjati.</p>
       )}
 
-      {isOwner ? (
+      {isOwner && invoice && quotes ? (
         <Card className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-medium">Odobrenje stranke putem poveznice</p>
+              <p className="text-sm font-medium">Ponuda</p>
               <p className="text-xs text-muted">
                 {approval
                   ? approval.status === 'decided'
                     ? `Odlučeno ${formatDateTime(approval.decided_at)} · ${approval.signer_name ?? ''}`
                     : approval.status === 'viewed'
-                      ? `Stranka je otvorila ${formatDateTime(approval.viewed_at)}`
+                      ? `Mušterija je otvorila ${formatDateTime(approval.viewed_at)}`
                       : approval.status === 'expired'
-                        ? 'Prethodna poveznica je istekla'
-                        : `Poslano ${formatDateTime(approval.sent_at)}`
-                  : 'Stranka vidi predložene stavke s cijenama i odobrava ih jednim dodirom.'}
+                        ? 'Prethodna ponuda je istekla. Nova izmjena dobiva novi broj.'
+                        : `${approval.quote_number && approval.quote_year ? `Ponuda ${approval.quote_number}/${approval.quote_year} · ` : ''}Poslano ${formatDateTime(approval.sent_at)}`
+                  : 'Stavke označene kao prijedlog idu na ponudu. Nakon slanja ta je verzija zaključana.'}
               </p>
             </div>
             <Button variant="secondary" disabled={pending || proposedCount === 0 || locked} onClick={sendApproval}>
-              <Send className="size-4" /> {proposedCount ? `Pošalji (${proposedCount})` : 'Nema prijedloga'}
+              <Send className="size-4" /> {proposedCount ? `Pošalji ponudu (${proposedCount})` : 'Nema prijedloga'}
             </Button>
           </div>
+          <Link href={`/app/jobs/${jobId}/ponuda`} className="mt-3 inline-flex text-sm text-accent">
+            Pregled ponude
+          </Link>
           {link ? (
             <div className="mt-3 space-y-2">
               <div className="flex items-center gap-2 rounded-xl border border-line bg-bg px-3 py-2 text-xs">
@@ -262,7 +269,7 @@ export function LinesEditor({
                 </Button>
                 <a
                   className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface2 px-3 text-sm"
-                  href={`https://wa.me/${(clientPhone ?? '').replace(/[^\d]/g, '').replace(/^0/, '385')}?text=${encodeURIComponent(`Poštovani, molimo pregledajte i odobrite predložene radove: ${link}`)}`}
+                  href={`https://wa.me/${(clientPhone ?? '').replace(/[^\d]/g, '').replace(/^0/, '385')}?text=${encodeURIComponent(`Poštovani, šaljemo Vam ponudu: ${link}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

@@ -67,6 +67,8 @@ export const tow: PackageConfig = {
     collected: 'Zatvoreno',
   },
   skipPhases: ['quality_check'],
+  quote: 'never',
+  opening: { intake: 'Sljedeće: krenite na intervenciju.', tab: 'modul' },
   symptoms: ['Ne pali', 'Prometna nezgoda', 'Pukla guma', 'Prazan akumulator', 'Nestalo goriva', 'Ključevi zaključani u vozilu', 'Izvlačenje iz jarka', 'Prijevoz vozila', 'Premještanje vozila (pauk)'],
   photoTags: [
     { code: 'pickup', label: 'Na mjestu preuzimanja' },

@@ -1,5 +1,7 @@
+import { after } from 'next/server';
 import { logError } from '@/lib/errors';
 import { randomId } from '@/lib/ids';
+import { openRouterChat, whatsappModel } from '@/lib/openrouter';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { graphBase, graphHeaders, validSignature } from '@/lib/whatsapp';
 
@@ -75,6 +77,29 @@ async function incoming(admin: Admin, m: WaMessage) {
     message = 'Mušterija poslala poruku na WhatsApp (glasovna ili druga vrsta, ovdje se ne prikazuje).';
   }
   await admin.from('job_events').insert({ tenant_id: tenantId, job_id: jobId, event_type: 'whatsapp', message: message.slice(0, 2000) });
+  if (m.type === 'text' && body?.trim()) {
+    const customerText = body.trim();
+    after(async () => {
+      try {
+        const { data: tenant } = await admin.from('tenants').select('name').eq('id', tenantId).maybeSingle();
+        const draft = await openRouterChat({
+          model: whatsappModel(),
+          maxTokens: 220,
+          messages: [
+            {
+              role: 'system',
+              content: `Ti pomažeš radionici ${tenant?.name ?? 'Poslar'}. Mušterija je napisala na WhatsApp. Napiši kratak prijedlog odgovora na hrvatskom, s "Vi", najviše dvije rečenice. Ne izmišljaj cijene, rokove ni dijagnozu. Ako treba majstor, reci da će se javiti. Samo tekst odgovora.`,
+            },
+            { role: 'user', content: customerText.slice(0, 2000) },
+          ],
+        });
+        if (!draft) return;
+        await admin.from('job_events').insert({ tenant_id: tenantId, job_id: jobId, event_type: 'whatsapp', message: `Prijedlog odgovora na WhatsApp (nije poslano): ${draft}`.slice(0, 2000) });
+      } catch {
+        // A missing draft never blocks the customer's message.
+      }
+    });
+  }
 }
 
 export async function POST(request: Request) {

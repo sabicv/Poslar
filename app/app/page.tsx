@@ -26,8 +26,17 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   const ctx = await requireWorkshop();
   const sp = await searchParams;
   const { q = '', view, d, t } = sp;
+  // Field work: the day schedule is the start page of a field package,
+  // and one tap away for a workshop that also goes out.
+  const field = hasFieldWork(ctx.pkg, ctx.tenant.enabled_modules);
+  // Every trade has the day schedule (a workshop sees its booked cars there).
+  const showSchedule = view === 'dan' || (field && view !== 'faze' && !q && !sp.f && !sp.hitno && !sp.moji && ctx.pkg.sector === 'field');
   // The owner sees who is waiting for a reminder (tyres, service, deadlines).
-  const waiting = ctx.isOwner ? (await loadReminders(ctx)).items.length : 0;
+  // On a field schedule the due plans already have their own line, so the
+  // same plans are not counted a second time as "podsjetnici za poslati".
+  const reminderItems = ctx.isOwner ? (await loadReminders(ctx)).items : [];
+  const plansOnSchedule = showSchedule && ctx.pkg.sector === 'field' && reminderItems.length > 0 && reminderItems.every((item) => item.group === 'plan');
+  const waiting = plansOnSchedule ? 0 : reminderItems.length;
   const first = await loadFirstSteps(ctx);
   const firstSteps = first ? <FirstSteps steps={first.steps} sample={first.sample} video={await helpVideo('start')} /> : null;
   const reminderBanner = waiting ? (
@@ -40,11 +49,6 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
     </Link>
   ) : null;
 
-  // Field work: the day schedule is the start page of a field package,
-  // and one tap away for a workshop that also goes out.
-  const field = hasFieldWork(ctx.pkg, ctx.tenant.enabled_modules);
-  // Every trade has the day schedule (a workshop sees its booked cars there).
-  const showSchedule = view === 'dan' || (field && view !== 'faze' && !q && !sp.f && !sp.hitno && !sp.moji && ctx.pkg.sector === 'field');
   // The title already names the current view; the button offers the other one.
   const viewSwitch = (
     showSchedule ? (
@@ -113,6 +117,8 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   const [{ data }, { data: open }] = await Promise.all([query, ctx.supabase.from('jobs').select('phase, is_urgent, assigned_to').neq('phase', 'collected').limit(1000)]);
   const jobs = (data ?? []) as unknown as BoardJob[];
   const openRows = (open ?? []) as { phase: JobPhase; is_urgent: boolean; assigned_to: string | null }[];
+  // Hitno and Moji narrow the list, so the numbers on the segments follow them.
+  const counted = openRows.filter((r) => (!mineOnly || r.assigned_to === ctx.user.id) && (!urgentOnly || r.is_urgent));
 
   // Money only for the owner: the database returns no totals to workers anyway.
   const totals = new Map<string, number>();
@@ -153,8 +159,8 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
     return `/app?${params.toString()}`;
   };
   const segments: { id: Segment; label: string; count: string | null }[] = [
-    { id: 'svi', label: 'Svi', count: String(openRows.length) },
-    { id: 'radu', label: 'U radu', count: String(openRows.filter((r) => WORKING.includes(r.phase)).length) },
+    { id: 'svi', label: 'Svi', count: String(counted.length) },
+    { id: 'radu', label: 'U radu', count: String(counted.filter((r) => WORKING.includes(r.phase)).length) },
     ...(billing && ctx.isOwner ? [{ id: 'naplata' as const, label: 'Za naplatu', count: unpaidCount ? formatEuro(unpaidSum) : '0' }] : []),
     { id: 'arhiva', label: 'Arhiva', count: null },
   ];

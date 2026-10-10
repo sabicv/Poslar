@@ -101,6 +101,7 @@ export const deal: PackageConfig = {
     ready: 'Na prodaju',
     collected: 'Prodano',
   },
+  opening: { intake: 'Sljedeće: pregled i trošak pripreme.', diagnosis: 'Sljedeće: priprema za prodaju.', tab: 'modul' },
   symptoms: ['Otkup od privatne osobe', 'Staro za novo', 'Uvoz', 'Servis prije prodaje', 'Poliranje i čišćenje', 'Popravak limarije', 'Priprema za tehnički', 'Slikanje za oglas'],
   photoTags: [
     { code: 'ad', label: 'Za oglas' },

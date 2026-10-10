@@ -44,6 +44,8 @@ export const wheel: PackageConfig = {
   assetTypes: ['car', 'van', 'truck', 'motorcycle', 'bus'],
   defaultAssetType: 'car',
   phaseLabels: { in_progress: 'Montaža / rad' },
+  quote: 'never',
+  opening: { intake: 'Sljedeće: montaža ili hotel guma.', tab: 'modul' },
   symptoms: ['Sezonska zamjena', 'Balansiranje', 'Krpanje gume', 'Geometrija', 'Nove gume', 'Vibracije u volanu', 'Vuče u stranu'],
   photoTags: [
     ...COMMON_PHOTO_TAGS,
