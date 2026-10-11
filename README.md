@@ -140,3 +140,14 @@ Isto vrijedi za `gear`, `body`, `wheel`, `fleet`, `machine`, `moto`, `marine`, `
   - Ista uputa za nepromijenjen nalog dolazi iz povijesti, odmah i bez novog troška.
   - Dnevni limit po radionici zadaje `AI_DAILY_LIMIT`, a potrošnja se vidi u `/admin`.
   - Za rad treba `ANTHROPIC_API_KEY`. Bez ključa gumb objašnjava da Poslar još ne odgovara na pitanja.
+- **Čitanje slike** (prometna, natpisna pločica, bok gume, stari papir). Jedna slika ide modelu i troši jedno slikanje. Slika se ne sprema, u formular se vrate samo polja. Zato kamera stoji samo uz dokument koji odjednom puni više polja koja se lako krivo prepišu. Sitno polje se tipka.
+  - **Novi nalog, vozilo u radionici:** „Slikaj prometnu dozvolu”. Jednom, dok vozilo nije u bazi. Ako registracija već postoji, otvori se taj vlasnik. Inače se upišu vlasnik, registracija, marka, model, godina i VIN. Ista kamera je na kartici vozila, za prvi upis, ne za sitni ispravak.
+  - **Novi nalog, uređaj na terenu koji ima marku** (klima, voda, struja, kućanski aparati, bravar, strojarnica bazena): „Slikaj natpisnu pločicu”. Jednom. Marka, model i godina. Ista kamera je na kartici uređaja.
+  - **Unutar naloga, jednom po uređaju ili setu**, jer tih podataka na prijemu nema:
+    - klima: radna tvar, punjenje, snage i serijski broj vanjske jedinice;
+    - voda: zapremina, snaga i radni tlak;
+    - vulkanizer: bok gume (dimenzija, sezona, marka) i posebno DOT na setu.
+  - **Uvoz starih naloga i računa** (Mušterije → Uvoz → papir): samo vlasnik, jedna slika jedan dokument.
+  - **QR na ulazu:** samo prometna, i samo dok je čitanje uključeno. Javni ulaz je posebno ograničen: 8 slikanja na sat i 20 na dan po pošiljatelju, 120 na dan po radionici.
+  - **Bez kamere:** apartman i bazen (upiše se oznaka), telefon, adresa, kilometraža, šifra greške, cijena, stavka, bilješka i pojedino mjerenje. Fotografije naloga (šteta, prije i poslije) ostaju slike i ne šalju se modelu. Kopilot ne čita slike.
+  - Mjesečna kvota je zajednička za sve radionice vlasnika: Basic 150, Standard 300, Premium 600. Otvoreni demo nema rok. Po prijavi je ukupno 5 slikanja i odgovora Poslara, i taj broj ostaje kad se promijeni zanat. Poziv se broji čim model odgovori, i kad na slici nema čitljivog teksta. Broj je u Postavkama. Ključ je `OPENROUTER_API_KEY`, model `AI_SCAN_MODEL` (inače `anthropic/claude-sonnet-4`).

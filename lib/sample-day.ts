@@ -1,6 +1,5 @@
 import 'server-only';
 import type { PackageId } from '@/config/tenant.config';
-import { GUEST_KEEP_HOURS } from '@/lib/guest';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { deleteWorkshop } from '@/lib/workshop-delete';
 
@@ -55,18 +54,13 @@ export async function endSampleDay(admin: Admin, tenantId: string): Promise<stri
   return patchError?.message ?? null;
 }
 
-// Open demo workshops (lib/guest.ts) past their 24 hours and the review
-// time after, a few at a time so no request waits long. One whose examples
-// never arrived has no clock and goes after a day and a half.
+// Open demos have no clock (lib/guest.ts). A workshop nobody has opened for
+// half a year goes, a few at a time, so abandoned copies do not pile up.
 export async function deleteExpiredGuests(admin: Admin, limit = 5): Promise<number> {
-  const ended = new Date(Date.now() - GUEST_KEEP_HOURS * 3600000).toISOString();
-  const stray = new Date(Date.now() - 36 * 3600000).toISOString();
-  const [{ data: a }, { data: b }] = await Promise.all([
-    admin.from('tenants').select('id').eq('settings->>guest', 'true').lt('sample_until', ended).limit(limit),
-    admin.from('tenants').select('id').eq('settings->>guest', 'true').is('sample_until', null).lt('created_at', stray).limit(limit),
-  ]);
+  const old = new Date(Date.now() - 180 * 86400000).toISOString();
+  const { data } = await admin.from('tenants').select('id').eq('settings->>guest', 'true').lt('created_at', old).limit(limit);
   let deleted = 0;
-  for (const t of [...(a ?? []), ...(b ?? [])]) if (!(await deleteWorkshop(admin, t.id as string))) deleted++;
+  for (const t of data ?? []) if (!(await deleteWorkshop(admin, t.id as string))) deleted++;
   return deleted;
 }
 

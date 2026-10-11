@@ -7,10 +7,12 @@ import { accentStyle, getPackage } from '@/config/tenant.config';
 import { subscription } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
 import { daysUntil, formatDate } from '@/lib/format';
-import { isGuestTenant } from '@/lib/guest';
+import { guestAiUsed } from '@/lib/ai-usage';
+import { GUEST_AI_TOTAL, isGuestTenant } from '@/lib/guest';
 import { isPlayApp } from '@/lib/play';
 import { sampleHoursLeft } from '@/lib/sample-day';
 import { requireWorkshop } from '@/lib/session';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { cn } from '@/lib/utils';
 import { myWorkshops } from '@/lib/workshops';
 
@@ -28,9 +30,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     myWorkshops(ctx),
   ]);
 
+  const guest = isGuestTenant(ctx.tenant);
+  // Older open demos still carry the 24-hour clock. It no longer applies.
+  if (guest && (ctx.tenant.sample_until || ctx.tenant.trial_ends_at)) {
+    await createAdminClient().from('tenants').update({ sample_until: null, trial_ends_at: null }).eq('id', ctx.tenant.id);
+  }
+  const used = guest ? await guestAiUsed(ctx.user.id) : null;
   // During the 24-hour trial on examples the banner counts hours instead.
-  const sampleHours = sampleHoursLeft(ctx.tenant.sample_until);
-  const trialDaysLeft = ctx.tenant.status === 'trial' && sampleHours === null ? daysUntil(ctx.tenant.trial_ends_at) : null;
+  const sampleHours = guest ? null : sampleHoursLeft(ctx.tenant.sample_until);
+  const trialDaysLeft = !guest && ctx.tenant.status === 'trial' && sampleHours === null ? daysUntil(ctx.tenant.trial_ends_at) : null;
   // The owner hears a week ahead that the subscription runs out, and again
   // in the week before the workshop locks.
   const sub = subscription(ctx.tenant);
@@ -38,10 +46,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const play = await isPlayApp();
   const noticeClass = cn('mb-4 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm', sub.status === 'grace' ? 'border-crit/40 bg-crit/10' : 'border-warn/40 bg-warn/10');
   const noticeIcon = <Wallet className={cn('size-5 shrink-0', sub.status === 'grace' ? 'text-crit' : 'text-warn')} />;
-  const notice =
-    sampleHours !== null && isGuestTenant(ctx.tenant) ? (
-      <GuestBanner hours={sampleHours} pkg={ctx.pkg.id} />
-    ) : sampleHours !== null ? (
+  const notice = guest ? (
+    <GuestBanner pkg={ctx.pkg.id} left={Math.max(0, GUEST_AI_TOTAL - (used ?? 0))} />
+  ) : sampleHours !== null ? (
       <SampleDayBanner hours={sampleHours} owner={ctx.isOwner} />
     ) : ctx.isOwner && (sub.status === 'due_soon' || sub.status === 'grace') ? (
       play ? (

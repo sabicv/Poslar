@@ -24,11 +24,11 @@ async function removeFolder(admin: Admin, bucket: string, prefix: string, depth 
 // a main workshop takes its branches along), then its people's logins.
 // A tower account keeps its login, and so does anyone who still belongs
 // to another workshop. The caller decides whether this workshop may go.
-export async function deleteWorkshop(admin: Admin, tenantId: string): Promise<string | null> {
+export async function deleteWorkshop(admin: Admin, tenantId: string, keepUserIds: readonly string[] = []): Promise<string | null> {
   const { data: branches } = await admin.from('tenants').select('id').eq('main_tenant_id', tenantId);
   const going = [tenantId, ...(branches ?? []).map((b) => b.id as string)];
   const [{ data: people }, { data: tower }] = await Promise.all([admin.from('profiles').select('id').in('tenant_id', going), admin.from('platform_admins').select('user_id')]);
-  const keep = new Set((tower ?? []).map((r) => r.user_id as string));
+  const keep = new Set([...(tower ?? []).map((r) => r.user_id as string), ...keepUserIds]);
   for (const id of going) for (const bucket of ['job-files', 'branding']) await removeFolder(admin, bucket, id);
   const { error } = await admin.from('tenants').delete().eq('id', tenantId);
   if (error) return error.message;

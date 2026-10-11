@@ -609,8 +609,8 @@ export function NewJobForm({
         {more ? 'Manje podataka' : isField ? 'Više podataka (vrsta, serijski, trajanje, tehničar…)' : 'Više podataka (OIB, VIN, km, rok, predložak, hitno…)'}
       </button>
 
-      <div className="sticky bottom-20 z-10 lg:bottom-4">
-        <Button variant="primary" size="lg" className="w-full shadow-2xl shadow-black/50" disabled={pending} onClick={submit}>
+      <div>
+        <Button variant="primary" size="lg" className="w-full" disabled={pending} onClick={submit}>
           {pending ? 'Spremam…' : isField ? (date ? 'Zakaži posjet' : 'Spremi nalog') : booking && date ? 'Zakaži termin' : 'Otvori nalog'}
         </Button>
       </div>

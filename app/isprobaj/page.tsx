@@ -32,7 +32,7 @@ export default async function TryDemoPage({ searchParams }: { searchParams: Prom
         <BrandLogo />
       </Link>
       <h1 className="text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">Isprobaj demo verziju</h1>
-      <p className="mt-2 text-muted">Radionica puna primjera iz tvoje struke. Bez prijave i bez lozinke. Demo traje 24 sata, onda se briše.</p>
+      <p className="mt-2 text-muted">Radionica puna primjera iz tvoje struke. Bez prijave i bez lozinke. Nema vremenskog ograničenja. Slikanje i odgovori Poslara: 5 ukupno.</p>
 
       {greska ? (
         <p className="mt-5 rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-sm text-crit">

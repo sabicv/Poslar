@@ -8,6 +8,8 @@ import { publicAppUrl } from '@/lib/qr';
 // WhatsApp uses Claude Sonnet 4. The phone uses Claude Haiku 4.5.
 export const WHATSAPP_MODEL = 'anthropic/claude-sonnet-4';
 export const VAPI_MODEL = 'anthropic/claude-haiku-4.5';
+// Registration cards and nameplates. Same Sonnet as WhatsApp, through the same key.
+export const SCAN_MODEL = 'anthropic/claude-sonnet-4';
 
 export function openRouterKey(): string | null {
   return process.env.OPENROUTER_API_KEY?.trim() || null;
@@ -19,6 +21,17 @@ export function whatsappModel(): string {
 
 export function vapiModel(): string {
   return process.env.AI_VAPI_MODEL?.trim() || VAPI_MODEL;
+}
+
+export function scanModel(): string {
+  const raw = process.env.AI_SCAN_MODEL?.trim() || '';
+  // An old Anthropic id (claude-sonnet-5) is not an OpenRouter model.
+  if (!raw.includes('/')) return SCAN_MODEL;
+  return raw;
+}
+
+export function scanReadingOn(): boolean {
+  return Boolean(openRouterKey() || process.env.ANTHROPIC_API_KEY?.trim());
 }
 
 function llmGate(secret: string): string {
@@ -48,6 +61,47 @@ export function vapiModelOverride(): { model: { provider: 'custom-llm'; url: str
       maxTokens: 300,
     },
   };
+}
+
+export type OpenRouterReply = { text: string; model: string; input: number; output: number } | { error: string; status: number };
+
+// A photo plus a prompt. OpenRouter takes the same image shape as OpenAI.
+export async function openRouterVision(options: { model: string; prompt: string; mediaType: string; data: string; maxTokens: number }): Promise<OpenRouterReply> {
+  const key = openRouterKey();
+  if (!key) return { error: 'Čitanje slika još nije uključeno.', status: 503 };
+  let res: Response;
+  try {
+    res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://poslar.eu',
+        'X-Title': 'Poslar',
+      },
+      body: JSON.stringify({
+        model: options.model,
+        max_tokens: options.maxTokens,
+        temperature: 0,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'image_url', image_url: { url: `data:${options.mediaType};base64,${options.data}` } },
+              { type: 'text', text: options.prompt },
+            ],
+          },
+        ],
+      }),
+      signal: AbortSignal.timeout(50000),
+    });
+  } catch {
+    return { error: 'Čitanje slike nije uspjelo. Pokušajte ponovno.', status: 502 };
+  }
+  const data = (await res.json().catch(() => ({}))) as { choices?: { message?: { content?: string } }[]; usage?: { prompt_tokens?: number; completion_tokens?: number }; model?: string; error?: { message?: string } };
+  if (!res.ok) return { error: data.error?.message || 'Čitanje slike nije uspjelo.', status: res.status };
+  const text = data.choices?.[0]?.message?.content?.trim() || '';
+  return { text, model: data.model || options.model, input: data.usage?.prompt_tokens ?? 0, output: data.usage?.completion_tokens ?? 0 };
 }
 
 export async function openRouterChat(options: { model: string; messages: { role: 'system' | 'user' | 'assistant'; content: string }[]; maxTokens: number }): Promise<string | null> {

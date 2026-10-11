@@ -1,5 +1,5 @@
 import { aiQuotaBlock, recordAiUsage } from '@/lib/ai-usage';
-import { parseScanRequest, readPhoto, scanJson } from '@/lib/scan';
+import { parseScanRequest, readPhoto, scanJson, scanReadingOn } from '@/lib/scan';
 import { getWorkshop } from '@/lib/session';
 
 // POST { kind: 'prometna' | 'plocica' | 'guma', image: 'data:image/jpeg;base64,…' }
@@ -11,13 +11,13 @@ export const maxDuration = 60;
 
 // Whether the camera buttons can read yet (true once the AI key is set).
 export async function GET() {
-  return scanJson({ status: 200, body: { enabled: Boolean(process.env.ANTHROPIC_API_KEY) } });
+  return scanJson({ status: 200, body: { enabled: scanReadingOn() } });
 }
 
 export async function POST(request: Request) {
   const state = await getWorkshop();
   if (state.kind !== 'active') return scanJson({ status: 401, body: { error: 'Prijavite se ponovno.' } });
-  if (!process.env.ANTHROPIC_API_KEY) return scanJson({ status: 503, body: { error: 'Čitanje slika još nije uključeno.' } });
+  if (!scanReadingOn()) return scanJson({ status: 503, body: { error: 'Čitanje slika još nije uključeno.' } });
   let body: { kind?: string; image?: string };
   try {
     body = await request.json();

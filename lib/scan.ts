@@ -1,11 +1,15 @@
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
+import { openRouterKey, openRouterVision, scanModel, scanReadingOn } from '@/lib/openrouter';
 
 // Reading a photo (registration card, nameplate, tyre) into form fields.
 // Used by the app (/api/scan) and the door QR page (/api/q/scan). Nothing
 // is stored: the photo goes to the model and the answer back to the form.
+// OpenRouter first (the key Poslar already has). Anthropic only if that key is absent.
 
-const MODEL = process.env.AI_SCAN_MODEL || 'claude-sonnet-5';
+const ANTHROPIC_MODEL = process.env.AI_SCAN_MODEL?.includes('/') ? 'claude-sonnet-5' : process.env.AI_SCAN_MODEL || 'claude-sonnet-5';
+
+export { scanReadingOn };
 
 export const SCAN_PROMPTS: Record<string, string> = {
   prometna: `Na slici je hrvatska prometna dozvola (EU potvrda o registraciji) ili slična isprava vozila.
@@ -65,42 +69,63 @@ export function parseScanRequest(body: { kind?: string; image?: string }): { pro
   return { prompt, mediaType: match[1], data: match[2], maxTokens: MAX_TOKENS[body.kind ?? ''] ?? 800 };
 }
 
+const ASK = '\nOdgovori samo JSON objektom, bez ikakvog drugog teksta. Ne izmišljaj: ono što ne vidiš jasno vrati kao null.';
+
+function outcomeFromText(text: string): ScanOutcome {
+  const found = /\{[\s\S]*\}/.exec(text);
+  if (!found) return { status: 422, body: { error: 'Na slici nije pronađen tekst. Slikajte bliže i oštrije.' } };
+  let data: Record<string, unknown>;
+  try {
+    data = JSON.parse(found[0]) as Record<string, unknown>;
+  } catch {
+    return { status: 422, body: { error: 'Na slici nije pronađen tekst. Slikajte bliže i oštrije.' } };
+  }
+  const filled = Object.values(data).filter((v) => v !== null && v !== '').length;
+  if (!filled) return { status: 422, body: { error: 'Ništa nije pročitano. Slikajte bliže, ravno i bez odsjaja.' } };
+  return { status: 200, body: { data } };
+}
+
+function outcomeFromFailure(status: number | undefined, message: string): ScanOutcome {
+  if (status === 401) return { status: 503, body: { error: 'Čitanje slika nije ispravno spojeno (API ključ). Javite administratoru.' } };
+  if (status === 402 || /credit balance|billing|insufficient/i.test(message)) return { status: 503, body: { error: 'Na AI računu nema kredita. Javite administratoru.' } };
+  if (status === 429 || status === 529) return { status: 503, body: { error: 'Servis je trenutno zauzet. Pokušajte za minutu.' } };
+  return { status: 502, body: { error: 'Čitanje slike nije uspjelo. Pokušajte ponovno.' } };
+}
+
 // onUsage runs as soon as the model has answered: the photo was read and paid for.
 export async function readPhoto(
   req: { prompt: string; mediaType: string; data: string; maxTokens?: number },
   onUsage: (usage: { model: string; input: number; output: number }) => Promise<void>
 ): Promise<ScanOutcome> {
+  if (openRouterKey()) {
+    const reply = await openRouterVision({ model: scanModel(), prompt: `${req.prompt}${ASK}`, mediaType: req.mediaType, data: req.data, maxTokens: req.maxTokens ?? 800 });
+    if ('error' in reply) return outcomeFromFailure(reply.status, reply.error);
+    await onUsage({ model: reply.model, input: reply.input, output: reply.output });
+    return outcomeFromText(reply.text);
+  }
   if (!process.env.ANTHROPIC_API_KEY) return { status: 503, body: { error: 'Čitanje slika još nije uključeno.' } };
   try {
     const client = new Anthropic();
     const message = await client.messages.create({
-      model: MODEL,
+      model: ANTHROPIC_MODEL,
       max_tokens: req.maxTokens ?? 800,
       messages: [
         {
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: req.mediaType as 'image/jpeg', data: req.data } },
-            { type: 'text', text: `${req.prompt}\nOdgovori samo JSON objektom, bez ikakvog drugog teksta. Ne izmišljaj: ono što ne vidiš jasno vrati kao null.` },
+            { type: 'text', text: `${req.prompt}${ASK}` },
           ],
         },
       ],
     });
     await onUsage({ model: message.model, input: message.usage.input_tokens, output: message.usage.output_tokens });
     const text = message.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
-    const found = /\{[\s\S]*\}/.exec(text);
-    if (!found) return { status: 422, body: { error: 'Na slici nije pronađen tekst. Slikajte bliže i oštrije.' } };
-    const data = JSON.parse(found[0]) as Record<string, unknown>;
-    const filled = Object.values(data).filter((v) => v !== null && v !== '').length;
-    if (!filled) return { status: 422, body: { error: 'Ništa nije pročitano. Slikajte bliže, ravno i bez odsjaja.' } };
-    return { status: 200, body: { data } };
+    return outcomeFromText(text);
   } catch (error) {
     const status = (error as { status?: number }).status;
     const message = String((error as { message?: string }).message ?? '');
-    if (status === 401) return { status: 503, body: { error: 'Čitanje slika nije ispravno spojeno (API ključ). Javite administratoru.' } };
-    if (/credit balance|billing/i.test(message)) return { status: 503, body: { error: 'Na AI računu nema kredita. Javite administratoru.' } };
-    if (status === 429 || status === 529) return { status: 503, body: { error: 'Servis je trenutno zauzet. Pokušajte za minutu.' } };
-    return { status: 502, body: { error: 'Čitanje slike nije uspjelo. Pokušajte ponovno.' } };
+    return outcomeFromFailure(status, message);
   }
 }
 

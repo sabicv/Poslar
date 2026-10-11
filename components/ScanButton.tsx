@@ -73,7 +73,7 @@ export function ScanButton({
     setBusy(true);
     try {
       const image = await toJpeg(file);
-      const res = await fetch('/api/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...extra, kind, image }) });
+      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...extra, kind, image }) });
       const body = (await res.json().catch(() => ({}))) as { data?: Record<string, unknown>; error?: string };
       if (!res.ok || !body.data) throw new Error(body.error ?? 'Čitanje slike nije uspjelo.');
       onResult(body.data);

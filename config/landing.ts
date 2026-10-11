@@ -11,7 +11,7 @@ export function ctaTrial(where: 'radionica' | 'teren' | 'cesta' | 'plac' | 'sve'
   void where;
   return 'Započni 30 dana besplatno';
 }
-// The other way in: a demo workshop full of examples, for 24 hours.
+// The other way in: a demo workshop full of examples, with no time limit.
 export const CTA_DEMO = 'Otvori demo bez prijave';
 
 export const MAIN = {
@@ -124,7 +124,7 @@ export const TRADE_LINES: Record<PackageId, string> = {
 
 export const PRICING = {
   title: 'Košta manje od jednog radnog sata mjesečno.',
-  subtitle: 'Kreni odmah: 30 dana besplatno na svojim poslovima. Ili prvo 24 sata isprobaj demo s izmišljenim podacima.',
+  subtitle: 'Kreni odmah: 30 dana besplatno na svojim poslovima. Ili prvo isprobaj demo s izmišljenim podacima, bez vremenskog ograničenja.',
   yearly: 'Bez ugovorne obveze (otkazivanje bilo kada)',
   // The founder price (config/plans.ts) instead of a contract discount.
   founder: 'Osnivačka cijena',

@@ -155,7 +155,7 @@ export async function POST(request: Request) {
         }
         const final = await stream.finalMessage();
         const input = (final.usage.input_tokens ?? 0) + (final.usage.cache_read_input_tokens ?? 0) + (final.usage.cache_creation_input_tokens ?? 0);
-        await recordAiUsage(ctx, 'copilot', { model: final.model, input, output: final.usage.output_tokens });
+        await recordAiUsage(ctx, 'copilot', { model: final.model, input, output: final.usage.output_tokens }, mode === 'question');
         if (text.trim()) {
           await ctx.supabase.from('copilot_messages').insert({
             tenant_id: ctx.tenant.id,

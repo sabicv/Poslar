@@ -4,16 +4,16 @@ import type { User } from '@supabase/supabase-js';
 // workshop of their own, a copy of the trade's sample, with no e-mail or
 // password. The server makes a throwaway login for it, marked in
 // app_metadata (only the service role writes there) and on the workshop
-// (settings.guest). After the 24 hours the workshop and its logins go.
+// (settings.guest). There is no clock. Switching trade keeps the same
+// login, so the AI taste below is not refreshed.
 
 // Never a real mailbox: nothing is ever sent to these addresses.
 export const GUEST_DOMAIN = 'gost.poslar.invalid';
 
-// AI in the demo: enough to try, not enough to use it for real work.
-export const GUEST_AI_QUOTA = { scan: 5, copilot: 5 };
-
-// After the 24 hours the visitor can still leave a review for a while.
-export const GUEST_KEEP_HOURS = 12;
+// AI in the demo: scans and Poslar's answers share one pool of 5 per login.
+// Enough to try both, not enough to use the demo for real work.
+export const GUEST_AI_TOTAL = 5;
+export const GUEST_AI_QUOTA = { scan: GUEST_AI_TOTAL, copilot: GUEST_AI_TOTAL };
 
 export function isGuestUser(user: Pick<User, 'app_metadata'> | null | undefined): boolean {
   return user?.app_metadata?.guest === true;

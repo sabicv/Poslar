@@ -6,6 +6,7 @@ import type { User } from '@supabase/supabase-js';
 import { getPackage, type PackageConfig, type PackageId } from '@/config/tenant.config';
 import { subscription } from '@/lib/billing';
 import { isDemoUser } from '@/lib/demo';
+import { isGuestTenant } from '@/lib/guest';
 import { createServerSupabaseClient, type ServerSupabaseClient } from '@/lib/supabase/server';
 import type { Profile, StaffRole, Tenant, TenantStatus } from '@/types/db';
 
@@ -58,16 +59,18 @@ export const getWorkshop = cache(async (): Promise<WorkshopState> => {
   if (access.status === 'suspended') {
     return { kind: 'locked', reason: 'suspended', user, name: access.name, pkg, role: access.role };
   }
-  if (access.status === 'trial' && access.trial_ends_at && new Date(access.trial_ends_at) < new Date()) {
-    return { kind: 'locked', reason: 'trial_ended', user, name: access.name, pkg, role: access.role, tenantId: access.tenant_id };
-  }
 
   const [{ data: tenant }, { data: profile }] = await Promise.all([
     supabase.from('tenants').select('*').eq('id', access.tenant_id).single(),
     supabase.from('profiles').select('*').eq('id', user.id).single(),
   ]);
   if (!tenant || !profile) return { kind: 'locked', reason: 'no_workshop', user };
-  if ((tenant as Tenant).sample_until && new Date((tenant as Tenant).sample_until!) <= new Date()) {
+  // The open demo has no clock. A real workshop still ends when the trial or the sample day does.
+  const guest = isGuestTenant(tenant);
+  if (!guest && access.status === 'trial' && access.trial_ends_at && new Date(access.trial_ends_at) < new Date()) {
+    return { kind: 'locked', reason: 'trial_ended', user, name: access.name, pkg, role: access.role, tenantId: access.tenant_id };
+  }
+  if (!guest && (tenant as Tenant).sample_until && new Date((tenant as Tenant).sample_until!) <= new Date()) {
     return { kind: 'locked', reason: 'sample_ended', user, name: access.name, pkg, role: access.role, tenantId: access.tenant_id };
   }
   // Paid until a date that is more than a week gone: locked until the payment arrives.
