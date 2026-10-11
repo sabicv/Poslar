@@ -8,7 +8,7 @@ import { Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select, Textarea, buttonClass } from '@/components/ui';
 import { copyText } from '@/lib/clipboard';
 import { whatsappLink } from '@/lib/contact';
-import { PHONE_PACK, PLANS, TERM_LABELS, type BillingTerm, type PlanId } from '@/config/plans';
+import { DATA_PACK, PLANS, TERM_LABELS, type BillingTerm, type PlanId } from '@/config/plans';
 import { PACKAGES, type PackageId } from '@/config/tenant.config';
 import { adminDeleteWorkshop, adminExtendTrial, adminRecordPayment, adminResetPassword, adminSetPackage, adminSetPhoneAgent, adminSetStatus, adminUpdateSubscription } from '@/lib/actions/admin';
 
@@ -235,7 +235,7 @@ export function WorkshopSheet({ w }: { w: WorkshopSheetData }) {
             <Field label="Pitaj Poslara mjesečno">
               <Input inputMode="numeric" value={sub.aiCopilot} onChange={(e) => setSub((v) => ({ ...v, aiCopilot: digits(e.target.value) }))} />
             </Field>
-            <Field label={`Poslar na telefonu, poziva mjesečno (+${PHONE_PACK.calls} za ${PHONE_PACK.price} €)`} className="col-span-2">
+            <Field label={`Poslar na telefonu, poziva mjesečno (paket podataka +${DATA_PACK.minutes} min, +${DATA_PACK.scans} slikanja, +${DATA_PACK.copilot} pitanja za ${DATA_PACK.price} €)`} className="col-span-2">
               <Input inputMode="numeric" value={sub.aiPhone} onChange={(e) => setSub((v) => ({ ...v, aiPhone: digits(e.target.value) }))} />
             </Field>
             <Field label="Bilješke (samo Toranj)" className="col-span-2">

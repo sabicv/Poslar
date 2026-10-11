@@ -1,5 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
-import { PHONE_CALL_MAX_SECONDS, PHONE_PACK } from '@/config/plans';
+import { DATA_PACK, PHONE_CALL_MAX_SECONDS } from '@/config/plans';
 import { publicAppUrl } from '@/lib/qr';
 import { sendMail } from '@/lib/mail';
 import { agentVariables, book, callerContext, offerSlots, openJobsText, ownerEmail, tenantForNumber } from '@/lib/phone-agent';
@@ -192,12 +192,13 @@ async function warnAboutMinutes(admin: ReturnType<typeof createAdminClient>, ten
   await admin.from('tenants').update({ settings: { ...(tenant.settings ?? {}), phone_warned: `${month}:${level}` } }).eq('id', tenant.id);
   const to = await ownerEmail(admin, tenant.id);
   if (!to) return;
-  const link = `${publicAppUrl()}/app/settings/telefon`;
+  const link = `${publicAppUrl()}/app/settings/pretplata`;
+  const pack = `Paket podataka: ${DATA_PACK.minutes} minuta, ${DATA_PACK.scans} slikanja i ${DATA_PACK.copilot} pitanja Poslaru mjesečno, ${DATA_PACK.price} €. Zatražite u aplikaciji: ${link}`;
   await sendMail(
     to,
     level === 100 ? 'Poslar na telefonu: pozivi za ovaj mjesec su potrošeni' : 'Poslar na telefonu: potrošeno 80 % poziva',
     level === 100
-      ? `Poslar je ovaj mjesec na telefonu preuzeo ${usage.used} od ${usage.quota} poziva. Do kraja mjeseca pozivatelji čuju kratku poruku da ćete ih nazvati.\n\nDodatnih ${PHONE_PACK.calls} poziva mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
-      : `Poslar je ovaj mjesec na telefonu preuzeo ${usage.used} od ${usage.quota} poziva.\n\nDodatnih ${PHONE_PACK.calls} poziva mjesečno: ${PHONE_PACK.price} €. Zatražite u aplikaciji: ${link}`
+      ? `Poslar je ovaj mjesec na telefonu preuzeo ${usage.used} od ${usage.quota} poziva. Do kraja mjeseca pozivatelji čuju kratku poruku da ćete ih nazvati.\n\n${pack}`
+      : `Poslar je ovaj mjesec na telefonu preuzeo ${usage.used} od ${usage.quota} poziva.\n\n${pack}`
   );
 }

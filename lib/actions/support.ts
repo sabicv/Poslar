@@ -3,7 +3,7 @@
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { PHONE_PACK } from '@/config/plans';
+import { DATA_PACK } from '@/config/plans';
 import { fail, type ActionResult } from '@/lib/action-result';
 import { isGuestTenant } from '@/lib/guest';
 import { isPlatformAdmin, requireWorkshop } from '@/lib/session';
@@ -108,11 +108,15 @@ export async function requestDeletion(): Promise<ActionResult<{ id: string }>> {
   return createTicket(text, '/app/settings');
 }
 
-// "Dodatnih 100 poziva": the tower raises the workshop's monthly calls.
-export async function requestPhonePack(): Promise<ActionResult<{ id: string }>> {
+// The data pack: the tower adds the minutes, the photo reads and the
+// questions on top of the plan's own quota.
+export async function requestDataPack(): Promise<ActionResult<{ id: string }>> {
   const ctx = await requireWorkshop();
   if (!ctx.isOwner) return fail('Ovo traži voditelj servisa.');
-  return createTicket(`Želim dodatnih ${PHONE_PACK.calls} poziva za Poslara na telefonu mjesečno (${PHONE_PACK.price} €).`, '/app/settings/telefon');
+  return createTicket(
+    `Želim dodatni paket podataka: ${DATA_PACK.minutes} minuta Poslara na telefonu, ${DATA_PACK.scans} slikanja i ${DATA_PACK.copilot} pitanja Poslaru mjesečno (${DATA_PACK.price} €). U kvotu dodati sva tri broja.`,
+    '/app/settings/pretplata'
+  );
 }
 
 // "Želim ovaj paket": a request the tower answers (plans change there).

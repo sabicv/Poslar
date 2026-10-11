@@ -33,11 +33,18 @@ export const PLANS: Record<PlanId, Plan> = {
 export const FOUNDER_SPOTS = 50;
 export const FOUNDER_MONTHS = 24;
 
-// A phone call costs us about 8 cents (Twilio, Vapi, voice), so a call
-// lasts at most a minute (Vedran, 2026-10-07) and extra calls are an
-// add-on: 100 more for 25 € a month (VAT included).
-export const PHONE_PACK = { calls: 100, price: 25 };
+// A phone call costs us about 8 cents (Twilio, Vapi, voice, Haiku) and
+// lasts at most a minute (Vedran, 2026-10-07).
 export const PHONE_CALL_MAX_SECONDS = 60;
+
+// Extra data, on top of the plan, VAT included. One call is at most one
+// minute, so 100 minutes is 100 calls. What it costs us, in euros:
+//   one minute about 0.08
+//   one photo about 0.015 (a full page about 0.025; Sonnet 4, photo ≤ 1800 px)
+//   one answer about 0.03 (Sonnet 5)
+// A hundred of each is about 12.50. Half the selling price is that cost,
+// so the price is 25 € a month.
+export const DATA_PACK = { minutes: 100, scans: 100, copilot: 100, price: 25 };
 
 // Monthly calls Poslar takes: the plan's, or the tower's override (which
 // includes any add-on packs the workshop pays for).

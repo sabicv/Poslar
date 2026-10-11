@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { PaymentInstructions } from '@/components/billing/PaymentInstructions';
+import { PhonePackRequest } from '@/components/billing/PhonePackRequest';
 import { PlanRequest } from '@/components/billing/PlanRequest';
 import { BackLink, Badge, Card, CardHeader, KeyValue, PageHeader, buttonClass } from '@/components/ui';
-import { AI_LABELS, FOUNDER_MONTHS, FOUNDER_SPOTS, PLANS, TERM_LABELS, aiQuota, getPlan, isFounder } from '@/config/plans';
+import { AI_LABELS, DATA_PACK, FOUNDER_MONTHS, FOUNDER_SPOTS, PHONE_CALL_MAX_SECONDS, PLANS, TERM_LABELS, aiQuota, getPlan, isFounder } from '@/config/plans';
 import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { payee, subscription } from '@/lib/billing';
 import { founderSpotsLeft } from '@/lib/founder';
@@ -168,6 +169,17 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
               ))}
             </ul>
             {openRequests?.length ? <p className="border-t border-line px-4 py-2.5 text-xs text-faint">Imate otvoren zahtjev; odgovor stiže u Postavke → Pomoć.</p> : null}
+          </Card>
+
+          <Card>
+            <CardHeader title="Dodatni paket podataka" subtitle="Kad potrošite ono što je u paketu" />
+            <div className="space-y-3 p-4 text-sm">
+              <p>
+                {DATA_PACK.minutes} minuta Poslara na telefonu, {DATA_PACK.scans} slikanja i {DATA_PACK.copilot} odgovora na Pitaj Poslara. {DATA_PACK.price} € mjesečno, s PDV-om.
+              </p>
+              <p className="text-xs text-muted">Jedan poziv traje najviše {PHONE_CALL_MAX_SECONDS} sekundi, pa je {DATA_PACK.minutes} minuta {DATA_PACK.minutes} poziva. Brojevi se zbrajaju s kvotom paketa i vrijede dok paket ne otkažete.</p>
+              {sub.status !== 'demo' && !isGuestTenant(t) ? <PhonePackRequest label={`Zatraži paket podataka, ${DATA_PACK.price} €`} /> : null}
+            </div>
           </Card>
         </div>
 

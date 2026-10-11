@@ -4,7 +4,7 @@ import { PhoneForwarded } from 'lucide-react';
 import { PhonePackRequest } from '@/components/billing/PhonePackRequest';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { BackLink, Card, CardHeader, EmptyState, PageHeader } from '@/components/ui';
-import { PHONE_CALL_MAX_SECONDS, PHONE_PACK } from '@/config/plans';
+import { DATA_PACK, PHONE_CALL_MAX_SECONDS } from '@/config/plans';
 import { readHours } from '@/lib/calendar';
 import { formatDateTime } from '@/lib/format';
 import { ForwardFromForm } from '@/components/settings/ForwardFromForm';
@@ -97,7 +97,7 @@ export default async function PhoneAgentPage() {
                   ? 'Pozivi za ovaj mjesec su potrošeni. Do kraja mjeseca pozivatelj čuje kratku poruku da ćete ga nazvati.'
                   : `Jedan poziv traje najviše ${PHONE_CALL_MAX_SECONDS} sekundi. Na 80 % i 100 % potrošnje dobivate e-mail.`}
               </p>
-              {!play ? <PhonePackRequest label={`Dodatnih ${PHONE_PACK.calls} poziva mjesečno za ${PHONE_PACK.price} €`} /> : null}
+              {!play ? <PhonePackRequest label={`Paket podataka: ${DATA_PACK.minutes} minuta, ${DATA_PACK.scans} slikanja i ${DATA_PACK.copilot} pitanja za ${DATA_PACK.price} €`} /> : null}
             </div>
           </Card>
           <Card>
