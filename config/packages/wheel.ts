@@ -55,6 +55,16 @@ export const wheel: PackageConfig = {
   ],
   diagram: 'car',
   conditionZones: WHEEL_ZONES,
+  marks: [
+    { code: 'O', label: 'Ogrebotina naplatka' },
+    { code: 'P', label: 'Probušeno' },
+    { code: 'K', label: 'Kila / ispupčenje' },
+    { code: 'L', label: 'Rez / posjekotina' },
+    { code: 'I', label: 'Istrošeno' },
+    { code: 'B', label: 'Savijena felga' },
+    { code: 'N', label: 'Nedostaje' },
+    { code: 'D', label: 'Kvar / defekt / neispravno' },
+  ],
   equipment: ['Ključ sigurnosnih vijaka', 'Kapice (4)', 'Vijci u vrećici', 'Rezervni kotač', 'Senzori TPMS'],
   inspections: [
     checklist('wheel.storage_intake', 'Zaprimanje na čuvanje', 'checklist', 'Set guma', [

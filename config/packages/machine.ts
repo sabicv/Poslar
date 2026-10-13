@@ -37,6 +37,19 @@ export const machine: PackageConfig = {
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'field', label: 'Teren' }, { code: 'plate', label: 'Pločica stroja' }, { code: 'hydraulics', label: 'Hidraulika' }],
   diagram: 'truck',
   conditionZones: MACHINE_ZONES,
+  marks: [
+    { code: 'O', label: 'Ogrebotina' },
+    { code: 'K', label: 'Kamenčić' },
+    { code: 'U', label: 'Udubljenje' },
+    { code: 'T', label: 'Pukotina' },
+    { code: 'S', label: 'Savijeno' },
+    { code: 'P', label: 'Curi' },
+    { code: 'B', label: 'Istrošeno' },
+    { code: 'R', label: 'Suho' },
+    { code: 'C', label: 'Korozija' },
+    { code: 'N', label: 'Nedostaje' },
+    { code: 'D', label: 'Kvar / defekt / neispravno' },
+  ],
   equipment: ['Ključevi kabine', 'Pločica stroja', 'Dokumenti stroja', 'Vatrogasni aparat', 'Priključak', 'Utezi', 'Uputstva'],
   inspections: [
     checklist('machine.check', 'Pregled stroja', 'checklist', 'Prije rada', [

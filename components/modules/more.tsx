@@ -6,17 +6,17 @@ import { Fold } from '@/components/Fold';
 export function Offer({
   title,
   summary,
+  filled = false,
   children,
 }: {
   title: string;
   summary: string;
-  // Accepted so a caller can say the row already holds data. The summary
-  // shows that; the row itself stays closed until someone asks for it.
+  // A row that already holds data starts open. An empty one stays a single line.
   filled?: boolean;
   children: ReactNode;
 }) {
   return (
-    <Fold title={title} summary={summary}>
+    <Fold title={title} summary={summary} startOpen={filled}>
       <div className="[&>*]:rounded-none [&>*]:border-0 [&>*]:bg-transparent [&>*]:shadow-none">{children}</div>
     </Fold>
   );

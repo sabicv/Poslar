@@ -137,6 +137,16 @@ export const gear: PackageConfig = {
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'inspection', label: 'Nalaz inspekcije' }],
   diagram: 'car',
   conditionZones: GEAR_ZONES,
+  marks: [
+    { code: 'C', label: 'Curi' },
+    { code: 'I', label: 'Istrošeno' },
+    { code: 'Z', label: 'Zračnost / lupa' },
+    { code: 'B', label: 'Buka' },
+    { code: 'N', label: 'Ne radi' },
+    { code: 'L', label: 'Labavo' },
+    { code: 'K', label: 'Korozija' },
+    { code: 'D', label: 'Kvar / defekt / neispravno' },
+  ],
   equipment: ['Ključevi', 'Druga garnitura ključeva', 'Dokumenti vozila', 'Servisna knjižica', 'Rezervni kotač', 'Trokut i prva pomoć', 'Podna prostirka'],
   inspections: [
     dvi50,

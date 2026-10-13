@@ -38,21 +38,27 @@ function thresholdHint(item: InspectionItem) {
   return parts.join(' · ');
 }
 
-export function StartInspection({ jobId, templates, hasCurrent }: { jobId: string; templates: { code: string; name: string; purpose: string }[]; hasCurrent: boolean }) {
-  const { pending, run } = useAction();
+export function StartInspection({ jobId, templates }: { jobId: string; templates: { code: string; name: string }[] }) {
+  const { run } = useAction();
+  const [busy, setBusy] = useState<string | null>(null);
   if (!templates.length) return null;
   return (
-    <Card className="space-y-2 p-4">
-      <p className="text-sm font-medium">{hasCurrent ? 'Sljedeća lista, prethodna ostaje' : 'Započni inspekciju'}</p>
-      <div className="grid gap-2">
-        {templates.map((t) => (
-          <Button key={t.code} variant={hasCurrent ? 'secondary' : 'primary'} className="w-full justify-start" disabled={pending} onClick={() => run(() => startInspection(jobId, t.code))}>
-            {t.name}
-            <span className="font-normal text-faint"> · {t.purpose}</span>
-          </Button>
-        ))}
-      </div>
-    </Card>
+    <div className="grid gap-2">
+      {templates.map((t) => (
+        <Button
+          key={t.code}
+          variant="secondary"
+          className={cn('isolate w-full', busy !== null && busy !== t.code && '!opacity-100')}
+          disabled={busy !== null}
+          onClick={() => {
+            setBusy(t.code);
+            run(() => startInspection(jobId, t.code));
+          }}
+        >
+          {t.name}
+        </Button>
+      ))}
+    </div>
   );
 }
 

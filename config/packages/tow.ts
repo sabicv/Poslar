@@ -80,6 +80,17 @@ export const tow: PackageConfig = {
   ],
   diagram: 'car',
   conditionZones: TOW_ZONES,
+  marks: [
+    { code: 'O', label: 'Ogrebotina' },
+    { code: 'U', label: 'Udubljenje' },
+    { code: 'P', label: 'Pukotina' },
+    { code: 'L', label: 'Razbijeno' },
+    { code: 'B', label: 'Savijeno' },
+    { code: 'K', label: 'Kamenčić' },
+    { code: 'T', label: 'Trag vezanja / vitla' },
+    { code: 'N', label: 'Nedostaje' },
+    { code: 'D', label: 'Kvar / defekt / neispravno' },
+  ],
   equipment: ['Ključevi', 'Prometna dozvola', 'Rezervni kotač', 'Stvari u vozilu', 'Dječja sjedalica', 'Registracijske ploče'],
   inspections: [
     checklist('tow.pickup', 'Preuzimanje vozila', 'checklist', 'Prije utovara', [

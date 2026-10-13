@@ -43,6 +43,16 @@ export const volt: PackageConfig = {
   ],
   diagram: 'car',
   conditionZones: VOLT_ZONES,
+  marks: [
+    { code: 'N', label: 'Ne radi' },
+    { code: 'K', label: 'Kratki spoj' },
+    { code: 'P', label: 'Prekid' },
+    { code: 'O', label: 'Oksidacija' },
+    { code: 'M', label: 'Slaba masa' },
+    { code: 'T', label: 'Treperi' },
+    { code: 'V', label: 'Nizak napon' },
+    { code: 'D', label: 'Kvar / defekt / neispravno' },
+  ],
   equipment: ['Ključevi', 'Daljinski', 'Dokumenti vozila', 'Punjač / kabel', 'Radio kod', 'Servisna knjižica'],
   inspections: [
     checklist('volt.diag_protocol', 'Dijagnostički protokol', 'checklist', 'Koraci dijagnostike', [

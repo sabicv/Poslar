@@ -16,8 +16,8 @@ export const COMPLIANCE_LABELS: Record<string, string> = {
 
 export const fleet: PackageConfig = {
   id: 'fleet',
-  product: 'Kamioni',
-  short: 'Kamioni',
+  product: 'Servis kamiona',
+  short: 'Servis kamiona',
   domain: 'kamioni.poslar.eu',
   tagline: 'Teretni program i vozni parkovi',
   pitch: [
@@ -40,6 +40,18 @@ export const fleet: PackageConfig = {
   photoTags: [...COMMON_PHOTO_TAGS, { code: 'field', label: 'Teren' }],
   diagram: 'truck',
   conditionZones: FLEET_ZONES,
+  marks: [
+    { code: 'O', label: 'Ogrebotina' },
+    { code: 'U', label: 'Udubljenje' },
+    { code: 'B', label: 'Savijeno' },
+    { code: 'L', label: 'Rez gume' },
+    { code: 'R', label: 'Ispucalo' },
+    { code: 'I', label: 'Istrošeno' },
+    { code: 'C', label: 'Curi' },
+    { code: 'K', label: 'Korozija / oksidacija' },
+    { code: 'N', label: 'Ne radi' },
+    { code: 'D', label: 'Kvar / defekt / neispravno' },
+  ],
   equipment: ['Ključevi', 'Kartica tahografa', 'Dokumenti vozila', 'Vatrogasni aparat', 'Trokut i prva pomoć', 'Klinovi', 'Lanci', 'Ključ cerade / kaveza'],
   inspections: [
     checklist('fleet.driver_check', 'Dnevni pregled vozača', 'driver_check', 'Prije polaska', [

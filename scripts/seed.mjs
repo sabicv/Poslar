@@ -469,10 +469,10 @@ async function seedVolt() {
   await inspection(T, j1.id, 'volt.diag_protocol', 'Dijagnostički protokol', checklistCodes('diag_protocol', 5).map((c) => [c, 'ok']), { d: 1 });
   await conditionReport(T, j1.id, {
     marks: [
-      { zone: 'battery', code: 'R', note: 'polovi oksidirani' },
-      { zone: 'door_fl', code: 'U', note: 'donji rub, oko 3 cm' },
-      { zone: 'headlight_l', code: 'O' },
-      { zone: 'fuse_box', code: 'O', note: 'poklopac napuknut' },
+      { zone: 'battery', code: 'O', note: 'polovi oksidirani' },
+      { zone: 'window_fl', code: 'N', note: 'podizač lijevi ne diže staklo' },
+      { zone: 'headlight_l', code: 'N', note: 'kratko svjetlo ne svijetli' },
+      { zone: 'fuse_box', code: 'P', note: 'osigurač labav u ležištu' },
     ],
     equipment: [['Ključevi', true], ['Daljinski', true], ['Dokumenti vozila', true], ['Punjač / kabel', false], ['Radio kod', false], ['Servisna knjižica', true]],
     fuel: '1/4',
@@ -660,10 +660,10 @@ async function seedGear() {
   await photo(T, j1.id, { label: 'Manžeta poluosovine', sub: 'Napuknuta, lijeva unutarnja', tag: 'inspection', hue: 30, customer: true, d: 0 });
   await conditionReport(T, j1.id, {
     marks: [
-      { zone: 'front_bumper', code: 'K', note: 'desni kut, odlupan lak' },
-      { zone: 'wheel_fl', code: 'O', note: 'naplatak prednji lijevi, rub' },
-      { zone: 'tyre_rl', code: 'O', note: 'stražnja lijeva, šara na granici' },
-      { zone: 'exhaust', code: 'R', note: 'zadnji lonac' },
+      { zone: 'brake_rl', code: 'I', note: 'stražnje pločice na granici' },
+      { zone: 'driveshaft', code: 'L', note: 'manžeta lijeva unutarnja napuknuta' },
+      { zone: 'tyre_rl', code: 'I', note: 'stražnja lijeva, šara na granici' },
+      { zone: 'exhaust', code: 'K', note: 'zadnji lonac, korozija' },
     ],
     equipment: [['Ključevi', true], ['Druga garnitura ključeva', false], ['Dokumenti vozila', true], ['Servisna knjižica', true], ['Rezervni kotač', true], ['Trokut i prva pomoć', true], ['Podna prostirka', true]],
     fuel: '1/2',
@@ -916,7 +916,7 @@ async function seedWheel() {
   await inspection(T, j1.id, 'wheel.season_change', 'Sezonska zamjena', checklistCodes('season_change', 4).map((c) => [c, 'ok']), { d: 0 });
   await conditionReport(T, j1.id, {
     marks: [
-      { zone: 'tyre_fl', code: 'O', note: 'prednja lijeva ljetna, šara 5,4 mm' },
+      { zone: 'tyre_fl', code: 'I', note: 'prednja lijeva ljetna, šara 5,4 mm' },
       { zone: 'wheel_fl', code: 'O', note: 'naplatak prednji lijevi, rub od rubnika' },
       { zone: 'valve_fr', code: 'N', note: 'kapica ventila prednjeg desnog nestala' },
       { zone: 'lock_nut', code: 'N', note: 'ključ sigurnosnog vijka nije u autu' },
@@ -998,9 +998,9 @@ async function seedFleet() {
     marks: [
       { zone: 'door_l', code: 'O', note: 'lijeva vrata kabine, donji rub' },
       { zone: 'step_l', code: 'B', note: 'stepenica lijeva, savijena' },
-      { zone: 'tyre_fl', code: 'O', note: 'prednja lijeva, bočni rez' },
+      { zone: 'tyre_fl', code: 'L', note: 'prednja lijeva, bočni rez' },
       { zone: 'air_lines', code: 'R', note: 'zračna crijeva, ovitak ispucao' },
-      { zone: 'ebs_cable', code: 'O', note: 'utikač ABS prikolice, oksidacija' },
+      { zone: 'ebs_cable', code: 'K', note: 'utikač ABS prikolice, oksidacija' },
     ],
     equipment: [['Ključevi', true], ['Kartica tahografa', true], ['Dokumenti vozila', true], ['Vatrogasni aparat', true], ['Trokut i prva pomoć', true], ['Klinovi', true], ['Lanci', false], ['Ključ cerade / kaveza', true]],
     fuel: '3/4',
@@ -1087,7 +1087,7 @@ async function seedMachine() {
       { zone: 'hose_l', code: 'P', note: 'hidraulično crijevo lijevo na strijeli, curi' },
       { zone: 'boom', code: 'O', note: 'strijela, ogrebotine od rada' },
       { zone: 'track_l', code: 'R', note: 'gusjenica lijeva, zglobovi suhi' },
-      { zone: 'cab_glass', code: 'O', note: 'prednje staklo, kamenčić desno' },
+      { zone: 'cab_glass', code: 'K', note: 'prednje staklo, kamenčić desno' },
       { zone: 'bucket', code: 'B', note: 'zubi žlice istrošeni' },
     ],
     equipment: [['Ključevi kabine', true], ['Pločica stroja', true], ['Dokumenti stroja', true], ['Vatrogasni aparat', true], ['Priključak', true], ['Utezi', false], ['Uputstva', false]],
@@ -1762,8 +1762,8 @@ async function seedTow() {
       { zone: 'front_bumper', code: 'U', note: 'prednji branik, sredina' },
       { zone: 'hood', code: 'U', note: 'hauba, prednji rub' },
       { zone: 'headlight_l', code: 'L', note: 'far lijevi, rasprsnut' },
-      { zone: 'tie_front', code: 'O', note: 'točka vezanja naprijed, trag remena' },
-      { zone: 'underbody', code: 'O', note: 'podvozje, trag vitla' },
+      { zone: 'tie_front', code: 'T', note: 'točka vezanja naprijed, trag remena' },
+      { zone: 'underbody', code: 'T', note: 'podvozje, trag vitla' },
     ],
     equipment: [['Ključevi', true], ['Prometna dozvola', true], ['Rezervni kotač', true], ['Stvari u vozilu', false], ['Dječja sjedalica', false], ['Registracijske ploče', true]],
     fuel: '1/2',
@@ -1787,7 +1787,7 @@ async function seedTow() {
   await conditionReport(T, j3.id, {
     marks: [
       { zone: 'rear_bumper', code: 'O', note: 'stražnji branik, desni kut' },
-      { zone: 'wheel_rl', code: 'O', note: 'kotač stražnji lijevi, kapica nestala' },
+      { zone: 'wheel_rl', code: 'N', note: 'kotač stražnji lijevi, kapica nestala' },
       { zone: 'contents', code: 'N', note: 'prtljažnik prazan, bez osobnih stvari' },
     ],
     equipment: [['Ključevi', true], ['Prometna dozvola', true], ['Rezervni kotač', false], ['Stvari u vozilu', false], ['Dječja sjedalica', false], ['Registracijske ploče', true]],
@@ -1865,7 +1865,7 @@ async function seedDeal() {
       { zone: 'front_bumper', code: 'K', note: 'desni kut, odlupan lak' },
       { zone: 'door_rl', code: 'O', note: 'stražnja vrata lijeva, parking' },
       { zone: 'wheel_fl', code: 'O', note: 'naplatak prednji lijevi' },
-      { zone: 'seat_driver', code: 'O', note: 'sjedalo vozača, habanje ruba' },
+      { zone: 'seat_driver', code: 'I', note: 'sjedalo vozača, habanje ruba' },
       { zone: 'underbody', code: 'R', note: 'podvozje, točkasta korozija' },
     ],
     equipment: [['Ključevi (oba)', true], ['Daljinski', true], ['Prometna dozvola', true], ['Servisna knjižica', true], ['Rezervni kotač', true], ['Druge gume', false], ['Radio kod', true]],
@@ -1903,10 +1903,9 @@ async function seedDeal() {
   await inspection(T, j3.id, 'deal.buy_check', 'Pregled pri otkupu', [['a01', 'ok'], ['a02', 'ok'], ['a03', 'ok'], ['a04', 'ok', 2], ['b01', 'warn', 340, 'Stražnja lijeva vrata lakirana'], ['b02', 'ok'], ['b04', 'warn', 2.8, 'Stražnje gume za zamjenu']], { d: 0, units: { a04: 'kom', b01: 'µm', b04: 'mm' } });
   await conditionReport(T, j3.id, {
     marks: [
-      { zone: 'door_rl', code: 'O', note: 'stražnja vrata lijeva, lakirana, 340 µm' },
-      { zone: 'tyre_rl', code: 'O', note: 'stražnja lijeva guma 2,8 mm' },
-      { zone: 'tyre_rr', code: 'O', note: 'stražnja desna guma 2,7 mm' },
-      { zone: 'interior', code: 'O', note: 'unutrašnjost uredna' },
+      { zone: 'door_rl', code: 'L', note: 'stražnja vrata lijeva, lakirana, 340 µm' },
+      { zone: 'tyre_rl', code: 'I', note: 'stražnja lijeva guma 2,8 mm' },
+      { zone: 'tyre_rr', code: 'I', note: 'stražnja desna guma 2,7 mm' },
     ],
     equipment: [['Ključevi (oba)', true], ['Daljinski', true], ['Prometna dozvola', true], ['Servisna knjižica', true], ['Rezervni kotač', true], ['Druge gume', false], ['Radio kod', false]],
     fuel: '3/4',
@@ -1972,11 +1971,11 @@ async function seedDetail() {
   await inspection(T, j1.id, 'detail.intake', 'Prijem vozila', [['a01', 'warn', null, 'Ogrebotine od pranja u autopraonici, desna vrata'], ['a02', 'warn', null, 'Prednji lijevi naplatak izgreban'], ['a03', 'ok'], ['a04', 'ok'], ['a05', 'ok'], ...lak([128, 121, 74, 132, 118])], { completed: true, d: 1, units });
   await conditionReport(T, j1.id, {
     marks: [
-      { zone: 'hood', code: 'O', note: 'hauba, hologrami od pranja' },
+      { zone: 'hood', code: 'H', note: 'hauba, hologrami od pranja' },
       { zone: 'door_fr', code: 'O', note: 'prednja vrata desna, ogrebotine od rotacije' },
       { zone: 'door_rr', code: 'O', note: 'stražnja vrata desna' },
       { zone: 'wheel_fl', code: 'O', note: 'naplatak prednji lijevi, izgreban' },
-      { zone: 'seat_driver', code: 'O', note: 'sjedalo vozača, prašina u šavovima' },
+      { zone: 'seat_driver', code: 'M', note: 'sjedalo vozača, prašina u šavovima' },
     ],
     equipment: [['Ključevi', true], ['Daljinski', true], ['Tepisi', true], ['Dječja sjedalica', false], ['Punjač ili kabel', true], ['Sitnice u kabini', false]],
     fuel: '1/2',
@@ -2006,7 +2005,7 @@ async function seedDetail() {
   await photo(T, j2.id, { label: 'Poslije: Golf GTI', sub: 'Keramika, 2 sloja', tag: 'after', hue: 0, customer: true, d: 2 });
   await conditionReport(T, j2.id, {
     kind: 'handover',
-    marks: [{ zone: 'hood', code: 'O', note: 'stara točka od kamenčića, nije dirano' }],
+    marks: [{ zone: 'hood', code: 'K', note: 'stara točka od kamenčića, nije dirano' }],
     equipment: [['Ključevi', true], ['Daljinski', true], ['Tepisi', true], ['Dječja sjedalica', false], ['Punjač ili kabel', true], ['Sitnice u kabini', true]],
     fuel: '1/2',
     d: 2,

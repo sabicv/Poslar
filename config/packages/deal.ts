@@ -113,6 +113,18 @@ export const deal: PackageConfig = {
   ],
   diagram: 'car',
   conditionZones: DEAL_ZONES,
+  marks: [
+    { code: 'O', label: 'Ogrebotina' },
+    { code: 'K', label: 'Odlupan lak' },
+    { code: 'U', label: 'Udubljenje' },
+    { code: 'P', label: 'Pukotina' },
+    { code: 'L', label: 'Lakirano' },
+    { code: 'R', label: 'Korozija' },
+    { code: 'I', label: 'Istrošeno' },
+    { code: 'B', label: 'Savijeno' },
+    { code: 'N', label: 'Nedostaje' },
+    { code: 'D', label: 'Kvar / defekt / neispravno' },
+  ],
   equipment: ['Ključevi (oba)', 'Daljinski', 'Prometna dozvola', 'Servisna knjižica', 'Rezervni kotač', 'Druge gume', 'Radio kod'],
   inspections: [
     buyCheck,

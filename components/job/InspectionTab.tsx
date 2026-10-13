@@ -8,7 +8,11 @@ import { getInspectionTemplates } from '@/lib/templates';
 import type { Inspection, InspectionResult, JobWithRefs } from '@/types/db';
 import { InspectionRunner, StartInspection } from './InspectionRunner';
 
-const PURPOSE_LABELS = { dvi: 'Pregled u točkama', checklist: 'Kontrolna lista', driver_check: 'Pregled vozača', seasonal: 'Sezonski protokol' } as const;
+function listsStay(names: string[]): string {
+  if (names.length === 2) return `${names[0]} i ${names[1]} ostaju obje na nalogu. Pokretanje jedne ne zatvara drugu.`;
+  const last = names[names.length - 1];
+  return `${names.slice(0, -1).join(', ')} i ${last} ostaju na nalogu. Pokretanje jedne ne zatvara ostale.`;
+}
 
 export async function InspectionTab({ ctx, job, locked }: { ctx: WorkshopContext; job: JobWithRefs; locked: boolean }) {
   const [templates, { data }] = await Promise.all([
@@ -51,11 +55,7 @@ export async function InspectionTab({ ctx, job, locked }: { ctx: WorkshopContext
   return (
     <div className="space-y-4">
       {!locked && available.length ? (
-        <StartInspection
-          jobId={job.id}
-          templates={available.map((item) => ({ code: item.code, name: item.name, purpose: PURPOSE_LABELS[item.purpose] }))}
-          hasCurrent={inspections.length > 0}
-        />
+        <StartInspection jobId={job.id} templates={available.map((item) => ({ code: item.code, name: item.name }))} />
       ) : null}
 
       {inspections.map((inspection) => {
@@ -91,10 +91,6 @@ export async function InspectionTab({ ctx, job, locked }: { ctx: WorkshopContext
         );
       })}
 
-      {inspections.length > 1 ? (
-        <p className="text-sm text-muted">Svaka lista ostaje na nalogu. Završetak se upisuje u Tijek radova.</p>
-      ) : null}
-
       {!inspections.length && !listed.length && templates.some((item) => item.purpose === 'seasonal') ? (
         <p className="text-sm text-muted">Za ovaj nalog nema kontrolne liste. Sezonski protokol se nudi samo kad je posao konzervacija ili dekonzervacija.</p>
       ) : null}
@@ -108,6 +104,8 @@ export async function InspectionTab({ ctx, job, locked }: { ctx: WorkshopContext
           ).
         </p>
       ) : null}
+
+      {listed.length >= 2 ? <p className="text-sm text-muted">{listsStay(listed.map((item) => item.name))}</p> : null}
     </div>
   );
 }

@@ -82,6 +82,16 @@ export const detail: PackageConfig = {
   photoTags: [{ code: 'before', label: 'Prije' }, { code: 'after', label: 'Poslije' }, ...COMMON_PHOTO_TAGS],
   diagram: 'car',
   conditionZones: DETAIL_ZONES,
+  marks: [
+    { code: 'O', label: 'Ogrebotina' },
+    { code: 'H', label: 'Hologrami' },
+    { code: 'K', label: 'Kamenčić' },
+    { code: 'U', label: 'Udubljenje' },
+    { code: 'M', label: 'Mrlja' },
+    { code: 'F', label: 'Mutan far' },
+    { code: 'C', label: 'Trag kamenca' },
+    { code: 'D', label: 'Kvar / defekt / neispravno' },
+  ],
   equipment: ['Ključevi', 'Daljinski', 'Tepisi', 'Dječja sjedalica', 'Punjač ili kabel', 'Sitnice u kabini'],
   inspections: [
     intake,
