@@ -3,9 +3,10 @@ import { Anchor, Snowflake, Sun, Warehouse } from 'lucide-react';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
 import { formatDate, formatDateTime, formatNumber } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { MoreSections, foldable } from '../more';
+import { Offer, foldable } from '../more';
 import { RecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
+import { seasonKind } from '@/lib/season';
 import { ProtocolSheet } from './ProtocolSheet';
 import { StoreSheet } from './StoreSheet';
 
@@ -34,30 +35,39 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
   // which one applies follows the workshop's own package, not the asset.
   const protocolTemplate = (kind: string) => (ctx.pkg.id === 'marine' ? `marine.${kind === 'dewinterize' ? 'dewinterize' : 'winterize_outboard'}` : `moto.${kind === 'dewinterize' ? 'dewinterize' : 'winterize_moto'}`);
 
-  // Core: seasonal protocol and storage. Vessel and engine data with "Više" or once entered.
-  const { show, hidden } = foldable(extras);
+  // Core: seasonal protocol and storage. Vessel and engine are their own rows.
+  const { show, open } = foldable(extras);
   const showVessel = BOATS.includes(type) && show('plovilo', Boolean(vessel));
   const showEngine = ENGINES.includes(type) && show('motor', Boolean(engine));
 
+  const season = seasonKind(job.complaint ?? '');
+  const list = protocols ?? [];
+  const offerWinter = !locked && !list.some((p) => p.kind === 'winterize') && (season === 'winterize' || season === 'both');
+  const offerSpring = !locked && !list.some((p) => p.kind === 'dewinterize') && (season === 'dewinterize' || season === 'both');
+  const winterOn = offerWinter || list.some((p) => p.kind === 'winterize');
+  const springOn = offerSpring || list.some((p) => p.kind === 'dewinterize');
+  const seasonTitle = winterOn && !springOn ? 'Konzervacija' : springOn && !winterOn ? 'Dekonzervacija' : 'Konzervacija i dekonzervacija';
+
   return (
     <div className="space-y-4">
-      {/* Seasonal protocols */}
+      {/* One job does one seasonal protocol. A plain service does not see this card. */}
+      {list.length || offerWinter || offerSpring ? (
       <Card>
         <CardHeader
           title={
             <span className="flex items-center gap-2">
-              <Snowflake className="size-4 text-accent" /> Konzervacija i dekonzervacija
+              {springOn && !winterOn ? <Sun className="size-4 text-accent" /> : <Snowflake className="size-4 text-accent" />} {seasonTitle}
             </span>
           }
           action={
-            !locked ? (
+            offerWinter || offerSpring ? (
               <div className="flex gap-2">
-                {!(protocols ?? []).some((p) => p.kind === 'winterize') ? (
+                {offerWinter ? (
                   <RecordButton table="moto_seasonal_protocols" revalidate={path} size="sm" values={{ job_id: job.id, kind: 'winterize' }}>
                     <Snowflake className="size-4" /> Zimovanje
                   </RecordButton>
                 ) : null}
-                {!(protocols ?? []).some((p) => p.kind === 'dewinterize') ? (
+                {offerSpring ? (
                   <RecordButton table="moto_seasonal_protocols" revalidate={path} size="sm" values={{ job_id: job.id, kind: 'dewinterize' }}>
                     <Sun className="size-4" /> Priprema za sezonu
                   </RecordButton>
@@ -117,9 +127,11 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
           </ul>
         )}
       </Card>
+      ) : null}
 
       {/* Vessel */}
       {showVessel ? (
+        <Offer title="Plovilo" summary={vessel ? ((vessel.vessel_name as string | null) || (vessel.registration_mark as string | null) || 'Upisano') : 'Ime, dimenzije, vez'} filled={open('plovilo')}>
         <Card>
           <CardHeader
             title={
@@ -160,10 +172,12 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">HIN/CIN je u podacima objekta; ovdje ime, dimenzije i vez.</p>
           )}
         </Card>
+        </Offer>
       ) : null}
 
       {/* Engine */}
       {showEngine ? (
+        <Offer title="Motor" summary={engine ? ((engine.engine_serial as string | null) || (engine.power_hp ? `${engine.power_hp} KS` : 'Upisano')) : 'Serijski broj, snaga, impeler'} filled={open('motor')}>
         <Card>
           <CardHeader
             title="Motor"
@@ -200,6 +214,7 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Nema podataka o motoru.</p>
           )}
         </Card>
+        </Offer>
       ) : null}
 
       {/* Storage */}
@@ -234,7 +249,6 @@ export async function MotoModule({ ctx, job, locked, extras }: ModuleProps) {
           ) : null}
         </div>
       </Card>
-      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

@@ -1,10 +1,11 @@
 'use client';
 
 import { useRef, useState, type ReactNode } from 'react';
-import { ChevronDown, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { Fold } from '@/components/Fold';
 import { ConfirmButton, DictateButton, DictateInput, Sheet, useAction } from '@/components/client-ui';
 import { ScanButton, type ScanKind } from '@/components/ScanButton';
-import { Button, Field, Input, Select, Textarea } from '@/components/ui';
+import { Button, Field, Input, Textarea } from '@/components/ui';
 import type { ActionResult } from '@/lib/action-result';
 import { proposeTemplateLine } from '@/lib/actions/jobs';
 import { deleteRecord, savePrivateAmount, saveRecord } from '@/lib/actions/records';
@@ -16,17 +17,80 @@ import { cn } from '@/lib/utils';
 export interface FieldDef {
   name: string;
   label: string;
-  type?: 'text' | 'number' | 'select' | 'date' | 'datetime' | 'checkbox' | 'textarea';
+  type?: 'text' | 'number' | 'hours' | 'select' | 'date' | 'datetime' | 'checkbox' | 'textarea';
   options?: { value: string; label: string }[];
   suffix?: string;
   placeholder?: string;
   half?: boolean;
   required?: boolean;
-  // Rarely needed: behind the form's "Više polja" button (shown anyway when filled).
+  // Rarely needed: its own row, open when it already holds something.
   extra?: boolean;
 }
 
 type Values = Record<string, unknown>;
+
+// A list inside the sheet. The phone's own menu stays on top of the sheet
+// and does not close with it, so a choice is a row, not a system dropdown.
+function Choice({ value, options, onChange, allowEmpty = true }: { value: string; options: { value: string; label: string }[]; onChange: (value: string) => void; allowEmpty?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const current = options.find((option) => option.value === value);
+  return (
+    <div>
+      <button type="button" aria-expanded={open} onClick={() => setOpen((next) => !next)} className="flex h-12 w-full items-center justify-between rounded-xl border border-line bg-bg px-3 text-left text-sm">
+        <span className={current ? 'text-fg' : 'text-muted'}>{current?.label ?? 'Odaberite'}</span>
+        <span className="text-faint">{open ? '−' : '+'}</span>
+      </button>
+      {open ? (
+        <div className="mt-2 grid gap-1">
+          {allowEmpty && value ? (
+            <button type="button" onClick={() => { onChange(''); setOpen(false); }} className="flex h-12 items-center rounded-xl border border-line px-3 text-left text-sm text-muted">
+              Poništi odabir
+            </button>
+          ) : null}
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+              className={cn('flex h-12 items-center rounded-xl border px-3 text-left text-sm', option.value === value ? 'border-accent bg-accent/10 font-medium' : 'border-line')}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// Decimal hours are easy to misread: 1.2 looks like an hour and 20 minutes.
+function HoursInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const decimal = Number(value.replace(',', '.'));
+  const total = Number.isFinite(decimal) ? Math.max(0, Math.round(decimal * 60)) : 0;
+  const hours = Math.floor(total / 60);
+  const mins = total % 60;
+  function commit(nextHours: number, nextMins: number) {
+    const h = Number.isFinite(nextHours) ? Math.max(0, Math.floor(nextHours)) : 0;
+    const m = Number.isFinite(nextMins) ? Math.min(59, Math.max(0, Math.floor(nextMins))) : 0;
+    const next = h + m / 60;
+    onChange(next === 0 ? '0' : String(Math.round(next * 1000) / 1000));
+  }
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <div className="relative">
+        <Input inputMode="numeric" value={String(hours)} onChange={(e) => commit(Number(e.target.value.replace(/\D/g, '') || 0), mins)} className="tabular !pr-8" aria-label="Sati" />
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-faint">h</span>
+      </div>
+      <div className="relative">
+        <Input inputMode="numeric" value={String(mins)} onChange={(e) => commit(hours, Number(e.target.value.replace(/\D/g, '') || 0))} className="tabular !pr-10" aria-label="Minute" />
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-faint">min</span>
+      </div>
+    </div>
+  );
+}
 
 function toInput(def: FieldDef, value: unknown): string | boolean {
   if (def.type === 'checkbox') return Boolean(value);
@@ -43,7 +107,7 @@ function fromInput(def: FieldDef, raw: string | boolean): unknown {
   if (def.type === 'checkbox') return Boolean(raw);
   const text = String(raw).trim();
   if (text === '') return null;
-  if (def.type === 'number') {
+  if (def.type === 'number' || def.type === 'hours') {
     const n = Number(text.replace(/\s/g, '').replace(',', '.'));
     return Number.isNaN(n) ? null : n;
   }
@@ -115,13 +179,11 @@ export function QuickForm({
   // Shown next to the button too: a toast alone is easy to miss on a phone.
   const [error, setError] = useState<string | null>(null);
   const missing = fields.some((f) => f.required && (state[f.name] === '' || state[f.name] === undefined));
-  const hasExtra = fields.some((f) => f.extra);
-  // Open from the start when an extra field already holds something.
-  const [more, setMore] = useState(() => {
-    const filled = (v: unknown) => v !== null && v !== undefined && v !== '' && v !== false;
-    return fields.some((f) => f.extra && (filled(initial[f.name]) || filled(restored?.[f.name])));
-  });
-  const visible = fields.filter((f) => !f.extra || more);
+  const held = (v: unknown) => v !== null && v !== undefined && v !== '' && v !== false;
+  const main = fields.filter((f) => !f.extra);
+  const extra = fields.filter((f) => f.extra);
+  const extraOn = extra.some((f) => held(state[f.name]));
+  const extraSummary = extra.filter((f) => held(state[f.name])).map((f) => f.label).slice(0, 3).join(', ') || 'Rijetko potrebno';
 
   // What the photo says goes into the matching fields: only what was read
   // and fits (a select takes only its own options), and a folded field
@@ -139,7 +201,6 @@ export function QuickForm({
       }
       return next;
     });
-    if (Object.entries(scan.map).some(([from, to]) => data[from] != null && data[from] !== '' && fields.find((x) => x.name === to)?.extra)) setMore(true);
   }
   // In a sheet the camera sits in the title bar and hands its result here.
   if (scanTarget) scanTarget.current = applyScan;
@@ -187,7 +248,8 @@ export function QuickForm({
           </button>
         </p>
       ) : null}
-      {visible.map((f) => {
+      {(() => {
+      function draw(f: FieldDef) {
         const set = (value: string | boolean) => setState((s) => ({ ...s, [f.name]: value }));
         const span = f.half ? 'col-span-1' : 'col-span-2';
         if (f.type === 'checkbox') {
@@ -201,14 +263,9 @@ export function QuickForm({
         return (
           <Field key={f.name} label={f.required ? <>{f.label} <span className="text-crit">*</span></> : f.label} className={span}>
             {f.type === 'select' ? (
-              <Select value={String(state[f.name])} onChange={(e) => set(e.target.value)}>
-                <option value="">-</option>
-                {f.options?.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </Select>
+              <Choice value={String(state[f.name] ?? '')} options={f.options ?? []} allowEmpty={!f.required} onChange={(next) => set(next)} />
+            ) : f.type === 'hours' ? (
+              <HoursInput value={String(state[f.name] ?? '')} onChange={(next) => set(next)} />
             ) : f.type === 'textarea' ? (
               <div className="flex items-start gap-2">
                 <Textarea rows={2} value={String(state[f.name])} placeholder={f.placeholder} onChange={(e) => set(e.target.value)} />
@@ -232,13 +289,20 @@ export function QuickForm({
             )}
           </Field>
         );
-      })}
-      {hasExtra ? (
-        <button type="button" onClick={() => setMore((m) => !m)} className="col-span-2 flex items-center justify-center gap-1.5 py-1 text-sm font-medium text-muted hover:text-fg">
-          <ChevronDown className={cn('size-4 transition-transform', more && 'rotate-180')} />
-          {more ? 'Manje polja' : 'Više polja'}
-        </button>
-      ) : null}
+      }
+      return (
+        <>
+          {main.map(draw)}
+          {extra.length ? (
+            <div className="col-span-2">
+              <Fold plain title="Dodatno" summary={extraSummary} startOpen={extraOn} reveal={extraOn}>
+                <div className="grid grid-cols-2 gap-3 p-4">{extra.map(draw)}</div>
+              </Fold>
+            </div>
+          ) : null}
+        </>
+      );
+      })()}
       {missing ? <p className="col-span-2 text-xs text-muted">Polja sa zvjezdicom su obavezna.</p> : null}
       {error ? (
         <p role="alert" className="col-span-2 rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-sm text-crit">

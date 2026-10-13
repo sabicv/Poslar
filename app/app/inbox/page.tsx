@@ -44,7 +44,7 @@ export default async function InboxPage() {
                 .filter((m) => m.job)
                 .map((m) => (
                   <li key={m.id}>
-                    <Link prefetch={false} href={`/app/jobs/${m.job!.id}?tab=poruke`} className="block px-4 py-3 hover:bg-surface2">
+                    <Link prefetch={false} href={`/app/jobs/${m.job!.id}?tab=povijest&otvori=poruke`} className="block px-4 py-3 hover:bg-surface2">
                       <p className="text-xs text-muted">
                         Nalog #{m.job!.number} · {names[m.sender_id]} · {formatDateTime(m.created_at)}
                       </p>
@@ -60,7 +60,7 @@ export default async function InboxPage() {
           )}
         </Card>
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">Opće poruke (bez naloga)</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Opće poruke (bez naloga)</p>
           <MessageThread
             jobId={null}
             me={ctx.user.id}

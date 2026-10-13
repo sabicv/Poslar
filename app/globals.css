@@ -98,6 +98,24 @@ body {
   }
 }
 
+@layer components {
+  /* One scale for the whole workshop: display for the page, small caps for
+     a section, semibold for a row, body at text-sm. Nothing smaller than
+     text-xs except a chart or a printed document. */
+  .type-page {
+    @apply break-words font-display text-2xl font-bold leading-tight tracking-tight text-fg sm:text-3xl;
+  }
+  .type-kicker {
+    @apply text-xs font-semibold uppercase tracking-wide text-muted;
+  }
+  .type-title {
+    @apply text-sm font-semibold text-fg;
+  }
+  .type-name {
+    @apply break-words text-base font-semibold leading-snug text-fg;
+  }
+}
+
 @layer utilities {
   .pb-safe {
     padding-bottom: max(env(safe-area-inset-bottom), 0px);

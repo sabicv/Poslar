@@ -100,11 +100,11 @@ export function ScheduleShell({
                   !selected && x.d === today && 'border-accent/60'
                 )}
               >
-                <span className={cn('text-[11px] uppercase', selected ? 'text-accent-fg/80' : 'text-muted')}>{x.weekday}</span>
+                <span className={cn('text-xs uppercase', selected ? 'text-accent-fg/80' : 'text-muted')}>{x.weekday}</span>
                 <span className="text-base font-semibold leading-none tabular">{x.num}</span>
                 <span
                   className={cn(
-                    'mt-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold tabular',
+                    'mt-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-bold tabular',
                     x.count ? (selected ? 'bg-accent-fg/20 text-accent-fg' : 'bg-accent/20 text-accent') : 'opacity-0'
                   )}
                 >

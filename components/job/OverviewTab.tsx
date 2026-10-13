@@ -1,8 +1,6 @@
-import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
 import { FieldActions, ScheduleSheet } from '@/components/field/FieldActions';
-import { Card, CardHeader, KeyValue } from '@/components/ui';
-import { DEVICE_TYPES, hasModule } from '@/config/tenant.config';
+import { ButtonLink, Card, CardHeader } from '@/components/ui';
+import { hasModule } from '@/config/tenant.config';
 import { ConditionTab } from './ConditionTab';
 import { waEnabled } from '@/config/whatsapp';
 import { canMessage, whatsappReady } from '@/lib/whatsapp';
@@ -10,24 +8,24 @@ import { ConfirmAppointment } from './ConfirmAppointment';
 import { spokenSlot } from '@/lib/calendar';
 import { publicAppUrl } from '@/lib/qr';
 import { whatsappLink } from '@/lib/contact';
-import { formatDateTime, plural, vocativeHR } from '@/lib/format';
+import { formatDateTime, vocativeHR } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import type { JobWithRefs } from '@/types/db';
 import { NextStep } from './NextStep';
-import { OverviewEditor } from './OverviewEditor';
+import { AssignWorker, OverviewEditor } from './OverviewEditor';
 
 // Client and object details are not repeated here: the header names them
 // and links to their pages, where everything about them lives once.
-export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; job: JobWithRefs; extras: boolean }) {
-  const [{ data: staff }, { count: earlier }, { data: calls }, { data: sent }] = await Promise.all([
+export async function OverviewTab({ ctx, job }: { ctx: WorkshopContext; job: JobWithRefs }) {
+  const [{ data: staff }, { data: calls }, { data: sent }, { count: messageCount }] = await Promise.all([
     ctx.supabase.from('profiles').select('id, full_name, role').order('full_name'),
-    ctx.supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('asset_id', job.asset.id).neq('id', job.id),
     // The AI phone call that booked it (the owner sees calls).
     ctx.isOwner ? ctx.supabase.from('phone_calls').select('summary, started_at, created_at').eq('job_id', job.id).order('created_at').limit(1) : Promise.resolve({ data: [] }),
     // The last confirmation Poslar sent (the owner sees messages).
     ctx.isOwner && job.scheduled_start
       ? ctx.supabase.from('whatsapp_messages').select('created_at').eq('job_id', job.id).eq('kind', 'confirm').eq('direction', 'out').neq('status', 'failed').order('created_at', { ascending: false }).limit(1)
       : Promise.resolve({ data: [] }),
+    ctx.supabase.from('job_messages').select('id', { count: 'exact', head: true }).eq('job_id', job.id),
   ]);
   const confirmedAt = ((sent ?? [])[0] as { created_at: string } | undefined)?.created_at ?? null;
   const autoConfirm = whatsappReady() && canMessage(ctx.tenant) && waEnabled(ctx.tenant.settings, 'confirm');
@@ -55,14 +53,19 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
 
   const staffList = (staff ?? []).map((s) => ({ id: s.id as string, name: (s.full_name as string | null) ?? 'Bez imena' }));
   const field = job.work_mode === 'field';
-  // Air conditioners and heat pumps have no km or hour meter to read.
-  const climate = DEVICE_TYPES.includes(job.asset.asset_type);
-  const visits = earlier ?? 0;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-      <div className="space-y-4">
+    <div className="space-y-4">
+        {field ? null : <AssignWorker jobId={job.id} assignedTo={job.assigned_to} staff={staffList} locked={Boolean(job.locked_at)} />}
         <NextStep ctx={ctx} job={job} />
+        <div className="grid grid-cols-2 gap-2">
+          <ButtonLink href={`/app/jobs/${job.id}/papir`} variant="secondary" className="w-full">
+            Nalog na papiru
+          </ButtonLink>
+          <ButtonLink href={`/app/jobs/${job.id}?tab=povijest&otvori=poruke`} variant="secondary" className="w-full">
+            Poruke{messageCount ? ` (${messageCount})` : ''}
+          </ButtonLink>
+        </div>
         {/* On the field what the caller said comes first, then the visit. */}
         {field && (bookedNote || (confirm && booked)) ? (
           <Card>
@@ -73,7 +76,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
           </Card>
         ) : null}
         {field ? (
-          <Card>
+          <Card id="termin" className="scroll-mt-28">
             <CardHeader
               title="Posjet na lokaciji"
               subtitle={job.scheduled_start ? `Termin ${formatDateTime(job.scheduled_start)}${job.assignee?.full_name ? ` · ${job.assignee.full_name}` : ''}` : 'Još nije zakazano'}
@@ -97,7 +100,7 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
           </Card>
         ) : null}
         {!field && (job.scheduled_start || booked) ? (
-          <Card>
+          <Card id="termin" className="scroll-mt-28">
             <CardHeader
               title="Termin"
               subtitle={job.scheduled_start ? spokenSlot(new Date(job.scheduled_start)) : 'Još nije zakazano'}
@@ -111,43 +114,20 @@ export async function OverviewTab({ ctx, job, extras }: { ctx: WorkshopContext; 
             ) : null}
           </Card>
         ) : null}
-        {hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'condition_report') ? <ConditionTab ctx={ctx} job={job} locked={Boolean(job.locked_at)} /> : null}
+        {hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'condition_report') ? <ConditionTab ctx={ctx} job={job} locked={Boolean(job.locked_at)} part="intake" /> : null}
         <OverviewEditor
           job={{
             id: job.id,
             complaint: job.complaint ?? '',
-            diagnosis_notes: job.diagnosis_notes ?? '',
-            work_summary: job.work_summary ?? '',
-            meter_out: job.meter_out,
-            meter_unit: job.meter_unit,
             promised_at: job.promised_at,
             bay: job.bay ?? '',
             is_urgent: job.is_urgent,
-            assigned_to: job.assigned_to,
           }}
-          staff={staffList}
           locked={Boolean(job.locked_at)}
           field={field}
-          meter={!climate}
-          extras={extras}
           complaint={ctx.pkg.id === 'clean' ? 'none' : field ? 'note' : 'fault'}
         />
-      </div>
-
-      <Card className="h-fit">
-        <CardHeader title={ctx.pkg.vocabulary.asset.one} />
-        {job.asset.vin || job.asset.year || job.asset.engine_code ? (
-          <div className="divide-y divide-line px-4">
-            {job.asset.vin ? <KeyValue label={climate ? 'Serijski broj' : 'VIN'}>{<span className="font-mono text-xs">{job.asset.vin}</span>}</KeyValue> : null}
-            {job.asset.year ? <KeyValue label={climate ? 'Godina ugradnje' : 'Godište'}>{job.asset.year}</KeyValue> : null}
-            {job.asset.engine_code ? <KeyValue label="Motor">{job.asset.engine_code}</KeyValue> : null}
-          </div>
-        ) : null}
-        <Link prefetch={false} href={`/app/assets/${job.asset.id}`} className="flex items-center justify-between border-t border-line px-4 py-3 text-sm text-accent hover:bg-surface2">
-          {visits ? `Povijest · ${visits} ${plural(visits, 'raniji posjet', 'ranija posjeta', 'ranijih posjeta')}` : 'Povijest · prvi posjet'}
-          <ChevronRight className="size-4" />
-        </Link>
-      </Card>
+        {hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'condition_report') ? <ConditionTab ctx={ctx} job={job} locked={Boolean(job.locked_at)} part="handover" /> : null}
     </div>
   );
 }

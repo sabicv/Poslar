@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pencil, Plus } from 'lucide-react';
-import { DeleteConfirm, DictateButton, DictateInput, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
+import { Fold } from '@/components/Fold';
+import { DeleteConfirm, DictateButton, DictateInput, Segmented, Sheet, useAction } from '@/components/client-ui';
 import { Button, Field, Input, Select, Textarea } from '@/components/ui';
 import { DEVICE_TYPES, type AssetType, type MeterUnit } from '@/config/tenant.config';
 import { ScanButton } from '@/components/ScanButton';
@@ -26,7 +27,7 @@ function DictatedTextarea({ value, onChange, placeholder }: { value: string; onC
 }
 
 // Core: who and how to reach them. A company doubles as a partner
-// (another workshop, a dealer, an insurer). The rest: "Više polja".
+// (another workshop, a dealer, an insurer). Address, OIB and notes are a row.
 export function ClientSheet({ client, title, isOwner }: { client?: Client; title: string; isOwner?: boolean }) {
   const router = useRouter();
   const { pending, run } = useAction();
@@ -43,7 +44,6 @@ export function ClientSheet({ client, title, isOwner }: { client?: Client; title
     city: client?.city ?? '',
     notes: client?.notes ?? '',
   });
-  const [more, setMore] = useState(() => filled(client?.oib, client?.email, client?.address, client?.city, client?.notes, client?.kind === 'company' ? client?.first_name : null));
   const set = (key: keyof ClientValues) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [key]: e.target.value }));
   const company = v.kind === 'company';
 
@@ -84,37 +84,43 @@ export function ClientSheet({ client, title, isOwner }: { client?: Client; title
           <Field label="Telefon" className="col-span-2">
             <DictateInput mode="phone" type="tel" value={v.phone ?? ''} onValue={(phone) => setV((s) => ({ ...s, phone }))} />
           </Field>
-          {more ? (
-            <>
-              {company ? (
-                <>
-                  <Field label="Ime kontakta">
-                    <DictateInput mode="name" value={v.first_name ?? ''} onValue={(x) => setV((s) => ({ ...s, first_name: x }))} />
-                  </Field>
-                  <Field label="Prezime kontakta">
-                    <DictateInput mode="name" value={v.last_name ?? ''} onValue={(x) => setV((s) => ({ ...s, last_name: x }))} />
-                  </Field>
-                </>
-              ) : null}
-              <Field label="OIB">
-                <DictateInput mode="digits" inputMode="numeric" maxLength={11} value={v.oib ?? ''} onValue={(x) => setV((s) => ({ ...s, oib: x }))} />
-              </Field>
-              <Field label="E-mail">
-                <DictateInput mode="email" type="email" value={v.email ?? ''} onValue={(x) => setV((s) => ({ ...s, email: x }))} />
-              </Field>
-              <Field label="Adresa">
-                <DictateInput mode="text" value={v.address ?? ''} onValue={(x) => setV((s) => ({ ...s, address: x }))} />
-              </Field>
-              <Field label="Grad">
-                <DictateInput mode="name" value={v.city ?? ''} onValue={(x) => setV((s) => ({ ...s, city: x }))} />
-              </Field>
-              <Field label="Napomena" className="col-span-2">
-                <DictatedTextarea value={v.notes ?? ''} onChange={(notes) => setV((s) => ({ ...s, notes }))} />
-              </Field>
-            </>
-          ) : null}
+          <div className="col-span-2">
+            <Fold
+              title="Adresa i OIB"
+              summary={[v.city, v.oib].filter(Boolean).join(' · ') || 'E-mail, adresa, napomena'}
+              startOpen={filled(v.oib, v.email, v.address, v.city, v.notes, company ? v.first_name : null)}
+              reveal={filled(v.oib, v.address, v.city)}
+            >
+              <div className="grid grid-cols-2 gap-3 p-4">
+                {company ? (
+                  <>
+                    <Field label="Ime kontakta">
+                      <DictateInput mode="name" value={v.first_name ?? ''} onValue={(x) => setV((s) => ({ ...s, first_name: x }))} />
+                    </Field>
+                    <Field label="Prezime kontakta">
+                      <DictateInput mode="name" value={v.last_name ?? ''} onValue={(x) => setV((s) => ({ ...s, last_name: x }))} />
+                    </Field>
+                  </>
+                ) : null}
+                <Field label="OIB">
+                  <DictateInput mode="digits" inputMode="numeric" maxLength={11} value={v.oib ?? ''} onValue={(x) => setV((s) => ({ ...s, oib: x }))} />
+                </Field>
+                <Field label="E-mail">
+                  <DictateInput mode="email" type="email" value={v.email ?? ''} onValue={(x) => setV((s) => ({ ...s, email: x }))} />
+                </Field>
+                <Field label="Adresa" className="col-span-2">
+                  <DictateInput mode="text" value={v.address ?? ''} onValue={(x) => setV((s) => ({ ...s, address: x }))} />
+                </Field>
+                <Field label="Grad">
+                  <DictateInput mode="name" value={v.city ?? ''} onValue={(x) => setV((s) => ({ ...s, city: x }))} />
+                </Field>
+                <Field label="Napomena" className="col-span-2">
+                  <DictatedTextarea value={v.notes ?? ''} onChange={(notes) => setV((s) => ({ ...s, notes }))} />
+                </Field>
+              </div>
+            </Fold>
+          </div>
         </div>
-        <MoreToggle open={more} onToggle={() => setMore((m) => !m)} />
         <div className="flex gap-2">
           <Button
             variant="primary"
@@ -149,8 +155,8 @@ export function ClientSheet({ client, title, isOwner }: { client?: Client; title
   );
 }
 
-// Core: plate or label, make, model (and where it is, on the road). The
-// rest: "Više polja".
+// Core: plate or label, make, model (and where it is, on the road).
+// Year, VIN and the rest are one row.
 export function AssetSheet({
   clientId,
   asset,
@@ -187,9 +193,6 @@ export function AssetSheet({
     site_id: asset?.site_id ?? (sites.length === 1 ? sites[0].value : ''),
     notes: asset?.notes ?? '',
   });
-  const [more, setMore] = useState(() =>
-    filled(asset?.vin, asset?.year?.toString(), asset?.engine_code, asset?.fuel, asset?.internal_number, asset?.paint_code, asset?.parent_asset_id, asset?.notes)
-  );
   const set = (key: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [key]: e.target.value }));
   const unit = assetTypes.find((t) => t.value === v.asset_type)?.unit ?? 'km';
   // A vehicle is read from its registration certificate, a device from its nameplate.
@@ -204,7 +207,6 @@ export function AssetSheet({
       year: d.year ? String(d.year) : x.year,
       vin: s('vin') ?? s('serial') ?? x.vin,
     }));
-    if (d.year || s('vin') || s('serial')) setMore(true);
   };
 
   return (
@@ -247,64 +249,70 @@ export function AssetSheet({
         <Field label="Model">
           <DictateInput mode="name" value={v.model} onValue={(x) => setV((s) => ({ ...s, model: x }))} />
         </Field>
-        {more ? (
-          <>
-            {assetTypes.length > 1 ? (
-              <Field label="Vrsta" className="col-span-2">
-                <Select value={v.asset_type} onChange={set('asset_type')}>
-                  {assetTypes.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </Select>
+        <div className="col-span-2">
+          <Fold
+            title="Godište, VIN i ostalo"
+            summary={[v.year, v.vin].filter(Boolean).join(' · ') || 'Motor, gorivo, boja, napomena'}
+            startOpen={filled(v.vin, v.year, v.engine_code, v.fuel, v.internal_number, v.paint_code, v.parent_asset_id, v.notes)}
+            reveal={filled(v.vin, v.year)}
+          >
+            <div className="grid grid-cols-2 gap-3 p-4">
+              {assetTypes.length > 1 ? (
+                <Field label="Vrsta" className="col-span-2">
+                  <Select value={v.asset_type} onChange={set('asset_type')}>
+                    {assetTypes.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              ) : null}
+              <Field label="Godište">
+                <DictateInput mode="digits" inputMode="numeric" maxLength={4} value={v.year} onValue={(x) => setV((s) => ({ ...s, year: x }))} />
               </Field>
-            ) : null}
-            <Field label="Godište">
-              <DictateInput mode="digits" inputMode="numeric" maxLength={4} value={v.year} onValue={(x) => setV((s) => ({ ...s, year: x }))} />
-            </Field>
-            <Field label="VIN / HIN / serijski">
-              <DictateInput mode="vin" value={v.vin} className="font-mono uppercase" onValue={(x) => setV((s) => ({ ...s, vin: x }))} />
-            </Field>
-            <Field label="Oznaka motora">
-              <DictateInput mode="vin" value={v.engine_code} onValue={(x) => setV((s) => ({ ...s, engine_code: x }))} />
-            </Field>
-            <Field label="Gorivo">
-              <Select value={v.fuel} onChange={set('fuel')}>
-                <option value="">-</option>
-                <option value="petrol">Benzin</option>
-                <option value="diesel">Dizel</option>
-                <option value="hybrid">Hibrid</option>
-                <option value="plugin">Plug-in hibrid</option>
-                <option value="electric">Električni</option>
-                <option value="lpg">Plin (LPG)</option>
-                <option value="cng">CNG</option>
-              </Select>
-            </Field>
-            <Field label="Interni / garažni broj">
-              <DictateInput mode="text" value={v.internal_number} onValue={(x) => setV((s) => ({ ...s, internal_number: x }))} />
-            </Field>
-            <Field label="Šifra boje">
-              <DictateInput mode="vin" value={v.paint_code} onValue={(x) => setV((s) => ({ ...s, paint_code: x }))} />
-            </Field>
-            {parents.length ? (
-              <Field label="Nadređeno vozilo (npr. tegljač za prikolicu)" className="col-span-2">
-                <Select value={v.parent_asset_id} onChange={set('parent_asset_id')}>
+              <Field label="VIN / HIN / serijski" className="col-span-2">
+                <DictateInput mode="vin" value={v.vin} className="font-mono uppercase" onValue={(x) => setV((s) => ({ ...s, vin: x }))} />
+              </Field>
+              <Field label="Oznaka motora">
+                <DictateInput mode="vin" value={v.engine_code} onValue={(x) => setV((s) => ({ ...s, engine_code: x }))} />
+              </Field>
+              <Field label="Gorivo">
+                <Select value={v.fuel} onChange={set('fuel')}>
                   <option value="">-</option>
-                  {parents.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.label}
-                    </option>
-                  ))}
+                  <option value="petrol">Benzin</option>
+                  <option value="diesel">Dizel</option>
+                  <option value="hybrid">Hibrid</option>
+                  <option value="plugin">Plug-in hibrid</option>
+                  <option value="electric">Električni</option>
+                  <option value="lpg">Plin (LPG)</option>
+                  <option value="cng">CNG</option>
                 </Select>
               </Field>
-            ) : null}
-            <Field label="Napomena" className="col-span-2">
-              <DictatedTextarea value={v.notes} onChange={(notes) => setV((s) => ({ ...s, notes }))} />
-            </Field>
-          </>
-        ) : null}
-        <MoreToggle open={more} onToggle={() => setMore((m) => !m)} className="col-span-2" />
+              <Field label="Interni / garažni broj">
+                <DictateInput mode="text" value={v.internal_number} onValue={(x) => setV((s) => ({ ...s, internal_number: x }))} />
+              </Field>
+              <Field label="Šifra boje">
+                <DictateInput mode="vin" value={v.paint_code} onValue={(x) => setV((s) => ({ ...s, paint_code: x }))} />
+              </Field>
+              {parents.length ? (
+                <Field label="Nadređeno vozilo (npr. tegljač za prikolicu)" className="col-span-2">
+                  <Select value={v.parent_asset_id} onChange={set('parent_asset_id')}>
+                    <option value="">-</option>
+                    {parents.map((p) => (
+                      <option key={p.value} value={p.value}>
+                        {p.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              ) : null}
+              <Field label="Napomena" className="col-span-2">
+                <DictatedTextarea value={v.notes} onChange={(notes) => setV((s) => ({ ...s, notes }))} />
+              </Field>
+            </div>
+          </Fold>
+        </div>
         <div className="col-span-2 flex gap-2">
           <Button
             variant="primary"
@@ -357,8 +365,8 @@ export function AssetSheet({
 type SiteKind = 'house' | 'flat' | 'apartment' | 'office' | 'commercial' | 'other';
 export const SITE_KIND_LABELS: Record<SiteKind, string> = { flat: 'Stan', house: 'Kuća', apartment: 'Apartman', office: 'Ured', commercial: 'Poslovni prostor', other: 'Ostalo' };
 
-// A place where the customer has devices. Core: address and how to get in;
-// kind, name, postcode and a contact on site: "Više polja".
+// A place where the customer has devices. Core: address and how to get in.
+// Kind, name, postcode and a contact on site are one row.
 export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?: Site; isOwner?: boolean }) {
   const { pending, run } = useAction();
   const [open, setOpen] = useState(false);
@@ -372,7 +380,6 @@ export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?
     contact_name: site?.contact_name ?? '',
     contact_phone: site?.contact_phone ?? '',
   });
-  const [more, setMore] = useState(() => filled(site?.label, site?.postal_code, site?.contact_name, site?.contact_phone));
   const set = (key: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setV((s) => ({ ...s, [key]: e.target.value }));
 
   return (
@@ -404,8 +411,12 @@ export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?
         <Field label="Upute za ulaz">
           <DictatedTextarea value={v.access_notes} onChange={(access_notes) => setV((s) => ({ ...s, access_notes }))} placeholder="Kat, šifra, ključ kod susjeda, pas…" />
         </Field>
-        {more ? (
-          <>
+        <Fold
+          title="Naziv i kontakt"
+          summary={[v.label, v.contact_name].filter(Boolean).join(' · ') || 'Vrsta prostora, pošta, osoba na lokaciji'}
+          startOpen={filled(v.label, v.postal_code, v.contact_name, v.contact_phone)}
+        >
+          <div className="space-y-3 p-4">
             <Segmented
               value={v.kind}
               onChange={(kind) => setV((s) => ({ ...s, kind }))}
@@ -425,9 +436,8 @@ export function SiteSheet({ clientId, site, isOwner }: { clientId: string; site?
                 <DictateInput mode="phone" type="tel" value={v.contact_phone} onValue={(x) => setV((s) => ({ ...s, contact_phone: x }))} />
               </Field>
             </div>
-          </>
-        ) : null}
-        <MoreToggle open={more} onToggle={() => setMore((m) => !m)} />
+          </div>
+        </Fold>
         <div className="flex gap-2 pt-1">
           <Button
             variant="primary"

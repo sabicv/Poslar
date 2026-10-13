@@ -107,7 +107,7 @@ export function BookingForm({
         <p className="text-sm font-medium">1. Odaberite termin</p>
         {(allDays ? days : days.slice(0, 3)).map((day) => (
           <div key={day[0].start}>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">{dayName(day[0].start)}</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">{dayName(day[0].start)}</p>
             <div className="flex flex-wrap gap-2">
               {day.map((s) => (
                 <button

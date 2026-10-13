@@ -44,8 +44,8 @@ export async function DuePlans({ ctx, emptyHint }: { ctx: WorkshopContext; empty
       ) : (
         groups.map((group) => (
           <div key={group.title}>
-            <h2 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted">
-              {group.title} <span className="rounded bg-surface2 px-1.5 text-[11px] text-faint">{group.rows.length}</span>
+            <h2 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+              {group.title} <span className="rounded bg-surface2 px-1.5 text-xs text-faint">{group.rows.length}</span>
             </h2>
             <ul className="space-y-2">
               {group.rows.map((plan) => {

@@ -51,9 +51,9 @@ export function RegisterForm({ initialPackage, packageLocked, referral = '' }: {
   if (checkEmail) {
     return (
       <div className="rounded-2xl border border-ok/40 bg-ok/10 p-5 text-sm">
-        <p className="font-medium text-fg">Provjeri e-mail</p>
+        <p className="font-medium text-fg">Provjerite e-mail</p>
         <p className="mt-1 text-muted">
-          Poslali smo poveznicu za potvrdu na {form.email}. Nakon potvrde prijavi se e-mailom i lozinkom. Ako poruka ne stigne za nekoliko minuta, pogledaj i mapu neželjene pošte.
+          Poslali smo poveznicu za potvrdu na {form.email}. Nakon potvrde prijavite se e-mailom i lozinkom. Ako poruka ne stigne za nekoliko minuta, pogledajte i mapu neželjene pošte.
         </p>
       </div>
     );
@@ -63,6 +63,9 @@ export function RegisterForm({ initialPackage, packageLocked, referral = '' }: {
     <form onSubmit={submit} className="space-y-5">
       <Field label="Ime i prezime">
         <Input required autoComplete="name" value={form.fullName} onChange={set('fullName')} />
+      </Field>
+      <Field label="Naziv radionice" hint="Ako ostavite prazno, radionica nosi Vaše ime.">
+        <Input autoComplete="organization" value={form.workshopName} onChange={set('workshopName')} />
       </Field>
       <Field label="E-mail adresa">
         <Input type="email" required autoComplete="email" value={form.email} onChange={set('email')} />

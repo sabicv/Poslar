@@ -149,10 +149,10 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, 
                 <div className="flex items-start gap-3">
                   <div className="w-14 shrink-0 text-center">
                     <p className="text-base font-semibold tabular">{formatTime(v.scheduled_start)}</p>
-                    <p className="text-[11px] text-faint tabular">{formatTime(v.scheduled_end)}</p>
+                    <p className="text-xs text-faint tabular">{formatTime(v.scheduled_end)}</p>
                   </div>
                   <Link prefetch={false} href={`/app/jobs/${v.id}`} className="min-w-0 flex-1">
-                    <p className="flex flex-wrap items-center gap-1.5 text-[15px] font-medium">
+                    <p className="type-name flex flex-wrap items-center gap-1.5">
                       {clientName(v.client)}
                       {v.is_urgent ? <Badge tone="crit">Hitno</Badge> : null}
                       <Badge tone={PHASE_TONE[v.phase]}>{phaseLabel(ctx.pkg, v.phase)}</Badge>
@@ -194,9 +194,9 @@ export async function FieldSchedule({ ctx, day: requested, tech: requestedTech, 
       {/* Waiting for a date */}
       {(unscheduled ?? []).length ? (
         <section>
-          <h2 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted">
+          <h2 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
             <AlertTriangle className="size-3.5 text-warn" /> Nezakazano
-            <span className="rounded bg-surface2 px-1.5 text-[11px] text-faint">{(unscheduled ?? []).length}</span>
+            <span className="rounded bg-surface2 px-1.5 text-xs text-faint">{(unscheduled ?? []).length}</span>
           </h2>
           <ul className="space-y-2">
             {((unscheduled ?? []) as unknown as Visit[]).map((v) => (

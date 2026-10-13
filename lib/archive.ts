@@ -35,7 +35,7 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
 export function readFilters(sp: Record<string, string | undefined>): ArchiveFilters {
   const from = sp.od && DAY.test(sp.od) ? sp.od : null;
   const to = sp.do && DAY.test(sp.do) ? sp.do : null;
-  const period: Period = from || to ? 'od-do' : sp.r && sp.r in PERIODS ? (sp.r as Period) : 'godina';
+  const period: Period = from || to ? 'od-do' : sp.r && sp.r in PERIODS ? (sp.r as Period) : 'mjesec';
   const paid: Paid = sp.p === 'placeno' || sp.p === 'neplaceno' ? sp.p : 'sve';
   const limit = Math.min(1000, Math.max(50, Number(sp.n) || 50));
   return { period, from, to, paid, q: (sp.q ?? '').trim().slice(0, 80), limit };
@@ -45,7 +45,7 @@ export function readFilters(sp: Record<string, string | undefined>): ArchiveFilt
 export function filterQuery(f: ArchiveFilters, change: Partial<Record<'r' | 'p' | 'q' | 'n' | 'od' | 'do', string | null>> = {}): string {
   const sp = new URLSearchParams();
   const base: Record<string, string | null> = {
-    r: f.period === 'od-do' ? null : f.period === 'godina' ? null : f.period,
+    r: f.period === 'od-do' ? null : f.period === 'mjesec' ? null : f.period,
     od: f.from,
     do: f.to,
     p: f.paid === 'sve' ? null : f.paid,

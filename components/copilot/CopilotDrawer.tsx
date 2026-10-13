@@ -155,15 +155,15 @@ export function CopilotDrawer({ jobId, enabled, triggerClassName }: { jobId: str
     >
       {!enabled ? (
         <div className="space-y-2 pb-4 text-sm text-muted">
-          <p>Poslar još ne odgovara na pitanja u ovoj instalaciji.</p>
-          <p className="text-xs text-faint">Administrator treba upisati ANTHROPIC_API_KEY u postavke poslužitelja.</p>
+          <p>Poslar još ne odgovara na pitanja.</p>
+          <p className="text-xs text-faint">Pomoćnik nije uključen. Zamolite voditelja radionice.</p>
         </div>
       ) : (
         <div className="flex min-h-[60dvh] flex-col">
           <div className="flex-1 space-y-5 pb-4">
             <section className="rounded-2xl border border-line bg-bg p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
+                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-accent">
                   <BrandMark className="size-4" /> Uputa za nalog
                 </p>
                 <div className="flex items-center gap-1">
@@ -182,7 +182,7 @@ export function CopilotDrawer({ jobId, enabled, triggerClassName }: { jobId: str
                 </div>
               </div>
               {context ? (
-                <pre className="mb-3 max-h-64 overflow-auto rounded-xl border border-line bg-surface p-3 font-mono text-[11px] leading-snug text-muted">{context}</pre>
+                <pre className="mb-3 max-h-64 overflow-auto rounded-xl border border-line bg-surface p-3 font-mono text-xs leading-snug text-muted">{context}</pre>
               ) : null}
               {briefingState === 'loading' ? (
                 <div className="space-y-2">
@@ -198,7 +198,7 @@ export function CopilotDrawer({ jobId, enabled, triggerClassName }: { jobId: str
 
             {turns.map((turn) =>
               turn.role === 'user' ? (
-                <div key={turn.id} className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-accent/15 px-4 py-2.5 text-[15px] text-fg">
+                <div key={turn.id} className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-accent/15 px-4 py-2.5 text-sm text-fg">
                   {turn.content}
                 </div>
               ) : (
@@ -208,7 +208,7 @@ export function CopilotDrawer({ jobId, enabled, triggerClassName }: { jobId: str
               )
             )}
             {error ? <p className="rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-sm text-crit">{error}</p> : null}
-            <p className="text-[11px] text-faint">Poslar odgovara automatski i može pogriješiti. Vrijednosti označene „tipično, provjeriti” potvrdite u servisnoj dokumentaciji ili na pločici uređaja.</p>
+            <p className="text-xs text-faint">Poslar odgovara automatski i može pogriješiti. Vrijednosti označene „tipično, provjeriti” potvrdite u servisnoj dokumentaciji ili na pločici uređaja.</p>
             <div ref={endRef} />
           </div>
 

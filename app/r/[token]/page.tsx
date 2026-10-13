@@ -135,7 +135,7 @@ export default async function WorkReport({ params }: { params: Promise<{ token: 
                 <a key={f.path as string} href={urlOf.get(f.path as string)} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-xl border border-line bg-surface">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={urlOf.get(f.path as string)} alt={(f.caption as string | null) ?? group.title} className="aspect-[4/3] w-full object-cover" />
-                  <p className="px-2 py-1 text-[11px] text-faint">
+                  <p className="px-2 py-1 text-xs text-faint">
                     {formatDate((f.taken_at ?? f.created_at) as string)} {formatTime((f.taken_at ?? f.created_at) as string)}
                   </p>
                 </a>

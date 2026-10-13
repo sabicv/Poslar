@@ -1,10 +1,11 @@
 import { Gauge, ShieldCheck } from 'lucide-react';
+import { ShotButton } from '@/components/job/ShotButton';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
 import { REFRIGERANTS, fgasObligations, nextLeakCheck } from '@/config/packages/air';
 import { assetTitle, daysUntil, formatDate, formatDateTime, formatDecimal, formatNumber } from '@/lib/format';
 import { dayOf } from '@/lib/time';
 import type { ModuleProps } from '../ModuleTab';
-import { MoreSections, foldable } from '../more';
+import { Offer, foldable } from '../more';
 import { DeleteRecordButton, RecordSheet } from '../kit';
 import { PlanCard } from '../PlanCard';
 import { opts } from '../options';
@@ -43,7 +44,7 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
   const nextCheck = leakCheck?.due ?? null;
   const plan = (plans ?? []).find((p) => p.asset_id === job.asset.id) ?? (plans ?? []).find((p) => !p.asset_id && p.site_id === job.site_id) ?? null;
   const refrigerant = (device?.refrigerant as string | null) ?? 'R32';
-  const { show, hidden } = foldable(extras);
+  const { show, open } = foldable(extras);
   const showCalculator = !locked && show('dopuna za duljinu cijevi', false);
 
   return (
@@ -111,7 +112,10 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
             </div>
           </div>
         ) : (
-          <p className="px-4 py-4 text-sm text-muted">Upišite radnu tvar i punjenje s natpisne pločice (fotografirajte je u kartici Fotografije).</p>
+          <div className="space-y-3 px-4 py-4">
+            <p className="text-sm text-muted">Upišite radnu tvar i punjenje s natpisne pločice.</p>
+            {!locked ? <ShotButton tenantId={ctx.tenant.id} jobId={job.id} tag="document" caption="Pločica uređaja" label="Fotografija pločice" /> : null}
+          </div>
         )}
       </Card>
 
@@ -172,10 +176,13 @@ export async function AirModule({ ctx, job, locked, extras }: ModuleProps) {
       </Card>
 
       {/* Extra charge calculator */}
-      {showCalculator ? <ChargeCalculator jobId={job.id} assetId={job.asset.id} refrigerant={refrigerant} certificate={(me?.fgas_certificate as string | null) ?? ''} /> : null}
+      {showCalculator ? (
+        <Offer title="Dopuna za duljinu cijevi" summary="Izračun količine plina" filled={open('dopuna za duljinu cijevi')}>
+          <ChargeCalculator jobId={job.id} assetId={job.asset.id} refrigerant={refrigerant} certificate={(me?.fgas_certificate as string | null) ?? ''} />
+        </Offer>
+      ) : null}
 
       <PlanCard ctx={ctx} job={job} plan={plan} title={`Godišnji servis: ${assetTitle(job.asset)}`} templateCode="air.service_one" />
-      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

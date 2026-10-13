@@ -1,9 +1,10 @@
 import { Battery, Cpu, KeyRound, ScanLine, Zap } from 'lucide-react';
+import { ShotButton } from '@/components/job/ShotButton';
 import { Badge, Card, CardHeader } from '@/components/ui';
 import { DTC_CATEGORY_HINTS, findDtcCode } from '@/config/packages/volt-dtc';
 import { formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { MoreSections, foldable } from '../more';
+import { Offer, foldable } from '../more';
 import { DeleteRecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { DrainChart } from './DrainChart';
@@ -68,8 +69,8 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
     label: (f.caption as string | null) || `${String(f.mime ?? '').startsWith('image/') ? 'Fotografija' : 'Datoteka'} · ${formatDateTime(f.created_at as string)}`,
   }));
   const readOnly = locked;
-  // Core: fault codes and the battery. The rest shows with "Više" or once it has data.
-  const { show, hidden } = foldable(extras);
+  // Core: fault codes and the battery. The rest is one row each.
+  const { show, open } = foldable(extras);
   const showCharging = show('punjenje', (charging.data ?? []).length > 0);
   const showDrain = show('struja mirovanja', (sessions.data ?? []).length > 0);
   const showModules = show('zahvati na modulima', (interventions.data ?? []).length > 0);
@@ -237,6 +238,7 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
         </Card>
 
         {showCharging ? (
+        <Offer title="Punjenje" summary={(charging.data ?? []).length ? `${(charging.data ?? []).length} mjerenja` : 'Napon, valovitost'} filled={open('punjenje')}>
         <Card>
           <CardHeader
             title={
@@ -281,11 +283,13 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
             </ul>
           )}
         </Card>
+        </Offer>
         ) : null}
       </div>
 
       {/* Parasitic drain */}
       {showDrain ? (
+      <Offer title="Struja mirovanja" summary={(sessions.data ?? []).length ? `${(sessions.data ?? []).length} mjerenja` : 'mA nakon uspavljivanja'} filled={open('struja mirovanja')}>
       <Card>
         <CardHeader
           title="Parazitska potrošnja"
@@ -370,10 +374,12 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
           </div>
         )}
       </Card>
+      </Offer>
       ) : null}
 
       {/* Module interventions */}
       {showModules ? (
+      <Offer title="Zahvati na modulima" summary={(interventions.data ?? []).length ? `${(interventions.data ?? []).length} zahvata` : 'Kodiranje, backup, flash'} filled={open('zahvati na modulima')}>
       <Card>
         <CardHeader
           title={
@@ -407,7 +413,10 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
           }
         />
         {(interventions.data ?? []).length === 0 ? (
-          <p className="px-4 py-4 text-sm text-muted">Za programiranje i remap sustav traži backup originala. Učitajte datoteku u karticu Fotografije.</p>
+          <div className="space-y-3 px-4 py-4">
+            <p className="text-sm text-muted">Za programiranje i remap sustav traži backup originala.</p>
+            {!locked ? <ShotButton tenantId={ctx.tenant.id} jobId={job.id} tag="document" caption="Backup originala" label="Učitaj backup" accept="*" capture={false} /> : null}
+          </div>
         ) : (
           <ul className="divide-y divide-line">
             {(interventions.data ?? []).map((i) => (
@@ -427,10 +436,12 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
           </ul>
         )}
       </Card>
+      </Offer>
       ) : null}
 
       {/* Keys */}
       {showKeys ? (
+      <Offer title="Ključevi vozila" summary={(keys.data ?? []).length ? `${(keys.data ?? []).length} zapisa` : 'Programiranje, bez PIN-a'} filled={open('ključevi')}>
       <Card>
         <CardHeader
           title={
@@ -477,9 +488,8 @@ export async function VoltModule({ ctx, job, locked, extras }: ModuleProps) {
           </ul>
         )}
       </Card>
+      </Offer>
       ) : null}
-
-      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

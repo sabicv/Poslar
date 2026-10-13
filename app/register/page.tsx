@@ -42,7 +42,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
       </Link>
       <h1 className="text-balance font-display text-3xl font-bold tracking-tight">Isprobaj Poslar 30 dana besplatno</h1>
       <p className="mb-6 mt-2 text-sm text-muted">Otvori svoju radionicu i odmah radi na pravim poslovima. Kartica nije potrebna.</p>
-      {referrer ? <p className="mb-5 rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm">Preporučila te je radionica {referrer.name as string}.</p> : null}
+      {referrer ? <p className="mb-5 rounded-xl border border-accent/40 bg-accent/10 px-3 py-2 text-sm">Preporučila Vas je radionica {referrer.name as string}.</p> : null}
       <RegisterForm initialPackage={initial} packageLocked={matched !== null} referral={referrer ? referral : ''} />
       <p className="mt-6 text-sm text-muted">
         Radije prvo razgledati primjere?{' '}
@@ -51,7 +51,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         </Link>
       </p>
       <p className="mt-2 text-sm text-muted">
-        Već imaš račun?{' '}
+        Već imate račun?{' '}
         <Link href="/login" className="font-medium text-accent hover:underline">
           Prijava
         </Link>

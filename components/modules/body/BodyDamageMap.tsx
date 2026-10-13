@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Diagram } from '@/components/Diagram';
+import { Diagram, type DiagramKind } from '@/components/Diagram';
+import { UndrawnZones } from '@/components/job/UndrawnZones';
 import { Sheet } from '@/components/client-ui';
 import { Badge } from '@/components/ui';
+import { formatHours } from '@/lib/format';
+import type { ConditionZone } from '@/config/tenant.config';
 import { BODY_DAMAGE_TYPES, BODY_OPERATIONS, BODY_ZONES } from '@/config/packages/body';
 import { deleteRecord, saveRecord } from '@/lib/actions/records';
 import { QuickForm } from '../kit';
@@ -23,30 +26,76 @@ interface Damage {
 }
 
 const SIZE = { small: 'Malo', medium: 'Srednje', large: 'Veliko' };
+const TYPE_LETTER: Record<string, string> = { scratch: 'O', dent: 'U', crack: 'P', deformation: 'B', break: 'L', corrosion: 'R', defect: 'D' };
 const OP_LETTER: Record<string, string> = { repair: 'P', replace: 'Z', remove_install: 'S', refinish: 'L', polish: 'Po', pdr: 'D' };
 
-export function BodyDamageMap({ estimateId, jobId, damages, readOnly }: { estimateId: string; jobId: string; damages: Damage[]; readOnly: boolean }) {
+export function BodyDamageMap({
+  estimateId,
+  jobId,
+  damages,
+  readOnly,
+  kind = 'car',
+  zones = BODY_ZONES,
+  intakeMarks = [],
+}: {
+  estimateId: string;
+  jobId: string;
+  damages: Damage[];
+  readOnly: boolean;
+  kind?: DiagramKind;
+  zones?: ConditionZone[];
+  intakeMarks?: { zone: string; code: string }[];
+}) {
   const [zone, setZone] = useState<{ code: string; label: string } | null>(null);
   const path = `/app/jobs/${jobId}`;
   const byZone = new Map(damages.map((d) => [d.zone, d]));
-  const marked = Object.fromEntries(damages.map((d) => [d.zone, [OP_LETTER[d.operation] ?? '•']]));
+  const letterOf = (d: Damage) => (d.damage_type && TYPE_LETTER[d.damage_type]) || OP_LETTER[d.operation] || '•';
+  const marked: Record<string, string[]> = {};
+  for (const mark of intakeMarks) (marked[mark.zone] ??= []).push(mark.code);
+  for (const damage of damages) marked[damage.zone] = [letterOf(damage)];
   const current = zone ? byZone.get(zone.code) : undefined;
-  const label = (code: string) => BODY_ZONES.find((z) => z.code === code)?.label ?? code;
+  const label = (code: string) => zones.find((z) => z.code === code)?.label ?? code;
+  const fromIntake = [...new Set(intakeMarks.map((mark) => mark.zone))].filter((code) => !byZone.has(code));
 
   return (
     <>
       <div className="grid gap-4 md:grid-cols-[280px_1fr]">
-        <Diagram kind="car" marked={marked} onZone={setZone} disabled={readOnly} />
+        <div>
+          {kind === 'car' ? (
+            <>
+              <Diagram kind="car" marked={marked} onZone={setZone} disabled={readOnly} />
+              <UndrawnZones kind="car" zones={zones} marked={marked} onZone={setZone} disabled={readOnly} />
+            </>
+          ) : (
+            <Diagram kind={kind} zones={zones} marked={marked} onZone={setZone} disabled={readOnly} detail />
+          )}
+        </div>
         <ul className="space-y-2">
-          {damages.length === 0 ? <li className="text-sm text-muted">Nema označenih dijelova.</li> : null}
+          {damages.length === 0 && fromIntake.length === 0 ? <li className="text-sm text-muted">Nema označenih dijelova.</li> : null}
+          {fromIntake.map((code) => (
+            <li key={code}>
+              <button
+                type="button"
+                disabled={readOnly}
+                onClick={() => setZone({ code, label: label(code) })}
+                className="flex w-full items-center gap-2 rounded-xl border border-[rgb(var(--orange))] bg-[rgb(var(--orange))]/10 px-3 py-2.5 text-left"
+              >
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-[rgb(var(--orange))] font-mono text-sm font-bold text-white">{(marked[code] ?? ['•']).join('')}</span>
+                <span className="min-w-0 flex-1 text-sm font-medium">{label(code)}</span>
+                <span className="text-xs text-muted">S prijema</span>
+              </button>
+            </li>
+          ))}
           {damages.map((d) => (
             <li key={d.id}>
               <button
                 type="button"
                 disabled={readOnly}
                 onClick={() => setZone({ code: d.zone, label: label(d.zone) })}
-                className="w-full rounded-xl border border-line bg-bg px-3 py-2.5 text-left hover:border-faint/60"
+                className="flex w-full items-start gap-2 rounded-xl border border-[rgb(var(--orange))] bg-[rgb(var(--orange))]/10 px-3 py-2.5 text-left"
               >
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-[rgb(var(--orange))] font-mono text-sm font-bold text-white">{letterOf(d)}</span>
+                <span className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium">{label(d.zone)}</span>
                   <Badge tone="accent">{BODY_OPERATIONS[d.operation]}</Badge>
@@ -54,9 +103,20 @@ export function BodyDamageMap({ estimateId, jobId, damages, readOnly }: { estima
                 </div>
                 {d.hours_body + d.hours_prep + d.hours_paint + d.hours_assembly > 0 ? (
                   <p className="mt-1 text-xs tabular text-muted">
-                    Lim {d.hours_body} h · priprema {d.hours_prep} h · lak {d.hours_paint} h · sastavljanje {d.hours_assembly} h
+                    {(
+                      [
+                        ['Lim', d.hours_body],
+                        ['priprema', d.hours_prep],
+                        ['lak', d.hours_paint],
+                        ['sastavljanje', d.hours_assembly],
+                      ] as [string, number][]
+                    )
+                      .filter(([, hours]) => hours > 0)
+                      .map(([name, hours]) => `${name} ${formatHours(hours)}`)
+                      .join(' · ')}
                   </p>
                 ) : null}
+                </span>
               </button>
             </li>
           ))}
@@ -71,10 +131,10 @@ export function BodyDamageMap({ estimateId, jobId, damages, readOnly }: { estima
               { name: 'damage_type', label: 'Oštećenje', type: 'select', options: opts(BODY_DAMAGE_TYPES), half: true },
               { name: 'size', label: 'Veličina', type: 'select', options: opts(SIZE), half: true, extra: true },
               { name: 'operation', label: 'Operacija', type: 'select', options: opts(BODY_OPERATIONS), required: true },
-              { name: 'hours_body', label: 'Limarija', type: 'number', suffix: 'h', half: true, extra: true },
-              { name: 'hours_prep', label: 'Priprema', type: 'number', suffix: 'h', half: true, extra: true },
-              { name: 'hours_paint', label: 'Lakiranje', type: 'number', suffix: 'h', half: true, extra: true },
-              { name: 'hours_assembly', label: 'Sastavljanje', type: 'number', suffix: 'h', half: true, extra: true },
+              { name: 'hours_body', label: 'Limarija', type: 'hours' },
+              { name: 'hours_prep', label: 'Priprema', type: 'hours' },
+              { name: 'hours_paint', label: 'Lakiranje', type: 'hours' },
+              { name: 'hours_assembly', label: 'Sastavljanje', type: 'hours' },
               { name: 'note', label: 'Napomena', type: 'textarea' },
             ]}
             onSubmit={(values) =>

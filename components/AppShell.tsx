@@ -17,8 +17,8 @@ import { cn } from '@/lib/utils';
 interface NavItem {
   href: string;
   label: string;
-  // A small dot with what it means (read by screen readers).
   dot?: string;
+  count?: number;
   icon: LucideIcon;
   exact?: boolean;
 }
@@ -56,11 +56,14 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  // The job page has its own action bar, so the phone menu steps aside.
+  const jobFocus = /^\/app\/jobs\/[0-9a-f-]{36}$/i.test(pathname);
   // From a day picked in the schedule, a new job opens on that day.
   const pickedDay = useSearchParams().get('d');
   const newJobHref = pathname === '/app' && pickedDay && /^\d{4}-\d{2}-\d{2}$/.test(pickedDay) ? `/app/jobs/new?d=${pickedDay}` : '/app/jobs/new';
   const items: NavItem[] = [
     { href: '/app', label: product.field ? 'Raspored' : 'Nalozi', icon: product.field ? CalendarDays : ClipboardList, exact: true, dot: doorCount > 0 ? `Nove prijave: ${doorCount}` : undefined },
+    { href: '/app/inbox', label: 'Poruke', icon: Bell, exact: true, count: inboxCount },
     { href: '/app/clients', label: product.clients, icon: Users },
     { href: '/app/module', label: product.modulePage, icon: PRODUCT_ICONS[product.id] },
     ...(user.isOwner ? [{ href: '/app/business', label: 'Poslovanje', icon: BarChart3 }] : []),
@@ -112,20 +115,13 @@ export function AppShell({
             >
               <item.icon className={cn('size-4', isActive(item) && 'text-accent')} />
               {item.label}
-              {item.dot ? <span className="ml-auto size-2 rounded-full bg-accent" aria-label={item.dot} /> : null}
+              {item.count ? (
+                <span className="ml-auto rounded-full bg-[rgb(var(--orange))] px-1.5 text-xs font-semibold text-white">{item.count > 99 ? '99+' : item.count}</span>
+              ) : item.dot ? (
+                <span className="ml-auto size-2 rounded-full bg-accent" aria-label={item.dot} />
+              ) : null}
             </Link>
           ))}
-          <Link
-            href="/app/inbox"
-            className={cn(
-              'flex h-10 items-center gap-3 rounded-lg px-3 text-sm transition-colors',
-              pathname === '/app/inbox' ? 'bg-surface2 font-medium text-fg' : 'text-muted hover:bg-surface2/60 hover:text-fg'
-            )}
-          >
-            <Bell className="size-4" />
-            Poruke
-            {inboxCount > 0 ? <span className="ml-auto rounded-full bg-[rgb(var(--orange))] px-1.5 text-xs font-semibold text-white">{inboxCount}</span> : null}
-          </Link>
         </nav>
         <div className="mt-auto space-y-3 border-t border-line pt-4">
           {trialDaysLeft !== null ? <TrialNote days={trialDaysLeft} linked={!play} /> : null}
@@ -157,12 +153,14 @@ export function AppShell({
             {workshops.length > 1 ? (
               <WorkshopSwitch workshops={workshops} className="flex size-12 shrink-0 items-center justify-center rounded-xl text-muted hover:bg-surface2" />
             ) : null}
-            <Link href="/app/inbox" className="relative flex size-12 items-center justify-center rounded-xl text-muted hover:bg-surface2" aria-label="Poruke">
-              <Bell className="size-5" />
-              {inboxCount > 0 ? (
-                <span className="absolute right-1.5 top-1.5 flex min-w-4 items-center justify-center rounded-full bg-[rgb(var(--orange))] px-1 text-[10px] font-bold text-white">{inboxCount}</span>
-              ) : null}
-            </Link>
+            {jobFocus ? (
+              <Link href="/app/inbox" className="relative flex size-12 items-center justify-center rounded-xl text-muted hover:bg-surface2" aria-label="Poruke">
+                <Bell className="size-5" />
+                {inboxCount > 0 ? (
+                  <span className="absolute right-1.5 top-1.5 flex min-w-4 items-center justify-center rounded-full bg-[rgb(var(--orange))] px-1 text-xs font-bold text-white">{inboxCount > 99 ? '99+' : inboxCount}</span>
+                ) : null}
+              </Link>
+            ) : null}
             <Link href={newJobHref} className={buttonClass('primary', 'md', 'px-3')} aria-label="Novi nalog">
               <Plus className="size-5" />
               <span className="hidden sm:inline">Novi nalog</span>
@@ -175,25 +173,31 @@ export function AppShell({
           ) : null}
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8 print:max-w-none print:p-0">
+        <main className={cn('mx-auto w-full max-w-6xl px-4 pt-5 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8 print:max-w-none print:p-0', jobFocus ? 'pb-4' : 'pb-28')}>
           {pathname === '/app' ? <InstallPrompt /> : null}
           {notice}
           {children}
         </main>
 
         {/* Phone bottom navigation */}
-        <nav className="hide-on-type fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 pb-safe backdrop-blur-md print:hidden lg:hidden">
+        <nav className={cn('hide-on-type fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/90 pb-safe backdrop-blur-md print:hidden lg:hidden', jobFocus && 'hidden')}>
           <div className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
             {items.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn('relative flex h-16 flex-col items-center justify-center gap-1 text-[11px]', isActive(item) ? 'text-fg' : 'text-faint')}
+                className={cn('relative flex h-16 flex-col items-center justify-center gap-1 text-xs', isActive(item) ? 'text-fg' : 'text-faint')}
               >
                 <item.icon className={cn('size-5 shrink-0', isActive(item) && 'text-accent')} />
-                {item.dot ? <span className="absolute right-[calc(50%-14px)] top-2.5 size-2 rounded-full bg-accent" aria-label={item.dot} /> : null}
+                {item.count ? (
+                  <span className="absolute right-[calc(50%-16px)] top-2 flex min-w-4 items-center justify-center rounded-full bg-[rgb(var(--orange))] px-1 text-xs font-bold text-white">
+                    {item.count > 99 ? '99+' : item.count}
+                  </span>
+                ) : item.dot ? (
+                  <span className="absolute right-[calc(50%-14px)] top-2.5 size-2 rounded-full bg-accent" aria-label={item.dot} />
+                ) : null}
                 {/* Two short lines ("Servisni / planovi") rather than a cut-off word. */}
-                <span className="line-clamp-2 max-w-full break-words px-0.5 text-center leading-[1.1]">{item.label}</span>
+                <span className="line-clamp-2 max-w-full px-0.5 text-center text-[10px] leading-[1.15] tracking-tight [word-break:normal]">{item.label}</span>
               </Link>
             ))}
           </div>

@@ -1,33 +1,35 @@
-import Link from 'next/link';
-import { ChevronDown } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { Fold } from '@/components/Fold';
 
-// The one "Više" button of a package tab: names what is folded away and
-// opens it all in one tap (?vise=1). Sections that already hold data are
-// never folded, so nothing entered ever disappears.
-export function MoreSections({ href, hidden }: { href: string; hidden: string[] }) {
-  if (!hidden.length) return null;
+// One optional function of a trade tab. Closed until it holds something.
+// The card inside keeps its own heading; the frame around it is the row.
+export function Offer({
+  title,
+  summary,
+  children,
+}: {
+  title: string;
+  summary: string;
+  // Accepted so a caller can say the row already holds data. The summary
+  // shows that; the row itself stays closed until someone asks for it.
+  filled?: boolean;
+  children: ReactNode;
+}) {
   return (
-    <Link
-      href={href}
-      replace
-      scroll={false}
-      prefetch={false}
-      className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-line px-4 py-3 text-center text-sm text-muted hover:text-fg"
-    >
-      <ChevronDown className="size-4 shrink-0" />
-      Više: {hidden.join(', ')}
-    </Link>
+    <Fold title={title} summary={summary}>
+      <div className="[&>*]:rounded-none [&>*]:border-0 [&>*]:bg-transparent [&>*]:shadow-none">{children}</div>
+    </Fold>
   );
 }
 
-// Collects which sections are shown: a section shows when "Više" is open or
-// when it already has data.
-export function foldable(extras: boolean) {
-  const hidden: string[] = [];
+// Every offered section is on the page. `open` is true when it already
+// holds data, so that row starts open and nothing entered disappears.
+export function foldable(_extras?: boolean) {
+  const filled = new Map<string, boolean>();
   const show = (name: string, hasData: boolean) => {
-    const visible = extras || hasData;
-    if (!visible) hidden.push(name);
-    return visible;
+    filled.set(name, Boolean(hasData));
+    return true;
   };
-  return { show, hidden };
+  const open = (name: string) => filled.get(name) ?? false;
+  return { show, open };
 }

@@ -4,13 +4,16 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { Copy, FileText, Link2, MessageCircle, Plus, Send } from 'lucide-react';
-import { ConfirmButton, DictateButton, MoreToggle, Segmented, Sheet, useAction } from '@/components/client-ui';
+import { Fold } from '@/components/Fold';
+import { ConfirmButton, DictateButton, Segmented, Sheet, useAction } from '@/components/client-ui';
 import { SaveAsTemplate } from '@/components/pricing/TemplateEditor';
 import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Select, Textarea, buttonClass } from '@/components/ui';
+import { ShotButton } from './ShotButton';
 import { invoiceTotals, lineAmount } from '@/components/invoice/InvoiceDocument';
-import type { LineKind } from '@/config/tenant.config';
+import type { JobPhase, LineKind } from '@/config/tenant.config';
 import { addLine, applyTemplate, createApproval, deleteLine, setLineApproval, setLinePrice, updateLine } from '@/lib/actions/jobs';
 import { copyText } from '@/lib/clipboard';
+import { whatsappLink } from '@/lib/contact';
 import { formatDateTime, formatEuro } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { Approval, JobLine, LineApproval, LinePriority } from '@/types/db';
@@ -54,11 +57,16 @@ export function LinesEditor({
   clientPhone,
   vatRegistered,
   invoice = true,
+  phase = 'in_progress',
   quotes = true,
   hourlyRate = null,
   templateName = '',
+  tenantId,
+  partShots = {},
 }: {
   jobId: string;
+  tenantId: string;
+  partShots?: Record<string, { old: number; new: number }>;
   lines: JobLine[];
   prices: Record<string, Price>;
   templates: { code: string; name: string }[];
@@ -69,6 +77,8 @@ export function LinesEditor({
   clientPhone: string | null;
   vatRegistered: boolean;
   invoice?: boolean;
+  // The loud invoice button belongs at the end of the job, not during intake.
+  phase?: JobPhase;
   // Known-price trades (čišćenje, gume, vuča) do not send a quote.
   quotes?: boolean;
   // The owner's hourly rate (Cjenik): the starting price of a new line of work.
@@ -99,7 +109,7 @@ export function LinesEditor({
 
   function sendApproval() {
     run(() => createApproval(jobId), {
-      success: 'Ponuda je poslana',
+      success: 'Poveznica je spremna',
       onDone: (data) => {
         if (data?.token) setLink(`${origin}/approve/${data.token}`);
       },
@@ -156,13 +166,19 @@ export function LinesEditor({
                         </span>
                       ) : null}
                     </button>
+                    {line.kind === 'part' && !locked ? (
+                      <div className="flex flex-wrap gap-2 px-4 pb-3">
+                        <ShotButton tenantId={tenantId} jobId={jobId} tag="part_old" caption={`Stari dio: ${line.description}`} zone={line.id} label="Stari dio" count={partShots[line.id]?.old ?? 0} />
+                        <ShotButton tenantId={tenantId} jobId={jobId} tag="part_new" caption={`Novi dio: ${line.description}`} zone={line.id} label="Novi dio" count={partShots[line.id]?.new ?? 0} />
+                      </div>
+                    ) : null}
                     {isOwner && line.approval === 'proposed' && !locked ? (
                       <div className="flex gap-2 px-4 pb-3 pl-[5.75rem]">
                         <Button size="sm" variant="ok" disabled={pending} onClick={() => run(() => setLineApproval(jobId, line.id, 'approved'))}>
-                          Odobreno
+                          Odobri
                         </Button>
                         <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => setLineApproval(jobId, line.id, 'declined'))}>
-                          Odbijeno
+                          Odbij
                         </Button>
                         <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => setLineApproval(jobId, line.id, 'deferred'))}>
                           Kasnije
@@ -196,7 +212,7 @@ export function LinesEditor({
             <span className="tabular">{formatEuro(totals.gross)}</span>
           </div>
           {invoice ? (
-            <Link href={`/app/jobs/${jobId}/racun`} prefetch={false} className={cn(buttonClass('primary', 'lg'), 'mt-3 w-full')}>
+            <Link href={`/app/jobs/${jobId}/racun`} prefetch={false} className={cn(buttonClass(phase === 'ready' || phase === 'collected' ? 'primary' : 'secondary', 'lg'), 'mt-3 w-full')}>
               <FileText className="size-5" /> Račun
             </Link>
           ) : null}
@@ -268,8 +284,8 @@ export function LinesEditor({
                   <Copy className="size-4" /> Kopiraj
                 </Button>
                 <a
-                  className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface2 px-3 text-sm"
-                  href={`https://wa.me/${(clientPhone ?? '').replace(/[^\d]/g, '').replace(/^0/, '385')}?text=${encodeURIComponent(`Poštovani, šaljemo Vam ponudu: ${link}`)}`}
+                  className={buttonClass('secondary', 'sm')}
+                  href={whatsappLink(clientPhone, `Poštovani, šaljemo Vam ponudu: ${link}`)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -336,10 +352,10 @@ function LineSheet({
   const [discount, setDiscount] = useState(price ? String(price.discount_pct) : '0');
   const [vat, setVat] = useState(price ? String(price.vat_rate) : '25');
   const [kpd, setKpd] = useState(line?.kpd_code ?? '');
-  // Core: kind, what, how many, price. Unit, discount, VAT and the customer
-  // approval flow: "Više polja" (open when a line already uses them).
+  // Core: kind, what, how many, price. Unit, discount, VAT and the fiscal code
+  // are one row, open when this line already uses them.
   const defaultUnit = (k: LineKind) => (k === 'labor' ? 'h' : k === 'material' ? 'l' : 'kom');
-  const [more, setMore] = useState(() => Boolean(line && (line.unit !== defaultUnit(line.kind) || line.kpd_code)) || Boolean(price && (Number(price.discount_pct) !== 0 || Number(price.vat_rate) !== 25)));
+  const detailsOn = Boolean(line && (line.unit !== defaultUnit(line.kind) || line.kpd_code)) || Boolean(price && (Number(price.discount_pct) !== 0 || Number(price.vat_rate) !== 25));
 
   function saved() {
     onSaved();
@@ -391,8 +407,12 @@ function LineSheet({
             </Field>
           ) : null}
         </div>
-        {more ? (
-        <>
+        <Fold
+          title="Jedinica, popust i šifra"
+          summary={[unit, Number(discount) ? `popust ${discount}%` : null, kpd || null].filter(Boolean).join(' · ') || 'Jedinica, popust, PDV, KPD'}
+          startOpen={detailsOn}
+        >
+        <div className="space-y-3 p-4">
         <div className={cn('grid gap-3', isOwner && vatRegistered ? 'grid-cols-3' : 'grid-cols-2')}>
           <Field label="Jedinica">
             <Select value={unit} onChange={(e) => setUnit(e.target.value)}>
@@ -420,8 +440,8 @@ function LineSheet({
         <Field label="KPD šifra (fiskalni račun)">
           <Input inputMode="numeric" maxLength={6} value={kpd} onChange={(e) => setKpd(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="npr. 452011" className="font-mono" />
         </Field>
-        </>
-        ) : null}
+        </div>
+        </Fold>
         {/* Always in view: whether it is being done or first offered to the customer. */}
         <Field label="Status">
           <Segmented
@@ -450,7 +470,6 @@ function LineSheet({
           </Field>
           </>
         ) : null}
-        <MoreToggle open={more} onToggle={() => setMore((m) => !m)} />
         <div className="flex gap-2 pt-2">
           <Button variant="primary" size="lg" className="flex-1" disabled={pending || !description.trim()} onClick={save}>
             Spremi

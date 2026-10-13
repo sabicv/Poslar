@@ -23,6 +23,7 @@ export type QueuedPhoto = {
   caption: string | null;
   stage: 'before' | 'during' | 'after' | null;
   zone: string | null;
+  visibility: 'internal' | 'customer' | 'insurer';
 };
 
 export type QueuedField = {
@@ -98,6 +99,7 @@ export async function enqueuePhoto(opts: UploadOptions): Promise<{ id: string; p
     caption: opts.caption ?? null,
     stage: opts.stage ?? null,
     zone: opts.zone ?? null,
+    visibility: opts.visibility ?? 'internal',
   });
   return { id, path: '', queued: true };
 }
@@ -133,6 +135,7 @@ export async function flushQueue(): Promise<{ sent: number; left: number }> {
           caption: item.caption,
           stage: item.stage,
           zone: item.zone,
+          visibility: item.visibility ?? 'internal',
         });
       } else {
         await saveRecord(

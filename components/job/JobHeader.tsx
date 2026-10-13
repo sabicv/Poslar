@@ -8,7 +8,7 @@ import type { JobWithRefs } from '@/types/db';
 // Everything about the job exactly once: the phase and the money show in
 // the stepper under the header and change in the bottom bar (with "Pitaj
 // Poslara"), the amount in Stavke, "promised by" in Pregled, client details on
-// the client page (the name here links there), km in Pregled. On a field visit the
+// the client page (the name here links there). On a field visit the
 // call and navigation buttons sit in the visit card, so the header only
 // names the address.
 export function JobHeader({ job, backHref, backLabel }: { job: JobWithRefs; backHref: string; backLabel: string }) {
@@ -26,7 +26,7 @@ export function JobHeader({ job, backHref, backLabel }: { job: JobWithRefs; back
             </Badge>
           ) : null}
         </div>
-        <h1 className="break-words font-display text-3xl font-bold leading-tight tracking-tight">
+        <h1 className="type-page">
           <Link prefetch={false} href={`/app/assets/${job.asset.id}`} className="hover:underline">
             {assetTitle(job.asset)}
           </Link>
@@ -45,7 +45,10 @@ export function JobHeader({ job, backHref, backLabel }: { job: JobWithRefs; back
           ) : null}
         </div>
         {/* When it happened: never shown elsewhere on the job, so it goes here. */}
-        <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-faint">
+        <p className="mt-1.5 text-sm">
+          <span className="text-muted">Radnik</span> <span className="font-medium text-fg">{job.assignee?.full_name || 'nije dodijeljen'}</span>
+        </p>
+        <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-faint">
           <span>Primljeno {formatDateTime(job.created_at)}</span>
           {job.finished_at ? <span>Gotovo {formatDateTime(job.finished_at)}</span> : null}
           {job.collected_at ? <span>Preuzeto {formatDateTime(job.collected_at)}</span> : null}

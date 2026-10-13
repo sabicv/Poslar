@@ -1,9 +1,11 @@
+import { Diagram, diagramFor, resolveZones } from '@/components/Diagram';
 import { BODY_PHASES } from '@/config/production';
 import { Clock, Droplets, FileCheck2, Paintbrush, ScanEye } from 'lucide-react';
+import { Fold } from '@/components/Fold';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
-import { formatDate, formatDateTime, formatNumber } from '@/lib/format';
+import { formatDate, formatDateTime, formatHours, formatNumber } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { MoreSections, foldable } from '../more';
+import { foldable } from '../more';
 import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { BodyDamageMap } from './BodyDamageMap';
@@ -20,7 +22,7 @@ const MATERIAL = { basecoat: 'Baza', clearcoat: 'Lak', primer: 'Temeljna', fille
 export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
   const path = `/app/jobs/${job.id}`;
   const s = ctx.supabase;
-  const [{ data: estimates }, { data: insurers }, { data: paint }, { data: phases }, { data: adas }, { data: materials }, { data: staff }] = await Promise.all([
+  const [{ data: estimates }, { data: insurers }, { data: paint }, { data: phases }, { data: adas }, { data: materials }, { data: staff }, { data: intake }] = await Promise.all([
     s.from('body_estimates').select('*').eq('job_id', job.id).order('version', { ascending: false }),
     s.from('insurers').select('id, name').order('name'),
     s.from('body_paint_jobs').select('*, mix:body_paint_mix_lines(id, sort, component_code, target_g, actual_g)').eq('job_id', job.id).maybeSingle(),
@@ -28,6 +30,7 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
     s.from('body_adas_calibrations').select('*').eq('job_id', job.id).order('performed_at'),
     s.from('body_material_usage').select('*').eq('job_id', job.id).order('created_at'),
     s.from('profiles').select('id, full_name'),
+    s.from('condition_reports').select('marks').eq('job_id', job.id).eq('kind', 'intake').maybeSingle(),
   ]);
   const estimate = estimates?.[0] ?? null;
   const { data: damages } = estimate ? await s.from('body_panel_damages').select('*').eq('estimate_id', estimate.id) : { data: [] };
@@ -44,13 +47,12 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
     { body: 0, prep: 0, paint: 0, assembly: 0 }
   );
   const openPhase = (phases ?? []).find((p) => !p.finished_at);
-  // Core: estimate, damage map, paint code. The rest with "Više" or once it has data.
-  const { show, hidden } = foldable(extras);
+  const diagram = diagramFor(job.asset.asset_type, ctx.pkg.diagram);
+  const zones = resolveZones(diagram, ctx.pkg.diagram, ctx.pkg.conditionZones);
+  const intakeMarks = ((intake?.marks as { zone: string; code: string }[] | null) ?? []).filter((mark) => mark.zone && mark.code);
+  // A new insurer is rare. Production, calibration and materials stay open, like the paint code.
+  const { show } = foldable(extras);
   const anyHours = hours.body + hours.prep + hours.paint + hours.assembly > 0;
-  const showRecipe = (m: unknown[]) => show('receptura boje', m.length > 0);
-  const showPhases = show('faze proizvodnje', (phases ?? []).length > 0);
-  const showAdas = show('ADAS', (adas ?? []).length > 0);
-  const showMaterials = show('materijal', (materials ?? []).length > 0);
   const showNewInsurer = show('novo osiguranje', false);
   const mix = ((paint?.mix as { id: string; sort: number; component_code: string; target_g: number | null; actual_g: number | null }[] | undefined) ?? []).sort((a, b) => a.sort - b.sort);
 
@@ -135,6 +137,9 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
             <BodyDamageMap
               estimateId={estimate.id as string}
               jobId={job.id}
+              kind={diagram}
+              zones={zones}
+              intakeMarks={intakeMarks}
               readOnly={locked}
               damages={(damages ?? []).map((d) => ({
                 id: d.id as string,
@@ -161,14 +166,32 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
               ).map(([label, value]) => (
                 <div key={label} className="rounded-xl border border-line bg-bg px-3 py-2">
                   <p className="text-xs text-muted">{label}</p>
-                  <p className="font-semibold tabular">{formatNumber(value)} h</p>
+                  <p className="font-semibold tabular">{formatHours(value)}</p>
                 </div>
               ))}
             </div>
             ) : null}
           </div>
         </Card>
-      ) : null}
+      ) : (
+        <Card>
+          <CardHeader title="Mapa oštećenja" subtitle="Isti tlocrt kao pri prijemu" />
+          <div className="p-4">
+            <Diagram
+              kind={diagram}
+              zones={zones}
+              marked={intakeMarks.reduce<Record<string, string[]>>((acc, mark) => {
+                (acc[mark.zone] ??= []).push(mark.code);
+                return acc;
+              }, {})}
+              onZone={() => undefined}
+              disabled
+              detail={diagram !== 'car'}
+            />
+            <p className="mt-3 text-sm text-muted">Otvorite procjenu iznad. Operacija i sati idu na isti crtež, a oznake s prijema su već na njemu.</p>
+          </div>
+        </Card>
+      )}
 
       {/* Paint shop */}
       <Card>
@@ -203,10 +226,11 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
             ) : null
           }
         />
-        {paint && showRecipe(mix) ? (
+        {paint ? (
+          <Fold plain title="Receptura" summary={mix.length ? `${mix.length} komponenti` : 'Komponente s vage'}>
           <div className="p-4">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted">Receptura</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Receptura</p>
               {!locked ? (
                 <RecordSheet
                   table="body_paint_mix_lines"
@@ -250,11 +274,10 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
               <p className="text-sm text-muted">Upišite komponente s vage: cilj i stvarno.</p>
             )}
           </div>
+          </Fold>
         ) : null}
       </Card>
 
-      {/* Production phases */}
-      {showPhases ? (
       <Card>
         <CardHeader
           title={
@@ -283,13 +306,25 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
           {phases?.length ? (
             <ul className="mt-4 divide-y divide-line text-sm">
               {phases.map((p) => {
-                const minutes = p.finished_at ? Math.round((new Date(p.finished_at as string).getTime() - new Date(p.started_at as string).getTime()) / 60000) : null;
+                const started = new Date(p.started_at as string);
+                const finished = p.finished_at ? new Date(p.finished_at as string) : null;
+                const minutes = finished ? Math.round((finished.getTime() - started.getTime()) / 60000) : null;
+                const day = (value: Date) => value.toLocaleDateString('en-CA', { timeZone: 'Europe/Zagreb' });
+                // A phase left open overnight is calendar time, not hours at the bench.
+                const span =
+                  minutes === null
+                    ? `u tijeku od ${formatDateTime(p.started_at as string)}`
+                    : minutes < 0
+                      ? formatDateTime(p.started_at as string)
+                      : day(started) === day(finished!)
+                        ? `${Math.floor(minutes / 60)} h ${minutes % 60} min`
+                        : `${formatDateTime(p.started_at as string)} – ${formatDateTime(p.finished_at as string)}`;
                 return (
-                  <li key={p.id as string} className="flex items-center justify-between py-2">
+                  <li key={p.id as string} className="flex items-center justify-between gap-3 py-2">
                     <span>
                       {PHASES[p.phase as keyof typeof PHASES]} <span className="text-faint">· {names.get(p.worker_id as string) ?? '-'}</span>
                     </span>
-                    <span className="tabular text-muted">{minutes === null ? 'u tijeku' : `${Math.floor(minutes / 60)} h ${minutes % 60} min`}</span>
+                    <span className="text-right text-muted">{span}</span>
                   </li>
                 );
               })}
@@ -297,10 +332,8 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
           ) : null}
         </div>
       </Card>
-      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {showAdas ? (
         <Card>
           <CardHeader
             title={
@@ -338,9 +371,7 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Nakon zamjene vjetrobrana, branika ili geometrije: kalibracija kamera i radara.</p>
           )}
         </Card>
-        ) : null}
 
-        {showMaterials ? (
         <Card>
           <CardHeader
             title={
@@ -382,9 +413,7 @@ export async function BodyModule({ ctx, job, locked, extras }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Nema zapisa.</p>
           )}
         </Card>
-        ) : null}
       </div>
-      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

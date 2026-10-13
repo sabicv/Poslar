@@ -10,6 +10,18 @@ export function formatEuro(amount: number | null | undefined): string {
 
 // Up to maxDigits decimals, trailing zeros dropped: 1.8 → "1,8", 12 → "12".
 const numbers = new Map<number, Intl.NumberFormat>([[1, number]]);
+// 1.2 h is an hour and 12 minutes, not an hour and 20.
+export function formatHours(value: number | null | undefined): string {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return '0 min';
+  const total = Math.round(n * 60);
+  const hours = Math.floor(total / 60);
+  const mins = total % 60;
+  if (hours === 0) return `${mins} min`;
+  if (mins === 0) return `${hours} h`;
+  return `${hours} h ${mins} min`;
+}
+
 export function formatNumber(value: number | null | undefined, maxDigits = 1): string {
   if (value === null || value === undefined) return '-';
   if (!numbers.has(maxDigits)) numbers.set(maxDigits, new Intl.NumberFormat('hr-HR', { maximumFractionDigits: maxDigits }));

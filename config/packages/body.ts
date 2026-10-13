@@ -67,6 +67,7 @@ export const BODY_DAMAGE_TYPES: Record<string, string> = {
   deformation: 'Deformacija',
   break: 'Lom',
   corrosion: 'Korozija',
+  defect: 'Kvar / defekt / neispravno',
 };
 
 export const PHOTO_ANGLES = [
@@ -106,7 +107,27 @@ export const body: PackageConfig = {
   phaseLabels: { diagnosis: 'Procjena', in_progress: 'U proizvodnji', awaiting_approval: 'Čeka osiguranje' },
   quote: 'first',
   opening: { intake: 'Sljedeće: procjena štete i ponuda.', diagnosis: 'Sljedeće: karta oštećenja i lak.', tab: 'stavke', diagnosisTab: 'modul' },
-  symptoms: ['Sudar', 'Parkiranje', 'Tuča', 'Divljač', 'Vandalizam', 'Korozija', 'Poliranje / zaštita'],
+  symptoms: [
+    'Sudar',
+    'Parkiranje',
+    'Tuča',
+    'Divljač',
+    'Vandalizam',
+    'Korozija',
+    'Poliranje / zaštita',
+    'Osiguranje',
+    'Staklo',
+    'Branik',
+    'Vrata',
+    'Retrovizor',
+    'Farovi',
+    'Prag',
+    'Krov',
+    'Hauba',
+    'Krilo',
+    'Lakiranje',
+    'Priprema za prodaju',
+  ],
   photoTags: [
     ...COMMON_PHOTO_TAGS,
     { code: 'angle', label: 'Standardni kut' },

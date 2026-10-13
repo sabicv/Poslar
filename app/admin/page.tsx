@@ -156,7 +156,7 @@ export default async function TowerOverview() {
         <div className="space-y-4 p-4">
           {TRADE_GROUPS.map((g) => (
             <div key={g.id}>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">{g.name}</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">{g.name}</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                 {g.packages.map((id) => PACKAGES[id]).map((p) => (
                   <div key={p.id} className="accent-scope flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2" style={accentStyle(p)}>

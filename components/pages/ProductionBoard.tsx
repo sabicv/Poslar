@@ -95,9 +95,9 @@ export function ProductionBoard({ columns }: { columns: BoardColumn[] }) {
       <div className="no-scrollbar hidden gap-3 overflow-x-auto pb-4 md:flex">
         {columns.map((c) => (
           <section key={c.id} className="w-72 shrink-0">
-            <h2 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted">
+            <h2 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
               {c.label}
-              <span className="rounded bg-surface2 px-1.5 text-[11px] text-faint">{c.cards.length}</span>
+              <span className="rounded bg-surface2 px-1.5 text-xs text-faint">{c.cards.length}</span>
             </h2>
             <div className="space-y-2">
               {c.cards.map((card) => (
@@ -121,7 +121,7 @@ function Card({ card }: { card: BoardCard }) {
           <span className="text-xs text-faint">#{card.number}</span>
           {card.urgent ? <Badge tone="crit">Hitno</Badge> : null}
         </div>
-        <p className="mt-1.5 break-words text-[15px] font-medium leading-snug">{card.title}</p>
+        <p className="type-name mt-1.5">{card.title}</p>
         <p className="break-words text-sm text-muted">{card.client}</p>
         {card.badges.length ? (
           <div className="mt-2 flex flex-wrap gap-1.5">

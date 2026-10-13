@@ -73,9 +73,14 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
           </div>
         }
       />
-      <form className="relative mb-4" action="/app/clients">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
-        <Input name="q" defaultValue={search} placeholder={`Ime, telefon, OIB ili ${ctx.pkg.vocabulary.identifier.toLowerCase()}`} className="pl-9" />
+      <form className="mb-4 flex gap-2" action="/app/clients">
+        <div className="relative min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
+          <Input name="q" type="search" enterKeyHint="search" defaultValue={search} placeholder={`Ime, telefon, OIB ili ${ctx.pkg.vocabulary.identifier.toLowerCase()}`} className="pl-9" />
+        </div>
+        <button type="submit" className={buttonClass('secondary')}>
+          Traži
+        </button>
       </form>
       {clients.length === 0 && !search && ctx.isOwner ? (
         // A new workshop starts with its existing customers, not from zero.
@@ -87,7 +92,9 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
           </span>
         </Link>
       ) : clients.length === 0 ? (
-        <EmptyState title={search ? 'Ništa nije pronađeno' : `Još nema unosa`}>Nova stranka se dodaje i sama pri otvaranju naloga.</EmptyState>
+        <EmptyState title={search ? 'Ništa nije pronađeno' : 'Još nema unosa'}>
+          {ctx.pkg.vocabulary.client.one} se dodaje i pri otvaranju naloga.
+        </EmptyState>
       ) : (
         <>
         <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
@@ -112,7 +119,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     </span>
                   ) : null}
                 </span>
-                {c.phone ? <span className="hidden text-sm tabular text-muted sm:block">{c.phone}</span> : null}
+                {c.phone ? <span className="shrink-0 text-sm tabular text-muted">{c.phone}</span> : null}
               </Link>
             </li>
           ))}

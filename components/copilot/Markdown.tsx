@@ -70,7 +70,7 @@ function parse(source: string): Block[] {
 
 export function Markdown({ text, className }: { text: string; className?: string }) {
   return (
-    <div className={cn('space-y-3 text-[15px] leading-relaxed text-muted', className)}>
+    <div className={cn('space-y-3 text-sm leading-relaxed text-muted', className)}>
       {parse(text).map((block, i) => {
         if (block.type === 'heading') {
           return (

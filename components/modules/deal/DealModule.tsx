@@ -5,7 +5,7 @@ import { DEAL_SOURCES, daysOnLot, dealMargin, stockTone } from '@/config/package
 import { formatDate, formatDateTime, formatEuro } from '@/lib/format';
 import { todayInZagreb } from '@/lib/time';
 import type { ModuleProps } from '../ModuleTab';
-import { MoreSections, foldable } from '../more';
+import { Offer, foldable } from '../more';
 import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 
@@ -33,7 +33,7 @@ export async function DealModule({ ctx, job, locked, extras }: ModuleProps) {
   const today = todayInZagreb();
   const days = stock ? daysOnLot(stock.purchased_on as string, (stock.sold_on as string | null) ?? null, today) : 0;
   const openDrive = (drives ?? []).find((d) => !d.back_at);
-  const { show, hidden } = foldable(extras);
+  const { show, open } = foldable(extras);
   const showDrives = show('probne vožnje', (drives ?? []).length > 0 || job.phase === 'ready');
 
   const stockFields = [
@@ -201,6 +201,7 @@ export async function DealModule({ ctx, job, locked, extras }: ModuleProps) {
 
       {/* Test drives */}
       {showDrives ? (
+        <Offer title="Probne vožnje" summary={(drives ?? []).length ? `${(drives ?? []).length}` : 'Tko je vozio, s brojem vozačke'} filled={open('probne vožnje')}>
         <Card>
           <CardHeader
             title={
@@ -257,8 +258,8 @@ export async function DealModule({ ctx, job, locked, extras }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Nema probnih vožnji.</p>
           )}
         </Card>
+        </Offer>
       ) : null}
-      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

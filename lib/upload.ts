@@ -25,6 +25,7 @@ export interface UploadOptions {
   caption?: string | null;
   stage?: 'before' | 'during' | 'after' | null;
   zone?: string | null;
+  visibility?: 'internal' | 'customer' | 'insurer';
 }
 
 // Straight from the phone to storage (the server never carries the bytes),
@@ -33,7 +34,7 @@ export interface UploadOptions {
 // proof an insurer can check.
 const MAX_BYTES = 25 * 1024 * 1024; // same limit as the job-files bucket
 
-export async function uploadNow({ tenantId, jobId, assetId = null, file, tag = null, caption = null, stage = null, zone = null }: UploadOptions) {
+export async function uploadNow({ tenantId, jobId, assetId = null, file, tag = null, caption = null, stage = null, zone = null, visibility = 'internal' }: UploadOptions) {
   // Checked before hashing, so a huge file never gets read into memory.
   if (file.size > MAX_BYTES) throw new Error(`Datoteka „${file.name}” je veća od 25 MB.`);
   const supabase = createBrowserSupabaseClient();
@@ -57,6 +58,7 @@ export async function uploadNow({ tenantId, jobId, assetId = null, file, tag = n
     caption,
     stage,
     zone,
+    visibility,
     hasThumb,
     takenAt: meta.takenAt,
     gpsLat: meta.gpsLat,

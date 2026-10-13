@@ -16,8 +16,8 @@ export interface ModuleProps {
   ctx: WorkshopContext;
   job: JobWithRefs;
   locked: boolean;
-  // "Više" is open: show the sections a small workshop rarely needs.
-  extras: boolean;
+  // Kept so old callers compile. Sections are rows now; the flag does nothing.
+  extras?: boolean;
 }
 
 // The package's own tab on a work order.

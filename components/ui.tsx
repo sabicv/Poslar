@@ -60,8 +60,12 @@ export function ButtonLink({
   );
 }
 
-export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn('rounded-2xl border border-line bg-surface', className)}>{children}</div>;
+export function Card({ id, className, children }: { id?: string; className?: string; children: ReactNode }) {
+  return (
+    <div id={id} className={cn('rounded-2xl border border-line bg-surface', className)}>
+      {children}
+    </div>
+  );
 }
 
 export function CardHeader({ title, action, subtitle }: { title: ReactNode; action?: ReactNode; subtitle?: ReactNode }) {
@@ -69,7 +73,7 @@ export function CardHeader({ title, action, subtitle }: { title: ReactNode; acti
     // On a narrow phone the buttons drop under the title instead of squeezing it.
     <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 border-b border-line px-4 py-3">
       <div className="min-w-[9rem] flex-1">
-        <h3 className="text-sm font-semibold text-fg">{title}</h3>
+        <h3 className="type-title">{title}</h3>
         {subtitle ? <p className="mt-0.5 text-xs text-muted">{subtitle}</p> : null}
       </div>
       {action ? <div className="max-w-full shrink-0">{action}</div> : null}
@@ -179,7 +183,7 @@ export function PageHeader({ title, subtitle, action, back }: { title: ReactNode
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
         {back}
-        <h1 className="break-words font-display text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
+        <h1 className="type-page">{title}</h1>
         {subtitle ? <p className="mt-1 text-sm text-muted">{subtitle}</p> : null}
       </div>
       {action ? <div className="flex flex-wrap gap-2">{action}</div> : null}

@@ -62,7 +62,7 @@ export function MessageThread({
               </div>
               <p className="whitespace-pre-wrap text-sm">{m.body}</p>
               <div className="mt-2 flex items-center justify-between gap-2">
-                <span className="text-[11px] text-faint">{m.when}</span>
+                <span className="text-xs text-faint">{m.when}</span>
                 {(m.forMe || m.mine || isOwner) && m.status !== 'done' ? (
                   <span className="flex gap-1.5">
                     {m.status === 'open' && m.forMe ? (

@@ -4,7 +4,7 @@ import { COMPLIANCE_LABELS } from '@/config/packages/fleet';
 import { MACHINE_COMPLIANCE_LABELS } from '@/config/packages/machine';
 import { daysUntil, formatDate, formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { MoreSections, foldable } from '../more';
+import { Offer, foldable } from '../more';
 import { DeleteRecordButton, RecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { FieldStep } from './FieldStep';
@@ -41,8 +41,8 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
   const hours =
     field?.work_started && field?.work_finished ? (new Date(field.work_finished as string).getTime() - new Date(field.work_started as string).getTime()) / 3600000 : null;
 
-  // Core: legal deadlines. The rest with "Više" or once it has data.
-  const { show, hidden } = foldable(extras);
+  // Core: legal deadlines. The rest is one row each.
+  const { show, open } = foldable(extras);
   const showField = show('terenski nalog', isField);
   const showDowntime = show('zastoj', (downtime ?? []).length > 0);
   const showTrailers = show('priključna vozila', (trailers ?? []).length > 0);
@@ -51,6 +51,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
     <div className="space-y-4">
       {/* Field job timeline */}
       {showField ? (
+      <Offer title="Terenski nalog" summary={isField ? 'Posjet na lokaciji' : 'Ako se radi izvan radionice'} filled={open('terenski nalog')}>
       <Card>
         <CardHeader
           title={
@@ -120,6 +121,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
           )}
         </div>
       </Card>
+      </Offer>
       ) : null}
 
       {/* Compliance */}
@@ -181,6 +183,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Downtime */}
         {showDowntime ? (
+        <Offer title="Zastoj" summary={(downtime ?? []).length ? `${(downtime ?? []).length} zapisa` : 'Koliko vozilo stoji'} filled={open('zastoj')}>
         <Card>
           <CardHeader
             title={
@@ -224,10 +227,12 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
             })}
           </div>
         </Card>
+        </Offer>
         ) : null}
 
         {/* Coupled units */}
         {showTrailers ? (
+        <Offer title={ctx.pkg.id === 'machine' ? 'Priključni strojevi' : 'Priključna vozila'} summary={(trailers ?? []).length ? `${(trailers ?? []).length}` : 'Povezano na kartici'} filled={open('priključna vozila')}>
         <Card>
           <CardHeader title={ctx.pkg.id === 'machine' ? 'Priključni strojevi' : 'Priključna vozila'} />
           {trailers?.length ? (
@@ -249,6 +254,7 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
             </div>
           ) : null}
         </Card>
+        </Offer>
         ) : null}
       </div>
 
@@ -257,7 +263,6 @@ export async function FleetModule({ ctx, job, locked, extras }: ModuleProps) {
           <CalendarX2 className="size-3.5" /> Rokovi se prate po vozilu, ne po nalogu. Vide se na svakom sljedećem nalogu.
         </p>
       ) : null}
-      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

@@ -61,7 +61,7 @@ export default async function TowerErrors({ searchParams }: { searchParams: Prom
                   <summary className="cursor-pointer select-none">Detalji</summary>
                   <p className="mt-2">Prvi put {formatDateTime(e.first_seen)}, zadnji put {formatDateTime(e.last_seen)}</p>
                   {e.user_agent ? <p className="mt-1 break-words">{e.user_agent}</p> : null}
-                  {e.stack ? <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-surface2 p-2 font-mono text-[11px] leading-snug">{e.stack}</pre> : null}
+                  {e.stack ? <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-surface2 p-2 font-mono text-xs leading-snug">{e.stack}</pre> : null}
                 </details>
                 <ErrorStatusButton id={e.id} status={status} />
               </li>

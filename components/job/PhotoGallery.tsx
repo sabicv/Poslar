@@ -33,12 +33,15 @@ export function PhotoGallery({
   tags,
   withStages,
   files,
+  archive = false,
 }: {
   tenantId: string;
   jobId: string;
   tags: { code: string; label: string }[];
   withStages: boolean;
   files: FileView[];
+  // The trail keeps the pictures. Taking them happens on the function.
+  archive?: boolean;
 }) {
   const router = useRouter();
   const { pending, run } = useAction();
@@ -80,6 +83,7 @@ export function PhotoGallery({
 
   return (
     <div className="space-y-5">
+      {archive ? null : (
       <div className="rounded-2xl border border-line bg-surface p-4">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
           <Select value={tag} onChange={(e) => setTag(e.target.value)}>
@@ -114,15 +118,18 @@ export function PhotoGallery({
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { void upload(e.target.files); e.target.value = ''; }} />
         <input ref={pickerRef} type="file" accept="image/*,application/pdf" multiple className="hidden" onChange={(e) => { void upload(e.target.files); e.target.value = ''; }} />
       </div>
+      )}
 
       {files.length === 0 ? (
         <EmptyState icon={<Camera className="size-8" />} title="Još nema fotografija">
-          Slikajte stanje pri prijemu, oštećenja, stare i nove dijelove. Datum, lokacija i otisak datoteke spremaju se automatski.
+          {archive
+            ? 'Snimaju se uz stanje, brojilo ili dio. Ovdje ostaju.'
+            : 'Slikajte stanje pri prijemu, oštećenja, stare i nove dijelove. Datum, lokacija i otisak datoteke spremaju se automatski.'}
         </EmptyState>
       ) : (
         groups.map((group) => (
           <section key={group.code}>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
               {group.label} <span className="text-faint">· {group.files.length}</span>
             </h3>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
@@ -131,7 +138,7 @@ export function PhotoGallery({
                   {file.isPdf ? (
                     <a href={file.url} target="_blank" rel="noopener noreferrer" className="flex h-full flex-col items-center justify-center gap-1 text-muted">
                       <FileText className="size-8" />
-                      <span className="px-2 text-center text-[11px]">{file.caption ?? 'PDF'}</span>
+                      <span className="px-2 text-center text-xs">{file.caption ?? 'PDF'}</span>
                     </a>
                   ) : (
                     <button type="button" className="block h-full w-full" onClick={() => setViewer(images.findIndex((i) => i.id === file.id))}>
@@ -139,8 +146,8 @@ export function PhotoGallery({
                       <img src={file.thumbUrl || file.url} alt={file.caption ?? group.label} loading="lazy" className="h-full w-full object-cover" />
                     </button>
                   )}
-                  {file.stage ? <span className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 text-[10px] text-white">{STAGES[file.stage]}</span> : null}
-                  {file.visibility !== 'internal' ? <span className="absolute bottom-1.5 left-1.5 rounded bg-accent px-1.5 text-[10px] font-medium text-accent-fg">Stranka</span> : null}
+                  {file.stage ? <span className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 text-xs text-white">{STAGES[file.stage]}</span> : null}
+                  {file.visibility !== 'internal' ? <span className="absolute bottom-1.5 left-1.5 rounded bg-accent px-1.5 text-xs font-medium text-accent-fg">Stranka</span> : null}
                   <button
                     type="button"
                     onClick={() => setEditing(file)}

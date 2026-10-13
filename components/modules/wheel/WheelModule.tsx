@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { Disc3, Gauge, Pencil, QrCode, Ruler, Wrench } from 'lucide-react';
+import { ShotButton } from '@/components/job/ShotButton';
 import { Badge, Card, CardHeader } from '@/components/ui';
 import { SEASON_LABELS, TIRE_POSITIONS, TREAD_LIMITS, hotelPlace } from '@/config/packages/wheel';
 import { formatDate, formatDateTime } from '@/lib/format';
 import type { ModuleProps } from '../ModuleTab';
-import { MoreSections, foldable } from '../more';
+import { Offer, foldable } from '../more';
 import { DeleteRecordButton, PrivateAmountSheet, RecordButton, RecordSheet, type FieldDef, type FormScan } from '../kit';
 import { opts } from '../options';
 import { StorageActions } from './StorageActions';
@@ -60,8 +61,8 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
     }
   }
 
-  // Core: tyre sets and the hotel. The rest with "Više" or once it has data.
-  const { show, hidden } = foldable(extras);
+  // Core: tyre sets and the hotel. The rest is one row each.
+  const { show, open } = foldable(extras);
   const showTorque = show('moment pritezanja', (torque ?? []).length > 0);
   const showRepairs = show('popravak gume', (repairs ?? []).length > 0);
   const showBalancing = show('balansiranje', (balancing ?? []).length > 0);
@@ -174,9 +175,9 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                               disabled={locked}
                               className={`rounded-xl border p-2.5 text-left ${tone === 'crit' ? 'border-crit/50 bg-crit/10' : tone === 'warn' ? 'border-warn/50 bg-warn/10' : tone === 'ok' ? 'border-ok/40 bg-ok/5' : 'border-line'}`}
                             >
-                              <span className="block text-[11px] text-muted">{pos.label}</span>
+                              <span className="block text-xs text-muted">{pos.label}</span>
                               <span className="block font-mono text-sm font-semibold tabular">{measured.length ? values.map((v) => (v === null ? '–' : v.toFixed(1))).join(' / ') : 'izmjeri'}</span>
-                              <span className="block text-[11px] text-faint">
+                              <span className="block text-xs text-faint">
                                 {tire?.dot_week ? `DOT ${String(tire.dot_week).padStart(2, '0')}${String(tire.dot_year).slice(-2)}` : 'DOT -'}
                                 {dotAge !== null && dotAge >= 6 ? ` · ${dotAge} god.` : ''}
                               </span>
@@ -230,6 +231,7 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
 
       {/* Torque */}
       {showTorque ? (
+      <Offer title="Moment pritezanja" summary={(torque ?? []).length ? `${(torque ?? []).length} zapisa` : 'Nakon montaže'} filled={open('moment pritezanja')}>
       <Card>
         <CardHeader
           title={
@@ -279,11 +281,13 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
           <p className="px-4 py-4 text-sm text-muted">Nema zapisa za ovaj nalog.</p>
         )}
       </Card>
+      </Offer>
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Repairs */}
         {showRepairs ? (
+        <Offer title="Popravak gume" summary={(repairs ?? []).length ? `${(repairs ?? []).length} zapisa` : 'Gazeći sloj, rame ili bok'} filled={open('popravak gume')}>
         <Card>
           <CardHeader
             title="Popravak gume"
@@ -318,10 +322,12 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Popravljiv je samo gazeći sloj; rame i bok znače novu gumu.</p>
           )}
         </Card>
+        </Offer>
         ) : null}
 
         {/* Balancing */}
         {showBalancing ? (
+        <Offer title="Balansiranje" summary={(balancing ?? []).length ? `${(balancing ?? []).length} kotača` : 'Utezi po kotaču'} filled={open('balansiranje')}>
         <Card>
           <CardHeader
             title="Balansiranje"
@@ -357,11 +363,13 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Nema zapisa.</p>
           )}
         </Card>
+        </Offer>
         ) : null}
       </div>
 
       {/* Alignment */}
       {showAlignment ? (
+      <Offer title="Geometrija" summary={(alignments ?? []).length ? `${(alignments ?? []).length} mjerenja` : 'Vrijednosti ili fotografija ispisa'} filled={open('geometrija')}>
       <Card>
         <CardHeader
           title={
@@ -452,7 +460,10 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
                       </table>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted">Upišite vrijednosti ili fotografirajte ispis uređaja (Fotografije → Ispis geometrije).</p>
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted">Upišite vrijednosti ili fotografirajte ispis uređaja.</p>
+                      {!locked ? <ShotButton tenantId={ctx.tenant.id} jobId={job.id} tag="alignment_report" caption="Ispis geometrije" label="Fotografija ispisa" /> : null}
+                    </div>
                   )}
                   {!locked ? (
                     <div className="mt-2">
@@ -467,9 +478,8 @@ export async function WheelModule({ ctx, job, locked, extras }: ModuleProps) {
           <p className="px-4 py-4 text-sm text-muted">Nema mjerenja geometrije na ovom nalogu.</p>
         )}
       </Card>
+      </Offer>
       ) : null}
-
-      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

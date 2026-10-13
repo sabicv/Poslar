@@ -33,6 +33,8 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   const period: PeriodKey = asked && asked in PERIODS ? (asked as PeriodKey) : 'mjesec';
   // [from, to) in Zagreb time; null = open ("Sve").
   const [from, to] = periodBounds({ period, from: null, to: null, paid: 'sve', q: '', limit: 0 });
+  const billing = !ctx.pkg.internalJobs;
+  const vat = billingFrom(ctx.tenant.settings).vatRegistered;
   const closed = phaseLabel(ctx.pkg, 'collected');
   const sixMonthsAgo = new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1);
 
@@ -120,20 +122,20 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <PageHeader title="Poslovanje" />
-      <BusinessTabs active="pregled" invoices={!ctx.pkg.internalJobs} />
+      <BusinessTabs active="pregled" invoices={!ctx.pkg.internalJobs} period={period} />
       <PeriodChips active={period} href={(key) => (key === 'mjesec' ? '/app/business' : `/app/business?r=${key}`)} />
 
-      {/* The unpaid total heads its own list below instead of a tile of its own.
-          Phone: one tile per row, so long amounts never squeeze. */}
-      <div className="mb-5 mt-2 grid gap-3 sm:grid-cols-3">
-        <Stat label={`Promet (${closed.toLowerCase()})`} value={formatEuro(revenue)} hint={countJobs(doneIds.length)} />
-        <Stat label="Naplaćeno" value={formatEuro(paid)} tone="ok" />
+      {/* Phone: two tiles per row so a long amount never squeezes the label. */}
+      <div className={cn('mb-5 mt-2 grid gap-3', billing ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3')}>
+        <Stat label={`Promet (${closed.toLowerCase()})`} value={formatEuro(revenue)} hint={`${countJobs(doneIds.length)} · ${vat ? 's PDV-om' : 'bez PDV-a'}`} />
+        <Stat label="Naplaćeno" value={formatEuro(paid)} tone="ok" hint={vat ? 's PDV-om' : 'bez PDV-a'} />
+        {billing ? <Stat label="Za naplatu" value={formatEuro(outstanding)} tone={outstanding > 0 ? 'warn' : undefined} hint={countJobs(unpaidIds.length)} /> : null}
         <Stat label="Prosječno trajanje" value={avgLead === null ? '-' : `${formatDecimal(avgLead, 1)} d`} hint="od prijema do gotovog" />
       </div>
 
       {group.length ? (
         <Card className="mb-4">
-          <CardHeader title="Sve radionice" subtitle={`${PERIODS[period]} · s PDV-om`} action={<span className="text-sm font-semibold tabular">{formatEuro(group.reduce((s, w) => s + w.revenue, 0))}</span>} />
+          <CardHeader title="Sve radionice" subtitle={`${PERIODS[period]} · ${vat ? 's PDV-om' : 'bez PDV-a'}`} action={<span className="text-sm font-semibold tabular">{formatEuro(group.reduce((s, w) => s + w.revenue, 0))}</span>} />
           <ul className="divide-y divide-line">
             {group.map((w) => (
               <li key={w.id} className={cn('flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3 text-sm', w.active && 'bg-accent/5')}>
@@ -153,11 +155,11 @@ export default async function BusinessPage({ searchParams }: { searchParams: Pro
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Promet po mjesecima" subtitle={billingFrom(ctx.tenant.settings).vatRegistered ? 'S PDV-om' : undefined} />
+          <CardHeader title="Promet po mjesecima" subtitle={vat ? 'Zadnjih 6 mjeseci · s PDV-om' : 'Zadnjih 6 mjeseci · bez PDV-a'} />
           <div className="flex h-44 items-end gap-3 p-4">
             {months.map((m) => (
               <div key={m.key} className="flex flex-1 flex-col items-center gap-1.5">
-                <span className="text-[10px] tabular text-faint">{m.value ? `${formatDecimal(m.value / 1000, 1)}k` : ''}</span>
+                <span className="text-center text-xs tabular text-faint">{m.value ? (m.value >= 1000 ? `${formatDecimal(m.value / 1000, m.value >= 10000 ? 0 : 1)} tis. €` : formatEuro(m.value)) : ''}</span>
                 <div className="w-full rounded-t-md bg-accent/80" style={{ height: `${Math.max(2, (m.value / maxMonth) * 110)}px` }} />
                 <span className="text-xs text-muted">{m.label}</span>
               </div>

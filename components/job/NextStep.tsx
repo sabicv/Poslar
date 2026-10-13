@@ -42,13 +42,9 @@ export async function NextStep({ ctx, job }: { ctx: WorkshopContext; job: JobWit
     ctx.supabase.from('approvals').select('id').eq('job_id', job.id).in('status', ['sent', 'viewed', 'decided']).limit(1).maybeSingle(),
   ]);
 
-  if (open) {
-    const number = open.quote_number && open.quote_year ? `Ponuda ${open.quote_number}/${open.quote_year}` : 'Ponuda';
-    return <Step href={`/app/jobs/${job.id}/ponuda`}>{`${number} je kod mušterije.`}</Step>;
-  }
-  if ((proposed ?? 0) > 0 && policy !== 'never' && ctx.isOwner) {
-    return <Step href={`/app/jobs/${job.id}?tab=stavke`}>Sljedeće: pošaljite ponudu.</Step>;
-  }
+  // The bottom bar already offers the quote, or says it is with the customer.
+  if (open || ((proposed ?? 0) > 0 && policy !== 'never' && ctx.isOwner)) return null;
+  if (ctx.pkg.sector === 'field' && !job.scheduled_start && (job.phase === 'intake' || job.phase === 'diagnosis')) return null;
   if (policy === 'first' && early && !anyQuote && opening) {
     return <Step href={`/app/jobs/${job.id}?tab=stavke`}>{opening.intake}</Step>;
   }

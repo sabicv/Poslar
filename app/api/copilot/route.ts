@@ -64,7 +64,7 @@ function friendlyError(error: unknown): string {
 export async function POST(request: Request) {
   const ctx = await session();
   if (ctx instanceof Response) return ctx;
-  if (!process.env.ANTHROPIC_API_KEY) return json({ error: 'Poslar još ne odgovara na pitanja (nedostaje ANTHROPIC_API_KEY).' }, 503);
+  if (!process.env.ANTHROPIC_API_KEY) return json({ error: 'Poslar još ne odgovara na pitanja.' }, 503);
 
   let body: { jobId?: string; mode?: string; question?: string; refresh?: boolean };
   try {

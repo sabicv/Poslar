@@ -266,6 +266,7 @@ const jobPatchSchema = z
     complaint: z.string().max(4000).nullable(),
     diagnosis_notes: z.string().max(8000).nullable(),
     work_summary: z.string().max(8000).nullable(),
+    meter_in: z.number().min(0).nullable(),
     meter_out: z.number().min(0).nullable(),
     promised_at: z.string().nullable(),
     bay: z.string().max(40).nullable(),
@@ -502,8 +503,15 @@ export async function completeInspection(jobId: string, inspectionId: string, do
   const { error } = await ctx.supabase.from('inspections').update({ completed_at: done ? new Date().toISOString() : null }).eq('id', inspectionId);
   if (error) return fail(error);
   if (done) {
-    await logEvent(ctx, jobId, 'inspection', `Inspekcija završena · ${actorName(ctx)}`);
-    const { data: row } = await ctx.supabase.from('inspections').select('template_code').eq('id', inspectionId).single();
+    const { data: row } = await ctx.supabase.from('inspections').select('template_code, title').eq('id', inspectionId).single();
+    const template = (await getInspectionTemplates(ctx)).find((t) => t.code === row?.template_code);
+    const labels = new Map(template?.sections.flatMap((section) => section.items.map((item) => [item.code, item.label] as const)) ?? []);
+    const { data: answers } = await ctx.supabase.from('inspection_results').select('item_code, status').eq('inspection_id', inspectionId);
+    const rows = answers ?? [];
+    const bad = rows.filter((answer) => answer.status === 'warn' || answer.status === 'crit').map((answer) => labels.get(answer.item_code as string) ?? (answer.item_code as string));
+    const ok = rows.filter((answer) => answer.status === 'ok').length;
+    const summary = bad.length ? bad.slice(0, 4).join(', ') : `${ok} u redu`;
+    await logEvent(ctx, jobId, 'inspection', `${row?.title ?? 'Kontrolna lista'} završeno · ${summary}`);
     const code = ctx.pkg.inspections.find((t) => t.code === row?.template_code)?.proposeTemplate;
     if (code) {
       const { data: existing } = await ctx.supabase.from('job_lines').select('id').eq('job_id', jobId).eq('template_code', code).limit(1);
@@ -625,6 +633,7 @@ const attachmentSchema = z.object({
   caption: z.string().max(500).nullable(),
   stage: z.enum(['before', 'during', 'after']).nullable(),
   zone: z.string().max(60).nullable(),
+  visibility: z.enum(['internal', 'customer', 'insurer']).optional(),
   hasThumb: z.boolean(),
   takenAt: z.string().nullable(),
   gpsLat: z.number().nullable(),
@@ -651,6 +660,7 @@ export async function registerAttachment(input: z.input<typeof attachmentSchema>
       caption: a.caption,
       stage: a.stage,
       zone: a.zone,
+      visibility: a.visibility ?? 'internal',
       has_thumb: a.hasThumb,
       taken_at: a.takenAt,
       gps_lat: a.gpsLat,
@@ -762,7 +772,7 @@ export async function createApproval(jobId: string): Promise<ActionResult<{ toke
     if (!error && data) inserted = { token: data.token as string, quote_number: data.quote_number as number };
     else lastError = error;
   }
-  if (!inserted) return fail(lastError ?? 'Ponuda nije poslana.');
+  if (!inserted) return fail(lastError ?? 'Poveznica nije napravljena.');
   await ctx.supabase.from('jobs').update({ phase: 'awaiting_approval' }).eq('id', jobId).in('phase', ['intake', 'diagnosis']);
   await logEvent(ctx, jobId, 'approval', `Ponuda ${inserted.quote_number}/${year}: ${proposed.length} ${plural(proposed.length, 'stavka', 'stavke', 'stavki')}`);
   revalidatePath(jobPath(jobId));

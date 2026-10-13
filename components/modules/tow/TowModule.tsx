@@ -4,7 +4,7 @@ import { TOW_PAYERS, TOW_SERVICES, TOW_STEPS, storageDays } from '@/config/packa
 import { formatDateTime, formatNumber } from '@/lib/format';
 import { templateLinePrice } from '@/lib/templates';
 import type { ModuleProps } from '../ModuleTab';
-import { MoreSections, foldable } from '../more';
+import { Offer, foldable } from '../more';
 import { RecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { StorageFeeButton, TowStep } from './TowClient';
@@ -27,7 +27,7 @@ export async function TowModule({ ctx, job, locked, extras }: ModuleProps) {
   // The owner's own storage price (Cjenik), never shown to a worker.
   const storagePrice = ctx.isOwner ? await templateLinePrice(ctx, 'tow.storage', 0, 10) : 0;
 
-  const { show, hidden } = foldable(extras);
+  const { show, open } = foldable(extras);
   const showYard = show('plac i ležarina', Boolean(stay) || job.phase === 'awaiting_parts');
 
   const callFields = [
@@ -137,6 +137,7 @@ export async function TowModule({ ctx, job, locked, extras }: ModuleProps) {
 
       {/* The yard */}
       {showYard ? (
+        <Offer title="Plac i ležarina" summary={stay ? (stay.out_at ? 'Izdano' : `${days} ${days === 1 ? 'dan' : 'dana'}`) : 'Vozilo koje ostaje kod nas'} filled={open('plac i ležarina')}>
         <Card>
           <CardHeader
             title={
@@ -194,8 +195,8 @@ export async function TowModule({ ctx, job, locked, extras }: ModuleProps) {
             )}
           </div>
         </Card>
+        </Offer>
       ) : null}
-      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
     </div>
   );
 }

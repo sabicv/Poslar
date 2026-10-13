@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BellRing, CalendarDays, ChevronRight, ClipboardList, Flame, Search, UserRound } from 'lucide-react';
+import { BellRing, ChevronRight, ClipboardList, Flame, Search, UserRound } from 'lucide-react';
 import { FieldSchedule } from '@/components/field/FieldSchedule';
 import { RestoreScroll } from '@/components/nav-memory';
 import { JobCard, type BoardJob } from '@/components/JobCard';
@@ -21,6 +21,16 @@ const JOB_FIELDS =
 // switches on top of it (urgent, mine).
 type Segment = 'svi' | 'radu' | 'naplata' | 'arhiva';
 const WORKING: JobPhase[] = ['diagnosis', 'awaiting_approval', 'awaiting_parts', 'in_progress', 'quality_check'];
+
+function TodayMark() {
+  const day = new Intl.DateTimeFormat('en-GB', { day: 'numeric', timeZone: 'Europe/Zagreb' }).format(new Date());
+  return (
+    <span aria-hidden className="inline-flex size-5 shrink-0 flex-col overflow-hidden rounded-[5px] border border-current">
+      <span className="h-[5px] w-full bg-current" />
+      <span className="flex flex-1 items-center justify-center text-[9px] font-bold leading-none tabular-nums">{day}</span>
+    </span>
+  );
+}
 
 export default async function JobsBoard({ searchParams }: { searchParams: Promise<{ q?: string; f?: string; view?: string; d?: string; t?: string; hitno?: string; moji?: string }> }) {
   const ctx = await requireWorkshop();
@@ -57,7 +67,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
       </Link>
     ) : (
       <Link href="/app?view=dan" replace className={buttonClass('secondary', 'sm')}>
-        <CalendarDays className="size-4" /> Raspored
+        <TodayMark /> Raspored
       </Link>
     )
   );
@@ -107,6 +117,8 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
     const parts = [
       ...(assets.data?.length ? [`asset_id.in.(${assets.data.map((a) => a.id).join(',')})`] : []),
       ...(clients.data?.length ? [`client_id.in.(${clients.data.map((c) => c.id).join(',')})`] : []),
+      `complaint.ilike.${like}`,
+      `diagnosis_notes.ilike.${like}`,
       ...(/^\d+$/.test(search) ? [`number.eq.${search}`] : []),
     ];
     if (parts.length === 0) query = query.eq('id', '00000000-0000-0000-0000-000000000000');
@@ -159,13 +171,13 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
     return `/app?${params.toString()}`;
   };
   const segments: { id: Segment; label: string; count: string | null }[] = [
-    { id: 'svi', label: 'Svi', count: String(counted.length) },
+    { id: 'svi', label: 'Otvoreni', count: String(counted.length) },
     { id: 'radu', label: 'U radu', count: String(counted.filter((r) => WORKING.includes(r.phase)).length) },
-    ...(billing && ctx.isOwner ? [{ id: 'naplata' as const, label: 'Za naplatu', count: unpaidCount ? formatEuro(unpaidSum) : '0' }] : []),
+    ...(billing && ctx.isOwner ? [{ id: 'naplata' as const, label: 'Za naplatu', count: String(unpaidCount) }] : []),
     { id: 'arhiva', label: 'Arhiva', count: null },
   ];
-  const urgentCount = openRows.filter((r) => r.is_urgent).length;
-  const mineCount = openRows.filter((r) => r.assigned_to === ctx.user.id).length;
+  const urgentCount = openRows.filter((r) => r.is_urgent && (!mineOnly || r.assigned_to === ctx.user.id)).length;
+  const mineCount = openRows.filter((r) => r.assigned_to === ctx.user.id && (!urgentOnly || r.is_urgent)).length;
 
   return (
     <>
@@ -174,9 +186,14 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
       {firstSteps}
       {reminderBanner}
 
-      <form className="relative mb-3" action="/app">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
-        <Input name="q" defaultValue={search} placeholder={`${ctx.pkg.vocabulary.identifier}, ime, telefon ili broj naloga`} className="pl-9" />
+      <form className="mb-3 flex gap-2" action="/app">
+        <div className="relative min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
+          <Input name="q" type="search" enterKeyHint="search" defaultValue={search} placeholder={`${ctx.pkg.vocabulary.identifier}, ime, telefon, broj naloga ili kvar`} className="pl-9" />
+        </div>
+        <button type="submit" className={buttonClass('secondary')}>
+          Traži
+        </button>
         <input type="hidden" name="view" value="faze" />
         {segment !== 'svi' ? <input type="hidden" name="f" value={segment} /> : null}
         {urgentOnly ? <input type="hidden" name="hitno" value="1" /> : null}
@@ -235,8 +252,14 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
               <JobCard key={job.id} job={job} pkg={ctx.pkg} total={totals.get(job.id)} showMoney={ctx.isOwner} />
             ))}
           </div>
+          {filter === 'arhiva' && jobs.length >= 100 ? <p className="mt-3 text-sm text-muted">Prikazano je zadnjih 100 zatvorenih naloga.</p> : null}
+          {filter === 'naplata' && unpaidCount > jobs.length ? (
+            <p className="mt-3 text-sm text-muted">
+              Prikazano {jobs.length} od {unpaidCount}. Zbroj svih je {formatEuro(unpaidSum)}.
+            </p>
+          ) : null}
           {filter === 'arhiva' && ctx.isOwner ? (
-            <Link href={`/app/business/arhiva${search ? `?q=${encodeURIComponent(search)}` : ''}`} className={cn(buttonClass('secondary'), 'mt-4 w-full')}>
+            <Link href={`/app/business/arhiva?r=sve${search ? `&q=${encodeURIComponent(search)}` : ''}`} className={cn(buttonClass('secondary'), 'mt-4 w-full')}>
               Cijela arhiva s razdobljima i iznosima <ChevronRight className="size-4" />
             </Link>
           ) : null}
@@ -245,9 +268,9 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
         <div className="space-y-8">
           {grouped.map((group) => (
             <section key={group.phase}>
-              <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted">
-                {phaseLabel(ctx.pkg, group.phase as JobPhase)}
-                <span className="rounded-md bg-surface2 px-1.5 py-0.5 text-[11px] text-faint">{group.jobs.length}</span>
+              <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold text-muted">
+                <span className="shrink-0 uppercase tracking-wide">{phaseLabel(ctx.pkg, group.phase as JobPhase)}</span>
+                <span className="rounded-md bg-surface2 px-1.5 py-0.5 text-xs text-faint">{group.jobs.length}</span>
               </h2>
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {group.jobs.map((job) => (

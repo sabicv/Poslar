@@ -7,11 +7,10 @@ import { JobTabs } from '@/components/job/JobTabs';
 import { HistoryTab } from '@/components/job/HistoryTab';
 import { InspectionTab } from '@/components/job/InspectionTab';
 import { LinesTab } from '@/components/job/LinesTab';
-import { MessagesTab } from '@/components/job/MessagesTab';
 import { OverviewTab } from '@/components/job/OverviewTab';
-import { PhotosTab } from '@/components/job/PhotosTab';
 import { ModuleTab } from '@/components/modules/ModuleTab';
-import { PHASE_ORDER, phaseLabel } from '@/config/tenant.config';
+import { PHASE_ORDER, phaseLabel, quotePolicy } from '@/config/tenant.config';
+import { publicAppUrl } from '@/lib/qr';
 import { requireWorkshop } from '@/lib/session';
 import type { JobWithRefs } from '@/types/db';
 
@@ -22,28 +21,39 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: data ? `Nalog ${data.number}` : 'Nalog' };
 }
 
-export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string; vise?: string }> }) {
+export default async function JobPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string; vise?: string; otvori?: string }> }) {
   const ctx = await requireWorkshop();
   const { id } = await params;
-  const { tab: rawTab = 'pregled', vise } = await searchParams;
-  const tab = rawTab === 'zapisnik' ? 'pregled' : rawTab;
-  // Sections a tab folds away open with its own "Više" (?vise=1), inside the tab.
-  const extras = vise === '1';
+  const { tab: rawTab = 'pregled', otvori } = await searchParams;
+  // Old links: the photo drawer and the messages tab now live in the trail.
+  const tab = rawTab === 'zapisnik' ? 'pregled' : rawTab === 'foto' || rawTab === 'poruke' ? 'povijest' : rawTab;
+  const trailOpen = otvori ?? (rawTab === 'poruke' ? 'poruke' : rawTab === 'foto' ? 'foto' : undefined);
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
   const { data } = await ctx.supabase.from('jobs').select('*, client:clients(*), asset:assets(*), assignee:profiles(id, full_name), site:sites(*)').eq('id', id).maybeSingle();
   if (!data) notFound();
   const job = data as unknown as JobWithRefs;
 
-  // "Što je rađeno" is this job's log; the object's history is its own page.
+  // Tijek radova is this job's log, messages and photographs. The object's history is its own page.
+  const quotes = quotePolicy(ctx.pkg) !== 'never' && !ctx.pkg.internalJobs;
+  const [{ count: proposed }, { data: openQuote }, appUrl] = await Promise.all([
+    quotes && ctx.isOwner
+      ? ctx.supabase.from('job_lines').select('id', { count: 'exact', head: true }).eq('job_id', id).eq('approval', 'proposed')
+      : Promise.resolve({ count: 0 }),
+    quotes
+      ? ctx.supabase.from('approvals').select('quote_number, quote_year').eq('job_id', id).in('status', ['sent', 'viewed']).order('sent_at', { ascending: false }).limit(1).maybeSingle()
+      : Promise.resolve({ data: null }),
+    publicAppUrl(),
+  ]);
+  const quoteLabel = openQuote?.quote_number && openQuote.quote_year ? `Ponuda ${openQuote.quote_number}/${openQuote.quote_year}` : 'Ponuda je kod mušterije';
+  // A worker never sees prices, and a dealer's own job is not a bill.
+  const linesLabel = quotes && ctx.isOwner ? 'Radovi i cijena' : 'Radovi';
   const tabs = [
     { id: 'pregled', label: 'Pregled' },
-    { id: 'stavke', label: 'Radovi i cijena' },
+    { id: 'stavke', label: linesLabel },
     { id: 'modul', label: ctx.pkg.moduleTab },
-    { id: 'foto', label: 'Fotografije' },
-    { id: 'poruke', label: 'Poruke' },
     { id: 'inspekcija', label: 'Kontrolna lista' },
-    { id: 'povijest', label: 'Što je rađeno' },
+    { id: 'povijest', label: 'Tijek radova' },
   ];
   const active = tabs.some((t) => t.id === tab) ? tab : 'pregled';
   const href = (tabId: string) => `/app/jobs/${id}${tabId === 'pregled' ? '' : `?tab=${tabId}`}`;
@@ -52,19 +62,17 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const finished = billing && (job.phase === 'ready' || job.phase === 'collected');
 
   return (
-    <div className="pb-32">
+    <div className="pb-28">
       <JobHeader job={job} backHref="/app" backLabel={ctx.pkg.sector === 'field' ? 'Raspored' : 'Nalozi'} />
       <JobStepper pkg={ctx.pkg} phase={job.phase} payment={finished ? (job.payment_status === 'paid' ? 'paid' : 'unpaid') : null} />
       <JobTabs active={active} tabs={tabs.map((t) => ({ id: t.id, label: t.label, href: href(t.id) }))} />
 
       <div className="animate-fade-in">
-        {active === 'pregled' ? <OverviewTab ctx={ctx} job={job} extras={extras} /> : null}
+        {active === 'pregled' ? <OverviewTab ctx={ctx} job={job} /> : null}
         {active === 'stavke' ? <LinesTab ctx={ctx} job={job} locked={locked} /> : null}
         {active === 'inspekcija' ? <InspectionTab ctx={ctx} job={job} locked={locked} /> : null}
-        {active === 'modul' ? <ModuleTab ctx={ctx} job={job} locked={locked} extras={extras} /> : null}
-        {active === 'foto' ? <PhotosTab ctx={ctx} job={job} /> : null}
-        {active === 'poruke' ? <MessagesTab ctx={ctx} job={job} /> : null}
-        {active === 'povijest' ? <HistoryTab ctx={ctx} job={job} /> : null}
+        {active === 'modul' ? <ModuleTab ctx={ctx} job={job} locked={locked} /> : null}
+        {active === 'povijest' ? <HistoryTab ctx={ctx} job={job} open={trailOpen} /> : null}
       </div>
 
       <JobActionBar
@@ -77,6 +85,10 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         billing={billing}
         field={ctx.pkg.sector === 'field'}
         scheduled={Boolean(job.scheduled_start)}
+        proposedCount={proposed ?? 0}
+        quoteOut={ctx.isOwner && openQuote ? { href: `/app/jobs/${id}/ponuda`, label: quoteLabel } : null}
+        clientPhone={job.client?.phone ?? null}
+        appUrl={appUrl}
         copilot={Boolean(process.env.ANTHROPIC_API_KEY)}
       />
     </div>

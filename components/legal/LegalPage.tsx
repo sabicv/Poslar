@@ -22,7 +22,7 @@ export function LegalPage({ title, intro, children }: { title: string; intro?: R
       </header>
       <h1 className="mt-6 font-display text-3xl font-bold tracking-tight">{title}</h1>
       <p className="mt-1 text-sm text-faint">Vrijedi od {DATE.format(new Date(`${LEGAL_VERSION}T12:00:00Z`))}</p>
-      {intro ? <div className="mt-5 text-[15px] leading-relaxed text-muted">{intro}</div> : null}
+      {intro ? <div className="mt-5 text-sm leading-relaxed text-muted">{intro}</div> : null}
       <div className="legal mt-6 space-y-8">{children}</div>
       <nav className="mt-12 flex flex-wrap gap-x-5 gap-y-2 border-t border-line pt-5 text-sm">
         {LEGAL_PAGES.map((p) => (
@@ -41,7 +41,7 @@ export function Section({ n, title, children }: { n: number; title: string; chil
       <h2 className="text-lg font-semibold">
         {n}. {title}
       </h2>
-      <div className="mt-2 space-y-3 text-[15px] leading-relaxed text-muted [&_li]:ml-5 [&_li]:list-disc [&_li]:pl-1 [&_strong]:font-medium [&_strong]:text-fg [&_ul]:space-y-1.5">{children}</div>
+      <div className="mt-2 space-y-3 text-sm leading-relaxed text-muted [&_li]:ml-5 [&_li]:list-disc [&_li]:pl-1 [&_strong]:font-medium [&_strong]:text-fg [&_ul]:space-y-1.5">{children}</div>
     </section>
   );
 }

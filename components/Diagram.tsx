@@ -18,6 +18,7 @@ export const MARK_CODES = {
   N: 'Nedostaje',
   R: 'Korozija / hrđa',
   B: 'Savijeno / deformacija',
+  D: 'Kvar / defekt / neispravno',
 } as const;
 export type MarkCode = keyof typeof MARK_CODES;
 
@@ -91,7 +92,38 @@ export function resolveZones(kind: DiagramKind, packageKind: DiagramKind, packag
   return zonesFor(kind);
 }
 
-function ZoneGrid({
+export function drawnCodes(kind: DiagramKind): string[] {
+  if (kind === 'car') return CAR.map((zone) => zone.code);
+  if (kind === 'truck') return TRUCK.map((zone) => zone.code);
+  if (kind === 'moto') return MOTO.map((zone) => zone.code);
+  return [];
+}
+
+const motoLabel = (code: string) => MOTO_ZONES.find((zone) => zone.code === code)?.label ?? code;
+
+// Top view, front up. The rest of a motorcycle (ručice, lanac, koferi) stays
+// in the zone list under the drawing.
+const MOTO: Zone[] = [
+  { code: 'windshield', x: 68, y: 6, w: 64, h: 22, r: 6 },
+  { code: 'mask', x: 56, y: 30, w: 88, h: 34, r: 8 },
+  { code: 'mirror_l', x: 6, y: 36, w: 40, h: 16, r: 4 },
+  { code: 'mirror_r', x: 154, y: 36, w: 40, h: 16, r: 4 },
+  { code: 'bars', x: 28, y: 68, w: 144, h: 16, r: 6 },
+  { code: 'wheel_f', x: 74, y: 90, w: 52, h: 28, r: 10 },
+  { code: 'front_fender', x: 80, y: 120, w: 40, h: 14, r: 4 },
+  { code: 'fairing_l', x: 22, y: 140, w: 40, h: 72, r: 8 },
+  { code: 'tank', x: 66, y: 140, w: 68, h: 72, r: 12 },
+  { code: 'fairing_r', x: 138, y: 140, w: 40, h: 72, r: 8 },
+  { code: 'seat_rider', x: 72, y: 216, w: 56, h: 40, r: 8 },
+  { code: 'exhaust', x: 146, y: 220, w: 18, h: 64, r: 6 },
+  { code: 'seat_pillion', x: 76, y: 258, w: 48, h: 26, r: 6 },
+  { code: 'rear_fairing', x: 62, y: 288, w: 76, h: 34, r: 8 },
+  { code: 'tail', x: 74, y: 324, w: 52, h: 16, r: 4 },
+  { code: 'taillight', x: 82, y: 342, w: 36, h: 12, r: 3 },
+  { code: 'wheel_r', x: 74, y: 358, w: 52, h: 26, r: 10 },
+].map((zone) => ({ ...zone, label: motoLabel(zone.code) }));
+
+export function ZoneGrid({
   zones,
   marked,
   onZone,
@@ -121,11 +153,19 @@ function ZoneGrid({
                     onClick={() => onZone(zone)}
                     className={cn(
                       'flex min-h-12 items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-sm',
-                      codes.length ? 'border-warn/50 bg-warn/10' : 'border-line hover:bg-surface2'
+                      codes.length ? 'border-[rgb(var(--orange))] bg-[rgb(var(--orange))]/10' : 'border-line hover:bg-surface2'
                     )}
                   >
-                    <span>{zone.label}</span>
-                    {codes.length ? <span className="shrink-0 font-mono text-xs font-bold text-warn">{codes.join('')}</span> : null}
+                    <span className="min-w-0">{zone.label}</span>
+                    {codes.length ? (
+                      <span className="flex shrink-0 gap-1">
+                        {codes.map((code) => (
+                          <span key={code} className="flex size-7 items-center justify-center rounded-md bg-[rgb(var(--orange))] font-mono text-sm font-bold text-white">
+                            {code}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
                   </button>
                 );
               })}
@@ -151,11 +191,11 @@ export function Diagram({
   detail?: boolean;
   zones?: ConditionZone[];
 }) {
-  if (kind === 'moto' || kind === 'boat' || detail) {
+  if (kind === 'boat' || detail) {
     return <ZoneGrid zones={zones ?? zonesFor(kind)} marked={marked} onZone={onZone} disabled={disabled} />;
   }
 
-  const map = kind === 'car' ? CAR : TRUCK;
+  const map = kind === 'car' ? CAR : kind === 'truck' ? TRUCK : MOTO;
   return (
     <svg viewBox="0 0 200 390" className="mx-auto block h-auto w-full max-w-[280px] select-none" role="img" aria-label="Dijagram vozila">
       {map.map((zone) => {

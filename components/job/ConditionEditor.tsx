@@ -3,10 +3,14 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Check, PenLine } from 'lucide-react';
+import { Fold } from '@/components/Fold';
 import { Diagram, MARK_CODES, zonesFor, type DiagramKind } from '@/components/Diagram';
+import { UndrawnZones } from './UndrawnZones';
 import type { ConditionZone } from '@/config/tenant.config';
 import { Segmented, Sheet, SignaturePad, useAction } from '@/components/client-ui';
-import { Badge, Button, Card, CardHeader, Field, Input, Textarea } from '@/components/ui';
+import { Button, Card, CardHeader, Field, Input, Textarea } from '@/components/ui';
+import { plural } from '@/lib/format';
+import { ShotButton } from './ShotButton';
 import { saveConditionReport, signConditionReport } from '@/lib/actions/jobs';
 import { formatDateTime } from '@/lib/format';
 import { uploadBlob } from '@/lib/upload';
@@ -28,6 +32,12 @@ export function ConditionEditor({
   reports,
   clientName,
   locked,
+  intakeTitle,
+  handoverTitle,
+  intakeOpen,
+  photos,
+  silhouette = false,
+  part = 'both',
 }: {
   jobId: string;
   tenantId: string;
@@ -39,11 +49,18 @@ export function ConditionEditor({
   reports: Partial<Record<Kind, ReportView>>;
   clientName: string;
   locked: boolean;
+  intakeTitle: string;
+  handoverTitle: string;
+  intakeOpen: boolean;
+  photos: Partial<Record<Kind, { url: string }[]>>;
+  // Body shop, and only a car: the floor plan is how damage is marked.
+  silhouette?: boolean;
+  part?: 'intake' | 'handover' | 'both';
 }) {
   const marks = markList?.length ? markList : (Object.entries(MARK_CODES) as [string, string][]).map(([code, label]) => ({ code, label }));
   return (
     <div className="space-y-4">
-      <ReportForm
+      {part !== 'handover' ? <ReportForm
         key="intake"
         jobId={jobId}
         tenantId={tenantId}
@@ -57,8 +74,12 @@ export function ConditionEditor({
         copyFrom={null}
         clientName={clientName}
         locked={locked}
-      />
-      <ReportForm
+        title={intakeTitle}
+        startOpen={intakeOpen}
+        photos={photos.intake ?? []}
+        silhouette={silhouette}
+      /> : null}
+      {part !== 'intake' ? <ReportForm
         key="handover"
         jobId={jobId}
         tenantId={tenantId}
@@ -72,7 +93,11 @@ export function ConditionEditor({
         copyFrom={reports.intake ?? null}
         clientName={clientName}
         locked={locked}
-      />
+        title={handoverTitle}
+        startOpen={false}
+        photos={photos.handover ?? []}
+        silhouette={silhouette}
+      /> : null}
     </div>
   );
 }
@@ -90,6 +115,10 @@ function ReportForm({
   copyFrom,
   clientName,
   locked,
+  title,
+  startOpen,
+  photos,
+  silhouette,
 }: {
   jobId: string;
   tenantId: string;
@@ -103,15 +132,20 @@ function ReportForm({
   copyFrom: ReportView | null;
   clientName: string;
   locked: boolean;
+  title: string;
+  startOpen: boolean;
+  photos: { url: string }[];
+  silhouette: boolean;
 }) {
   const { pending, run } = useAction();
   const base = report ?? copyFrom;
-  const [marks, setMarks] = useState<ConditionMark[]>(base?.marks ?? []);
+  // An empty handover still starts from whatever was marked at intake.
+  const [marks, setMarks] = useState<ConditionMark[]>(report?.marks?.length ? report.marks : (copyFrom?.marks ?? []));
   const [present, setPresent] = useState<Record<string, boolean>>(() => {
     const known = Object.fromEntries((base?.equipment ?? []).map((e) => [e.item, e.present]));
     return Object.fromEntries(equipment.map((item) => [item, known[item] ?? false]));
   });
-  const [fuel, setFuel] = useState<string | null>(base?.fuel_level ?? null);
+  const [fuel, setFuel] = useState<string | null>(report?.fuel_level ?? copyFrom?.fuel_level ?? null);
   const [zone, setZone] = useState<{ code: string; label: string } | null>(null);
   const [zoneNote, setZoneNote] = useState('');
   const [signer, setSigner] = useState(report?.signer_name ?? clientName);
@@ -142,6 +176,7 @@ function ReportForm({
       if (all.some((m) => m.zone === zoneCode && m.code === code)) return all.filter((m) => !(m.zone === zoneCode && m.code === code));
       return [...all, { zone: zoneCode, code, note: zoneNote.trim() || undefined }];
     });
+    setZone(null);
   }
 
   function saveZoneNote(zoneCode: string, note: string) {
@@ -192,20 +227,17 @@ function ReportForm({
     });
   }
 
+  const summary = [
+    signed ? `Potpisano ${formatDateTime(report!.signed_at)}` : null,
+    marks.length ? `${marks.length} ${plural(marks.length, 'oznaka', 'oznake', 'oznaka')}` : null,
+    photos.length ? `${photos.length} ${plural(photos.length, 'fotografija', 'fotografije', 'fotografija')}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
   return (
-    <>
-      <Card>
-        <CardHeader
-          title={kind === 'intake' ? 'Stanje pri prijemu' : 'Stanje pri predaji'}
-          subtitle={
-            signed
-              ? `Potpisano ${formatDateTime(report!.signed_at)} · ${report!.signer_name ?? ''}`
-              : kind === 'handover'
-                ? 'Usporedite s prijemom. Označite što je ostalo ili novo.'
-                : 'Dodirnite dio i napišite gdje točno.'
-          }
-          action={signed ? <Badge tone="ok"><Check className="size-3" /> Potpisano</Badge> : null}
-        />
+    <Fold title={title} summary={summary || (kind === 'handover' ? 'Usporedba s prijemom' : 'Oznaka i fotografija oštećenja')} startOpen={startOpen}>
+      <Card className="rounded-none border-0">
         <div className="p-4">
           <Diagram
             kind={diagram}
@@ -216,8 +248,20 @@ function ReportForm({
               setZone(z);
             }}
             disabled={readOnly}
-            detail
+            detail={!(silhouette && diagram !== 'boat')}
           />
+          {silhouette && diagram !== 'boat' ? (
+            <UndrawnZones
+              kind={diagram}
+              zones={zoneList}
+              marked={marked}
+              onZone={(z) => {
+                setZoneNote(marks.find((m) => m.zone === z.code)?.note ?? '');
+                setZone(z);
+              }}
+              disabled={readOnly}
+            />
+          ) : null}
           {/* The list below names every mark in full, so no separate legend. */}
           {marks.length ? (
             <ul className="mt-4 divide-y divide-line rounded-xl border border-line">
@@ -234,6 +278,27 @@ function ReportForm({
           ) : (
             <p className="mt-4 text-sm text-muted">{markList.some((m) => m.label === 'Ogrebotina') ? 'Bez vidljivih oštećenja.' : 'Ništa označeno.'}</p>
           )}
+          {photos.length ? (
+            <div className="mt-4 grid grid-cols-4 gap-2">
+              {photos.map((photo) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={photo.url} src={photo.url} alt="" className="aspect-square rounded-lg border border-line object-cover" />
+              ))}
+            </div>
+          ) : null}
+          {!readOnly ? (
+            <div className="mt-4">
+              <ShotButton
+                tenantId={tenantId}
+                jobId={jobId}
+                tag="damage"
+                caption={title}
+                stage={kind === 'intake' ? 'before' : 'after'}
+                label="Fotografija oštećenja"
+                count={photos.length}
+              />
+            </div>
+          ) : null}
           {kind === 'handover' && intakeMarks.length ? (
             <div className="mt-4 space-y-1 rounded-xl border border-line px-3 py-2 text-sm">
               <p>{repaired.length ? `Popravljeno: ${repaired.map(nameOf).join(', ')}` : 'Ništa od prijema nije uklonjeno.'}</p>
@@ -318,12 +383,13 @@ function ReportForm({
               <button
                 key={mark.code}
                 type="button"
-                onClick={() => zone && toggleMark(zone.code, mark.code)}
-                className={cn('flex h-14 items-center gap-3 rounded-xl border px-4 text-left', on ? 'border-warn bg-warn/10' : 'border-line hover:bg-surface2')}
+                aria-pressed={on}
+                onClick={() => zone && !readOnly && toggleMark(zone.code, mark.code)}
+                className={cn('flex h-14 items-center gap-3 rounded-xl border px-4 text-left', on ? 'border-[rgb(var(--orange))] bg-[rgb(var(--orange))]/10' : 'border-line hover:bg-surface2')}
               >
-                <span className="flex size-8 items-center justify-center rounded-lg bg-surface2 font-semibold">{mark.code}</span>
+                <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg font-semibold', on ? 'bg-[rgb(var(--orange))] text-white' : 'bg-surface2')}>{mark.code}</span>
                 <span className="flex-1">{mark.label}</span>
-                {on ? <Check className="size-5 text-warn" /> : null}
+                {on ? <Check className="size-5 text-[rgb(var(--orange))]" /> : null}
               </button>
             );
           })}
@@ -342,6 +408,6 @@ function ReportForm({
           </Button>
         </div>
       </Sheet>
-    </>
+    </Fold>
   );
 }

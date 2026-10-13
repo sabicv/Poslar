@@ -2,9 +2,9 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Camera, CheckCircle2, ListPlus, MessageSquare, Plus } from 'lucide-react';
+import { Camera, CheckCircle2, ListPlus, MessageSquare } from 'lucide-react';
 import { ConfirmButton, DictateButton, Segmented, useAction } from '@/components/client-ui';
-import { Badge, Button, Card, Input, Select } from '@/components/ui';
+import { Badge, Button, Card, Input } from '@/components/ui';
 import type { InspectionItem, InspectionTemplate } from '@/config/tenant.config';
 import { completeInspection, deleteInspection, linesFromInspection, saveInspectionResult, startInspection } from '@/lib/actions/jobs';
 import { uploadFile } from '@/lib/upload';
@@ -31,30 +31,27 @@ function statusFromMeasure(item: InspectionItem, value: number): InspectionStatu
 
 function thresholdHint(item: InspectionItem) {
   const parts = [];
-  if (item.warnBelow !== undefined) parts.push(`žuto < ${item.warnBelow}`);
-  if (item.critBelow !== undefined) parts.push(`crveno < ${item.critBelow}`);
-  if (item.warnAbove !== undefined) parts.push(`žuto > ${item.warnAbove}`);
-  if (item.critAbove !== undefined) parts.push(`crveno > ${item.critAbove}`);
+  if (item.warnBelow !== undefined) parts.push(`oprez < ${item.warnBelow}`);
+  if (item.critBelow !== undefined) parts.push(`hitno < ${item.critBelow}`);
+  if (item.warnAbove !== undefined) parts.push(`oprez > ${item.warnAbove}`);
+  if (item.critAbove !== undefined) parts.push(`hitno > ${item.critAbove}`);
   return parts.join(' · ');
 }
 
 export function StartInspection({ jobId, templates, hasCurrent }: { jobId: string; templates: { code: string; name: string; purpose: string }[]; hasCurrent: boolean }) {
   const { pending, run } = useAction();
-  const [code, setCode] = useState(templates[0]?.code ?? '');
   if (!templates.length) return null;
   return (
-    <Card className="flex flex-wrap items-center gap-2 p-4">
-      <p className="w-full text-sm font-medium">{hasCurrent ? 'Nova inspekcija ili kontrolna lista' : 'Započni inspekciju'}</p>
-      <Select value={code} onChange={(e) => setCode(e.target.value)} className="min-w-0 flex-1">
+    <Card className="space-y-2 p-4">
+      <p className="text-sm font-medium">{hasCurrent ? 'Sljedeća lista, prethodna ostaje' : 'Započni inspekciju'}</p>
+      <div className="grid gap-2">
         {templates.map((t) => (
-          <option key={t.code} value={t.code}>
-            {t.name}: {t.purpose}
-          </option>
+          <Button key={t.code} variant={hasCurrent ? 'secondary' : 'primary'} className="w-full justify-start" disabled={pending} onClick={() => run(() => startInspection(jobId, t.code))}>
+            {t.name}
+            <span className="font-normal text-faint"> · {t.purpose}</span>
+          </Button>
         ))}
-      </Select>
-      <Button variant={hasCurrent ? 'secondary' : 'primary'} disabled={pending || !code} onClick={() => run(() => startInspection(jobId, code))}>
-        <Plus className="size-4" /> Započni
-      </Button>
+      </div>
     </Card>
   );
 }
@@ -67,6 +64,7 @@ export function InspectionRunner({
   results: initial,
   photos: initialPhotos,
   locked,
+  pin = true,
 }: {
   jobId: string;
   tenantId: string;
@@ -75,6 +73,8 @@ export function InspectionRunner({
   results: Result[];
   photos: Record<string, string>;
   locked: boolean;
+  // Two lists on one page: a sticky title from the first covers the second.
+  pin?: boolean;
 }) {
   const { pending, run } = useAction();
   const [results, setResults] = useState<Record<string, Result>>(() => Object.fromEntries(initial.map((r) => [r.item_code, r])));
@@ -156,7 +156,7 @@ export function InspectionRunner({
   return (
     <div className="space-y-4">
       {/* Sticks under the header and the job tabs (2.75rem), whatever the header's height. */}
-      <Card className="sticky top-[calc(var(--shell-top)+2.75rem)] z-10 p-4 lg:top-12">
+      <Card className={cn('p-4', pin && 'sticky top-[calc(var(--shell-top)+2.75rem)] z-10 lg:top-12')}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-sm font-semibold">{inspection.title}</p>
@@ -195,7 +195,7 @@ export function InspectionRunner({
 
       {template.sections.map((section) => (
         <Card key={section.title}>
-          <div className="border-b border-line px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted">{section.title}</div>
+          <div className="border-b border-line px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</div>
           <ul className="divide-y divide-line">
             {section.items.map((item) => {
               const r = results[item.code];
@@ -254,7 +254,7 @@ export function InspectionRunner({
                     ) : null}
                     <Segmented value={status === 'not_checked' ? null : status} disabled={readOnly} options={options} onChange={(s) => save(item, { status: s })} />
                   </div>
-                  {item.unit && thresholdHint(item) ? <p className="mt-1 text-[11px] text-faint">{thresholdHint(item)}</p> : null}
+                  {item.unit && thresholdHint(item) ? <p className="mt-1 text-xs text-faint">{thresholdHint(item)}</p> : null}
                   {openNote === item.code || r?.note ? (
                     <div className="mt-2 flex gap-2">
                     <Input

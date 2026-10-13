@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { CheckCircle2, CircleDashed } from 'lucide-react';
-import { Card, CardHeader } from '@/components/ui';
+import { Card } from '@/components/ui';
 import { formatDateTime } from '@/lib/format';
 import type { WorkshopContext } from '@/lib/session';
 import { signPaths } from '@/lib/signed';
+import { isSpringTemplate, isWinterTemplate, seasonKind } from '@/lib/season';
 import { getInspectionTemplates } from '@/lib/templates';
 import type { Inspection, InspectionResult, JobWithRefs } from '@/types/db';
 import { InspectionRunner, StartInspection } from './InspectionRunner';
@@ -13,69 +13,97 @@ const PURPOSE_LABELS = { dvi: 'Pregled u točkama', checklist: 'Kontrolna lista'
 export async function InspectionTab({ ctx, job, locked }: { ctx: WorkshopContext; job: JobWithRefs; locked: boolean }) {
   const [templates, { data }] = await Promise.all([
     getInspectionTemplates(ctx),
-    ctx.supabase.from('inspections').select('*').eq('job_id', job.id).order('started_at', { ascending: false }),
+    ctx.supabase.from('inspections').select('*').eq('job_id', job.id).order('started_at'),
   ]);
   const inspections = (data ?? []) as Inspection[];
-  const current = inspections[0] ?? null;
+  const ids = inspections.map((inspection) => inspection.id);
 
   let results: InspectionResult[] = [];
   let photos: Record<string, string> = {};
-  if (current) {
-    const { data: rows } = await ctx.supabase.from('inspection_results').select('*').eq('inspection_id', current.id);
+  if (ids.length) {
+    const { data: rows } = await ctx.supabase.from('inspection_results').select('*').in('inspection_id', ids);
     results = (rows ?? []) as InspectionResult[];
-    const photoIds = results.flatMap((r) => r.photo_ids ?? []);
+    const photoIds = results.flatMap((row) => row.photo_ids ?? []);
     if (photoIds.length) {
       const { data: files } = await ctx.supabase.from('attachments').select('id, path').in('id', photoIds);
-      const signed = await signPaths(ctx.supabase, (files ?? []).map((f) => f.path as string));
-      photos = Object.fromEntries((files ?? []).map((f) => [f.id as string, signed.get(f.path as string)?.thumbUrl ?? '']));
+      const signed = await signPaths(ctx.supabase, (files ?? []).map((file) => file.path as string));
+      photos = Object.fromEntries((files ?? []).map((file) => [file.id as string, signed.get(file.path as string)?.thumbUrl ?? '']));
     }
   }
-  const template = current ? templates.find((t) => t.code === current.template_code) : undefined;
+  const byInspection = new Map<string, InspectionResult[]>();
+  for (const row of results) {
+    const list = byInspection.get(row.inspection_id) ?? [];
+    list.push(row);
+    byInspection.set(row.inspection_id, list);
+  }
+
+  const season = seasonKind(job.complaint ?? '');
+  const listed = templates.filter((item) => {
+    if (item.purpose !== 'seasonal') return true;
+    if (season === 'both') return true;
+    if (season === 'winterize') return isWinterTemplate(item.code);
+    if (season === 'dewinterize') return isSpringTemplate(item.code);
+    return false;
+  });
+  const used = new Set(inspections.map((inspection) => inspection.template_code));
+  const available = listed.filter((item) => !used.has(item.code));
 
   return (
     <div className="space-y-4">
-      {current && template ? (
-        <InspectionRunner
-          key={current.id}
+      {!locked && available.length ? (
+        <StartInspection
           jobId={job.id}
-          tenantId={ctx.tenant.id}
-          inspection={{ id: current.id, title: current.title, completed: Boolean(current.completed_at) }}
-          template={template}
-          results={results.map((r) => ({
-            item_code: r.item_code,
-            status: r.status,
-            measure_value: r.measure_value === null ? null : Number(r.measure_value),
-            note: r.note,
-            photo_ids: r.photo_ids ?? [],
-            job_line_id: r.job_line_id,
-          }))}
-          photos={photos}
-          locked={locked}
+          templates={available.map((item) => ({ code: item.code, name: item.name, purpose: PURPOSE_LABELS[item.purpose] }))}
+          hasCurrent={inspections.length > 0}
         />
       ) : null}
 
-      {!locked ? <StartInspection jobId={job.id} templates={templates.map((t) => ({ code: t.code, name: t.name, purpose: PURPOSE_LABELS[t.purpose] }))} hasCurrent={Boolean(current)} /> : null}
+      {inspections.map((inspection) => {
+        const template = templates.find((item) => item.code === inspection.template_code);
+        const rows = byInspection.get(inspection.id) ?? [];
+        if (!template) {
+          return (
+            <Card key={inspection.id} className="px-4 py-3 text-sm">
+              <p className="font-medium">{inspection.title}</p>
+              <p className="text-xs text-faint">{formatDateTime(inspection.started_at)}</p>
+            </Card>
+          );
+        }
+        return (
+          <InspectionRunner
+            key={inspection.id}
+            jobId={job.id}
+            tenantId={ctx.tenant.id}
+            inspection={{ id: inspection.id, title: inspection.title, completed: Boolean(inspection.completed_at) }}
+            template={template}
+            results={rows.map((row) => ({
+              item_code: row.item_code,
+              status: row.status,
+              measure_value: row.measure_value === null ? null : Number(row.measure_value),
+              note: row.note,
+              photo_ids: row.photo_ids ?? [],
+              job_line_id: row.job_line_id,
+            }))}
+            photos={photos}
+            locked={locked}
+            pin={inspections.length === 1}
+          />
+        );
+      })}
 
       {inspections.length > 1 ? (
-        <Card>
-          <CardHeader title="Ranije na ovom nalogu" />
-          <ul className="divide-y divide-line">
-            {inspections.slice(1).map((i) => (
-              <li key={i.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-                {i.completed_at ? <CheckCircle2 className="size-4 text-ok" /> : <CircleDashed className="size-4 text-faint" />}
-                <span className="flex-1">{i.title}</span>
-                <span className="text-xs text-faint">{formatDateTime(i.started_at)}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
+        <p className="text-sm text-muted">Svaka lista ostaje na nalogu. Završetak se upisuje u Tijek radova.</p>
       ) : null}
 
-      {!current ? (
+      {!inspections.length && !listed.length && templates.some((item) => item.purpose === 'seasonal') ? (
+        <p className="text-sm text-muted">Za ovaj nalog nema kontrolne liste. Sezonski protokol se nudi samo kad je posao konzervacija ili dekonzervacija.</p>
+      ) : null}
+
+      {!inspections.length && listed.length ? (
         <p className="text-sm text-muted">
-          Nalazi u žutom i crvenom jednim dodirom postaju predložene stavke, a stranka ih odobrava putem poveznice (kartica{' '}
+          Nalazi označeni kao oprez ili hitno jednim dodirom postaju predložene stavke, a stranka ih odobrava putem poveznice (kartica{' '}
           <Link prefetch={false} href={`/app/jobs/${job.id}?tab=stavke`} className="text-accent">
-            Radovi i cijena
+            {ctx.isOwner && !ctx.pkg.internalJobs ? 'Radovi i cijena' : 'Radovi'}
           </Link>
           ).
         </p>

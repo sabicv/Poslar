@@ -32,7 +32,7 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageHeader title="Poslovanje" />
-      <BusinessTabs active="arhiva" invoices={billing} />
+      <BusinessTabs active="arhiva" invoices={billing} period={f.period} />
 
       <form className="mb-3 space-y-2" action="/app/business/arhiva">
         {/* Search and the export side by side, at the top where the thumb finds them. */}
@@ -63,10 +63,10 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
           </div>
         </details>
         {f.paid !== 'sve' ? <input type="hidden" name="p" value={f.paid} /> : null}
-        {f.period !== 'od-do' && f.period !== 'godina' ? <input type="hidden" name="r" value={f.period} /> : null}
+        {f.period !== 'od-do' && f.period !== 'mjesec' ? <input type="hidden" name="r" value={f.period} /> : null}
       </form>
 
-      <PeriodChips active={f.period} href={(key) => `/app/business/arhiva${filterQuery(f, { r: key === 'godina' ? null : key })}`} />
+      <PeriodChips active={f.period} href={(key) => `/app/business/arhiva${filterQuery(f, { r: key === 'mjesec' ? null : key })}`} />
       {billing ? (
         <div className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           {(Object.keys(PAID) as Paid[]).map((key) => (

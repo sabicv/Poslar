@@ -195,7 +195,7 @@ export const TRADE_PAGES: TradePage[] = [
       { q: 'Želiš na vrijeme obavijestiti mušterije o nadolazećem servisu ili zamjeni guma?', a: 'Poslar pripremi listu onih kojima servis dospijeva, a obavijest s poveznicom za termin šalješ na WhatsApp jednim dodirom.' },
     ],
     features: [
-      { title: 'Inspekcija u 50 točaka', text: 'Jasne oznake stanja (zeleno, žuto, crveno) uz obaveznu fotografiju oštećenja ili istrošenosti.' },
+      { title: 'Inspekcija u 50 točaka', text: 'Jasne oznake stanja (u redu, oprez, hitno) uz obaveznu fotografiju oštećenja ili istrošenosti.' },
       { title: 'Servisni plan vozila', text: 'Automatizirano praćenje izmjene ulja, filtera i remenja po prijeđenim kilometrima i vremenu.' },
       { title: 'Upravljanje dijelovima', text: 'Kataloški brojevi, dobavljači, nabavne cijene i jamstva vezani uz radni nalog.' },
       { title: 'Unaprijed pripremljeni poslovi', text: 'Otvaranje standardnih servisnih radova jednim dodirom ekrana.' },

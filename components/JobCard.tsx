@@ -16,38 +16,46 @@ export type BoardJob = Pick<Job, 'id' | 'number' | 'phase' | 'complaint' | 'is_u
 };
 
 // showPhase=false inside a list already grouped under the phase name.
+function cardEdge(phase: string, urgent: boolean) {
+  if (urgent || phase === 'intake') return 'shadow-[inset_3px_0_0_rgb(var(--orange))]';
+  if (phase === 'awaiting_approval' || phase === 'awaiting_parts') return 'shadow-[inset_3px_0_0_rgb(var(--warn))]';
+  if (phase === 'collected') return '';
+  return 'shadow-[inset_3px_0_0_rgb(var(--accent))]';
+}
+
 export function JobCard({ job, pkg, total, showMoney, showPhase = true }: { job: BoardJob; pkg: PackageConfig; total?: number; showMoney: boolean; showPhase?: boolean }) {
   const promised = daysUntil(job.promised_at);
   const unpaid = showMoney && !pkg.internalJobs && job.payment_status === 'unpaid' && (job.phase === 'ready' || job.phase === 'collected');
+  const tone = PHASE_TONE[job.phase as JobPhase];
   return (
     <Link
       prefetch={false} href={`/app/jobs/${job.id}`}
-      className="group block rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-faint/60 active:bg-surface2"
+      className={`group block rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-faint/60 active:bg-surface2 ${cardEdge(job.phase, job.is_urgent)}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {job.asset?.identifier ? (
-              <span className="rounded-md border border-line bg-bg px-1.5 py-0.5 font-mono text-xs font-semibold tracking-wide">{job.asset.identifier}</span>
+              <span className="font-mono text-base font-bold tracking-wide text-fg">{job.asset.identifier}</span>
             ) : null}
             <span className="text-xs text-faint">#{job.number}</span>
             {job.locked_at ? <Lock className="size-3.5 text-faint" /> : null}
+            {showPhase ? (
+              <Badge tone={tone}>
+                <Dot tone={tone} />
+                {phaseLabel(pkg, job.phase as JobPhase)}
+              </Badge>
+            ) : null}
+            {job.is_urgent ? <Badge tone="crit">Hitno</Badge> : null}
           </div>
-          <p className="mt-1.5 break-words text-[15px] font-medium leading-snug">{assetTitle(job.asset)}</p>
+          <p className="type-name mt-1.5">{assetTitle(job.asset)}</p>
           <p className="break-words text-sm text-muted">{clientName(job.client)}</p>
         </div>
         {showMoney && total !== undefined ? <span className="shrink-0 text-sm font-medium tabular text-muted">{formatEuro(total)}</span> : null}
       </div>
-      {job.complaint ? <p className="mt-2 line-clamp-2 text-sm text-muted">{job.complaint}</p> : null}
+      {job.complaint ? <p className="mt-3 line-clamp-2 border-t border-line pt-2.5 text-sm leading-snug text-muted">{job.complaint}</p> : null}
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        {showPhase ? (
-          <Badge tone={PHASE_TONE[job.phase as JobPhase]}>
-            <Dot tone={PHASE_TONE[job.phase as JobPhase]} />
-            {phaseLabel(pkg, job.phase as JobPhase)}
-          </Badge>
-        ) : null}
         {/* Badges only tell; the whole card is the one tap target. */}
-        {job.is_urgent ? <Badge tone="crit">Hitno</Badge> : null}
         {job.source === 'qr' && job.phase === 'intake' ? (
           <Badge tone="accent">
             <QrCode className="size-3" /> Prijava s vrata

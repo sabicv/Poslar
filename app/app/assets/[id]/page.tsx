@@ -101,7 +101,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
               <CardHeader title="Zadnje fotografije" />
               <div className="grid grid-cols-4 gap-2 p-4 sm:grid-cols-6">
                 {gallery.map((p) => (
-                  <Link key={p.id as string} href={p.job_id ? `/app/jobs/${p.job_id}?tab=foto` : '#'} className="aspect-square overflow-hidden rounded-lg border border-line bg-surface2">
+                  <Link key={p.id as string} href={p.job_id ? `/app/jobs/${p.job_id}?tab=povijest&otvori=foto` : '#'} className="aspect-square overflow-hidden rounded-lg border border-line bg-surface2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={signed.get(p.path as string)?.thumbUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
                   </Link>

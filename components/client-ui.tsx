@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition, type ReactNode } from 'reac
 import { createPortal } from 'react-dom';
 import { Drawer } from 'vaul';
 import { toast } from 'sonner';
-import { ChevronDown, ChevronLeft, ChevronRight, MapPin, Mic, MicOff, Trash2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Mic, MicOff, Trash2, X } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 import type { ActionResult } from '@/lib/action-result';
 import { spokenDigits, spokenNumber, spokenPhone } from '@/lib/spokenNumbers';
@@ -51,9 +51,36 @@ export function useAction() {
   return { pending, run };
 }
 
+// Android and browser Back close the open sheet. They do not leave the page.
+function useSheetBack(open: boolean, close: () => void) {
+  const closeRef = useRef(close);
+  closeRef.current = close;
+  useEffect(() => {
+    if (!open) return;
+    const token = Date.now() + Math.random();
+    let alive = true;
+    window.history.pushState({ ...(window.history.state as object | null), poslarSheet: token }, '');
+    function onPop() {
+      if (!alive) return;
+      const state = window.history.state as { poslarSheet?: number } | null;
+      if (state?.poslarSheet === token) return;
+      alive = false;
+      closeRef.current();
+    }
+    window.addEventListener('popstate', onPop);
+    return () => {
+      alive = false;
+      window.removeEventListener('popstate', onPop);
+      queueMicrotask(() => {
+        if ((window.history.state as { poslarSheet?: number } | null)?.poslarSheet === token) window.history.back();
+      });
+    };
+  }, [open]);
+}
+
 // Bottom sheet on phones, the natural place for a thumb.
 export function Sheet({
-  open,
+  open: openProp,
   onOpenChange,
   title,
   children,
@@ -68,14 +95,21 @@ export function Sheet({
   // A small button beside the title (e.g. the camera), where it takes no room.
   action?: ReactNode;
 }) {
+  const [uncontrolled, setUncontrolled] = useState(false);
+  const open = openProp !== undefined ? openProp : uncontrolled;
+  function setOpen(next: boolean) {
+    if (openProp === undefined) setUncontrolled(next);
+    onOpenChange?.(next);
+  }
+  useSheetBack(Boolean(open), () => setOpen(false));
   return (
     // handleOnly: only the grip at the top drags the sheet down, so
     // scrolling a long form never pulls it shut by accident.
-    <Drawer.Root open={open} onOpenChange={onOpenChange} handleOnly>
+    <Drawer.Root open={open} onOpenChange={setOpen} handleOnly>
       {trigger ? <Drawer.Trigger asChild>{trigger}</Drawer.Trigger> : null}
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]" />
-        <Drawer.Content className="accent-scope fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] max-w-xl flex-col rounded-t-2xl border border-line bg-surface outline-none">
+        <Drawer.Overlay className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-[2px]" />
+        <Drawer.Content className="accent-scope fixed inset-x-0 bottom-0 z-[80] mx-auto flex max-h-[92dvh] max-w-xl flex-col rounded-t-2xl border border-line bg-surface outline-none">
           <Drawer.Handle className="!mt-2.5 !h-1.5 !w-12 shrink-0 !bg-line" />
           <div className="flex items-center justify-between gap-3 pl-5 pr-2">
             <Drawer.Title className="min-w-0 flex-1 pb-2 pt-3 text-base font-semibold">{title}</Drawer.Title>
@@ -344,16 +378,6 @@ export function DictateInput({
         </button>
       ) : null}
     </div>
-  );
-}
-
-// The one "Više polja" switch of a form: rarely needed fields stay folded.
-export function MoreToggle({ open, onToggle, className }: { open: boolean; onToggle: () => void; className?: string }) {
-  return (
-    <button type="button" onClick={onToggle} className={cn('flex w-full items-center justify-center gap-1.5 py-1.5 text-sm font-medium text-muted hover:text-fg', className)}>
-      <ChevronDown className={cn('size-4 transition-transform', open && 'rotate-180')} />
-      {open ? 'Manje polja' : 'Više polja'}
-    </button>
   );
 }
 

@@ -102,7 +102,7 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
                                 {active ? <span className="ml-1.5 text-xs font-normal text-accent">· sada</span> : null}
                               </span>
                               <span className="block w-full break-words text-xs text-muted">{nameOf(tenant.id, role) ?? hint}</span>
-                              <span className="block w-full break-words text-[11px] text-faint">{hint}</span>
+                              <span className="block w-full break-words text-xs text-faint">{hint}</span>
                             </button>
                           </form>
                         );

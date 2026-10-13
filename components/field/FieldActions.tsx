@@ -140,7 +140,7 @@ export function FieldActions({ job, site, ctx, variant = 'card' }: { job: FieldJ
               <li key={s.label} className={cn('rounded-xl border p-2.5', s.at ? 'border-ok/40 bg-ok/5' : 'border-line')}>
                 <p className="text-xs text-muted">{s.label}</p>
                 <p className="text-sm font-semibold tabular">{s.at ? time(s.at) : '-'}</p>
-                {s.extra ? <p className="text-[11px] text-faint">{s.extra}</p> : null}
+                {s.extra ? <p className="text-xs text-faint">{s.extra}</p> : null}
               </li>
             ))}
           </ol>

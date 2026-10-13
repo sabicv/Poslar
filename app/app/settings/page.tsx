@@ -8,6 +8,7 @@ import { ReferralShare } from '@/components/billing/ReferralShare';
 import { SupportWhatsApp } from '@/components/SupportWhatsApp';
 import { DailySummaryControls } from '@/components/settings/DailySummaryControls';
 import { DeleteAccount } from '@/components/settings/DeleteAccount';
+import { Fold } from '@/components/Fold';
 import { Badge, Card, CardHeader, KeyValue, NavRow, PageHeader } from '@/components/ui';
 import { HELP_TOPICS } from '@/config/help';
 import { LEGAL_PAGES } from '@/config/legal';
@@ -16,7 +17,7 @@ import { aiUsageThisMonth } from '@/lib/ai-usage';
 import { loadHelpVideos } from '@/lib/help';
 import { isPlayApp } from '@/lib/play';
 import { hasModule } from '@/config/tenant.config';
-import { formatDate } from '@/lib/format';
+import { formatDate, plural } from '@/lib/format';
 import { appOrigin } from '@/lib/qr';
 import { isPlatformAdmin, requireWorkshop } from '@/lib/session';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -78,6 +79,7 @@ export default async function SettingsPage() {
           <NavRow href="/admin" title="Toranj" subtitle="Radionice, pretplate, podrška i greške" />
         </Card>
       ) : null}
+      <h2 className="px-1 type-kicker">Račun</h2>
       <Card>
         <CardHeader title="Moj račun" subtitle={ctx.user.email} />
         <div className="space-y-5 p-4">
@@ -86,20 +88,23 @@ export default async function SettingsPage() {
             phone={ctx.profile.phone ?? ''}
             fgasCertificate={hasModule(ctx.pkg, ctx.tenant.enabled_modules, 'fgas') ? (ctx.profile.fgas_certificate ?? '') : undefined}
           />
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted">Izgled</p>
+        </div>
+        <Fold plain title="Izgled" summary="Svijetlo ili tamno">
+          <div className="p-4">
             <ThemeToggle />
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line px-4 py-3 text-sm">
-          {!isDemo ? (
-            <>
+        </Fold>
+        {!isDemo ? (
+          <Fold plain title="Lozinka i brisanje" summary="Promjena lozinke ili zahtjev za brisanje">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm">
               <Link href="/nova-lozinka" className="font-medium text-accent hover:underline">
                 Promijeni lozinku
               </Link>
               <DeleteAccount owner={ctx.isOwner} />
-            </>
-          ) : null}
+            </div>
+          </Fold>
+        ) : null}
+        <div className="border-t border-line px-4 py-3 text-sm">
           <form action={signOut}>
             <button type="submit" className="inline-flex min-h-12 items-center gap-2 font-medium text-muted hover:text-fg">
               <LogOut className="size-4" />
@@ -108,37 +113,43 @@ export default async function SettingsPage() {
           </form>
         </div>
       </Card>
-      {ctx.isOwner ? (
-        <Card>
-          <CardHeader title="Pretplata" />
+    </div>
+  );
+
+  const billing = ctx.isOwner ? (
+    <div className="space-y-4">
+      <h2 className="px-1 type-kicker">Pretplata</h2>
+      <Card>
+        <div className="divide-y divide-line px-4">
+          <KeyValue label="Zanat">{ctx.pkg.product}</KeyValue>
+          <KeyValue label="Status">
+            <Badge tone={t.status === 'active' ? 'ok' : t.status === 'trial' ? 'warn' : 'crit'}>{t.status === 'active' ? 'Aktivno' : t.status === 'trial' ? 'Probno razdoblje' : 'Isključeno'}</Badge>
+          </KeyValue>
+          {t.status === 'trial' ? <KeyValue label="Proba traje do">{formatDate(t.trial_ends_at)}</KeyValue> : null}
+          {play ? (
+            <KeyValue label="Paket">{`${plan.name} · ${plan.people}`}</KeyValue>
+          ) : (
+            <>
+              <KeyValue label="Paket">{`${plan.name} · ${plan.people} · ${monthlyPrice(t.plan, t.billing_term, t.founder_until)} € mjesečno`}</KeyValue>
+              <KeyValue label="Plaćanje">{TERM_LABELS[t.billing_term] ?? TERM_LABELS.monthly}</KeyValue>
+            </>
+          )}
+          {t.paid_until ? <KeyValue label="Plaćeno do">{formatDate(t.paid_until)}</KeyValue> : null}
+        </div>
+        <Fold plain title="Korištenje ovaj mjesec" summary={`${AI_LABELS.scan} ${scans}, ${AI_LABELS.copilot} ${answers}`}>
           <div className="divide-y divide-line px-4">
-            <KeyValue label="Zanat">{ctx.pkg.product}</KeyValue>
-            <KeyValue label="Status">
-              <Badge tone={t.status === 'active' ? 'ok' : t.status === 'trial' ? 'warn' : 'crit'}>{t.status === 'active' ? 'Aktivno' : t.status === 'trial' ? 'Probno razdoblje' : 'Isključeno'}</Badge>
-            </KeyValue>
-            {t.status === 'trial' ? <KeyValue label="Proba traje do">{formatDate(t.trial_ends_at)}</KeyValue> : null}
-            {play ? (
-              <KeyValue label="Paket">{`${plan.name} · ${plan.people}`}</KeyValue>
-            ) : (
-              <>
-                <KeyValue label="Paket">{`${plan.name} · ${plan.people} · ${monthlyPrice(t.plan, t.billing_term, t.founder_until)} € mjesečno`}</KeyValue>
-                <KeyValue label="Plaćanje">{TERM_LABELS[t.billing_term] ?? TERM_LABELS.monthly}</KeyValue>
-              </>
-            )}
-            {t.paid_until ? <KeyValue label="Plaćeno do">{formatDate(t.paid_until)}</KeyValue> : null}
-            <KeyValue label={`${AI_LABELS.scan} ovaj mjesec`}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>
-            <KeyValue label={`${AI_LABELS.copilot} ovaj mjesec`}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
+            <KeyValue label={AI_LABELS.scan}>{`${scans} od ${aiQuota(t.plan, t.ai_quota, 'scan')}`}</KeyValue>
+            <KeyValue label={AI_LABELS.copilot}>{`${answers} od ${aiQuota(t.plan, t.ai_quota, 'copilot')}`}</KeyValue>
           </div>
-          {!play ? (
-            <div className="border-t border-line">
-              <NavRow href="/app/settings/pretplata" title="Paketi i uplata" />
-            </div>
-          ) : null}
-        </Card>
-      ) : null}
+        </Fold>
+        {!play ? (
+          <div className="border-t border-line">
+            <NavRow href="/app/settings/pretplata" title="Paketi i uplata" />
+          </div>
+        ) : null}
+      </Card>
       {referral ? (
-        <Card>
-          <CardHeader title="Preporučite Poslar" subtitle="Kolega se registrira preko Vaše poveznice. Kad plati prvu pretplatu, Vi dobivate mjesec dana gratis." />
+        <Fold title="Preporuka kolegi" summary="Mjesec dana gratis kad kolega plati prvu pretplatu">
           <div className="p-4">
             <ReferralShare link={referral.link} workshop={t.name} />
           </div>
@@ -148,10 +159,16 @@ export default async function SettingsPage() {
               <KeyValue label="Od toga plaća">{referral.paid}</KeyValue>
             </div>
           ) : null}
-        </Card>
+        </Fold>
       ) : null}
+    </div>
+  ) : null;
+
+  const help = (
+    <div className="space-y-4">
+      <h2 className="px-1 type-kicker">Pomoć</h2>
       <Card>
-        <CardHeader title="Pomoć" subtitle="Nešto ne radi ili Vam nešto treba? Javite nam." />
+        <CardHeader title="Javite nam" subtitle="Nešto ne radi ili Vam nešto treba." />
         <div className="flex flex-wrap items-center gap-2 p-4">
           <SupportButton />
           <SupportWhatsApp
@@ -169,8 +186,7 @@ export default async function SettingsPage() {
           ) : null}
         </div>
         {videos.length ? (
-          <div className="border-t border-line">
-            <p className="px-4 pt-3 text-xs font-medium text-muted">Video upute</p>
+          <Fold plain title="Video upute" summary={`${videos.length}`}>
             <ul className="py-1">
               {videos.map((v) => (
                 <li key={v.id}>
@@ -181,7 +197,7 @@ export default async function SettingsPage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Fold>
         ) : null}
       </Card>
       <p className="flex flex-wrap gap-x-4 gap-y-1 px-1 text-xs text-faint">
@@ -196,27 +212,24 @@ export default async function SettingsPage() {
 
   const workshop = ctx.isOwner ? (
     <div className="space-y-4">
-      <Card>
-        <CardHeader title={place} />
+      <h2 className="px-1 type-kicker">{place}</h2>
+      <Fold title={`Podaci: ${t.name}`} summary={[t.city, t.phone].filter(Boolean).join(' · ') || 'Naziv, adresa, telefon'}>
         <div className="space-y-5 p-4">
           <LogoUpload tenantId={t.id} logoUrl={t.logo_url} />
           <WorkshopForm tenant={{ name: t.name, oib: t.oib ?? '', phone: t.phone ?? '', email: t.email ?? '', address: t.address ?? '', city: t.city ?? '' }} />
         </div>
-        <details className="border-t border-line">
-          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium hover:bg-surface2 [&::-webkit-details-marker]:hidden">
-            Podaci na računu <span className="text-faint">›</span>
-          </summary>
-          <div className="border-t border-line p-4">
-            <BillingForm
-              billing={(() => {
-                const b = billingFrom(t.settings);
-                const fiscal = (t.settings as { fiscal?: { premises?: string; device?: string; operator?: string } | null } | null)?.fiscal;
-                return { iban: b.iban ?? '', vatRegistered: b.vatRegistered, note: b.note ?? '', premises: fiscal?.premises ?? '', device: fiscal?.device ?? '', operator: fiscal?.operator ?? '' };
-              })()}
-            />
-          </div>
-        </details>
-      </Card>
+      </Fold>
+      <Fold title="Podaci na računu" summary="IBAN, PDV i oznake fiskalizacije">
+        <div className="p-4">
+          <BillingForm
+            billing={(() => {
+              const b = billingFrom(t.settings);
+              const fiscal = (t.settings as { fiscal?: { premises?: string; device?: string; operator?: string } | null } | null)?.fiscal;
+              return { iban: b.iban ?? '', vatRegistered: b.vatRegistered, note: b.note ?? '', premises: fiscal?.premises ?? '', device: fiscal?.device ?? '', operator: fiscal?.operator ?? '' };
+            })()}
+          />
+        </div>
+      </Fold>
       <Card>
         <div className="divide-y divide-line">
           <NavRow
@@ -238,19 +251,18 @@ export default async function SettingsPage() {
           </div>
         ) : null}
       </Card>
-      <Card>
-        <CardHeader title="Tim" subtitle="Radnici vide naloge, ali ne i iznose" action={<VideoChip href={links.team} />} />
-        <div className="p-4">
+      <Fold title="Tim" summary={`${(staff ?? []).length} ${plural((staff ?? []).length, 'osoba', 'osobe', 'osoba')} · radnici ne vide iznose`}>
+        <div className="space-y-3 p-4">
+          <VideoChip href={links.team} />
           <TeamManager me={ctx.user.id} staff={((staff ?? []) as Profile[]).map((p) => ({ id: p.id, name: p.full_name ?? '-', role: p.role }))} />
         </div>
-      </Card>
+      </Fold>
       {ctx.pkg.optionalModules.length ? (
-        <Card>
-          <CardHeader title="Dodatni moduli" />
+        <Fold title="Dodatni moduli" summary="Uključite ono što ova radionica koristi">
           <div className="p-4">
             <ModuleToggles modules={ctx.pkg.optionalModules.map((m) => ({ id: m, label: MODULE_LABELS[m] ?? m, on: t.enabled_modules.includes(m) }))} />
           </div>
-        </Card>
+        </Fold>
       ) : null}
     </div>
   ) : null;
@@ -258,14 +270,12 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title="Postavke" />
-      {ctx.isOwner ? (
-        <div className="grid items-start gap-4 lg:grid-cols-2">
-          {account}
-          {workshop}
-        </div>
-      ) : (
-        <div className="mx-auto max-w-xl">{account}</div>
-      )}
+      <div className="mx-auto max-w-xl space-y-8">
+        {workshop}
+        {billing}
+        {account}
+        {help}
+      </div>
     </>
   );
 }

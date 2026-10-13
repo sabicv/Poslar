@@ -1,11 +1,12 @@
 import { Droplets, Gauge } from 'lucide-react';
+import { ShotButton } from '@/components/job/ShotButton';
 import { Badge, Card, CardHeader, KeyValue } from '@/components/ui';
 import { ENERGY_LABELS, pressureDrop } from '@/config/packages/aqua';
 import type { AssetType } from '@/config/tenant.config';
 import { assetTitle, formatDate, formatDateTime, formatNumber } from '@/lib/format';
 import { addMonths, todayInZagreb } from '@/lib/time';
 import type { ModuleProps } from '../ModuleTab';
-import { MoreSections, foldable } from '../more';
+import { Offer, foldable } from '../more';
 import { DeleteRecordButton, RecordSheet } from '../kit';
 import { opts } from '../options';
 import { PlanCard } from '../PlanCard';
@@ -24,7 +25,7 @@ export async function AquaModule({ ctx, job, locked, extras }: ModuleProps) {
   ]);
   const plan = (plans ?? []).find((p) => p.asset_id === job.asset.id) ?? (plans ?? []).find((p) => !p.asset_id && p.site_id === job.site_id) ?? null;
 
-  const { show, hidden } = foldable(extras);
+  const { show, open } = foldable(extras);
   const showPlate = show('podaci uređaja', WITH_PLATE.includes(job.asset.asset_type) || Boolean(device));
   const showPlan = show('servisni plan', WITH_PLATE.includes(job.asset.asset_type) || Boolean(plan));
 
@@ -94,12 +95,16 @@ export async function AquaModule({ ctx, job, locked, extras }: ModuleProps) {
             })}
           </ul>
         ) : (
-          <p className="px-4 py-4 text-sm text-muted">Nakon nove instalacije ili popravka upišite probu. Fotografirajte manometar u kartici Fotografije.</p>
+          <div className="space-y-3 px-4 py-4">
+            <p className="text-sm text-muted">Nakon nove instalacije ili popravka upišite probu.</p>
+            {!locked ? <ShotButton tenantId={ctx.tenant.id} jobId={job.id} tag="meter" caption="Manometar" label="Fotografija manometra" /> : null}
+          </div>
         )}
       </Card>
 
       {/* Plate data */}
       {showPlate ? (
+        <Offer title="Podaci uređaja" summary={device ? [device.capacity_l != null && `${formatNumber(Number(device.capacity_l), 0)} l`, device.power_kw != null && `${formatNumber(Number(device.power_kw), 1)} kW`].filter(Boolean).join(' · ') || 'Upisano' : 'Volumen, snaga, anoda'} filled={open('podaci uređaja')}>
         <Card>
           <CardHeader
             title={
@@ -150,10 +155,14 @@ export async function AquaModule({ ctx, job, locked, extras }: ModuleProps) {
             <p className="px-4 py-4 text-sm text-muted">Upišite volumen, snagu i kad je mijenjana anoda. Pločicu možete i slikati.</p>
           )}
         </Card>
+        </Offer>
       ) : null}
 
-      {showPlan ? <PlanCard ctx={ctx} job={job} plan={plan} title={`Godišnji servis: ${assetTitle(job.asset)}`} templateCode={job.asset.asset_type === 'gas_boiler' ? 'aqua.boiler_service' : 'aqua.heater_service'} /> : null}
-      <MoreSections href={`${path}?tab=modul&vise=1`} hidden={hidden} />
+      {showPlan ? (
+        <Offer title="Servisni plan" summary={plan ? 'Aktivan' : 'Godišnji servis'} filled={open('servisni plan')}>
+          <PlanCard ctx={ctx} job={job} plan={plan} title={`Godišnji servis: ${assetTitle(job.asset)}`} templateCode={job.asset.asset_type === 'gas_boiler' ? 'aqua.boiler_service' : 'aqua.heater_service'} />
+        </Offer>
+      ) : null}
     </div>
   );
 }
